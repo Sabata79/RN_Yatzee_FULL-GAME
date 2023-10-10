@@ -240,6 +240,10 @@ export default function Gameboard({ navigation, route }) {
 
         // Valitun kentän väri OK!!!
         const isSelected = selectedField === index;
+
+        // Set points buttonin disablointi OK!!!
+        const isSetPointsButtonDisabled = selectedField === null;
+
         // Indeksit Gridin kohdille OK!!!
         if (index === 0) {
             return (
@@ -527,7 +531,7 @@ export default function Gameboard({ navigation, route }) {
         }
 
         const selectDice = (i) => {
-            if (nbrOfThrowsLeft < NBR_OF_THROWS && !gameEndStatus) {
+            if (nbrOfThrowsLeft < NBR_OF_THROWS) {
                 let dices = [...selectedDices];
                 dices[i] = !dices[i];
                 setSelectedDices(dices);
@@ -579,6 +583,7 @@ export default function Gameboard({ navigation, route }) {
                                 <Text style={styles.nbrThrowsText}>{nbrOfThrowsLeft}</Text>
                             </Pressable>
                             <Pressable
+                                disabled={!selectedField} // Disabloi kun kenttää ei ole valittu
                                 style={({ pressed }) => [
                                     styles.button,
                                     pressed && styles.buttonPressed,
@@ -587,7 +592,7 @@ export default function Gameboard({ navigation, route }) {
                                     setPoints();
                                     setNbrOfThrowsLeft(NBR_OF_THROWS);
                                     resetDiceSelection();
-                                    
+
                                 }}>
                                 <Text style={styles.buttonText}>Set points</Text>
                             </Pressable>
