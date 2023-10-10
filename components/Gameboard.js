@@ -36,6 +36,12 @@ export default function Gameboard({ navigation, route }) {
 
     //valinta listana  OK!!! true/false
     const [selectedDices, setSelectedDices] = useState(new Array(NBR_OF_DICES).fill(false));
+
+    //Noppa valintojen resetointi OK!!!
+    const resetDiceSelection = () => {
+        setSelectedDices(new Array(NBR_OF_DICES).fill(false));
+    };
+
     /* console.log(selectedDices); */
 
     //Noppien silmäluvut listana, OK!!!
@@ -580,6 +586,8 @@ export default function Gameboard({ navigation, route }) {
                                 onPress={() => {
                                     setPoints();
                                     setNbrOfThrowsLeft(NBR_OF_THROWS);
+                                    resetDiceSelection();
+                                    
                                 }}>
                                 <Text style={styles.buttonText}>Set points</Text>
                             </Pressable>
