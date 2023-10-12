@@ -14,12 +14,18 @@ export default function Gameboard({ navigation, route }) {
     useEffect(() => {
         if (playerName === '' && route.params?.player) {
             setPlayerName(route.params.player);
+            resetGame();
         }
-    }, []);
+
+    }, [route.params?.player, route.params?.reset]);
+
+    const resetGame = () => {
+        board = [];
+    };
 
     // Gridin luominen OK!!!
     const [data, setData] = useState([
-        ...Array.from({ length: 31 }, (_, index) => ({ key: String(index + 2) })),
+        ...Array.from({ length: 32 }, (_, index) => ({ key: String(index + 2) })),
     ]);
 
     // Pelaajan jäljellä olevat heitot OK!!!
@@ -248,7 +254,7 @@ export default function Gameboard({ navigation, route }) {
         if (index === 0) {
             return (
                 <View style={styles.item}>
-                    <MaterialCommunityIcons name="dice-1" size={55} style={styles.icon} />
+                    <MaterialCommunityIcons name="dice-1" size={45} style={styles.icon} />
                 </View>
             );
             //SUM OF ONES
@@ -256,7 +262,7 @@ export default function Gameboard({ navigation, route }) {
             return (
                 <Pressable onPress={() => handlePressField(index)}>
                     <View style={[styles.item, isSelected ? styles.selectScorePressed : styles.selectScore]}>
-                        <Text>{OnesSum}</Text>
+                        <Text style={styles.inputIndexShown}>{OnesSum}</Text>
                     </View>
                 </Pressable>
             );
@@ -271,14 +277,14 @@ export default function Gameboard({ navigation, route }) {
             return (
                 <Pressable onPress={() => handlePressField(index)}>
                     <View style={[styles.item, isSelected ? styles.selectScorePressed : styles.selectScore]}>
-                        <Text>{ThreeOfAKindSum}</Text>
+                        <Text style={styles.inputIndexShown}>{ThreeOfAKindSum}</Text>
                     </View>
                 </Pressable>
             );
         } else if (index === 4) {
             return (
                 <View style={styles.item}>
-                    <MaterialCommunityIcons name="dice-2" size={55} color="white" />
+                    <MaterialCommunityIcons name="dice-2" size={45} color="white" />
                 </View>
             );
             //SUM OF TWOS
@@ -286,7 +292,7 @@ export default function Gameboard({ navigation, route }) {
             return (
                 <Pressable onPress={() => handlePressField(index)}>
                     <View style={[styles.item, isSelected ? styles.selectScorePressed : styles.selectScore]}>
-                        <Text>{TwoSum}</Text>
+                        <Text style={styles.inputIndexShown}>{TwoSum}</Text>
                     </View>
                 </Pressable>
             );
@@ -301,14 +307,14 @@ export default function Gameboard({ navigation, route }) {
             return (
                 <Pressable onPress={() => handlePressField(index)}>
                     <View style={[styles.item, isSelected ? styles.selectScorePressed : styles.selectScore]}>
-                        <Text>{FourOfAKindSum}</Text>
+                        <Text style={styles.inputIndexShown}>{FourOfAKindSum}</Text>
                     </View>
                 </Pressable>
             );
         } else if (index === 8) {
             return (
                 <View style={styles.item}>
-                    <MaterialCommunityIcons name="dice-3" size={55} color="white" />
+                    <MaterialCommunityIcons name="dice-3" size={45} color="white" />
                 </View>
             );
             //SUM OF THREES
@@ -316,14 +322,14 @@ export default function Gameboard({ navigation, route }) {
             return (
                 <Pressable onPress={() => handlePressField(index)}>
                     <View style={[styles.item, isSelected ? styles.selectScorePressed : styles.selectScore]}>
-                        <Text>{ThreeSum}</Text>
+                        <Text style={styles.inputIndexShown}>{ThreeSum}</Text>
                     </View>
                 </Pressable>
             );
         } else if (index === 10) {
             return (
                 <View style={styles.item}>
-                    <MaterialCommunityIcons name="home" size={30} color="white" />
+                    <MaterialCommunityIcons name="home" size={25} color="white" />
                     <Text style={{ fontSize: 10, color: 'white' }}>fullhouse</Text>
                 </View>
             );
@@ -332,14 +338,14 @@ export default function Gameboard({ navigation, route }) {
             return (
                 <Pressable onPress={() => handlePressField(index)}>
                     <View style={[styles.item, isSelected ? styles.selectScorePressed : styles.selectScore]}>
-                        <Text>{fullhouseValue}</Text>
+                        <Text style={styles.inputIndexShown}>{fullhouseValue}</Text>
                     </View>
                 </Pressable>
             );
         } else if (index === 12) {
             return (
                 <View style={styles.item}>
-                    <MaterialCommunityIcons name="dice-4" size={55} color="white" />
+                    <MaterialCommunityIcons name="dice-4" size={45} color="white" />
                 </View>
             );
             //SUM OF FOURS
@@ -347,14 +353,14 @@ export default function Gameboard({ navigation, route }) {
             return (
                 <Pressable onPress={() => handlePressField(index)}>
                     <View style={[styles.item, isSelected ? styles.selectScorePressed : styles.selectScore]}>
-                        <Text>{FoursSum}</Text>
+                        <Text style={styles.inputIndexShown}>{FoursSum}</Text>
                     </View>
                 </Pressable>
             );
         } else if (index === 14) {
             return (
                 <View style={styles.item}>
-                    <MaterialCommunityIcons name="cards-outline" size={30} color="white" />
+                    <MaterialCommunityIcons name="cards-outline" size={25} color="white" />
                     <Text style={{ fontSize: 10, color: 'white' }}>small</Text>
                 </View>
             );
@@ -363,14 +369,14 @@ export default function Gameboard({ navigation, route }) {
             return (
                 <Pressable onPress={() => handlePressField(index)}>
                     <View style={[styles.item, isSelected ? styles.selectScorePressed : styles.selectScore]}>
-                        <Text>{smallStraightValue}</Text>
+                        <Text style={styles.inputIndexShown}>{smallStraightValue}</Text>
                     </View>
                 </Pressable>
             );
         } else if (index === 16) {
             return (
                 <View style={styles.item}>
-                    <MaterialCommunityIcons name="dice-5" size={55} color="white" />
+                    <MaterialCommunityIcons name="dice-5" size={45} color="white" />
                 </View>
             );
             //SUM OF FIVES
@@ -378,14 +384,14 @@ export default function Gameboard({ navigation, route }) {
             return (
                 <Pressable onPress={() => handlePressField(index)}>
                     <View style={[styles.item, isSelected ? styles.selectScorePressed : styles.selectScore]}>
-                        <Text>{FifthSum}</Text>
+                        <Text style={styles.inputIndexShown}>{FifthSum}</Text>
                     </View>
                 </Pressable>
             );
         } else if (index === 18) {
             return (
                 <View style={styles.item}>
-                    <MaterialCommunityIcons name="cards-outline" size={30} color="white" />
+                    <MaterialCommunityIcons name="cards-outline" size={25} color="white" />
                     <Text style={{ fontSize: 10, color: 'white' }}>large</Text>
                 </View>
             );
@@ -394,14 +400,14 @@ export default function Gameboard({ navigation, route }) {
             return (
                 <Pressable onPress={() => handlePressField(index)}>
                     <View style={[styles.item, isSelected ? styles.selectScorePressed : styles.selectScore]}>
-                        <Text>{largeStraightValue}</Text>
+                        <Text style={styles.inputIndexShown}>{largeStraightValue}</Text>
                     </View>
                 </Pressable>
             );
         } else if (index === 20) {
             return (
                 <View style={styles.item}>
-                    <MaterialCommunityIcons name="dice-6" size={55} color="white" />
+                    <MaterialCommunityIcons name="dice-6" size={45} color="white" />
                 </View>
             );
             //SUM OF SIXES
@@ -409,14 +415,14 @@ export default function Gameboard({ navigation, route }) {
             return (
                 <Pressable onPress={() => handlePressField(index)}>
                     <View style={[styles.item, isSelected ? styles.selectScorePressed : styles.selectScore]}>
-                        <Text>{SixSum}</Text>
+                        <Text style={styles.inputIndexShown}>{SixSum}</Text>
                     </View>
                 </Pressable>
             );
         } else if (index === 22) {
             return (
                 <View style={styles.item}>
-                    <MaterialCommunityIcons name="star-outline" size={30} color="white" />
+                    <MaterialCommunityIcons name="star-outline" size={25} color="white" />
                     <Text style={{ fontSize: 10, color: 'white' }}>Yatzy</Text>
                 </View>
             );
@@ -425,14 +431,14 @@ export default function Gameboard({ navigation, route }) {
             return (
                 <Pressable onPress={() => handlePressField(index)}>
                     <View style={[styles.item, isSelected ? styles.selectScorePressed : styles.selectScore]}>
-                        <Text>{Yatzy}</Text>
+                        <Text style={styles.inputIndexShown}>{Yatzy}</Text>
                     </View>
                 </Pressable>
             );
         } else if (index === 26) {
             return (
                 <View style={styles.item}>
-                    <MaterialCommunityIcons name="account-question-outline" size={30} color="white" />
+                    <MaterialCommunityIcons name="account-question-outline" size={25} color="white" />
                     <Text style={{ fontSize: 10, color: 'white' }}>Change</Text>
                 </View>
             );
@@ -441,11 +447,11 @@ export default function Gameboard({ navigation, route }) {
             return (
                 <Pressable onPress={() => handlePressField(index)}>
                     <View style={[styles.item, isSelected ? styles.selectScorePressed : styles.selectScore]}>
-                        <Text>{sumRolledDices}</Text>
+                        <Text style={styles.inputIndexShown}>{sumRolledDices}</Text>
                     </View>
                 </Pressable>
             );
-        } else if (index === 28) {
+        } else if (index === 24) {
             return (
                 <View style={styles.item}>
                     <View style={styles.sectionContainer}>
@@ -454,22 +460,16 @@ export default function Gameboard({ navigation, route }) {
                     </View>
                 </View>
             );
+        } else if (index === 25) {
+            return (
+                <View style={styles.item}>
+                    <Text style={[styles.inputIndexShown, {color:'black'}]}>/63</Text>
+                </View>
+            );
         } else if (index === 29) {
             return (
                 <View style={styles.item}>
-                    <Text style={styles.sectionBonusTxt}>/63</Text>
-                </View>
-            );
-        } else if (index === 30) {
-            return (
-                <View style={styles.item}>
-                    <Text style={styles.sectionBonusTxt}>Total:</Text>
-                </View>
-            );
-        } else if (index === 31) {
-            return (
-                <View style={styles.item}>
-                    <Text style={styles.sectionBonusTxt}></Text>
+                    <Text style={[styles.inputIndexShown, {color:'black'}]}>Total:</Text>
                 </View>
             );
         } else {
@@ -514,7 +514,7 @@ export default function Gameboard({ navigation, route }) {
                     <MaterialCommunityIcons
                         name={board[i]}
                         key={"diceRow" + i}
-                        size={60}
+                        size={45}
                         color={getDiceColor(i)}>
                     </MaterialCommunityIcons>
                 </Pressable>
@@ -592,9 +592,9 @@ export default function Gameboard({ navigation, route }) {
                                     setPoints();
                                     setNbrOfThrowsLeft(NBR_OF_THROWS);
                                     resetDiceSelection();
-
                                 }}>
                                 <Text style={styles.buttonText}>Set points</Text>
+                                <MaterialCommunityIcons name="beaker-plus" size={25} color="black" />
                             </Pressable>
                         </>
                     )}

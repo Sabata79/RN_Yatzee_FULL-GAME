@@ -10,9 +10,17 @@ import styles from './styles/styles';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
-
+import { useFonts } from 'expo-font';
 
 export default function App() {
+  const [loaded] = useFonts({
+    AntonRegular: require('./assets/fonts/Anton-Regular.ttf'),
+  });
+  if (!loaded) {
+    console.log('Font not loaded yet');
+    return null;
+  }
+  console.log('Font loaded successfully');
   const Tab = createBottomTabNavigator();
 
   return (
@@ -25,7 +33,8 @@ export default function App() {
               headerShown: false,
               tabBarStyle: {
                 height: 65,
-                backgroundColor: 'darkorange'
+                backgroundColor: 'darkorange',
+                 paddingBottom: 5,
               },
               tabBarActiveTintColor: 'red',
               tabBarInactiveTintColor: 'black',

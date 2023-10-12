@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
-    "start": "expo start --localhost --android",
+    "start": "expo start --tunnel",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web"
@@ -19,7 +19,8 @@
     "react-native-safe-area-context": "^4.6.3",
     "react-native-screens": "~3.22.0",
     "react-native-vector-icons": "^10.0.0",
-    "undefined": "@react\u0002navigation/bottom-tabs"
+    "undefined": "@react\u0002navigation/bottom-tabs",
+    "expo-font": "~11.4.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0"

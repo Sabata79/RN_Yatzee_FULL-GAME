@@ -4,9 +4,7 @@ import Constants from 'expo-constants';
 export default styles = StyleSheet.create({
     container: {
         flex: 1,
-        justifyContent: 'stretch',
         backgroundColor: '#85715d',
-
     },
     homeContainer: {
         flex: 1,
@@ -36,9 +34,14 @@ export default styles = StyleSheet.create({
         justifyContent: 'center',
         textAlign: 'center',
     },
+    inputIndexShown: {
+        fontSize: 16,
+        fontFamily: 'AntonRegular',
+        color: '#b39f7e',
+    },
     item: {
         flex: 1,
-        height: 50,
+        height: 40,
         /* borderWidth: 2, */
         alignItems: 'center',
         justifyContent: 'center',
@@ -64,9 +67,10 @@ export default styles = StyleSheet.create({
     playerText: {
         color: '#fff',
         fontWeight: 'bold',
-        fontSize: 14,
+        fontSize: 18,
         paddingTop: 5,
         textAlign: 'center',
+        /* fontFamily: 'AntonRegular', */
     },
     firstRow: {
         flexDirection: 'row',
@@ -80,14 +84,50 @@ export default styles = StyleSheet.create({
     diceContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginTop: 5,
+        alignItems: 'center',
     },
     homeButton: {
         margin: 15,
         flexDirection: 'row',
         padding: 5,
         backgroundColor: 'orange',
-        width: '20%',
+        width: 200,
+        borderRadius: 5,
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowColor: '#000000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5,
+    },
+    homeButtonPressed: {
+        margin: 15,
+        flexDirection: 'row',
+        padding: 5,
+        backgroundColor: 'orange',
+        width: 200,
+        borderRadius: 5,
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowColor: '#000000',
+        shadowOffset: {
+            width: 0,
+            height: 0,
+        },
+        shadowOpacity: 0,
+        shadowRadius: 0,
+        elevation: 0,
+    },
+    nameChangeBtn: {
+        margin: 15,
+        flexDirection: 'row',
+        padding: 5,
+        backgroundColor: 'orange',
+        width: '40%',
         borderRadius: 5,
         justifyContent: 'center',
         alignItems: 'center',
@@ -128,6 +168,7 @@ export default styles = StyleSheet.create({
         margin: 5,
         marginTop: 15,
         flexDirection: 'row',
+
         padding: 10,
         backgroundColor: 'orange',
         width: '39%',
@@ -219,6 +260,8 @@ export default styles = StyleSheet.create({
     sectionContainer: {
         width: 70,
         height: 70,
+        marginTop: 40,
+        marginLeft: 10,
         justifyContent: 'center',
         alignItems: 'center',
         padding: 10,
@@ -240,13 +283,13 @@ export default styles = StyleSheet.create({
     },
     gameboard: {
         flex: 1,
-        marginTop: 120,
+        marginTop: 80,
         alignItems: 'center',
         justifyContent: 'center',
     },
     diceBorder: {
         width: '80%',
-        height: 65,
+        height: 50,
         borderWidth: 1,
         borderColor: 'white',
         borderRadius: 4,
