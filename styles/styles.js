@@ -23,7 +23,6 @@ export default styles = StyleSheet.create({
     footer: {
         backgroundColor: 'darkorange',
         flexDirection: 'row',
-        paddingBottom: 5,
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -58,7 +57,7 @@ export default styles = StyleSheet.create({
     },
     firstRowItem: {
         flex: 1,
-        height: 30,
+        height: 25,
         alignItems: 'center',
         justifyContent: 'center',
     },

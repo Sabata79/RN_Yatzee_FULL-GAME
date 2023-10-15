@@ -32,14 +32,13 @@ export default function App() {
             screenOptions={{
               headerShown: false,
               tabBarStyle: {
-                height: 65,
+                height: 60,
                 backgroundColor: 'darkorange',
-                 paddingBottom: 5,
               },
               tabBarActiveTintColor: '#ffffff',
               tabBarInactiveTintColor: '#22201e',
               tabBarLabelStyle: {
-                fontSize: 14,
+                fontSize: 12,
                 fontFamily: 'AntonRegular',
               },
             }}>
@@ -49,7 +48,7 @@ export default function App() {
               options={{
                 tabBarStyle: { display: 'none' },
                 tabBarIcon: () => (
-                  <MaterialCommunityIcons name="home" color={'black'} size={30} />
+                  <MaterialCommunityIcons name="home" color={'black'} size={28} />
                 ),
               }}
             />
@@ -58,7 +57,7 @@ export default function App() {
               component={Gameboard}
               options={{
                 tabBarIcon: () => (
-                  <FontAwesome5 name="dice" size={30} color="black" />
+                  <FontAwesome5 name="dice" size={28} color="black" />
                 ),
               }}
             />
@@ -67,7 +66,7 @@ export default function App() {
               component={Scoreboard}
               options={{
                 tabBarIcon: () => (
-                  <FontAwesome5 name="list" size={30} color="black" />
+                  <FontAwesome5 name="list" size={28} color="black" />
                 ),
               }}
             />
