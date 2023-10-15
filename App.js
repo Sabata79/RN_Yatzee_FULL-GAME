@@ -36,11 +36,11 @@ export default function App() {
                 backgroundColor: 'darkorange',
                  paddingBottom: 5,
               },
-              tabBarActiveTintColor: 'red',
-              tabBarInactiveTintColor: 'black',
+              tabBarActiveTintColor: '#ffffff',
+              tabBarInactiveTintColor: '#22201e',
               tabBarLabelStyle: {
                 fontSize: 14,
-                fontWeight: 'bold',
+                fontFamily: 'AntonRegular',
               },
             }}>
             <Tab.Screen

@@ -31,15 +31,9 @@ export default function Gameboard({ navigation, route }) {
     // Pelaajan jäljellä olevat heitot OK!!!
     const [nbrOfThrowsLeft, setNbrOfThrowsLeft] = useState(NBR_OF_THROWS);
 
-    //Peli Status OK!!!
+    //Peli Status toimii mutta lisäoptiona jos haluan lisätä pelin loppumisen
     const [status, setStatus] = useState('Throw the dices');
-
-    const [gameEndStatus, setGameEndStatus] = useState(false);
-
-    //Pelaajan piste paikat 13kpl OK!!!
-    const [playerPointsTotal, setPlayerPointsTotal] = useState(new Array(MAX_SPOTS).fill(0));
-    console.log('PlayePointsTotal:' + playerPointsTotal);
-
+    /* console.log(status); */
     //valinta listana  OK!!! true/false
     const [selectedDices, setSelectedDices] = useState(new Array(NBR_OF_DICES).fill(false));
 
@@ -48,69 +42,204 @@ export default function Gameboard({ navigation, route }) {
         setSelectedDices(new Array(NBR_OF_DICES).fill(false));
     };
 
-    /* console.log(selectedDices); */
-
     //Noppien silmäluvut listana, OK!!!
     const [rolledDices, setRolledDices] = useState(new Array(NBR_OF_DICES).fill(0));
-    /* console.log(rolledDices); */
+
 
     //Noppien silmäluvut yhteensä OK!!!
     const sumRolledDices = rolledDices.reduce((sum, diceValue) => sum + diceValue, 0);
-    /* console.log(sumRolledDices); */
 
-    // Summat eri silmäluvuille OK!!!
-    const OnesSum = rolledDices.filter(dice => dice === 1).reduce((sum, diceValue) => sum + diceValue, 0);
-    const TwoSum = rolledDices.filter(dice => dice === 2).reduce((sum, diceValue) => sum + diceValue, 0);
-    const ThreeSum = rolledDices.filter(dice => dice === 3).reduce((sum, diceValue) => sum + diceValue, 0);
-    const FoursSum = rolledDices.filter(dice => dice === 4).reduce((sum, diceValue) => sum + diceValue, 0);
-    const FifthSum = rolledDices.filter(dice => dice === 5).reduce((sum, diceValue) => sum + diceValue, 0);
-    const SixSum = rolledDices.filter(dice => dice === 6).reduce((sum, diceValue) => sum + diceValue, 0);
+    const handleSetPoints = () => {
+        if (selectedField !== null) {
+            const selectedCategory = scoringCategories.find(category => category.index === selectedField);
 
-    //Summa jos kolme samaa ja yli OK!!!
-    const ThreeOfAKindSum = rolledDices.reduce((sum, dice) => {
-        if (dice === 0) {
-            return sum;
-        }
-        if (rolledDices.filter(item => item === dice).length >= 3) {
-            return sumRolledDices;
-        }
-        return sum;
-    }, 0);
-    //Summa jos neljä samaa ja yli OK!!!
-    const FourOfAKindSum = rolledDices.reduce((sum, dice) => {
-        if (dice === 0) {
-            return sum;
-        }
-        if (rolledDices.filter(item => item === dice).length >= 4) {
-            return sumRolledDices;
-        }
-        return sum;
-    }, 0);
-    //Yatzy OK!!!
-    const Yatzy = rolledDices.reduce((sum, dice) => {
-        // Tarkista onko noppa 0, jos on niin palauta summa
-        if (dice === 0) {
-            return sum;
-        }
-        // Tarkista onko viisi samaa silmälukua
-        if (rolledDices.filter(item => item === dice).length === 5) {
-            return sum + 50; // Add 50 to the sum for Yatzy
-        }
-        return sum;
-    }, 0);
-    // Täyskäsi OK!!!
-    const FullHouse = () => {
-        const counts = rolledDices.reduce((acc, dice) => {
-            acc[dice] = (acc[dice] || 0) + 1;
-            return acc;
-        }, {});
+            if (selectedCategory) {
+                if (!selectedCategory.locked) {
+                    const points = selectedCategory.calculateScore(rolledDices);
+                    const updatedCategories = scoringCategories.map(category => {
+                        if (category.index === selectedField) {
+                            return {
+                                ...category,
+                                points: points,
+                                locked: true,
+                            };
+                        }
+                        return category;
+                    });
+                    // Päivitää kentän pisteet
+                    setScoringCategories(updatedCategories);
 
-        const countsValues = Object.values(counts);
-        return countsValues.includes(3) && countsValues.includes(2);
+                    // loggaa konsoliin
+                    console.log('Updated scoringCategories:', JSON.stringify(updatedCategories, null, 2));
+                }
+                setSelectedField(null);
+            }
+        }
     };
-    const fullhouseValue = FullHouse() ? 25 : 0;
-    // Pieni suora OK!!!
-    const calculateSmallStraight = () => {
+
+
+    const [scoringCategories, setScoringCategories] = useState([
+        {
+            name: 'ones',
+            index: 1,
+            calculateScore: (rolledDices) => calculateDiceSum(1),
+            locked: false,
+            points: 0,
+        },
+        {
+            name: 'twos',
+            index: 5,
+            calculateScore: (rolledDices) => calculateDiceSum(2),
+            locked: false,
+            points: 0,
+        },
+        {
+            name: 'threes',
+            index: 9,
+            calculateScore: (rolledDices) => calculateDiceSum(3),
+            locked: false,
+            points: 0,
+        },
+        {
+            name: 'fours',
+            index: 13,
+            calculateScore: (rolledDices) => calculateDiceSum(4),
+            locked: false,
+            points: 0,
+        },
+        {
+            name: 'fives',
+            index: 17,
+            calculateScore: (rolledDices) => calculateDiceSum(5),
+            locked: false,
+            points: 0,
+        },
+        {
+            name: 'sixes',
+            index: 21,
+            calculateScore: (rolledDices) => calculateDiceSum(6),
+            locked: false,
+            points: 0,
+        },
+        {
+            name: 'threeOfAKind',
+            index: 3,
+            calculateScore: (rolledDices) => calculateThreeOfAKind(rolledDices),
+            locked: false,
+            points: 0,
+        },
+        {
+            name: 'fourOfAKind',
+            index: 7,
+            calculateScore: (rolledDices) => calculateFourOfAKind(rolledDices),
+            locked: false,
+            points: 0,
+        },
+        {
+            name: 'yatzy',
+            index: 23,
+            calculateScore: (rolledDices) => calculateYatzy(rolledDices),
+            locked: false,
+            points: 0,
+        },
+        {
+            name: 'fullHouse',
+            index: 11,
+            calculateScore: (rolledDices) => calculateFullHouse(rolledDices) ? 25 : 0,
+            locked: false,
+            points: 0,
+        },
+        {
+            name: 'smallStraight',
+            index: 15,
+            calculateScore: (rolledDices) => calculateSmallStraight(rolledDices),
+            locked: false,
+            points: 0,
+        },
+        {
+            name: 'largeStraight',
+            index: 19,
+            calculateScore: (rolledDices) => calculateLargeStraight(rolledDices),
+            locked: false,
+            points: 0,
+        },
+        {
+            name: 'chance',
+            index: 27,
+            calculateScore: (rolledDices) => calculateChange(rolledDices),
+            locked: false,
+            points: 0,
+        },
+        {
+            name: 'sectionMinor',
+            points: 0
+        },
+        {
+            name: 'sectionMajor',
+            points: 0,
+        },
+        {
+            name: 'sectionBonus',
+            points: 0,
+        },
+        {
+            name: 'total',
+            points: 0,
+        },
+
+    ]);
+
+
+    function calculateDiceSum(diceValue) {
+        return rolledDices.reduce((sum, dice) => (dice === diceValue ? sum + dice : sum), 0);
+    }
+    // Kolmoset 
+    function calculateThreeOfAKind(rolledDices) {
+        return rolledDices.reduce((sum, dice) => {
+            if (dice === 0) {
+                return sum;
+            }
+            if (rolledDices.filter(item => item === dice).length >= 3) {
+                return sum + dice;
+            }
+            return sum;
+        }, 0);
+    }
+    // Neloset
+    function calculateFourOfAKind(rolledDices) {
+        return rolledDices.reduce((sum, dice) => {
+            if (dice === 0) {
+                return sum;
+            }
+            if (rolledDices.filter(item => item === dice).length >= 4) {
+                return sum + dice;
+            }
+            return sum;
+        }, 0);
+    }
+    //Yatzy
+    function calculateYatzy(rolledDices) {
+        return rolledDices.reduce((sum, dice) => {
+            if (dice === 0) {
+                return sum;
+            }
+            if (rolledDices.filter(item => item === dice).length === 5) {
+                return 50; // Lisää 50 pistettä
+            }
+            return sum;
+        }, 0);
+    }
+    // Täyskäsi
+    function calculateFullHouse(rolledDices) {
+        const counts = {};
+        for (const dice of rolledDices) {
+            counts[dice] = (counts[dice] || 0) + 1;
+        }
+        const values = Object.values(counts);
+        return values.includes(3) && values.includes(2);
+    }
+    // Pieni suora
+    function calculateSmallStraight(rolledDices) {
         const sortedDiceValues = [...rolledDices].sort((a, b) => a - b);
         const smallStraights = [
             [1, 2, 3, 4],
@@ -120,14 +249,13 @@ export default function Gameboard({ navigation, route }) {
 
         for (const smallStraight of smallStraights) {
             if (smallStraight.every(val => sortedDiceValues.includes(val))) {
-                return 30; // Pienen suoran arvo
+                return 30;
             }
         }
-        return 0; // Jos ei löydy pientä suoraa
-    };
-    const smallStraightValue = calculateSmallStraight();
+        return 0;
+    }
     // Suuri suora OK!!!
-    const calculateLargeStraight = () => {
+    function calculateLargeStraight(rolledDices) {
         const sortedDiceValues = [...rolledDices].sort((a, b) => a - b);
         const largeStraights = [
             [1, 2, 3, 4, 5],
@@ -136,119 +264,52 @@ export default function Gameboard({ navigation, route }) {
 
         for (const largeStraight of largeStraights) {
             if (largeStraight.every(val => sortedDiceValues.includes(val))) {
-                return 40; // Ison suoran arvo
+                return 40;
             }
         }
-        return 0; // Jos ei löydy suurta suoraa
-    };
-    const largeStraightValue = calculateLargeStraight();
-
-
+        return 0;
+    }
+    // Sattuma
+    function calculateChange(rolledDices) {
+        return rolledDices.reduce((sum, dice) => {
+            if (dice === 0) {
+                return sum;
+            }
+            return sum + dice;
+        }, 0);
+    }
 
     const [selectedField, setSelectedField] = useState(null);
-
     const [selecetedValue, setSelectedValue] = useState(null);
-
-
-    // KYSEENALAINEN KOODI, TARVITSEEKO TÄMMÖISTÄ YLIPÄÄTÄNSÄ RAKENTA KUN HALUAA LUKITA TIETYN INDEXIN ARVON??
-    const setPoints = () => {
-
-        if (selectedField !== null) {
-            let newValue = 0;
-            switch (selectedField) {
-                case 1:
-                    setSelectedValue(OnesSum);
-                    break;
-                case 3:
-                    setSelectedValue(ThreeOfAKindSum);
-                    break;
-                case 5:
-                    setSelectedValue(TwoSum);
-                    break;
-                case 7:
-                    setSelectedValue(FourOfAKindSum);
-                    break;
-                case 9:
-                    setSelectedValue(ThreeSum);
-                    break;
-                case 11:
-                    setSelectedValue(fullhouseValue);
-                    break;
-                case 13:
-                    setSelectedValue(FoursSum);
-                    break;
-                case 15:
-                    setSelectedValue(smallStraightValue);
-                    break;
-                case 17:
-                    setSelectedValue(FifthSum);
-                    break;
-                case 19:
-                    setSelectedValue(largeStraightValue);
-                    break;
-                case 21:
-                    setSelectedValue(SixSum);
-                    break;
-                case 23:
-                    setSelectedValue(Yatzy);
-                    break;
-                case 27:
-                    setSelectedValue(sumRolledDices);
-                    break;
-                default:
-                    selecetedValue = 0;
-            }
-            setSelectedField(null);
-            setStatus('Points set successfully')
-        } else {
-            setStatus('Please select a field');
-        }
-    };
+    const [fieldValues, setFieldValues] = useState(new Array(13).fill(null));
 
     const renderFirstRow = () => (
         <>
             <View style={styles.firstRow}>
                 <View style={styles.firstRowItem}>
-                    <Text style={styles.playerText}>{playerName}</Text>
+                    <Text style={{ fontFamily: 'AntonRegular', fontSize: 18, color: '#2f2009' }}>{playerName}</Text>
                 </View>
             </View>
             <View style={styles.firstRow}>
                 <View style={styles.firstRowItem}>
-                    <Text style={styles.text}>Minor</Text>
+                    <Text style={{ fontFamily: 'AntonRegular', fontSize: 18, color: '#e9d99c' }}>Minor</Text>
                 </View>
                 <View style={styles.firstRowItem}>
-                    <Text style={styles.text}>Major</Text>
+                    <Text style={{ fontFamily: 'AntonRegular', fontSize: 18, color: '#e9d99c' }}>Major</Text>
                 </View>
             </View>
         </>
     );
 
-    const renderGrid = ({
-        index,
-        sumRolledDices,
-        OnesSum,
-        TwoSum,
-        ThreeSum,
-        FoursSum,
-        FifthSum,
-        SixSum,
-        ThreeOfAKindSum,
-        FourOfAKindSum,
-        Yatzy,
-        fullhouseValue,
-        smallStraightValue,
-        largeStraightValue
-    }) => {
+    const renderGrid = ({ index, scoringCategories }) => {
 
         const handlePressField = (index) => {
             setSelectedField(index === selectedField ? null : index);
         };
 
+
         // Valitun kentän väri OK!!!
         const isSelected = selectedField === index;
-
-        // Set points buttonin disablointi OK!!!
-        const isSetPointsButtonDisabled = selectedField === null;
 
         // Indeksit Gridin kohdille OK!!!
         if (index === 0) {
@@ -262,7 +323,9 @@ export default function Gameboard({ navigation, route }) {
             return (
                 <Pressable onPress={() => handlePressField(index)}>
                     <View style={[styles.item, isSelected ? styles.selectScorePressed : styles.selectScore]}>
-                        <Text style={styles.inputIndexShown}>{OnesSum}</Text>
+                        <Text style={styles.inputIndexShown}>
+                            {scoringCategories.find(c => c.name === 'ones').calculateScore(rolledDices)}
+                        </Text>
                     </View>
                 </Pressable>
             );
@@ -277,7 +340,9 @@ export default function Gameboard({ navigation, route }) {
             return (
                 <Pressable onPress={() => handlePressField(index)}>
                     <View style={[styles.item, isSelected ? styles.selectScorePressed : styles.selectScore]}>
-                        <Text style={styles.inputIndexShown}>{ThreeOfAKindSum}</Text>
+                        <Text style={styles.inputIndexShown}>
+                            {scoringCategories.find(c => c.name === 'threeOfAKind').calculateScore(rolledDices)}
+                        </Text>
                     </View>
                 </Pressable>
             );
@@ -292,7 +357,9 @@ export default function Gameboard({ navigation, route }) {
             return (
                 <Pressable onPress={() => handlePressField(index)}>
                     <View style={[styles.item, isSelected ? styles.selectScorePressed : styles.selectScore]}>
-                        <Text style={styles.inputIndexShown}>{TwoSum}</Text>
+                        <Text style={styles.inputIndexShown}>
+                            {scoringCategories.find(c => c.name === 'twos').calculateScore(rolledDices)}
+                        </Text>
                     </View>
                 </Pressable>
             );
@@ -307,7 +374,9 @@ export default function Gameboard({ navigation, route }) {
             return (
                 <Pressable onPress={() => handlePressField(index)}>
                     <View style={[styles.item, isSelected ? styles.selectScorePressed : styles.selectScore]}>
-                        <Text style={styles.inputIndexShown}>{FourOfAKindSum}</Text>
+                        <Text style={styles.inputIndexShown}>
+                            {scoringCategories.find(c => c.name === 'fourOfAKind').calculateScore(rolledDices)}
+                        </Text>
                     </View>
                 </Pressable>
             );
@@ -322,38 +391,44 @@ export default function Gameboard({ navigation, route }) {
             return (
                 <Pressable onPress={() => handlePressField(index)}>
                     <View style={[styles.item, isSelected ? styles.selectScorePressed : styles.selectScore]}>
-                        <Text style={styles.inputIndexShown}>{ThreeSum}</Text>
+                        <Text style={styles.inputIndexShown}>
+                            {scoringCategories.find(c => c.name === 'threes').calculateScore(rolledDices)}
+                        </Text>
                     </View>
                 </Pressable>
             );
+            // TÄYSKÄSI
         } else if (index === 10) {
             return (
                 <View style={styles.item}>
                     <MaterialCommunityIcons name="home" size={25} color="white" />
-                    <Text style={{ fontSize: 10, color: 'white' }}>fullhouse</Text>
+                    <Text style={{ fontSize: 10, color: 'white' }}>FullHouse</Text>
                 </View>
             );
-            //FULLHOUSE
         } else if (index === 11) {
             return (
                 <Pressable onPress={() => handlePressField(index)}>
                     <View style={[styles.item, isSelected ? styles.selectScorePressed : styles.selectScore]}>
-                        <Text style={styles.inputIndexShown}>{fullhouseValue}</Text>
+                        <Text style={styles.inputIndexShown}>
+                            {scoringCategories.find(c => c.name === 'fullHouse').calculateScore(rolledDices)}
+                        </Text>
                     </View>
                 </Pressable>
             );
+            // 4X
         } else if (index === 12) {
             return (
                 <View style={styles.item}>
                     <MaterialCommunityIcons name="dice-4" size={45} color="white" />
                 </View>
             );
-            //SUM OF FOURS
         } else if (index === 13) {
             return (
                 <Pressable onPress={() => handlePressField(index)}>
                     <View style={[styles.item, isSelected ? styles.selectScorePressed : styles.selectScore]}>
-                        <Text style={styles.inputIndexShown}>{FoursSum}</Text>
+                        <Text style={styles.inputIndexShown}>
+                            {scoringCategories.find(c => c.name === 'fours').calculateScore(rolledDices)}
+                        </Text>
                     </View>
                 </Pressable>
             );
@@ -369,7 +444,9 @@ export default function Gameboard({ navigation, route }) {
             return (
                 <Pressable onPress={() => handlePressField(index)}>
                     <View style={[styles.item, isSelected ? styles.selectScorePressed : styles.selectScore]}>
-                        <Text style={styles.inputIndexShown}>{smallStraightValue}</Text>
+                        <Text style={styles.inputIndexShown}>
+                            {scoringCategories.find(c => c.name === 'smallStraight').calculateScore(rolledDices)}
+                        </Text>
                     </View>
                 </Pressable>
             );
@@ -384,7 +461,9 @@ export default function Gameboard({ navigation, route }) {
             return (
                 <Pressable onPress={() => handlePressField(index)}>
                     <View style={[styles.item, isSelected ? styles.selectScorePressed : styles.selectScore]}>
-                        <Text style={styles.inputIndexShown}>{FifthSum}</Text>
+                        <Text style={styles.inputIndexShown}>
+                            {scoringCategories.find(c => c.name === 'fives').calculateScore(rolledDices)}
+                        </Text>
                     </View>
                 </Pressable>
             );
@@ -400,7 +479,9 @@ export default function Gameboard({ navigation, route }) {
             return (
                 <Pressable onPress={() => handlePressField(index)}>
                     <View style={[styles.item, isSelected ? styles.selectScorePressed : styles.selectScore]}>
-                        <Text style={styles.inputIndexShown}>{largeStraightValue}</Text>
+                        <Text style={styles.inputIndexShown}>
+                            {scoringCategories.find(c => c.name === 'largeStraight').calculateScore(rolledDices)}
+                        </Text>
                     </View>
                 </Pressable>
             );
@@ -415,7 +496,9 @@ export default function Gameboard({ navigation, route }) {
             return (
                 <Pressable onPress={() => handlePressField(index)}>
                     <View style={[styles.item, isSelected ? styles.selectScorePressed : styles.selectScore]}>
-                        <Text style={styles.inputIndexShown}>{SixSum}</Text>
+                        <Text style={styles.inputIndexShown}>
+                            {scoringCategories.find(c => c.name === 'sixes').calculateScore(rolledDices)}
+                        </Text>
                     </View>
                 </Pressable>
             );
@@ -431,7 +514,9 @@ export default function Gameboard({ navigation, route }) {
             return (
                 <Pressable onPress={() => handlePressField(index)}>
                     <View style={[styles.item, isSelected ? styles.selectScorePressed : styles.selectScore]}>
-                        <Text style={styles.inputIndexShown}>{Yatzy}</Text>
+                        <Text style={styles.inputIndexShown}>
+                            {scoringCategories.find(c => c.name === 'yatzy').calculateScore(rolledDices)}
+                        </Text>
                     </View>
                 </Pressable>
             );
@@ -447,7 +532,9 @@ export default function Gameboard({ navigation, route }) {
             return (
                 <Pressable onPress={() => handlePressField(index)}>
                     <View style={[styles.item, isSelected ? styles.selectScorePressed : styles.selectScore]}>
-                        <Text style={styles.inputIndexShown}>{sumRolledDices}</Text>
+                        <Text style={styles.inputIndexShown}>
+                            {scoringCategories.find(c => c.name === 'chance').calculateScore(rolledDices)}
+                        </Text>
                     </View>
                 </Pressable>
             );
@@ -460,16 +547,22 @@ export default function Gameboard({ navigation, route }) {
                     </View>
                 </View>
             );
+
+
+        // "Tulostus" toimii, hakee listalta oikean kohdan
         } else if (index === 25) {
             return (
                 <View style={styles.item}>
-                    <Text style={[styles.inputIndexShown, {color:'black'}]}>/63</Text>
+                    <Text style={{ color: '#2f2009', fontFamily: 'AntonRegular' }}>
+                        {scoringCategories.find(category => category.name === 'sectionMinor').points}  /63</Text>
                 </View>
             );
+
+
         } else if (index === 29) {
             return (
                 <View style={styles.item}>
-                    <Text style={[styles.inputIndexShown, {color:'black'}]}>Total:</Text>
+                    <Text style={{ color: '#2f2009', fontFamily: 'AntonRegular' }}>Total:</Text>
                 </View>
             );
         } else {
@@ -480,7 +573,6 @@ export default function Gameboard({ navigation, route }) {
             );
         }
     };
-
 
     // Noppien , Roll ja Set Points renderöinti OK!!!
     const renderDices = () => {
@@ -501,13 +593,8 @@ export default function Gameboard({ navigation, route }) {
             }
         };
 
-        const test = () => {
-            if (nbrOfThrowsLeft === 0) {
-                console.log('Play');
-            }
-        }
-
         const diceRow = [];
+
         for (let i = 0; i < NBR_OF_DICES; i++) {
             diceRow.push(
                 <Pressable key={"row" + i} onPress={() => selectDice(i)}>
@@ -589,7 +676,7 @@ export default function Gameboard({ navigation, route }) {
                                     pressed && styles.buttonPressed,
                                 ]}
                                 onPress={() => {
-                                    setPoints();
+                                    handleSetPoints();
                                     setNbrOfThrowsLeft(NBR_OF_THROWS);
                                     resetDiceSelection();
                                 }}>
@@ -607,23 +694,7 @@ export default function Gameboard({ navigation, route }) {
         <FlatList
             data={data}
             renderItem={({ item, index }) =>
-                renderGrid({
-                    item,
-                    index,
-                    sumRolledDices,
-                    OnesSum,
-                    TwoSum,
-                    ThreeSum,
-                    FoursSum,
-                    FifthSum,
-                    SixSum,
-                    ThreeOfAKindSum,
-                    FourOfAKindSum,
-                    Yatzy,
-                    fullhouseValue,
-                    smallStraightValue,
-                    largeStraightValue
-                })}
+                renderGrid({ item, index, scoringCategories })}
             numColumns={4}
             backgroundColor={'#85715d'}
             keyExtractor={(item) => item.key}
