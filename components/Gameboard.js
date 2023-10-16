@@ -64,9 +64,16 @@ export default function Gameboard({ navigation, route }) {
                                 points: points,
                                 locked: true,
                             };
+                        } else if (category.name === 'total') {
+                            // Päivittää total kentän pisteet
+                            return {
+                                ...category,
+                                points: category.points + points,
+                            };
                         }
                         return category;
                     });
+
                     // Päivitää kentän pisteet
                     setScoringCategories(updatedCategories);
 
@@ -185,6 +192,7 @@ export default function Gameboard({ navigation, route }) {
         },
         {
             name: 'total',
+            index: 29,
             points: 0,
         },
 
@@ -574,7 +582,7 @@ export default function Gameboard({ navigation, route }) {
         } else if (index === 29) {
             return (
                 <View style={styles.item}>
-                    <Text style={{ color: '#2f2009', fontFamily: 'AntonRegular' }}>Total:</Text>
+                    <Text style={{ color: '#2f2009', fontFamily: 'AntonRegular' }}>Total:{currentCategory.points}</Text>
                 </View>
             );
         } else {

@@ -623,4 +623,42 @@ export default function Gameboard({ navigation, route }) {
     );
 }
 
+const handleSetPoints = () => {
+    if (selectedField !== null) {
+        const selectedCategory = scoringCategories.find(category => category.index === selectedField);
+
+        if (selectedCategory) {
+            if (!selectedCategory.locked) {
+                const points = selectedCategory.calculateScore(rolledDices);
+                const updatedCategories = scoringCategories.map(category => {
+                    if (category.index === selectedField) {
+                        const updatedCategory = {
+                            ...category,
+                            points: points,
+                            locked: true,
+                        };
+                        // Calculate and update the total points for this category
+                        updatedCategory.totalPoints = category.totalPoints ? category.totalPoints + points : points;
+                        return updatedCategory;
+                    } else if (category.name === 'total') {
+                        // Update the 'total' category with the accumulated points
+                        return {
+                            ...category,
+                            points: category.points + points,
+                        };
+                    }
+                    return category;
+                });
+
+                // Päivitää kentän pisteet
+                setScoringCategories(updatedCategories);
+
+                // loggaa konsoliin
+                console.log('Updated scoringCategories:', JSON.stringify(updatedCategories, null, 2));
+            }
+            setSelectedField(null);
+        }
+    }
+};
+
 
