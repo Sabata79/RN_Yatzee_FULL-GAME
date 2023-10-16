@@ -34,7 +34,8 @@ export default function Gameboard({ navigation, route }) {
     //Peli Status toimii mutta lisäoptiona jos haluan lisätä pelin loppumisen
     const [status, setStatus] = useState('Throw the dices');
     /* console.log(status); */
-    //valinta listana  OK!!! true/false
+
+    //valinta nopista listana  OK!!! true/false
     const [selectedDices, setSelectedDices] = useState(new Array(NBR_OF_DICES).fill(false));
 
     //Noppa valintojen resetointi OK!!!
@@ -307,9 +308,20 @@ export default function Gameboard({ navigation, route }) {
             setSelectedField(index === selectedField ? null : index);
         };
 
-
-        // Valitun kentän väri OK!!!
+        // Onko kenttä valittu
         const isSelected = selectedField === index;
+
+        const isLocked = (categoryName) => {
+            const category = scoringCategories.find(category => category.name === categoryName);
+            return category ? category.locked : false;
+        };
+
+        const currentCategory = scoringCategories.find(category => category.index === index);
+        const fieldStyle = currentCategory && currentCategory.locked ? styles.lockedField : styles.selectScore;
+
+        console.log('Locked categories:', JSON.stringify(isLocked, null, 2));
+
+
 
         // Indeksit Gridin kohdille OK!!!
         if (index === 0) {
@@ -321,10 +333,10 @@ export default function Gameboard({ navigation, route }) {
             //SUM OF ONES
         } else if (index === 1) {
             return (
-                <Pressable onPress={() => handlePressField(index)}>
-                    <View style={[styles.item, isSelected ? styles.selectScorePressed : styles.selectScore]}>
+                <Pressable onPress={() => handlePressField(index)} disabled={isLocked('ones')}>
+                    <View style={[styles.item, isSelected ? styles.selectScorePressed : fieldStyle]}>
                         <Text style={styles.inputIndexShown}>
-                            {scoringCategories.find(c => c.name === 'ones').calculateScore(rolledDices)}
+                            {isLocked('ones') ? currentCategory.points : currentCategory.calculateScore(rolledDices)}
                         </Text>
                     </View>
                 </Pressable>
@@ -338,10 +350,10 @@ export default function Gameboard({ navigation, route }) {
             //SUM OF TRIPLES AND MORE
         } else if (index === 3) {
             return (
-                <Pressable onPress={() => handlePressField(index)}>
-                    <View style={[styles.item, isSelected ? styles.selectScorePressed : styles.selectScore]}>
+                <Pressable onPress={() => handlePressField(index)} disabled={isLocked('threeOfAKind')}>
+                    <View style={[styles.item, isSelected ? styles.selectScorePressed : fieldStyle]}>
                         <Text style={styles.inputIndexShown}>
-                            {scoringCategories.find(c => c.name === 'threeOfAKind').calculateScore(rolledDices)}
+                            {isLocked('threeOfAKind') ? currentCategory.points : currentCategory.calculateScore(rolledDices)}
                         </Text>
                     </View>
                 </Pressable>
@@ -355,10 +367,10 @@ export default function Gameboard({ navigation, route }) {
             //SUM OF TWOS
         } else if (index === 5) {
             return (
-                <Pressable onPress={() => handlePressField(index)}>
-                    <View style={[styles.item, isSelected ? styles.selectScorePressed : styles.selectScore]}>
+                <Pressable onPress={() => handlePressField(index)} disabled={isLocked('twos')}>
+                    <View style={[styles.item, isSelected ? styles.selectScorePressed : fieldStyle]}>
                         <Text style={styles.inputIndexShown}>
-                            {scoringCategories.find(c => c.name === 'twos').calculateScore(rolledDices)}
+                            {isLocked('twos') ? currentCategory.points : currentCategory.calculateScore(rolledDices)}
                         </Text>
                     </View>
                 </Pressable>
@@ -372,10 +384,10 @@ export default function Gameboard({ navigation, route }) {
             //SUM OF FOURS AND MORE
         } else if (index === 7) {
             return (
-                <Pressable onPress={() => handlePressField(index)}>
-                    <View style={[styles.item, isSelected ? styles.selectScorePressed : styles.selectScore]}>
+                <Pressable onPress={() => handlePressField(index)} disabled={isLocked('fourOfAKind')}>
+                    <View style={[styles.item, isSelected ? styles.selectScorePressed : fieldStyle]}>
                         <Text style={styles.inputIndexShown}>
-                            {scoringCategories.find(c => c.name === 'fourOfAKind').calculateScore(rolledDices)}
+                            {isLocked('fourOfAKind') ? currentCategory.points : currentCategory.calculateScore(rolledDices)}
                         </Text>
                     </View>
                 </Pressable>
@@ -389,10 +401,10 @@ export default function Gameboard({ navigation, route }) {
             //SUM OF THREES
         } else if (index === 9) {
             return (
-                <Pressable onPress={() => handlePressField(index)}>
-                    <View style={[styles.item, isSelected ? styles.selectScorePressed : styles.selectScore]}>
+                <Pressable onPress={() => handlePressField(index)} disabled={isLocked('threes')}>
+                    <View style={[styles.item, isSelected ? styles.selectScorePressed : fieldStyle]}>
                         <Text style={styles.inputIndexShown}>
-                            {scoringCategories.find(c => c.name === 'threes').calculateScore(rolledDices)}
+                            {isLocked('threes') ? currentCategory.points : currentCategory.calculateScore(rolledDices)}
                         </Text>
                     </View>
                 </Pressable>
@@ -407,10 +419,10 @@ export default function Gameboard({ navigation, route }) {
             );
         } else if (index === 11) {
             return (
-                <Pressable onPress={() => handlePressField(index)}>
-                    <View style={[styles.item, isSelected ? styles.selectScorePressed : styles.selectScore]}>
+                <Pressable onPress={() => handlePressField(index)} disabled={isLocked('fullHouse')}>
+                    <View style={[styles.item, isSelected ? styles.selectScorePressed : fieldStyle]}>
                         <Text style={styles.inputIndexShown}>
-                            {scoringCategories.find(c => c.name === 'fullHouse').calculateScore(rolledDices)}
+                            {isLocked('fullHouse') ? currentCategory.points : currentCategory.calculateScore(rolledDices)}
                         </Text>
                     </View>
                 </Pressable>
@@ -424,10 +436,10 @@ export default function Gameboard({ navigation, route }) {
             );
         } else if (index === 13) {
             return (
-                <Pressable onPress={() => handlePressField(index)}>
-                    <View style={[styles.item, isSelected ? styles.selectScorePressed : styles.selectScore]}>
+                <Pressable onPress={() => handlePressField(index)} disabled={isLocked('fours')}>
+                    <View style={[styles.item, isSelected ? styles.selectScorePressed : fieldStyle]}>
                         <Text style={styles.inputIndexShown}>
-                            {scoringCategories.find(c => c.name === 'fours').calculateScore(rolledDices)}
+                            {isLocked('fours') ? currentCategory.points : currentCategory.calculateScore(rolledDices)}
                         </Text>
                     </View>
                 </Pressable>
@@ -442,10 +454,10 @@ export default function Gameboard({ navigation, route }) {
             //SMALL STRAIGHT
         } else if (index === 15) {
             return (
-                <Pressable onPress={() => handlePressField(index)}>
-                    <View style={[styles.item, isSelected ? styles.selectScorePressed : styles.selectScore]}>
+                <Pressable onPress={() => handlePressField(index)} disabled={isLocked('smallStraight')}>
+                    <View style={[styles.item, isSelected ? styles.selectScorePressed : fieldStyle]}>
                         <Text style={styles.inputIndexShown}>
-                            {scoringCategories.find(c => c.name === 'smallStraight').calculateScore(rolledDices)}
+                            {isLocked('smallStraight') ? currentCategory.points : currentCategory.calculateScore(rolledDices)}
                         </Text>
                     </View>
                 </Pressable>
@@ -459,10 +471,10 @@ export default function Gameboard({ navigation, route }) {
             //SUM OF FIVES
         } else if (index === 17) {
             return (
-                <Pressable onPress={() => handlePressField(index)}>
-                    <View style={[styles.item, isSelected ? styles.selectScorePressed : styles.selectScore]}>
+                <Pressable onPress={() => handlePressField(index)} disabled={isLocked('fives')}>
+                    <View style={[styles.item, isSelected ? styles.selectScorePressed : fieldStyle]}>
                         <Text style={styles.inputIndexShown}>
-                            {scoringCategories.find(c => c.name === 'fives').calculateScore(rolledDices)}
+                            {isLocked('fives') ? currentCategory.points : currentCategory.calculateScore(rolledDices)}
                         </Text>
                     </View>
                 </Pressable>
@@ -477,10 +489,10 @@ export default function Gameboard({ navigation, route }) {
             //LARGE STRAIGHT
         } else if (index === 19) {
             return (
-                <Pressable onPress={() => handlePressField(index)}>
-                    <View style={[styles.item, isSelected ? styles.selectScorePressed : styles.selectScore]}>
+                <Pressable onPress={() => handlePressField(index)} disabled={isLocked('largeStraight')}>
+                    <View style={[styles.item, isSelected ? styles.selectScorePressed : fieldStyle]}>
                         <Text style={styles.inputIndexShown}>
-                            {scoringCategories.find(c => c.name === 'largeStraight').calculateScore(rolledDices)}
+                            {isLocked('largeStraight') ? currentCategory.points : currentCategory.calculateScore(rolledDices)}
                         </Text>
                     </View>
                 </Pressable>
@@ -494,10 +506,10 @@ export default function Gameboard({ navigation, route }) {
             //SUM OF SIXES
         } else if (index === 21) {
             return (
-                <Pressable onPress={() => handlePressField(index)}>
-                    <View style={[styles.item, isSelected ? styles.selectScorePressed : styles.selectScore]}>
+                <Pressable onPress={() => handlePressField(index)} disabled={isLocked('sixes')}>
+                    <View style={[styles.item, isSelected ? styles.selectScorePressed : fieldStyle]}>
                         <Text style={styles.inputIndexShown}>
-                            {scoringCategories.find(c => c.name === 'sixes').calculateScore(rolledDices)}
+                            {isLocked('sixes') ? currentCategory.points : currentCategory.calculateScore(rolledDices)}
                         </Text>
                     </View>
                 </Pressable>
@@ -512,10 +524,10 @@ export default function Gameboard({ navigation, route }) {
             //YATZY
         } else if (index === 23) {
             return (
-                <Pressable onPress={() => handlePressField(index)}>
-                    <View style={[styles.item, isSelected ? styles.selectScorePressed : styles.selectScore]}>
+                <Pressable onPress={() => handlePressField(index)} disabled={isLocked('yatzy')}>
+                    <View style={[styles.item, isSelected ? styles.selectScorePressed : fieldStyle]}>
                         <Text style={styles.inputIndexShown}>
-                            {scoringCategories.find(c => c.name === 'yatzy').calculateScore(rolledDices)}
+                            {isLocked('yatzy') ? currentCategory.points : currentCategory.calculateScore(rolledDices)}
                         </Text>
                     </View>
                 </Pressable>
@@ -530,10 +542,10 @@ export default function Gameboard({ navigation, route }) {
             //SUM OF FACES
         } else if (index === 27) {
             return (
-                <Pressable onPress={() => handlePressField(index)}>
-                    <View style={[styles.item, isSelected ? styles.selectScorePressed : styles.selectScore]}>
+                <Pressable onPress={() => handlePressField(index)} disabled={isLocked('change')}>
+                    <View style={[styles.item, isSelected ? styles.selectScorePressed : fieldStyle]}>
                         <Text style={styles.inputIndexShown}>
-                            {scoringCategories.find(c => c.name === 'chance').calculateScore(rolledDices)}
+                            {isLocked('change') ? currentCategory.points : currentCategory.calculateScore(rolledDices)}
                         </Text>
                     </View>
                 </Pressable>
@@ -549,7 +561,7 @@ export default function Gameboard({ navigation, route }) {
             );
 
 
-        // "Tulostus" toimii, hakee listalta oikean kohdan
+            // "Tulostus" toimii, hakee listalta oikean kohdan
         } else if (index === 25) {
             return (
                 <View style={styles.item}>

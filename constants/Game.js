@@ -61,7 +61,7 @@ export const rulesTextContent = `
       been scored.
 `;
 
-//  Kombinaatiot
+//  Säännöt Kombinaatiot
 export const combinationsData = [
   {
     icon: 'dice-multiple',
