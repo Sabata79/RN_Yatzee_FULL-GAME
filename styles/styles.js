@@ -239,6 +239,7 @@ export default styles = StyleSheet.create({
         borderColor: 'white',
         borderRadius: 4,
         backgroundColor: '#84786c',
+        opacity: 0.3,
     },
     selectScorePressed: {
         flex: 1,
@@ -251,10 +252,10 @@ export default styles = StyleSheet.create({
         fontSize: 20,
         fontWeight: 'bold',
         textAlign: 'center',
-        borderWidth: 3,
+        borderWidth: 2,
         borderColor: 'red',
         borderRadius: 4,
-        backgroundColor: '#9a8c7e',
+        backgroundColor: '#cf6d52b8',
     },
     lockedField: {
         flex: 1,
@@ -270,7 +271,7 @@ export default styles = StyleSheet.create({
         borderWidth: 3,
         borderColor: 'green',
         borderRadius: 4,
-        backgroundColor: 'green',
+        backgroundColor: '#3ea645b8',
     },
     sectionContainer: {
         width: 70,
