@@ -43,7 +43,7 @@ export default function Home() {
             autoFocus={true}
           />
           <Pressable
-            style={({ pressed }) => [styles.homeButton, pressed && styles.homeButtonPressedbuttonPressed]}
+            style={({ pressed }) => [styles.homeButton, pressed && styles.homeButtonPressed]}
             onPress={handlePress}
           >
             <Text style={styles.buttonText}>OK</Text>

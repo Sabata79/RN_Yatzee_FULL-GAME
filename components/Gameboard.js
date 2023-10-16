@@ -50,40 +50,56 @@ export default function Gameboard({ navigation, route }) {
     //Noppien silmäluvut yhteensä OK!!!
     const sumRolledDices = rolledDices.reduce((sum, diceValue) => sum + diceValue, 0);
 
-    const handleSetPoints = () => {
-        if (selectedField !== null) {
-            const selectedCategory = scoringCategories.find(category => category.index === selectedField);
+const handleSetPoints = () => {
+    if (selectedField !== null) {
+        const minorNames = ['ones', 'twos', 'threes', 'fours', 'fives', 'sixes'];
 
-            if (selectedCategory) {
-                if (!selectedCategory.locked) {
-                    const points = selectedCategory.calculateScore(rolledDices);
-                    const updatedCategories = scoringCategories.map(category => {
-                        if (category.index === selectedField) {
-                            return {
-                                ...category,
-                                points: points,
-                                locked: true,
-                            };
-                        } else if (category.name === 'total') {
-                            // Päivittää total kentän pisteet
-                            return {
-                                ...category,
-                                points: category.points + points,
-                            };
-                        }
-                        return category;
-                    });
+        // Etsitään valittu kategoria valintaindeksin perusteella
+        const selectedCategory = scoringCategories.find(category => category.index === selectedField);
 
-                    // Päivitää kentän pisteet
-                    setScoringCategories(updatedCategories);
+        if (selectedCategory) {
+            // Tarkistetaan, ettei kategoria ole lukittu
+            if (!selectedCategory.locked) {
+                // Lasketaan pisteet valitulle kategorialle annettujen noppien perusteella
+                const points = selectedCategory.calculateScore(rolledDices);
 
-                    // loggaa konsoliin
-                    console.log('Updated scoringCategories:', JSON.stringify(updatedCategories, null, 2));
-                }
-                setSelectedField(null);
+                // Tarkistetaan, onko valittu kategoria minorNames-listalla
+                const isCategoryInMinorNames = minorNames.includes(selectedCategory.name);
+
+                // Päivitetään kategoriat ja niiden pisteet
+                const updatedCategories = scoringCategories.map(category => {
+                    if (category.index === selectedField) {
+                        // Päivitetään valittu kategoria
+                        return {
+                            ...category,
+                            points: points,
+                            locked: true,
+                        };
+                    } else if (category.name === 'total' || (isCategoryInMinorNames && category.name === 'sectionMinor')) {
+                        // Päivitetään 'total' tai 'sectionMinor' -kategorian pisteet
+                        return {
+                            ...category,
+                            points: category.points + points,
+                        };
+                    }
+                    // Palautetaan muuttumaton kategoria, jos se ei ole valittu eikä päivitystä tarvita
+                    return category;
+                });
+
+                // Päivitetään pisteet ja lukitus kategorioille
+                setScoringCategories(updatedCategories);
+
+                // Lokikirjaus päivitetyistä kategorioista
+                console.log('Päivitetyt kategoriat:', JSON.stringify(updatedCategories, null, 2));
             }
+            // Tyhjennetään valittu kategoria
+            setSelectedField(null);
         }
-    };
+    }
+};
+
+
+
 
 
     const [scoringCategories, setScoringCategories] = useState([
@@ -313,22 +329,27 @@ export default function Gameboard({ navigation, route }) {
     const renderGrid = ({ index, scoringCategories }) => {
 
         const handlePressField = (index) => {
-            setSelectedField(index === selectedField ? null : index);
+            if (nbrOfThrowsLeft < NBR_OF_THROWS && nbrOfThrowsLeft !== 3) {
+                setSelectedField(index === selectedField ? null : index);
+            } else {
+                setStatus('Cannot select field at this time');
+            }
         };
 
         // Onko kenttä valittu
         const isSelected = selectedField === index;
 
+        // Tarkistaa onko kategoria lukittu
         const isLocked = (categoryName) => {
             const category = scoringCategories.find(category => category.name === categoryName);
             return category ? category.locked : false;
         };
 
+        // Haetaan nykyinen kategoria
         const currentCategory = scoringCategories.find(category => category.index === index);
+
+        // Tyyli kentälle (lukittu tai valittu)
         const fieldStyle = currentCategory && currentCategory.locked ? styles.lockedField : styles.selectScore;
-
-        console.log('Locked categories:', JSON.stringify(isLocked, null, 2));
-
 
 
         // Indeksit Gridin kohdille OK!!!
@@ -550,10 +571,10 @@ export default function Gameboard({ navigation, route }) {
             //SUM OF FACES
         } else if (index === 27) {
             return (
-                <Pressable onPress={() => handlePressField(index)} disabled={isLocked('change')}>
+                <Pressable onPress={() => handlePressField(index)} disabled={isLocked('chance')}>
                     <View style={[styles.item, isSelected ? styles.selectScorePressed : fieldStyle]}>
                         <Text style={styles.inputIndexShown}>
-                            {isLocked('change') ? currentCategory.points : currentCategory.calculateScore(rolledDices)}
+                            {isLocked('chance') ? currentCategory.points : currentCategory.calculateScore(rolledDices)}
                         </Text>
                     </View>
                 </Pressable>
