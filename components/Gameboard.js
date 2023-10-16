@@ -50,53 +50,53 @@ export default function Gameboard({ navigation, route }) {
     //Noppien silmäluvut yhteensä OK!!!
     const sumRolledDices = rolledDices.reduce((sum, diceValue) => sum + diceValue, 0);
 
-const handleSetPoints = () => {
-    if (selectedField !== null) {
-        const minorNames = ['ones', 'twos', 'threes', 'fours', 'fives', 'sixes'];
+    const handleSetPoints = () => {
+        if (selectedField !== null) {
+            const minorNames = ['ones', 'twos', 'threes', 'fours', 'fives', 'sixes'];
 
-        // Etsitään valittu kategoria valintaindeksin perusteella
-        const selectedCategory = scoringCategories.find(category => category.index === selectedField);
+            // Etsitään valittu kategoria valintaindeksin perusteella
+            const selectedCategory = scoringCategories.find(category => category.index === selectedField);
 
-        if (selectedCategory) {
-            // Tarkistetaan, ettei kategoria ole lukittu
-            if (!selectedCategory.locked) {
-                // Lasketaan pisteet valitulle kategorialle annettujen noppien perusteella
-                const points = selectedCategory.calculateScore(rolledDices);
+            if (selectedCategory) {
+                // Tarkistetaan, ettei kategoria ole lukittu
+                if (!selectedCategory.locked) {
+                    // Lasketaan pisteet valitulle kategorialle annettujen noppien perusteella
+                    const points = selectedCategory.calculateScore(rolledDices);
 
-                // Tarkistetaan, onko valittu kategoria minorNames-listalla
-                const isCategoryInMinorNames = minorNames.includes(selectedCategory.name);
+                    // Tarkistetaan, onko valittu kategoria minorNames-listalla
+                    const isCategoryInMinorNames = minorNames.includes(selectedCategory.name);
 
-                // Päivitetään kategoriat ja niiden pisteet
-                const updatedCategories = scoringCategories.map(category => {
-                    if (category.index === selectedField) {
-                        // Päivitetään valittu kategoria
-                        return {
-                            ...category,
-                            points: points,
-                            locked: true,
-                        };
-                    } else if (category.name === 'total' || (isCategoryInMinorNames && category.name === 'sectionMinor')) {
-                        // Päivitetään 'total' tai 'sectionMinor' -kategorian pisteet
-                        return {
-                            ...category,
-                            points: category.points + points,
-                        };
-                    }
-                    // Palautetaan muuttumaton kategoria, jos se ei ole valittu eikä päivitystä tarvita
-                    return category;
-                });
+                    // Päivitetään kategoriat ja niiden pisteet
+                    const updatedCategories = scoringCategories.map(category => {
+                        if (category.index === selectedField) {
+                            // Päivitetään valittu kategoria
+                            return {
+                                ...category,
+                                points: points,
+                                locked: true,
+                            };
+                        } else if (category.name === 'total' || (isCategoryInMinorNames && category.name === 'sectionMinor')) {
+                            // Päivitetään 'total' tai 'sectionMinor' -kategorian pisteet
+                            return {
+                                ...category,
+                                points: category.points + points,
+                            };
+                        }
+                        // Palautetaan muuttumaton kategoria, jos se ei ole valittu eikä päivitystä tarvita
+                        return category;
+                    });
 
-                // Päivitetään pisteet ja lukitus kategorioille
-                setScoringCategories(updatedCategories);
+                    // Päivitetään pisteet ja lukitus kategorioille
+                    setScoringCategories(updatedCategories);
 
-                // Lokikirjaus päivitetyistä kategorioista
-                console.log('Päivitetyt kategoriat:', JSON.stringify(updatedCategories, null, 2));
+                    // Lokikirjaus päivitetyistä kategorioista
+                    console.log('Päivitetyt kategoriat:', JSON.stringify(updatedCategories, null, 2));
+                }
+                // Tyhjennetään valittu kategoria
+                setSelectedField(null);
             }
-            // Tyhjennetään valittu kategoria
-            setSelectedField(null);
         }
-    }
-};
+    };
 
 
 
@@ -305,22 +305,20 @@ const handleSetPoints = () => {
     }
 
     const [selectedField, setSelectedField] = useState(null);
-    const [selecetedValue, setSelectedValue] = useState(null);
-    const [fieldValues, setFieldValues] = useState(new Array(13).fill(null));
 
     const renderFirstRow = () => (
         <>
             <View style={styles.firstRow}>
                 <View style={styles.firstRowItem}>
-                    <Text style={{ fontFamily: 'AntonRegular', fontSize: 18, color: '#2f2009' }}>{playerName}</Text>
+                    <Text style={styles.firstRowNameText}>Good luck, {playerName}</Text>
                 </View>
             </View>
             <View style={styles.firstRow}>
                 <View style={styles.firstRowItem}>
-                    <Text style={{ fontFamily: 'AntonRegular', fontSize: 18, color: '#e9d99c' }}>Minor</Text>
+                    <Text style={styles.firstRowCategoryText}>Minor</Text>
                 </View>
                 <View style={styles.firstRowItem}>
-                    <Text style={{ fontFamily: 'AntonRegular', fontSize: 18, color: '#e9d99c' }}>Major</Text>
+                    <Text style={styles.firstRowCategoryText}>Major</Text>
                 </View>
             </View>
         </>
@@ -580,30 +578,32 @@ const handleSetPoints = () => {
                 </Pressable>
             );
         } else if (index === 24) {
+            const isSectionMinorAchieved = scoringCategories.find(category => category.name === 'sectionMinor').points >= 63;
+
+            if (isSectionMinorAchieved) {
+                    scoringCategories.find(category => category.name === 'total').points += 35;
+                }
+
             return (
                 <View style={styles.item}>
-                    <View style={styles.sectionContainer}>
+                    <View style={isSectionMinorAchieved ? styles.sectionContainerAchieved : styles.sectionContainer}>
                         <Text style={styles.sectionBonusTxt}>Section Bonus</Text>
                         <Text style={styles.sectionBonusTxt}>+35</Text>
                     </View>
                 </View>
             );
-
-
-            // "Tulostus" toimii, hakee listalta oikean kohdan
+            // Minor pisteet
         } else if (index === 25) {
             return (
                 <View style={styles.item}>
-                    <Text style={{ color: '#2f2009', fontFamily: 'AntonRegular' }}>
-                        {scoringCategories.find(category => category.name === 'sectionMinor').points}  /63</Text>
+                    <Text style={styles.scoreText}>
+                        {scoringCategories.find(category => category.name === 'sectionMinor').points} /63</Text>
                 </View>
             );
-
-
         } else if (index === 29) {
             return (
                 <View style={styles.item}>
-                    <Text style={{ color: '#2f2009', fontFamily: 'AntonRegular' }}>Total:{currentCategory.points}</Text>
+                    <Text style={styles.scoreText}>Total: {currentCategory.points}</Text>
                 </View>
             );
         } else {
