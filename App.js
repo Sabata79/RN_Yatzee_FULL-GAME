@@ -17,10 +17,9 @@ export default function App() {
     AntonRegular: require('./assets/fonts/Anton-Regular.ttf'),
   });
   if (!loaded) {
-    console.log('Font not loaded yet');
     return null;
   }
-  console.log('Font loaded successfully');
+  
   const Tab = createBottomTabNavigator();
 
   return (

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FlatList, Text, View, Pressable } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import styles from '../styles/styles';
-import { MAX_SPOTS, NBR_OF_THROWS, DICEVALUES, NBR_OF_DICES } from '../constants/Game';
+import { NBR_OF_THROWS, NBR_OF_DICES, MAX_SPOTS } from '../constants/Game';
 
 let board = [];
 
@@ -10,17 +10,26 @@ export default function Gameboard({ navigation, route }) {
 
     // Pelaajan nimi OK!!!
     const [playerName, setPlayerName] = useState('');
+    console.log(playerName);
 
     useEffect(() => {
-        if (playerName === '' && route.params?.player) {
+        if (route.params?.player) {
             setPlayerName(route.params.player);
             resetGame();
         }
-
     }, [route.params?.player, route.params?.reset]);
 
     const resetGame = () => {
-        board = [];
+        // Reset points for each scoring category
+        const resetCategories = scoringCategories.map(category => {
+            return {
+                ...category,
+                points: 0,
+                locked: false,
+            };
+        });
+        setScoringCategories(resetCategories);
+        setRounds(MAX_SPOTS);
     };
 
     // Gridin luominen OK!!!
@@ -33,22 +42,19 @@ export default function Gameboard({ navigation, route }) {
 
     //Peli Status toimii mutta lisäoptiona jos haluan lisätä pelin loppumisen
     const [status, setStatus] = useState('Throw the dices');
-    /* console.log(status); */
 
     //valinta nopista listana  OK!!! true/false
     const [selectedDices, setSelectedDices] = useState(new Array(NBR_OF_DICES).fill(false));
 
     //Noppa valintojen resetointi OK!!!
-    const resetDiceSelection = () => {
-        setSelectedDices(new Array(NBR_OF_DICES).fill(false));
-    };
+    const resetDiceSelection = () => { setSelectedDices(new Array(NBR_OF_DICES).fill(false)); };
+
+    //Kierrosten lukumäärä
+    const [rounds, setRounds] = useState(MAX_SPOTS);
+    console.log(rounds);
 
     //Noppien silmäluvut listana, OK!!!
     const [rolledDices, setRolledDices] = useState(new Array(NBR_OF_DICES).fill(0));
-
-
-    //Noppien silmäluvut yhteensä OK!!!
-    const sumRolledDices = rolledDices.reduce((sum, diceValue) => sum + diceValue, 0);
 
     const handleSetPoints = () => {
         if (selectedField !== null) {
@@ -97,10 +103,6 @@ export default function Gameboard({ navigation, route }) {
             }
         }
     };
-
-
-
-
 
     const [scoringCategories, setScoringCategories] = useState([
         {
@@ -225,7 +227,7 @@ export default function Gameboard({ navigation, route }) {
                 return sum;
             }
             if (rolledDices.filter(item => item === dice).length >= 3) {
-                return sum + dice;
+                return rolledDices.reduce((sum, dice) => sum + dice, 0);
             }
             return sum;
         }, 0);
@@ -237,7 +239,7 @@ export default function Gameboard({ navigation, route }) {
                 return sum;
             }
             if (rolledDices.filter(item => item === dice).length >= 4) {
-                return sum + dice;
+                return rolledDices.reduce((sum, dice) => sum + dice, 0);
             }
             return sum;
         }, 0);
@@ -581,8 +583,8 @@ export default function Gameboard({ navigation, route }) {
             const isSectionMinorAchieved = scoringCategories.find(category => category.name === 'sectionMinor').points >= 63;
 
             if (isSectionMinorAchieved) {
-                    scoringCategories.find(category => category.name === 'total').points += 35;
-                }
+                scoringCategories.find(category => category.name === 'total').points += 35;
+            }
 
             return (
                 <View style={styles.item}>
@@ -685,16 +687,16 @@ export default function Gameboard({ navigation, route }) {
                                     { width: '80%' },
                                 ]}
                                 onPress={() => throwDices()}>
-                                <Text style={styles.buttonText}>Roll Dices</Text>
-                                <Text style={styles.nbrThrowsText}>{nbrOfThrowsLeft}</Text>
+                                <Text style={styles.buttonText}>{rounds === 0 ? 'Game Over, Save Your Score' : 'Roll Dices'}</Text>
+                                {rounds > 0 && <Text style={styles.nbrThrowsText}>{nbrOfThrowsLeft}</Text>}
+                                {rounds == 0 && <MaterialCommunityIcons name="scoreboard-outline" size={24} color="black" />}
                             </Pressable>
                             <Pressable
                                 style={({ pressed }) => [
                                     styles.button,
                                     pressed && styles.buttonPressed,
                                     { display: 'none' },
-                                ]}
-                                onPress={() => test()}>
+                                ]}>
                                 <Text style={styles.buttonText}>Play</Text>
                             </Pressable>
                         </>
@@ -707,8 +709,8 @@ export default function Gameboard({ navigation, route }) {
                                     pressed && styles.buttonPressed,
                                 ]}
                                 onPress={() => throwDices()}>
-                                <Text style={styles.buttonText}>Roll Dices</Text>
-                                <Text style={styles.nbrThrowsText}>{nbrOfThrowsLeft}</Text>
+                                <Text style={styles.buttonText}>{rounds === 0 ? 'Game Over, Save Your Score' : 'Roll Dices'}</Text>
+                                {rounds > 0 && <Text style={styles.nbrThrowsText}>{nbrOfThrowsLeft}</Text>}
                             </Pressable>
                             <Pressable
                                 disabled={!selectedField} // Disabloi kun kenttää ei ole valittu
@@ -720,6 +722,7 @@ export default function Gameboard({ navigation, route }) {
                                     handleSetPoints();
                                     setNbrOfThrowsLeft(NBR_OF_THROWS);
                                     resetDiceSelection();
+                                    setRounds(rounds - 1);
                                 }}>
                                 <Text style={styles.buttonText}>Set points</Text>
                                 <MaterialCommunityIcons name="beaker-plus" size={25} color="black" />
@@ -730,6 +733,7 @@ export default function Gameboard({ navigation, route }) {
             </View>
         );
     }
+
 
     return (
         <FlatList
