@@ -400,5 +400,30 @@ export default styles = StyleSheet.create({
     lockedTextColor: {
         color: 'black',
     },
-
+    scoreBoardHeader: {
+        alignSelf: 'center',
+        borderRadius: 5,
+        backgroundColor: 'orange',
+        width: '95%',
+        textAlign: 'center',
+        justifyContent: 'center',
+        marginTop: 20,
+    },
+    cell: {
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    scoreboardText: {
+        fontSize: 11,
+        textAlign: 'center',
+        fontFamily: 'AntonRegular',
+        color: 'black',
+        paddingVertical: 5,  
+    },
+    resetButton: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginTop: 5,
+    },
 });

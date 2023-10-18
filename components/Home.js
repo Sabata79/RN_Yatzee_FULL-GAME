@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { View, Text, TextInput, Pressable, Alert, ScrollView } from "react-native";
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import styles from '../styles/styles';
 import { useNavigation } from '@react-navigation/native';
-import { rulesTextContent ,combinationsData } from '../constants/Game';
+import { rulesTextContent, combinationsData } from '../constants/Game';
 
 export default function Home() {
   const navigation = useNavigation();
@@ -13,8 +13,8 @@ export default function Home() {
   const handlePress = () => {
     if (name.trim() === '') {
       Alert.alert('Name is required', 'Please enter your name.');
-    } else if (name.length < 3) {
-      Alert.alert('Name is too short', 'Please enter a name with at least 3 characters.');
+    } else if (name.length < 3 || name.length > 15) {
+      Alert.alert('Name is too short', 'Please enter a name with at least 3 characters and maximum 15 characters.');
     } else if (/\d/.test(name) || /[!@#$%^&*(),.?":{}|<>]/.test(name)) {
       Alert.alert('Invalid characters', 'Please enter a name without numbers or special characters.');
     } else {
@@ -23,7 +23,7 @@ export default function Home() {
   };
 
   const handlePlay = () => {
-    navigation.navigate('Gameboard', { player: name});
+    navigation.navigate('Gameboard', { player: name });
   };
 
   const handleChangeName = () => {
@@ -31,7 +31,7 @@ export default function Home() {
     setShowRules(false);
   };
 
- return (
+  return (
     <ScrollView contentContainerStyle={styles.container}>
       {!showRules && (
         <View style={styles.homeContainer}>
@@ -56,7 +56,7 @@ export default function Home() {
           <Text style={styles.rulesText}>Hello, {name}!</Text>
           <Text style={styles.rulesText}>Here are the rules:</Text>
           <Text style={styles.rulesText}>
-          {rulesTextContent}
+            {rulesTextContent}
           </Text>
           <Text style={[styles.rulesText, { marginTop: 20, fontSize: 25 }]}>Combinations</Text>
           {combinationsData.map((combination, index) => (

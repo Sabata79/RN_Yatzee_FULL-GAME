@@ -1,6 +1,6 @@
 import React from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { SafeAreaView, StyleSheet, View } from 'react-native';
+import { SafeAreaView, View } from 'react-native';
 import Scoreboard from './components/Scoreboard';
 import Gameboard from './components/Gameboard';
 import Home from './components/Home';

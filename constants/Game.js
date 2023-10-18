@@ -1,10 +1,11 @@
 export const NBR_OF_DICES = 5;
 export const NBR_OF_THROWS = 3;
 export const MIN_SPOTS = 1;
-export const MAX_SPOTS = 13;
+export const MAX_SPOTS = 13; // 13
 export const BONUS_POINTS_LIMIT = 63;
 export const BONUS_POINTS = 35;
 export const NBR_OF_SCOREBOARD_ROWS = 10;
+export const SCOREBOARD_KEY = '@scoreboard';
 
 //  Perus Säännöt
 export const rulesTextContent = `
@@ -90,5 +91,4 @@ export const combinationsData = [
     smallText:'change'
   },
 ];
-
 

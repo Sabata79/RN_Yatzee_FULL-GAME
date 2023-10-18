@@ -2,15 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { FlatList, Text, View, Pressable } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import styles from '../styles/styles';
-import { NBR_OF_THROWS, NBR_OF_DICES, MAX_SPOTS } from '../constants/Game';
+import { NBR_OF_THROWS, NBR_OF_DICES, MAX_SPOTS, SCOREBOARD_KEY } from '../constants/Game';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 let board = [];
 
-export default function Gameboard({ navigation, route }) {
+export default function Gameboard({ route, navigation }) {
 
-    // Pelaajan nimi OK!!!
+    // Pelaajan nimi
     const [playerName, setPlayerName] = useState('');
-    console.log(playerName);
 
     useEffect(() => {
         if (route.params?.player) {
@@ -19,8 +19,16 @@ export default function Gameboard({ navigation, route }) {
         }
     }, [route.params?.player, route.params?.reset]);
 
+    // Päivittää tulostaulun tiedot, kun näkymä saa fokuksen.
+    useEffect(() => {
+        const unsubscribe = navigation.addListener('focus', () => {
+            getScoreboardData();
+        });
+        return unsubscribe;
+    }, [navigation]);
+
+    //Resetoi pelin
     const resetGame = () => {
-        // Reset points for each scoring category
         const resetCategories = scoringCategories.map(category => {
             return {
                 ...category,
@@ -30,80 +38,79 @@ export default function Gameboard({ navigation, route }) {
         });
         setScoringCategories(resetCategories);
         setRounds(MAX_SPOTS);
+        setNbrOfThrowsLeft(NBR_OF_THROWS);
+        resetDiceSelection();
     };
 
-    // Gridin luominen OK!!!
+    // Tulosten tallennus asyncstorageen
+    const currentDate = new Date();
+
+    const savePlayerPoints = async () => {
+        try {
+            const totalPoints = scoringCategories.find(category => category.name === 'total').points;
+            const newKey = new Date().getTime();
+            const playerPoints = {
+                key: newKey,
+                name: playerName,
+                date: currentDate.toLocaleDateString(), // päivämäärä
+                time: currentDate.toLocaleTimeString(), // aika
+                points: totalPoints,  // yhteispisteet
+            };
+
+            // Haetaan olemassa olevat pisteet AsyncStoragesta
+            const existingScoresJSON = await AsyncStorage.getItem(SCOREBOARD_KEY);
+            const existingScores = existingScoresJSON ? JSON.parse(existingScoresJSON) : [];
+
+            // Lisätään uudet pisteet olemassa olevien pisteiden perään
+            const updatedScores = [...existingScores, playerPoints];
+
+            // Tallennetaan päivitetyt pisteet takaisin AsyncStorageen
+            const jsonValue = JSON.stringify(updatedScores);
+            await AsyncStorage.setItem(SCOREBOARD_KEY, jsonValue);
+            navigation.navigate('Scoreboard');
+        } catch (error) {
+            console.log('Error:' + error);
+        }
+    };
+
+    // Pisteiden tallennus asyncstorageen vol2
+    const getScoreboardData = async () => {
+        try {
+            const jsonValue = await AsyncStorage.getItem(SCOREBOARD_KEY);
+            if (jsonValue != null) {
+                let tmpscores = JSON.parse(jsonValue);
+                setScores(tmpscores);
+            }
+        }
+        catch (error) {
+            console.log('Error:' + error);
+        }
+    }
+
+    // Gridin luominen
     const [data, setData] = useState([
         ...Array.from({ length: 32 }, (_, index) => ({ key: String(index + 2) })),
     ]);
 
-    // Pelaajan jäljellä olevat heitot OK!!!
+    // Pelaajan jäljellä olevat heitot
     const [nbrOfThrowsLeft, setNbrOfThrowsLeft] = useState(NBR_OF_THROWS);
 
     //Peli Status toimii mutta lisäoptiona jos haluan lisätä pelin loppumisen
     const [status, setStatus] = useState('Throw the dices');
 
-    //valinta nopista listana  OK!!! true/false
+    //Valinta nopista listana (true/false)
     const [selectedDices, setSelectedDices] = useState(new Array(NBR_OF_DICES).fill(false));
 
-    //Noppa valintojen resetointi OK!!!
+    //Noppa valintojen resetointi
     const resetDiceSelection = () => { setSelectedDices(new Array(NBR_OF_DICES).fill(false)); };
 
     //Kierrosten lukumäärä
     const [rounds, setRounds] = useState(MAX_SPOTS);
-    console.log(rounds);
 
-    //Noppien silmäluvut listana, OK!!!
+    //Noppien silmäluvut listana 
     const [rolledDices, setRolledDices] = useState(new Array(NBR_OF_DICES).fill(0));
 
-    const handleSetPoints = () => {
-        if (selectedField !== null) {
-            const minorNames = ['ones', 'twos', 'threes', 'fours', 'fives', 'sixes'];
-
-            // Etsitään valittu kategoria valintaindeksin perusteella
-            const selectedCategory = scoringCategories.find(category => category.index === selectedField);
-
-            if (selectedCategory) {
-                // Tarkistetaan, ettei kategoria ole lukittu
-                if (!selectedCategory.locked) {
-                    // Lasketaan pisteet valitulle kategorialle annettujen noppien perusteella
-                    const points = selectedCategory.calculateScore(rolledDices);
-
-                    // Tarkistetaan, onko valittu kategoria minorNames-listalla
-                    const isCategoryInMinorNames = minorNames.includes(selectedCategory.name);
-
-                    // Päivitetään kategoriat ja niiden pisteet
-                    const updatedCategories = scoringCategories.map(category => {
-                        if (category.index === selectedField) {
-                            // Päivitetään valittu kategoria
-                            return {
-                                ...category,
-                                points: points,
-                                locked: true,
-                            };
-                        } else if (category.name === 'total' || (isCategoryInMinorNames && category.name === 'sectionMinor')) {
-                            // Päivitetään 'total' tai 'sectionMinor' -kategorian pisteet
-                            return {
-                                ...category,
-                                points: category.points + points,
-                            };
-                        }
-                        // Palautetaan muuttumaton kategoria, jos se ei ole valittu eikä päivitystä tarvita
-                        return category;
-                    });
-
-                    // Päivitetään pisteet ja lukitus kategorioille
-                    setScoringCategories(updatedCategories);
-
-                    // Lokikirjaus päivitetyistä kategorioista
-                    console.log('Päivitetyt kategoriat:', JSON.stringify(updatedCategories, null, 2));
-                }
-                // Tyhjennetään valittu kategoria
-                setSelectedField(null);
-            }
-        }
-    };
-
+   // Pisteet
     const [scoringCategories, setScoringCategories] = useState([
         {
             name: 'ones',
@@ -201,14 +208,6 @@ export default function Gameboard({ navigation, route }) {
             points: 0
         },
         {
-            name: 'sectionMajor',
-            points: 0,
-        },
-        {
-            name: 'sectionBonus',
-            points: 0,
-        },
-        {
             name: 'total',
             index: 29,
             points: 0,
@@ -217,10 +216,61 @@ export default function Gameboard({ navigation, route }) {
     ]);
 
 
+    // ONGELMA: Kun sectionMinor pisteet saavuttaa 63 pistettä, kaikki noppien pyöräytykset lisäävät pisteitä ???
+
+    const handleSetPoints = () => {
+        if (selectedField !== null) {
+            const minorNames = ['ones', 'twos', 'threes', 'fours', 'fives', 'sixes'];
+
+            // Etsitään valittu kategoria valintaindeksin perusteella
+            const selectedCategory = scoringCategories.find(category => category.index === selectedField);
+
+            if (selectedCategory) {
+                // Tarkistetaan, ettei kategoria ole lukittu
+                if (!selectedCategory.locked) {
+                    // Lasketaan pisteet valitulle kategorialle annettujen noppien perusteella
+                    const points = selectedCategory.calculateScore(rolledDices);
+
+                    // Tarkistetaan, onko valittu kategoria minorNames-listalla
+                    const isCategoryInMinorNames = minorNames.includes(selectedCategory.name);
+
+                    // Päivitetään kategoriat ja niiden pisteet
+                    const updatedCategories = scoringCategories.map(category => {
+                        if (category.index === selectedField) {
+                            // Päivitetään valittu kategoria
+                            return {
+                                ...category,
+                                points: points,
+                                locked: true,
+                            };
+                        } else if (category.name === 'sectionMinor' && category.points >= 63) {
+                            // Jos 'sectionMinor' on saavutettu 63 pistettä, lisätään 35 pistettä
+                            return {
+                                ...category,
+                                points: category.points + 35,
+                            };
+                        } else if (category.name === 'total' || (isCategoryInMinorNames && category.name === 'sectionMinor')) {
+                            return {
+                                ...category,
+                                points: category.points + points,
+                            };
+                        }
+                        return category;
+                    });
+                    // Päivitetään pisteet ja lukitus kategorioille
+                    setScoringCategories(updatedCategories);
+                }
+                // Tyhjennetään valittu kategoria
+                setSelectedField(null);
+            }
+        }
+    };
+
+    //Silmälukujen summa
     function calculateDiceSum(diceValue) {
         return rolledDices.reduce((sum, dice) => (dice === diceValue ? sum + dice : sum), 0);
     }
-    // Kolmoset 
+    //Kolmoset 
     function calculateThreeOfAKind(rolledDices) {
         return rolledDices.reduce((sum, dice) => {
             if (dice === 0) {
@@ -232,7 +282,7 @@ export default function Gameboard({ navigation, route }) {
             return sum;
         }, 0);
     }
-    // Neloset
+    //Neloset
     function calculateFourOfAKind(rolledDices) {
         return rolledDices.reduce((sum, dice) => {
             if (dice === 0) {
@@ -246,6 +296,7 @@ export default function Gameboard({ navigation, route }) {
     }
     //Yatzy
     function calculateYatzy(rolledDices) {
+
         return rolledDices.reduce((sum, dice) => {
             if (dice === 0) {
                 return sum;
@@ -256,7 +307,7 @@ export default function Gameboard({ navigation, route }) {
             return sum;
         }, 0);
     }
-    // Täyskäsi
+    //Täyskäsi
     function calculateFullHouse(rolledDices) {
         const counts = {};
         for (const dice of rolledDices) {
@@ -265,7 +316,7 @@ export default function Gameboard({ navigation, route }) {
         const values = Object.values(counts);
         return values.includes(3) && values.includes(2);
     }
-    // Pieni suora
+    //Pieni suora
     function calculateSmallStraight(rolledDices) {
         const sortedDiceValues = [...rolledDices].sort((a, b) => a - b);
         const smallStraights = [
@@ -273,7 +324,6 @@ export default function Gameboard({ navigation, route }) {
             [2, 3, 4, 5],
             [3, 4, 5, 6]
         ];
-
         for (const smallStraight of smallStraights) {
             if (smallStraight.every(val => sortedDiceValues.includes(val))) {
                 return 30;
@@ -288,7 +338,6 @@ export default function Gameboard({ navigation, route }) {
             [1, 2, 3, 4, 5],
             [2, 3, 4, 5, 6]
         ];
-
         for (const largeStraight of largeStraights) {
             if (largeStraight.every(val => sortedDiceValues.includes(val))) {
                 return 40;
@@ -296,7 +345,7 @@ export default function Gameboard({ navigation, route }) {
         }
         return 0;
     }
-    // Sattuma
+    //Sattuma
     function calculateChange(rolledDices) {
         return rolledDices.reduce((sum, dice) => {
             if (dice === 0) {
@@ -617,7 +666,6 @@ export default function Gameboard({ navigation, route }) {
         }
     };
 
-    // Noppien , Roll ja Set Points renderöinti OK!!!
     const renderDices = () => {
 
         const throwDices = () => {
@@ -677,43 +725,40 @@ export default function Gameboard({ navigation, route }) {
                     <View style={styles.flex}>{diceRow}</View>
                 </View>
                 <View style={styles.buttonContainer}>
-                    {nbrOfThrowsLeft === 3 ? (
-                        <>
-                            <Pressable
-                                disabled={nbrOfThrowsLeft <= 0}  // Disabloi kun heittoja ei jäljellä
-                                style={({ pressed }) => [
-                                    styles.button,
-                                    pressed && styles.buttonPressed,
-                                    { width: '80%' },
-                                ]}
-                                onPress={() => throwDices()}>
-                                <Text style={styles.buttonText}>{rounds === 0 ? 'Game Over, Save Your Score' : 'Roll Dices'}</Text>
-                                {rounds > 0 && <Text style={styles.nbrThrowsText}>{nbrOfThrowsLeft}</Text>}
-                                {rounds == 0 && <MaterialCommunityIcons name="scoreboard-outline" size={24} color="black" />}
-                            </Pressable>
-                            <Pressable
-                                style={({ pressed }) => [
-                                    styles.button,
-                                    pressed && styles.buttonPressed,
-                                    { display: 'none' },
-                                ]}>
-                                <Text style={styles.buttonText}>Play</Text>
-                            </Pressable>
-                        </>
+                    {rounds === 0 ? (
+                        // Display "Game Over, Save Your Score" button when rounds is 0
+                        <Pressable
+                            style={({ pressed }) => [
+                                styles.button,
+                                pressed && styles.buttonPressed,
+                                { width: '80%' },
+                            ]}
+                            onPress={() => {
+                                savePlayerPoints();
+                                resetGame();
+                            }}
+                        >
+                            <Text style={styles.buttonText}>Game Over, Save Your Score</Text>
+                            <MaterialCommunityIcons name="scoreboard-outline" size={24} color="black" />
+                        </Pressable>
                     ) : (
+                        // Display regular buttons for rolling dice and setting points
                         <>
                             <Pressable
-                                disabled={nbrOfThrowsLeft <= 0}  // Disabloi kun heittoja ei jäljellä
+                                disabled={nbrOfThrowsLeft <= 0}
                                 style={({ pressed }) => [
                                     styles.button,
                                     pressed && styles.buttonPressed,
+                                    { width: '39%' },
                                 ]}
-                                onPress={() => throwDices()}>
-                                <Text style={styles.buttonText}>{rounds === 0 ? 'Game Over, Save Your Score' : 'Roll Dices'}</Text>
+                                onPress={() => throwDices()}
+                            >
+                                <Text style={styles.buttonText}>Roll Dices</Text>
                                 {rounds > 0 && <Text style={styles.nbrThrowsText}>{nbrOfThrowsLeft}</Text>}
+                                {rounds === 0 && <MaterialCommunityIcons name="scoreboard-outline" size={24} color="black" />}
                             </Pressable>
                             <Pressable
-                                disabled={!selectedField} // Disabloi kun kenttää ei ole valittu
+                                disabled={!selectedField}
                                 style={({ pressed }) => [
                                     styles.button,
                                     pressed && styles.buttonPressed,
@@ -723,14 +768,15 @@ export default function Gameboard({ navigation, route }) {
                                     setNbrOfThrowsLeft(NBR_OF_THROWS);
                                     resetDiceSelection();
                                     setRounds(rounds - 1);
-                                }}>
-                                <Text style={styles.buttonText}>Set points</Text>
+                                }}
+                            >
+                                <Text style={styles.buttonText}>Set Points</Text>
                                 <MaterialCommunityIcons name="beaker-plus" size={25} color="black" />
                             </Pressable>
                         </>
                     )}
                 </View>
-            </View>
+            </View >
         );
     }
 
