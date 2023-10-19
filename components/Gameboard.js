@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FlatList, Text, View, Pressable } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import styles from '../styles/styles';
-import { NBR_OF_THROWS, NBR_OF_DICES, MAX_SPOTS, SCOREBOARD_KEY } from '../constants/Game';
+import { NBR_OF_THROWS, NBR_OF_DICES, MAX_SPOTS, SCOREBOARD_KEY, BONUS_POINTS_LIMIT } from '../constants/Game';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 let board = [];
@@ -243,7 +243,7 @@ export default function Gameboard({ route, navigation }) {
                                 points: points,
                                 locked: true,
                             };
-                        } else if (category.name === 'sectionMinor' && category.points >= 63) {
+                        } else if (category.name === 'sectionMinor' && category.points >= BONUS_POINTS_LIMIT) {
                             // Jos 'sectionMinor' on saavutettu 63 pistettä, lisätään 35 pistettä
                             return {
                                 ...category,
@@ -629,7 +629,7 @@ export default function Gameboard({ route, navigation }) {
                 </Pressable>
             );
         } else if (index === 24) {
-            const isSectionMinorAchieved = scoringCategories.find(category => category.name === 'sectionMinor').points >= 63;
+            const isSectionMinorAchieved = scoringCategories.find(category => category.name === 'sectionMinor').points >= BONUS_POINTS_LIMIT;
 
             if (isSectionMinorAchieved) {
                 scoringCategories.find(category => category.name === 'total').points += 35;
@@ -648,7 +648,7 @@ export default function Gameboard({ route, navigation }) {
             return (
                 <View style={styles.item}>
                     <Text style={styles.scoreText}>
-                        {scoringCategories.find(category => category.name === 'sectionMinor').points} /63</Text>
+                        {scoringCategories.find(category => category.name === 'sectionMinor').points} / {BONUS_POINTS_LIMIT}</Text>
                 </View>
             );
         } else if (index === 29) {
