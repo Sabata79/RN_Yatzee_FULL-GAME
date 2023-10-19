@@ -24,9 +24,8 @@ export default function Scoreboard({ navigation }) {
         const sortedScores = tmpScores.slice().sort((a, b) => b.points - a.points);
         setScores(sortedScores);
 
-        // Find the index of the latest score
         if (sortedScores.length > 0) {
-          const latestScore = sortedScores[0]; // Assuming sortedScores is in ascending order
+          const latestScore = sortedScores[0];
           const latestScoreIndex = tmpScores.findIndex(score => score.key === latestScore.key);
           setLatestScoreIndex(latestScoreIndex);
         }
@@ -99,7 +98,7 @@ export default function Scoreboard({ navigation }) {
             style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
             onPress={() => clearScoreboard()}
           >
-            <Text>Clear scoreboard</Text>
+            <Text style={styles.resetButtonText}>Clear scoreboard</Text>
           </Pressable>
         </View>
       )}

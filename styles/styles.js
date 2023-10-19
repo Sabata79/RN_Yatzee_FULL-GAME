@@ -53,7 +53,7 @@ export default styles = StyleSheet.create({
         },
         shadowOpacity: 0.25,
         shadowRadius: 3.84,
-        elevation: 5,
+        elevation: 10,
     },
     firstRowItem: {
         flex: 1,
@@ -63,7 +63,7 @@ export default styles = StyleSheet.create({
     firstRowNameText: {
         fontFamily: 'AntonRegular',
         fontSize: 15,
-        color: '#2f2009'
+        color: '#2c2418'
     },
     firstRowCategoryText: {
         fontFamily: 'AntonRegular',
@@ -114,7 +114,7 @@ export default styles = StyleSheet.create({
         },
         shadowOpacity: 0.25,
         shadowRadius: 3.84,
-        elevation: 5,
+        elevation: 10,
     },
     homeButtonPressed: {
         margin: 15,
@@ -159,7 +159,7 @@ export default styles = StyleSheet.create({
         },
         shadowOpacity: 0.25,
         shadowRadius: 3.84,
-        elevation: 5,
+        elevation: 10,
     },
     buttonPressed: {
         margin: 5,
@@ -184,7 +184,7 @@ export default styles = StyleSheet.create({
     },
 
     buttonText: {
-        color: '#2B2B52',
+        color: '#2c2418',
         fontSize: 20,
         textAlign: 'center',
         fontFamily: 'AntonRegular',
@@ -210,7 +210,7 @@ export default styles = StyleSheet.create({
         color: 'white',
     },
     gridTxt: {
-        color: 'grey',
+        color: '#2c2418',
         fontSize: 16,
         fontWeight: 'bold',
         textAlign: 'center',
@@ -290,7 +290,7 @@ export default styles = StyleSheet.create({
         },
         shadowOpacity: 0.25,
         shadowRadius: 3.84,
-        elevation: 5,
+        elevation: 10,
     },
     sectionContainerAchieved: {
         width: 72,
@@ -316,6 +316,7 @@ export default styles = StyleSheet.create({
     sectionBonusTxt: {
         fontSize: 12,
         textAlign: 'center',
+        color: '#2c2418',
         fontFamily: 'AntonRegular',
     },
     gameboard: {
@@ -327,11 +328,11 @@ export default styles = StyleSheet.create({
     diceBorder: {
         width: '80%',
         height: 50,
-        borderWidth: 1,
-        borderColor: 'white',
+        borderWidth: 2,
+        borderColor: '#ccc9c9',
         borderRadius: 4,
         alignItems: 'center',
-        backgroundColor: '#594b4b',
+        backgroundColor: '#615656',
         shadowColor: '#000000',
         shadowOffset: {
             width: 0,
@@ -339,7 +340,7 @@ export default styles = StyleSheet.create({
         },
         shadowOpacity: 0.25,
         shadowRadius: 3.84,
-        elevation: 5,
+        elevation: 10,
         marginTop: -100,
     },
     row: {
@@ -373,9 +374,9 @@ export default styles = StyleSheet.create({
     },
     rulesText: {
         fontSize: 16,
+        paddingRight: 10,
         color: '#ffffff',
         textAlign: 'center',
-        margin: 5,
         fontFamily: 'AntonRegular',
     },
     rulesCombination: {
@@ -403,11 +404,21 @@ export default styles = StyleSheet.create({
     scoreBoardHeader: {
         alignSelf: 'center',
         borderRadius: 5,
-        backgroundColor: 'orange',
+        backgroundColor: '#ee8d1ef5',
         width: '95%',
         textAlign: 'center',
         justifyContent: 'center',
         marginTop: 20,
+        borderColor: 'orange',
+        borderWidth: 3,
+        shadowColor: '#000000',
+        shadowOffset: {
+            width: 0,
+            height: 5,
+        },
+        shadowOpacity: 0.5,
+        shadowRadius: 3.84,
+        elevation: 10,
     },
     cell: {
         justifyContent: 'center',
@@ -418,12 +429,18 @@ export default styles = StyleSheet.create({
         textAlign: 'center',
         fontFamily: 'AntonRegular',
         color: 'black',
-        paddingVertical: 5,  
+        paddingVertical: 5,
     },
     resetButton: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
         marginTop: 5,
+    },
+    resetButtonText: {
+        flex: 1,
+        color: '#2c2418',
+        textAlign: 'center',
+        fontFamily: 'AntonRegular',
     },
 });

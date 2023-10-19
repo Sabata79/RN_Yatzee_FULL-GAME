@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FlatList, Text, View, Pressable } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import styles from '../styles/styles';
-import { NBR_OF_THROWS, NBR_OF_DICES, MAX_SPOTS, SCOREBOARD_KEY, BONUS_POINTS_LIMIT } from '../constants/Game';
+import { NBR_OF_THROWS, NBR_OF_DICES, MAX_SPOTS, SCOREBOARD_KEY, BONUS_POINTS, BONUS_POINTS_LIMIT } from '../constants/Game';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 let board = [];
@@ -27,6 +27,10 @@ export default function Gameboard({ route, navigation }) {
         return unsubscribe;
     }, [navigation]);
 
+    useEffect(() => {
+        handleBonus(); // Calculate and apply the bonus when minorPoints or hasAppliedBonus changes
+    }, [minorPoints, hasAppliedBonus]);
+
     //Resetoi pelin
     const resetGame = () => {
         const resetCategories = scoringCategories.map(category => {
@@ -40,6 +44,9 @@ export default function Gameboard({ route, navigation }) {
         setRounds(MAX_SPOTS);
         setNbrOfThrowsLeft(NBR_OF_THROWS);
         resetDiceSelection();
+        setTotalPoints(0);
+        setMinorPoints(0);
+        setHasAppliedBonus(false);
     };
 
     // Tulosten tallennus asyncstorageen
@@ -47,7 +54,6 @@ export default function Gameboard({ route, navigation }) {
 
     const savePlayerPoints = async () => {
         try {
-            const totalPoints = scoringCategories.find(category => category.name === 'total').points;
             const newKey = new Date().getTime();
             const playerPoints = {
                 key: newKey,
@@ -92,6 +98,7 @@ export default function Gameboard({ route, navigation }) {
         ...Array.from({ length: 32 }, (_, index) => ({ key: String(index + 2) })),
     ]);
 
+    const [scores, setScores] = useState([]);
     // Pelaajan jäljellä olevat heitot
     const [nbrOfThrowsLeft, setNbrOfThrowsLeft] = useState(NBR_OF_THROWS);
 
@@ -110,7 +117,7 @@ export default function Gameboard({ route, navigation }) {
     //Noppien silmäluvut listana 
     const [rolledDices, setRolledDices] = useState(new Array(NBR_OF_DICES).fill(0));
 
-   // Pisteet
+    // Pisteet
     const [scoringCategories, setScoringCategories] = useState([
         {
             name: 'ones',
@@ -207,16 +214,18 @@ export default function Gameboard({ route, navigation }) {
             name: 'sectionMinor',
             points: 0
         },
-        {
-            name: 'total',
-            index: 29,
-            points: 0,
-        },
-
     ]);
 
+    const [totalPoints, setTotalPoints] = useState(0);
+    const [minorPoints, setMinorPoints] = useState(0);
+    const [hasAppliedBonus, setHasAppliedBonus] = useState(false);
 
-    // ONGELMA: Kun sectionMinor pisteet saavuttaa 63 pistettä, kaikki noppien pyöräytykset lisäävät pisteitä ???
+    const handleBonus = () => {
+        if (!hasAppliedBonus && minorPoints >= BONUS_POINTS_LIMIT) {
+            setTotalPoints(totalPoints + BONUS_POINTS);
+            setHasAppliedBonus(true); // Bonari totuusarvo trueksi
+        }
+    };
 
     const handleSetPoints = () => {
         if (selectedField !== null) {
@@ -232,7 +241,7 @@ export default function Gameboard({ route, navigation }) {
                     const points = selectedCategory.calculateScore(rolledDices);
 
                     // Tarkistetaan, onko valittu kategoria minorNames-listalla
-                    const isCategoryInMinorNames = minorNames.includes(selectedCategory.name);
+                    const isMinorNames = minorNames.includes(selectedCategory.name);
 
                     // Päivitetään kategoriat ja niiden pisteet
                     const updatedCategories = scoringCategories.map(category => {
@@ -243,25 +252,20 @@ export default function Gameboard({ route, navigation }) {
                                 points: points,
                                 locked: true,
                             };
-                        } else if (category.name === 'sectionMinor' && category.points >= BONUS_POINTS_LIMIT) {
-                            // Jos 'sectionMinor' on saavutettu 63 pistettä, lisätään 35 pistettä
-                            return {
-                                ...category,
-                                points: category.points + 35,
-                            };
-                        } else if (category.name === 'total' || (isCategoryInMinorNames && category.name === 'sectionMinor')) {
-                            return {
-                                ...category,
-                                points: category.points + points,
-                            };
                         }
                         return category;
                     });
-                    // Päivitetään pisteet ja lukitus kategorioille
+                    // Lisätään pisteet totalPoints-muuttujaan
+                    setTotalPoints(totalPoints + points);
+                    // Lisätään pisteet minorPoints-muuttujaan, jos kategoria on osa minorNames-listaa
+                    if (isMinorNames) {
+                        setMinorPoints(minorPoints + points);
+                        handleBonus();
+                    }
+                    // Päivitetään kategoriat ja lukitus kategorioille sekä tyhjennetään valittu kategoria
                     setScoringCategories(updatedCategories);
+                    setSelectedField(null);
                 }
-                // Tyhjennetään valittu kategoria
-                setSelectedField(null);
             }
         }
     };
@@ -375,10 +379,10 @@ export default function Gameboard({ route, navigation }) {
         </>
     );
 
-    const renderGrid = ({ index, scoringCategories }) => {
+    const renderGrid = ({ index, scoringCategories, totalPoints, minorPoints }) => {
 
         const handlePressField = (index) => {
-            if (nbrOfThrowsLeft < NBR_OF_THROWS && nbrOfThrowsLeft !== 3) {
+            if (nbrOfThrowsLeft < NBR_OF_THROWS && nbrOfThrowsLeft !== NBR_OF_THROWS) {
                 setSelectedField(index === selectedField ? null : index);
             } else {
                 setStatus('Cannot select field at this time');
@@ -401,7 +405,7 @@ export default function Gameboard({ route, navigation }) {
         const fieldStyle = currentCategory && currentCategory.locked ? styles.lockedField : styles.selectScore;
 
 
-        // Indeksit Gridin kohdille OK!!!
+        // Indeksit Gridin kohdille
         if (index === 0) {
             return (
                 <View style={styles.item}>
@@ -629,11 +633,7 @@ export default function Gameboard({ route, navigation }) {
                 </Pressable>
             );
         } else if (index === 24) {
-            const isSectionMinorAchieved = scoringCategories.find(category => category.name === 'sectionMinor').points >= BONUS_POINTS_LIMIT;
-
-            if (isSectionMinorAchieved) {
-                scoringCategories.find(category => category.name === 'total').points += 35;
-            }
+            const isSectionMinorAchieved = minorPoints >= BONUS_POINTS_LIMIT;
 
             return (
                 <View style={styles.item}>
@@ -648,13 +648,13 @@ export default function Gameboard({ route, navigation }) {
             return (
                 <View style={styles.item}>
                     <Text style={styles.scoreText}>
-                        {scoringCategories.find(category => category.name === 'sectionMinor').points} / {BONUS_POINTS_LIMIT}</Text>
+                        {minorPoints} / {BONUS_POINTS_LIMIT}</Text>
                 </View>
             );
         } else if (index === 29) {
             return (
                 <View style={styles.item}>
-                    <Text style={styles.scoreText}>Total: {currentCategory.points}</Text>
+                    <Text style={styles.scoreText}>Total: {totalPoints}</Text>
                 </View>
             );
         } else {
@@ -785,7 +785,7 @@ export default function Gameboard({ route, navigation }) {
         <FlatList
             data={data}
             renderItem={({ item, index }) =>
-                renderGrid({ item, index, scoringCategories })}
+                renderGrid({ item, index, scoringCategories, totalPoints, minorPoints })}
             numColumns={4}
             backgroundColor={'#85715d'}
             keyExtractor={(item) => item.key}

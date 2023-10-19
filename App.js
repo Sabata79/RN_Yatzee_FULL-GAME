@@ -13,14 +13,15 @@ import { MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
 import { useFonts } from 'expo-font';
 
 export default function App() {
+
+  const Tab = createBottomTabNavigator();
+
   const [loaded] = useFonts({
     AntonRegular: require('./assets/fonts/Anton-Regular.ttf'),
   });
   if (!loaded) {
     return null;
   }
-  
-  const Tab = createBottomTabNavigator();
 
   return (
     <SafeAreaView style={styles.container}>

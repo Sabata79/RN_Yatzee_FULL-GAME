@@ -1,25 +1,27 @@
 export const NBR_OF_DICES = 5;
 export const NBR_OF_THROWS = 3;
 export const MIN_SPOTS = 1;
-export const MAX_SPOTS = 13; // 13
+export const MAX_SPOTS = 13;
 export const BONUS_POINTS_LIMIT = 63;
 export const BONUS_POINTS = 35;
-export const NBR_OF_SCOREBOARD_ROWS = 10;
+export const NBR_OF_SCOREBOARD_ROWS = 6;
 export const SCOREBOARD_KEY = '@scoreboard';
+export const YATZY_POINTS = 50;
+export const FULLHOUSE_PONITS = 25;
+export const SMALL_STRAIGHT_POINTS = 30;
+export const LARGE_STRAIGHT_POINTS = 40;
 
 //  Perus Säännöt
 export const rulesTextContent = `
-      Here are the rules:
-
       Score as many points as possible
-      by rolling dice to reach the 13 combinations
+      by rolling dice to reach the ${MAX_SPOTS} combinations
       predefined in the game.
 
-      Dice can be rolled up to three
+      Dice can be rolled up to ${NBR_OF_THROWS}
       times in a turn to make one of the
       possible scoring combinations.
 
-      A game consists of rounds during which
+      A game consists ${MAX_SPOTS} rounds during which
       the player chooses which scoring
       combination is to be used in that round.
       Once a combination has been used in the
@@ -39,15 +41,12 @@ export const rulesTextContent = `
       on the cell next to the combination
       and then press the Set Points button.
 
-      When you reach at least 63 in
-      minor part of the scoreboard,
-      you unlock as 35 bonus points.
+      When you reach at least ${BONUS_POINTS_LIMIT} in
+      minor sector of the scoreboard,
+      you unlock as ${BONUS_POINTS} bonus points.
 
-      You have a Yatzy when you get 5 dice with
-      the same side and it is worth 50 points. If
-      you get another yatzy after that, it still
-      gives you a bonus of 50 points whatever the
-      combination you chose.
+      You have a Yatzy when you get ${NBR_OF_DICES} dice with
+      the same side and it is worth ${YATZY_POINTS} points.
 
       The game ends when all categories have
       been scored.
@@ -58,37 +57,37 @@ export const combinationsData = [
   {
     icon: 'dice-multiple',
     description: 'Get the maximum of same side dices. it will score the sum of all the same dice.',
-    smallText:''
+    smallText: ''
   },
   {
     icon: 'numeric-3-box-multiple-outline',
     description: 'Three of a kind & Four of a kind. Sums same side dices.',
-    smallText:'3 & 4 same'
+    smallText: '3 & 4 same'
   },
   {
     icon: 'home',
     description: 'Fullhouse. Three of a kind & pair | 25 points.',
-    smallText:'Fullhouse'
+    smallText: 'Fullhouse'
   },
   {
     icon: 'cards-outline',
     description: 'Small straight. 4 consecutive dice | 30 points.',
-    smallText:'Small'
+    smallText: 'Small'
   },
   {
     icon: 'cards-outline',
     description: 'Large straight. 1-2-3-4-5 or 2-3-4-5-6 | 40 points.',
-    smallText:'Large'
+    smallText: 'Large'
   },
   {
     icon: 'star-outline',
     description: 'Yatzy. All dice with the same side | 50 points.',
-    smallText:'Yatzy'
+    smallText: 'Yatzy'
   },
   {
     icon: 'cards-outline',
     description: 'Change. Scores the sum of all dice.',
-    smallText:'change'
+    smallText: 'change'
   },
 ];
 
