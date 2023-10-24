@@ -20,7 +20,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/whiteDices.png",
-        "backgroundColor": "transparent"
+        "backgroundColor": "#ffffff"
       },
       "package": "com.sabata_79.GridTraining"
     },
