@@ -19,7 +19,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/whiteDices.png",
+        "foregroundImage": "./assets/ic_laucher-web.png",
         "backgroundColor": "#ffffff"
       },
       "package": "com.sabata_79.GridTraining"
