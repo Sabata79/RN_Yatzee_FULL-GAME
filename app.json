@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Yatzy2023",
-    "slug": "Yatzy2023",
+    "slug": "GridTraining",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/whiteDices.png",
@@ -19,8 +19,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/whiteDices.png",
+        "backgroundColor": "transparent"
       },
       "package": "com.sabata_79.GridTraining"
     },
