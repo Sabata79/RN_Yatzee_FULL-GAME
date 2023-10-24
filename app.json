@@ -19,7 +19,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/whiteDices.png",
+        "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "transparent"
       },
       "package": "com.sabata_79.GridTraining"
