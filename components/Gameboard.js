@@ -5,6 +5,7 @@ import styles from '../styles/styles';
 import { NBR_OF_THROWS, NBR_OF_DICES, MAX_SPOTS, SCOREBOARD_KEY, BONUS_POINTS, BONUS_POINTS_LIMIT } from '../constants/Game';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+
 let board = [];
 
 export default function Gameboard({ route, navigation }) {
@@ -52,32 +53,32 @@ export default function Gameboard({ route, navigation }) {
     // Tulosten tallennus asyncstorageen
     const currentDate = new Date();
 
-    const savePlayerPoints = async () => {
-        try {
-            const newKey = new Date().getTime();
-            const playerPoints = {
-                key: newKey,
-                name: playerName,
-                date: currentDate.toLocaleDateString(), // päivämäärä
-                time: currentDate.toLocaleTimeString(), // aika
-                points: totalPoints,  // yhteispisteet
-            };
-
-            // Haetaan olemassa olevat pisteet AsyncStoragesta
-            const existingScoresJSON = await AsyncStorage.getItem(SCOREBOARD_KEY);
-            const existingScores = existingScoresJSON ? JSON.parse(existingScoresJSON) : [];
-
-            // Lisätään uudet pisteet olemassa olevien pisteiden perään
-            const updatedScores = [...existingScores, playerPoints];
-
-            // Tallennetaan päivitetyt pisteet takaisin AsyncStorageen
-            const jsonValue = JSON.stringify(updatedScores);
-            await AsyncStorage.setItem(SCOREBOARD_KEY, jsonValue);
-            navigation.navigate('Scoreboard');
-        } catch (error) {
-            console.log('Error:' + error);
-        }
-    };
+         const savePlayerPoints = async () => {
+            try {
+                const newKey = new Date().getTime();
+                const playerPoints = {
+                    key: newKey,
+                    name: playerName,
+                    date: currentDate.toLocaleDateString(), // päivämäärä
+                    time: currentDate.toLocaleTimeString(), // aika
+                    points: totalPoints,  // yhteispisteet
+                };
+    
+                // Haetaan olemassa olevat pisteet AsyncStoragesta
+                const existingScoresJSON = await AsyncStorage.getItem(SCOREBOARD_KEY);
+                const existingScores = existingScoresJSON ? JSON.parse(existingScoresJSON) : [];
+    
+                // Lisätään uudet pisteet olemassa olevien pisteiden perään
+                const updatedScores = [...existingScores, playerPoints];
+    
+                // Tallennetaan päivitetyt pisteet takaisin AsyncStorageen
+                const jsonValue = JSON.stringify(updatedScores);
+                await AsyncStorage.setItem(SCOREBOARD_KEY, jsonValue);
+                navigation.navigate('Scoreboard');
+            } catch (error) {
+                console.log('Error:' + error);
+            }
+        }; 
 
     // Pisteiden tallennus asyncstorageen vol2
     const getScoreboardData = async () => {
@@ -734,7 +735,7 @@ export default function Gameboard({ route, navigation }) {
                                 { width: '80%' },
                             ]}
                             onPress={() => {
-                                savePlayerPoints();
+                                savePlayerPoints(); 
                                 resetGame();
                             }}
                         >

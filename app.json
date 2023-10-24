@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "GridTraining",
-    "slug": "GridTraining",
+    "name": "Yatzy2023",
+    "slug": "Yatzy2023",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/whiteDices.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/splash.png",
@@ -21,10 +21,16 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.sabata_79.GridTraining"
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "f3b9cbff-b672-4998-aeec-85d78a60bc28"
+      }
     }
   }
 }
