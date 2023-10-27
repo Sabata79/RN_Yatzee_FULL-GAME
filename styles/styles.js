@@ -11,7 +11,7 @@ export default styles = StyleSheet.create({
     },
     overlay: {
         flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.7)', // Adjust the alpha (last value) for transparency
+        backgroundColor: 'rgba(0, 0, 0, 0.7)', // Muokkaa alfaprosenttia (viimeinen arvo) läpinäkyvyyden säätämiseksi.
     },
     homeContainer: {
         flex: 1,
@@ -368,7 +368,7 @@ export default styles = StyleSheet.create({
         fontFamily: 'AntonRegular',
     },
     rulesContainer: {
-        height: 2000,
+        height: 1750,
         flexGrow: 1,
         justifyContent: 'center',
         alignItems: 'center',
