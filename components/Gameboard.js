@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FlatList, Text, View, Pressable } from 'react-native';
+import { FlatList, Text, View, Pressable, ImageBackground } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import styles from '../styles/styles';
 import { NBR_OF_THROWS, NBR_OF_DICES, MAX_SPOTS, SCOREBOARD_KEY, BONUS_POINTS, BONUS_POINTS_LIMIT } from '../constants/Game';
@@ -53,32 +53,32 @@ export default function Gameboard({ route, navigation }) {
     // Tulosten tallennus asyncstorageen
     const currentDate = new Date();
 
-         const savePlayerPoints = async () => {
-            try {
-                const newKey = new Date().getTime();
-                const playerPoints = {
-                    key: newKey,
-                    name: playerName,
-                    date: currentDate.toLocaleDateString(), // päivämäärä
-                    time: currentDate.toLocaleTimeString(), // aika
-                    points: totalPoints,  // yhteispisteet
-                };
-    
-                // Haetaan olemassa olevat pisteet AsyncStoragesta
-                const existingScoresJSON = await AsyncStorage.getItem(SCOREBOARD_KEY);
-                const existingScores = existingScoresJSON ? JSON.parse(existingScoresJSON) : [];
-    
-                // Lisätään uudet pisteet olemassa olevien pisteiden perään
-                const updatedScores = [...existingScores, playerPoints];
-    
-                // Tallennetaan päivitetyt pisteet takaisin AsyncStorageen
-                const jsonValue = JSON.stringify(updatedScores);
-                await AsyncStorage.setItem(SCOREBOARD_KEY, jsonValue);
-                navigation.navigate('Scoreboard');
-            } catch (error) {
-                console.log('Error:' + error);
-            }
-        }; 
+    const savePlayerPoints = async () => {
+        try {
+            const newKey = new Date().getTime();
+            const playerPoints = {
+                key: newKey,
+                name: playerName,
+                date: currentDate.toLocaleDateString(), // päivämäärä
+                time: currentDate.toLocaleTimeString(), // aika
+                points: totalPoints,  // yhteispisteet
+            };
+
+            // Haetaan olemassa olevat pisteet AsyncStoragesta
+            const existingScoresJSON = await AsyncStorage.getItem(SCOREBOARD_KEY);
+            const existingScores = existingScoresJSON ? JSON.parse(existingScoresJSON) : [];
+
+            // Lisätään uudet pisteet olemassa olevien pisteiden perään
+            const updatedScores = [...existingScores, playerPoints];
+
+            // Tallennetaan päivitetyt pisteet takaisin AsyncStorageen
+            const jsonValue = JSON.stringify(updatedScores);
+            await AsyncStorage.setItem(SCOREBOARD_KEY, jsonValue);
+            navigation.navigate('Scoreboard');
+        } catch (error) {
+            console.log('Error:' + error);
+        }
+    };
 
     // Pisteiden tallennus asyncstorageen vol2
     const getScoreboardData = async () => {
@@ -444,7 +444,7 @@ export default function Gameboard({ route, navigation }) {
         } else if (index === 4) {
             return (
                 <View style={styles.item}>
-                    <MaterialCommunityIcons name="dice-2" size={45} color="white" />
+                    <MaterialCommunityIcons name="dice-2" size={45} style={styles.icon} />
                 </View>
             );
             //SUM OF TWOS
@@ -478,7 +478,7 @@ export default function Gameboard({ route, navigation }) {
         } else if (index === 8) {
             return (
                 <View style={styles.item}>
-                    <MaterialCommunityIcons name="dice-3" size={45} color="white" />
+                    <MaterialCommunityIcons name="dice-3" size={45} style={styles.icon} />
                 </View>
             );
             //SUM OF THREES
@@ -496,7 +496,7 @@ export default function Gameboard({ route, navigation }) {
         } else if (index === 10) {
             return (
                 <View style={styles.item}>
-                    <MaterialCommunityIcons name="home" size={25} color="white" />
+                    <MaterialCommunityIcons name="home" size={25} style={styles.icon} />
                     <Text style={{ fontSize: 10, color: 'white' }}>FullHouse</Text>
                 </View>
             );
@@ -514,7 +514,7 @@ export default function Gameboard({ route, navigation }) {
         } else if (index === 12) {
             return (
                 <View style={styles.item}>
-                    <MaterialCommunityIcons name="dice-4" size={45} color="white" />
+                    <MaterialCommunityIcons name="dice-4" size={45} style={styles.icon} />
                 </View>
             );
         } else if (index === 13) {
@@ -530,7 +530,7 @@ export default function Gameboard({ route, navigation }) {
         } else if (index === 14) {
             return (
                 <View style={styles.item}>
-                    <MaterialCommunityIcons name="cards-outline" size={25} color="white" />
+                    <MaterialCommunityIcons name="cards-outline" size={25} style={styles.icon} />
                     <Text style={{ fontSize: 10, color: 'white' }}>small</Text>
                 </View>
             );
@@ -548,7 +548,7 @@ export default function Gameboard({ route, navigation }) {
         } else if (index === 16) {
             return (
                 <View style={styles.item}>
-                    <MaterialCommunityIcons name="dice-5" size={45} color="white" />
+                    <MaterialCommunityIcons name="dice-5" size={45} style={styles.icon} />
                 </View>
             );
             //SUM OF FIVES
@@ -565,7 +565,7 @@ export default function Gameboard({ route, navigation }) {
         } else if (index === 18) {
             return (
                 <View style={styles.item}>
-                    <MaterialCommunityIcons name="cards-outline" size={25} color="white" />
+                    <MaterialCommunityIcons name="cards-outline" size={25} style={styles.icon} />
                     <Text style={{ fontSize: 10, color: 'white' }}>large</Text>
                 </View>
             );
@@ -583,7 +583,7 @@ export default function Gameboard({ route, navigation }) {
         } else if (index === 20) {
             return (
                 <View style={styles.item}>
-                    <MaterialCommunityIcons name="dice-6" size={45} color="white" />
+                    <MaterialCommunityIcons name="dice-6" size={45} style={styles.icon} />
                 </View>
             );
             //SUM OF SIXES
@@ -600,7 +600,7 @@ export default function Gameboard({ route, navigation }) {
         } else if (index === 22) {
             return (
                 <View style={styles.item}>
-                    <MaterialCommunityIcons name="star-outline" size={25} color="white" />
+                    <MaterialCommunityIcons name="star-outline" size={25} style={styles.icon} />
                     <Text style={{ fontSize: 10, color: 'white' }}>Yatzy</Text>
                 </View>
             );
@@ -618,7 +618,7 @@ export default function Gameboard({ route, navigation }) {
         } else if (index === 26) {
             return (
                 <View style={styles.item}>
-                    <MaterialCommunityIcons name="account-question-outline" size={25} color="white" />
+                    <MaterialCommunityIcons name="account-question-outline" size={25} style={styles.icon} />
                     <Text style={{ fontSize: 10, color: 'white' }}>Change</Text>
                 </View>
             );
@@ -735,7 +735,7 @@ export default function Gameboard({ route, navigation }) {
                                 { width: '80%' },
                             ]}
                             onPress={() => {
-                                savePlayerPoints(); 
+                                savePlayerPoints();
                                 resetGame();
                             }}
                         >
@@ -783,17 +783,22 @@ export default function Gameboard({ route, navigation }) {
 
 
     return (
-        <FlatList
-            data={data}
-            renderItem={({ item, index }) =>
-                renderGrid({ item, index, scoringCategories, totalPoints, minorPoints })}
-            numColumns={4}
-            backgroundColor={'#85715d'}
-            keyExtractor={(item) => item.key}
-            contentContainerStyle={styles.container}
-            ListHeaderComponent={renderFirstRow}
-            ListEmptyComponent={renderGrid}
-            ListFooterComponent={renderDices}
-        />
+        <ImageBackground
+            source={require('../assets/diceBackground.jpg')}
+            style={styles.background}>
+            <View style={styles.overlay}>
+            <FlatList
+                data={data}
+                renderItem={({ item, index }) =>
+                    renderGrid({ item, index, scoringCategories, totalPoints, minorPoints })}
+                numColumns={4}
+                keyExtractor={(item) => item.key}
+                contentContainerStyle={styles.container}
+                ListHeaderComponent={renderFirstRow}
+                ListEmptyComponent={renderGrid}
+                ListFooterComponent={renderDices}
+            />
+            </View>
+        </ImageBackground>
     );
 }

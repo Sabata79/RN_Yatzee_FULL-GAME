@@ -4,17 +4,23 @@ import Constants from 'expo-constants';
 export default styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#85715d',
+        alignSelf: 'stretch',
+    },
+    background: {
+        flex: 1,
+    },
+    overlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.7)', // Adjust the alpha (last value) for transparency
     },
     homeContainer: {
         flex: 1,
-        backgroundColor: '#85715d',
         justifyContent: 'center',
         alignItems: 'center',
-        color: 'white',
+        color: 'black',
     },
     header: {
-        marginTop: Constants.statusBarHeight + 5,
+        marginTop: Constants.statusBarHeight + 0,
         backgroundColor: 'darkorange',
         flexDirection: 'row',
         justifyContent: 'center',
@@ -33,6 +39,7 @@ export default styles = StyleSheet.create({
         justifyContent: 'center',
         textAlign: 'center',
         fontFamily: 'AntonRegular',
+        color: 'white',
     },
     inputIndexShown: {
         fontSize: 16,
@@ -63,19 +70,17 @@ export default styles = StyleSheet.create({
     firstRowNameText: {
         fontFamily: 'AntonRegular',
         fontSize: 15,
-        color: '#2c2418'
+        color: 'white'
     },
     firstRowCategoryText: {
         fontFamily: 'AntonRegular',
         fontSize: 17,
-        color: '#e9d99c'
+        color: 'white'
     },
     text: {
-        color: '#ffffff',
         fontWeight: 'bold',
     },
     playerText: {
-        color: '#fff',
         fontWeight: 'bold',
         fontSize: 18,
         paddingTop: 5,
@@ -184,7 +189,7 @@ export default styles = StyleSheet.create({
     },
 
     buttonText: {
-        color: '#2c2418',
+        color: 'black',
         fontSize: 20,
         textAlign: 'center',
         fontFamily: 'AntonRegular',
@@ -195,7 +200,6 @@ export default styles = StyleSheet.create({
         width: 35,
         height: 35,
         borderRadius: 100,
-        color: 'white',
         borderWidth: 2,
         textAlign: 'center',
         alignContent: 'center',
@@ -233,8 +237,7 @@ export default styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: 'white',
         borderRadius: 4,
-        backgroundColor: '#84786c',
-        opacity: 0.3,
+        backgroundColor: '#776c62',
     },
     selectScorePressed: {
         flex: 1,
@@ -282,6 +285,8 @@ export default styles = StyleSheet.create({
         alignItems: 'center',
         padding: 10,
         borderRadius: 100,
+        borderWidth: 1,
+        borderColor: 'white',
         backgroundColor: '#84786c',
         shadowColor: '#000000',
         shadowOffset: {
@@ -332,7 +337,7 @@ export default styles = StyleSheet.create({
         borderColor: '#ccc9c9',
         borderRadius: 4,
         alignItems: 'center',
-        backgroundColor: '#615656',
+        backgroundColor: 'black',
         shadowColor: '#000000',
         shadowOffset: {
             width: 0,
@@ -351,14 +356,12 @@ export default styles = StyleSheet.create({
         flexDirection: 'row',
     },
     author: {
-        color: '#fff',
         fontWeight: 'bold',
         fontSize: 10,
         textAlign: 'center',
         margin: 10,
     },
     title: {
-        color: '#fff',
         fontSize: 24,
         textAlign: 'center',
         margin: 5,
@@ -367,7 +370,6 @@ export default styles = StyleSheet.create({
     rulesContainer: {
         height: 2000,
         flexGrow: 1,
-        backgroundColor: 'transparent',
         justifyContent: 'center',
         alignItems: 'center',
         textAlign: 'center',
@@ -375,7 +377,7 @@ export default styles = StyleSheet.create({
     rulesText: {
         fontSize: 16,
         paddingRight: 10,
-        color: '#ffffff',
+        color: 'white',
         textAlign: 'center',
         fontFamily: 'AntonRegular',
     },
@@ -390,7 +392,7 @@ export default styles = StyleSheet.create({
     rulesCombinationTxt: {
         flex: 1,
         fontSize: 12,
-        color: '#ffffff',
+        color: 'white',
         textAlign: 'center',
         justifyContent: 'center',
         marginBottom: 10,
@@ -439,7 +441,7 @@ export default styles = StyleSheet.create({
     },
     resetButtonText: {
         flex: 1,
-        color: '#2c2418',
+        color: 'black',
         textAlign: 'center',
         fontFamily: 'AntonRegular',
     },

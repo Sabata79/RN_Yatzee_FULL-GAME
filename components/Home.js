@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, Pressable, Alert, ScrollView } from "react-native";
+import { View, Text, TextInput, Pressable, Alert, ScrollView, ImageBackground } from "react-native";
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import styles from '../styles/styles';
 import { useNavigation } from '@react-navigation/native';
@@ -33,56 +33,63 @@ export default function Home() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      {!showRules && (
-        <View style={styles.homeContainer}>
-          <Text style={styles.rulesText}>Hi, Stranger! Can you tell your name? </Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter your name"
-            onChangeText={(val) => setName(val)}
-            autoFocus={true}
-          />
-          <Pressable
-            style={({ pressed }) => [styles.homeButton, pressed && styles.homeButtonPressed]}
-            onPress={handlePress}
-          >
-            <Text style={styles.buttonText}>OK</Text>
-          </Pressable>
-        </View>
-      )}
-      {showRules && (
-        <ScrollView contentContainerStyle={styles.rulesContainer}>
-          <MaterialCommunityIcons name="information-variant" size={100} color="white" />
-          <Text style={styles.rulesText}>Hello, {name}!</Text>
-          <Text style={styles.rulesText}>Here are the rules:</Text>
-          <Text style={styles.rulesText}>
-            {rulesTextContent}
-          </Text>
-          <Text style={[styles.rulesText, { marginTop: 20, fontSize: 25 }]}>Combinations</Text>
-          {combinationsData.map((combination, index) => (
-            <View style={styles.rulesCombination} key={index}>
-              <MaterialCommunityIcons name={combination.icon} size={30} color="white" />
-              <Text style={{ fontSize: 10, color: 'white' }}>{combination.smallText}</Text>
-              <Text style={styles.rulesCombinationTxt}>{combination.description}</Text>
+      <ImageBackground
+        source={require('../assets/diceBackground.jpg')}
+        style={styles.background}>
+        <View style={styles.overlay}>
+          {!showRules && (
+            <View style={styles.homeContainer}>
+              <Text style={styles.rulesText}>Hi, Stranger! Can you tell your name? </Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Enter your name"
+                placeholderTextColor={'white'}
+                onChangeText={(val) => setName(val)}
+                autoFocus={true}
+              />
+              <Pressable
+                style={({ pressed }) => [styles.homeButton, pressed && styles.homeButtonPressed]}
+                onPress={handlePress}
+              >
+                <Text style={styles.buttonText}>OK</Text>
+              </Pressable>
             </View>
-          ))}
-          <View style={styles.diceContainer}>
-            <Pressable
-              style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
-              onPress={handleChangeName}
-            >
-              <Text style={[styles.buttonText, { fontSize: 18 }]}>Change name</Text>
-            </Pressable>
-            <Pressable
-              style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
-              onPress={handlePlay}
-            >
-              <Text style={styles.buttonText}>PLAY</Text>
-              <MaterialCommunityIcons name="play" size={30} color="black" />
-            </Pressable>
-          </View>
-        </ScrollView>
-      )}
+          )}
+          {showRules && (
+            <ScrollView contentContainerStyle={styles.rulesContainer}>
+              <MaterialCommunityIcons name="information-variant" size={100} color="white" />
+              <Text style={styles.rulesText}>Hello, {name}!</Text>
+              <Text style={styles.rulesText}>Here are the rules:</Text>
+              <Text style={styles.rulesText}>
+                {rulesTextContent}
+              </Text>
+              <Text style={[styles.rulesText, { marginTop: 20, fontSize: 25 }]}>Combinations</Text>
+              {combinationsData.map((combination, index) => (
+                <View style={styles.rulesCombination} key={index}>
+                  <MaterialCommunityIcons name={combination.icon} size={30} color="white" />
+                  <Text style={{ fontSize: 10, color: 'white' }}>{combination.smallText}</Text>
+                  <Text style={styles.rulesCombinationTxt}>{combination.description}</Text>
+                </View>
+              ))}
+              <View style={styles.diceContainer}>
+                <Pressable
+                  style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
+                  onPress={handleChangeName}
+                >
+                  <Text style={[styles.buttonText, { fontSize: 18 }]}>Change name</Text>
+                </Pressable>
+                <Pressable
+                  style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
+                  onPress={handlePlay}
+                >
+                  <Text style={styles.buttonText}>PLAY</Text>
+                  <MaterialCommunityIcons name="play" size={30} color="black" />
+                </Pressable>
+              </View>
+            </ScrollView>
+          )}
+        </View>
+      </ImageBackground>
     </ScrollView>
   );
 }
