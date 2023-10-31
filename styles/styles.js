@@ -195,14 +195,16 @@ export default styles = StyleSheet.create({
         fontFamily: 'AntonRegular',
     },
     nbrThrowsText: {
-        fontSize: 16,
+        fontSize: 17,
         fontFamily: 'AntonRegular',
         width: 35,
         height: 35,
+        marginLeft: 10,
         borderRadius: 100,
         borderWidth: 2,
         textAlign: 'center',
         alignContent: 'center',
+        justifyContent: 'center',
         backgroundColor: 'red',
     },
     lastItem: {
@@ -256,7 +258,7 @@ export default styles = StyleSheet.create({
         backgroundColor: '#cf6d52b8',
     },
     scoreText: {
-        color: 'black',
+        color: 'white',
         fontFamily: 'AntonRegular',
         paddingRight: 10,
     },
