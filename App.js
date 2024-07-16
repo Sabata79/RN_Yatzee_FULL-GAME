@@ -1,6 +1,6 @@
 import React from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { SafeAreaView, View, ImageBackground } from 'react-native';
+import { SafeAreaView } from 'react-native';
 import Scoreboard from './components/Scoreboard';
 import Gameboard from './components/Gameboard';
 import Home from './components/Home';
@@ -13,7 +13,6 @@ import { MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
 import { useFonts } from 'expo-font';
 
 export default function App() {
-
   const Tab = createBottomTabNavigator();
 
   const [loaded] = useFonts({
