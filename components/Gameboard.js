@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { FlatList, Text, View, Pressable, ImageBackground } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import styles from '../styles/styles';
-import { NBR_OF_THROWS, NBR_OF_DICES, MAX_SPOTS, SCOREBOARD_KEY, BONUS_POINTS, BONUS_POINTS_LIMIT } from '../constants/Game';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import { NBR_OF_THROWS, NBR_OF_DICES, MAX_SPOTS, BONUS_POINTS, BONUS_POINTS_LIMIT } from '../constants/Game';
+import { database } from '../components/Firebase';
+import { ref, set, push } from 'firebase/database';
 
 let board = [];
 
@@ -21,12 +21,12 @@ export default function Gameboard({ route, navigation }) {
     }, [route.params?.player, route.params?.reset]);
 
     // Päivittää tulostaulun tiedot, kun näkymä saa fokuksen.
-    useEffect(() => {
-        const unsubscribe = navigation.addListener('focus', () => {
-            getScoreboardData();
-        });
-        return unsubscribe;
-    }, [navigation]);
+    // useEffect(() => {
+    //     const unsubscribe = navigation.addListener('focus', () => {
+    //         getScoreboardData();
+    //     });
+    //     return unsubscribe;
+    // }, [navigation]);
 
     useEffect(() => {
         handleBonus(); // Calculate and apply the bonus when minorPoints or hasAppliedBonus changes
@@ -50,12 +50,12 @@ export default function Gameboard({ route, navigation }) {
         setHasAppliedBonus(false);
     };
 
-    // Tulosten tallennus asyncstorageen
+    // Tulosten tallennus Firebaseen
     const currentDate = new Date();
 
     const savePlayerPoints = async () => {
         try {
-            const newKey = new Date().getTime();
+            const newKey = push(ref(database, 'scores')).key;
             const playerPoints = {
                 key: newKey,
                 name: playerName,
@@ -64,35 +64,13 @@ export default function Gameboard({ route, navigation }) {
                 points: totalPoints,  // yhteispisteet
             };
 
-            // Haetaan olemassa olevat pisteet AsyncStoragesta
-            const existingScoresJSON = await AsyncStorage.getItem(SCOREBOARD_KEY);
-            const existingScores = existingScoresJSON ? JSON.parse(existingScoresJSON) : [];
-
-            // Lisätään uudet pisteet olemassa olevien pisteiden perään
-            const updatedScores = [...existingScores, playerPoints];
-
-            // Tallennetaan päivitetyt pisteet takaisin AsyncStorageen
-            const jsonValue = JSON.stringify(updatedScores);
-            await AsyncStorage.setItem(SCOREBOARD_KEY, jsonValue);
+            // Tallennetaan uudet pisteet Firebaseen
+            await set(ref(database, `scores/${newKey}`), playerPoints);
             navigation.navigate('Scoreboard');
         } catch (error) {
             console.log('Error:' + error);
         }
     };
-
-    // Pisteiden tallennus asyncstorageen vol2
-    const getScoreboardData = async () => {
-        try {
-            const jsonValue = await AsyncStorage.getItem(SCOREBOARD_KEY);
-            if (jsonValue != null) {
-                let tmpscores = JSON.parse(jsonValue);
-                setScores(tmpscores);
-            }
-        }
-        catch (error) {
-            console.log('Error:' + error);
-        }
-    }
 
     // Gridin luominen
     const [data, setData] = useState([
@@ -562,7 +540,7 @@ export default function Gameboard({ route, navigation }) {
                     </View>
                 </Pressable>
             );
-        } else if (index === 18) {
+        }else if (index === 18) {
             return (
                 <View style={styles.item}>
                     <MaterialCommunityIcons name="cards-outline" size={25} style={styles.icon} />
@@ -615,24 +593,6 @@ export default function Gameboard({ route, navigation }) {
                     </View>
                 </Pressable>
             );
-        } else if (index === 26) {
-            return (
-                <View style={styles.item}>
-                    <MaterialCommunityIcons name="account-question-outline" size={25} style={styles.icon} />
-                    <Text style={{ fontSize: 10, color: 'white' }}>Change</Text>
-                </View>
-            );
-            //SUM OF FACES
-        } else if (index === 27) {
-            return (
-                <Pressable onPress={() => handlePressField(index)} disabled={isLocked('chance')}>
-                    <View style={[styles.item, isSelected ? styles.selectScorePressed : fieldStyle]}>
-                        <Text style={styles.inputIndexShown}>
-                            {isLocked('chance') ? currentCategory.points : currentCategory.calculateScore(rolledDices)}
-                        </Text>
-                    </View>
-                </Pressable>
-            );
         } else if (index === 24) {
             const isSectionMinorAchieved = minorPoints >= BONUS_POINTS_LIMIT;
 
@@ -651,6 +611,24 @@ export default function Gameboard({ route, navigation }) {
                     <Text style={styles.scoreText}>
                         {minorPoints} / {BONUS_POINTS_LIMIT}</Text>
                 </View>
+            );
+        } else if (index === 26) {
+            return (
+                <View style={styles.item}>
+                    <MaterialCommunityIcons name="account-question-outline" size={25} style={styles.icon} />
+                    <Text style={{ fontSize: 10, color: 'white' }}>Change</Text>
+                </View>
+            );
+            //SUM OF FACES
+        } else if (index === 27) {
+            return (
+                <Pressable onPress={() => handlePressField(index)} disabled={isLocked('chance')}>
+                    <View style={[styles.item, isSelected ? styles.selectScorePressed : fieldStyle]}>
+                        <Text style={styles.inputIndexShown}>
+                            {isLocked('chance') ? currentCategory.points : currentCategory.calculateScore(rolledDices)}
+                        </Text>
+                    </View>
+                </Pressable>
             );
         } else if (index === 29) {
             return (

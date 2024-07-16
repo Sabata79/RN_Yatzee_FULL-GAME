@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, Pressable, ScrollView, ImageBackground } from 'react-native';
 import { DataTable } from 'react-native-paper';
 import styles from '../styles/styles';
-import { NBR_OF_SCOREBOARD_ROWS, SCOREBOARD_KEY } from '../constants/Game';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { NBR_OF_SCOREBOARD_ROWS } from '../constants/Game';
+import { database } from '../components/Firebase';  // Import firebase configuration
+import { ref, onValue, remove } from 'firebase/database';
 
 export default function Scoreboard({ navigation }) {
   const [scores, setScores] = useState([]);
@@ -16,11 +17,12 @@ export default function Scoreboard({ navigation }) {
     return unsubscribe;
   }, [navigation]);
 
-  const getScoreboardData = async () => {
-    try {
-      const jsonValue = await AsyncStorage.getItem(SCOREBOARD_KEY);
-      if (jsonValue !== null) {
-        let tmpScores = JSON.parse(jsonValue);
+  const getScoreboardData = () => {
+    const scoresRef = ref(database, 'scores');
+    onValue(scoresRef, snapshot => {
+      const data = snapshot.val();
+      if (data) {
+        const tmpScores = Object.values(data);
         const sortedScores = tmpScores.slice().sort((a, b) => b.points - a.points);
         setScores(sortedScores);
 
@@ -29,21 +31,23 @@ export default function Scoreboard({ navigation }) {
           const latestScoreIndex = tmpScores.findIndex(score => score.key === latestScore.key);
           setLatestScoreIndex(latestScoreIndex);
         }
+      } else {
+        setScores([]);
+        setLatestScoreIndex(null);
       }
-    } catch (error) {
-      console.log('Error: ' + error);
-    }
+    });
   };
 
-  const clearScoreboard = async () => {
-    try {
-      const keysToRemove = [SCOREBOARD_KEY];
-      await AsyncStorage.multiRemove(keysToRemove);
-      setScores([]);
-      setLatestScoreIndex(null);
-    } catch (error) {
-      console.log('Error: ' + error);
-    }
+  const clearScoreboard = () => {
+    const scoresRef = ref(database, 'scores');
+    remove(scoresRef)
+      .then(() => {
+        setScores([]);
+        setLatestScoreIndex(null);
+      })
+      .catch(error => {
+        console.log('Error: ' + error);
+      });
   };
 
   return (
