@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native';
 import Scoreboard from './components/Scoreboard';
@@ -13,6 +13,7 @@ import { MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
 import { useFonts } from 'expo-font';
 
 export default function App() {
+  const [isUserRecognized, setIsUserRecognized] = useState(false);
   const Tab = createBottomTabNavigator();
 
   const [loaded] = useFonts({
@@ -24,7 +25,7 @@ export default function App() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Header />
+      <Header isUserRecognized={isUserRecognized} />
       <NavigationContainer>
         <Tab.Navigator
           screenOptions={{
@@ -42,14 +43,15 @@ export default function App() {
           }}>
           <Tab.Screen
             name="Home"
-            component={Home}
             options={{
               tabBarStyle: { display: 'none' },
               tabBarIcon: () => (
                 <MaterialCommunityIcons name="home" color={'black'} size={28} />
               ),
             }}
-          />
+          >
+            {() => <Home setIsUserRecognized={setIsUserRecognized} />}
+          </Tab.Screen>
           <Tab.Screen
             name="Gameboard"
             component={Gameboard}

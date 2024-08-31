@@ -11,7 +11,7 @@ export default styles = StyleSheet.create({
     },
     overlay: {
         flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.7)', // Muokkaa alfaprosenttia (viimeinen arvo) läpinäkyvyyden säätämiseksi.
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
     },
     homeContainer: {
         flex: 1,
@@ -25,6 +25,17 @@ export default styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
+        position: 'relative', 
+    },
+    title: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    userIcon: {
+        position: 'absolute', 
+        right: 10, 
     },
     footer: {
         backgroundColor: 'darkorange',

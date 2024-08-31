@@ -9,7 +9,7 @@ import { database } from '../components/Firebase';
 import { ref, onValue, set } from 'firebase/database';
 import uuid from 'react-native-uuid'; 
 
-export default function Home() {
+export default function Home({ setIsUserRecognized }) {
   const navigation = useNavigation();
   const [name, setName] = useState('');
   const [playerId, setPlayerId] = useState(''); 
@@ -25,24 +25,38 @@ export default function Home() {
     }
   }, []);
 
-  const checkExistingDevice = (deviceId) => {
-    const playersRef = ref(database, 'players');
-    onValue(playersRef, (snapshot) => {
+const checkExistingDevice = (deviceId) => {
+  const playersRef = ref(database, 'players');
+  onValue(playersRef, (snapshot) => {
+    try {
       const data = snapshot.val();
+      console.log('Data retrieved from Firebase:', data); // Debugging: Tarkista data
+
       if (data) {
         const existingPlayer = Object.values(data).find(player => player.deviceId === deviceId);
         if (existingPlayer) {
+          console.log('Existing player found:', existingPlayer); // Debugging
           setPlayerId(existingPlayer.playerId);
           setName(existingPlayer.name); 
           setShowRules(true); 
+          setIsUserRecognized(true); 
         } else {
+          console.log('No existing player found, creating new player ID');
           const newPlayerId = uuid.v4(); 
           setPlayerId(newPlayerId);
+          setIsUserRecognized(false); 
         }
+      } else {
+        console.log('No data available for players'); 
+        setIsUserRecognized(false);
       }
+    } catch (error) {
+      console.error('Error fetching player data from Firebase:', error); // Debugging: Tarkista virheet
+    } finally {
       setLoading(false); 
-    });
-  };
+    }
+  });
+};
 
   const saveNewPlayer = (name, playerId, deviceId) => {
     const newPlayerRef = ref(database, `players/${playerId}`);
@@ -61,6 +75,7 @@ export default function Home() {
       Alert.alert('Name is too short', 'Please enter a name with at least 3 characters and maximum 15 characters.');
     } else {
       setShowRules(true);
+      setIsUserRecognized(true); // Varmistetaan, että käyttäjä on tunnistettu, kun tallennetaan uusi pelaaja
       if (!playerId) {
         const newPlayerId = uuid.v4(); 
         setPlayerId(newPlayerId);
@@ -78,6 +93,7 @@ export default function Home() {
   const handleChangeName = () => {
     setName('');
     setShowRules(false);
+    setIsUserRecognized(false); // Nollataan käyttäjän tunnistus
   };
 
   return (
