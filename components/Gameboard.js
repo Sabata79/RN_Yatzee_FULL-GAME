@@ -20,14 +20,6 @@ export default function Gameboard({ route, navigation }) {
         }
     }, [route.params?.player, route.params?.reset]);
 
-    // Päivittää tulostaulun tiedot, kun näkymä saa fokuksen.
-    // useEffect(() => {
-    //     const unsubscribe = navigation.addListener('focus', () => {
-    //         getScoreboardData();
-    //     });
-    //     return unsubscribe;
-    // }, [navigation]);
-
     useEffect(() => {
         handleBonus(); // Calculate and apply the bonus when minorPoints or hasAppliedBonus changes
     }, [minorPoints, hasAppliedBonus]);
@@ -53,24 +45,25 @@ export default function Gameboard({ route, navigation }) {
     // Tulosten tallennus Firebaseen
     const currentDate = new Date();
 
-    const savePlayerPoints = async () => {
-        try {
-            const newKey = push(ref(database, 'scores')).key;
-            const playerPoints = {
-                key: newKey,
-                name: playerName,
-                date: currentDate.toLocaleDateString(), // päivämäärä
-                time: currentDate.toLocaleTimeString(), // aika
-                points: totalPoints,  // yhteispisteet
-            };
+const savePlayerPoints = async () => {
+    try {
+        // Luo uuden pistetiedon avain
+        const newKey = push(ref(database, `players/${route.params.playerId}/scores`)).key; // Tallennetaan pelaajan profiilin alle
+        const playerPoints = {
+            key: newKey,
+            date: currentDate.toLocaleDateString(),
+            time: currentDate.toLocaleTimeString(),
+            points: totalPoints,
+        };
 
-            // Tallennetaan uudet pisteet Firebaseen
-            await set(ref(database, `scores/${newKey}`), playerPoints);
-            navigation.navigate('Scoreboard');
-        } catch (error) {
-            console.log('Error:' + error);
-        }
-    };
+        // Tallennetaan uudet pisteet pelaajan profiilin alle Firebaseen
+        await set(ref(database, `players/${route.params.playerId}/scores/${newKey}`), playerPoints);
+
+        navigation.navigate('Scoreboard');
+    } catch (error) {
+        console.log('Error:' + error);
+    }
+};
 
     // Gridin luominen
     const [data, setData] = useState([

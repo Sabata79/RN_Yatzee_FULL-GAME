@@ -1,33 +1,82 @@
-import React, { useState } from "react";
-import { View, Text, TextInput, Pressable, Alert, ScrollView, ImageBackground } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, TextInput, Pressable, Alert, ScrollView, ImageBackground, ActivityIndicator } from "react-native";
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import styles from '../styles/styles';
 import { useNavigation } from '@react-navigation/native';
 import { rulesTextContent, combinationsData } from '../constants/Game';
+import * as Device from 'expo-device'; 
+import { database } from '../components/Firebase';
+import { ref, onValue, set } from 'firebase/database';
+import uuid from 'react-native-uuid'; 
 
 export default function Home() {
   const navigation = useNavigation();
   const [name, setName] = useState('');
+  const [playerId, setPlayerId] = useState(''); 
+  const [deviceId, setDeviceId] = useState(''); 
   const [showRules, setShowRules] = useState(false);
+  const [loading, setLoading] = useState(true); 
+
+  useEffect(() => {
+    if (Device.isDevice) {
+      const deviceIdentifier = Device.osBuildId || Device.modelId || Device.osInternalBuildId;
+      setDeviceId(deviceIdentifier);
+      checkExistingDevice(deviceIdentifier);
+    }
+  }, []);
+
+  const checkExistingDevice = (deviceId) => {
+    const playersRef = ref(database, 'players');
+    onValue(playersRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const existingPlayer = Object.values(data).find(player => player.deviceId === deviceId);
+        if (existingPlayer) {
+          setPlayerId(existingPlayer.playerId);
+          setName(existingPlayer.name); 
+          setShowRules(true); 
+        } else {
+          const newPlayerId = uuid.v4(); 
+          setPlayerId(newPlayerId);
+        }
+      }
+      setLoading(false); 
+    });
+  };
+
+  const saveNewPlayer = (name, playerId, deviceId) => {
+    const newPlayerRef = ref(database, `players/${playerId}`);
+    set(newPlayerRef, {
+      playerId: playerId,
+      name: name,
+      deviceId: deviceId, 
+      dateJoined: new Date().toLocaleDateString(),
+    });
+  };
 
   const handlePress = () => {
     if (name.trim() === '') {
       Alert.alert('Name is required', 'Please enter your name.');
     } else if (name.length < 3 || name.length > 15) {
       Alert.alert('Name is too short', 'Please enter a name with at least 3 characters and maximum 15 characters.');
-    } else if (/\d/.test(name) || /[!@#$%^&*(),.?":{}|<>]/.test(name)) {
-      Alert.alert('Invalid characters', 'Please enter a name without numbers or special characters.');
     } else {
       setShowRules(true);
+      if (!playerId) {
+        const newPlayerId = uuid.v4(); 
+        setPlayerId(newPlayerId);
+        saveNewPlayer(name, newPlayerId, deviceId);
+      } else {
+        saveNewPlayer(name, playerId, deviceId);
+      }
     }
   };
 
   const handlePlay = () => {
-    navigation.navigate('Gameboard', { player: name });
+    navigation.navigate('Gameboard', { player: name, playerId: playerId });
   };
 
   const handleChangeName = () => {
-    setName(''); // Resetoi nimen
+    setName('');
     setShowRules(false);
   };
 
@@ -37,13 +86,19 @@ export default function Home() {
         source={require('../assets/diceBackground.jpg')}
         style={styles.background}>
         <View style={styles.overlay}>
-          {!showRules && (
+          {loading ? ( 
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#ffffff" />
+              <Text style={styles.loadingText}>Checking player data...</Text>
+            </View>
+          ) : !showRules ? (
             <View style={styles.homeContainer}>
               <Text style={styles.rulesText}>Hi, Stranger! Can you tell your name? </Text>
               <TextInput
                 style={styles.input}
                 placeholder="Enter your name"
                 placeholderTextColor={'white'}
+                value={name} 
                 onChangeText={(val) => setName(val)}
                 autoFocus={true}
               />
@@ -54,8 +109,7 @@ export default function Home() {
                 <Text style={styles.buttonText}>OK</Text>
               </Pressable>
             </View>
-          )}
-          {showRules && (
+          ) : (
             <ScrollView contentContainerStyle={styles.rulesContainer}>
               <MaterialCommunityIcons name="information-variant" size={100} color="white" />
               <Text style={styles.rulesText}>Hello, {name}!</Text>

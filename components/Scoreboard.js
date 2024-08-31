@@ -3,7 +3,7 @@ import { View, Text, Pressable, ScrollView, ImageBackground } from 'react-native
 import { DataTable } from 'react-native-paper';
 import styles from '../styles/styles';
 import { NBR_OF_SCOREBOARD_ROWS } from '../constants/Game';
-import { database } from '../components/Firebase';  // Import firebase configuration
+import { database } from '../components/Firebase'; // Import firebase configuration
 import { ref, onValue, remove } from 'firebase/database';
 
 export default function Scoreboard({ navigation }) {
@@ -18,11 +18,25 @@ export default function Scoreboard({ navigation }) {
   }, [navigation]);
 
   const getScoreboardData = () => {
-    const scoresRef = ref(database, 'scores');
-    onValue(scoresRef, snapshot => {
-      const data = snapshot.val();
-      if (data) {
-        const tmpScores = Object.values(data);
+    const playersRef = ref(database, 'players');
+    onValue(playersRef, snapshot => {
+      const playersData = snapshot.val();
+      const tmpScores = [];
+
+      if (playersData) {
+        // Loopataan kaikkien pelaajien profiilien läpi
+        Object.keys(playersData).forEach(playerId => {
+          const player = playersData[playerId];
+          if (player.scores) {
+            Object.values(player.scores).forEach(score => {
+              tmpScores.push({
+                ...score,
+                name: player.name // Lisätään pelaajan nimi pisteeseen
+              });
+            });
+          }
+        });
+
         const sortedScores = tmpScores.slice().sort((a, b) => b.points - a.points);
         setScores(sortedScores);
 
@@ -39,15 +53,18 @@ export default function Scoreboard({ navigation }) {
   };
 
   const clearScoreboard = () => {
-    const scoresRef = ref(database, 'scores');
-    remove(scoresRef)
-      .then(() => {
+    const playersRef = ref(database, 'players');
+    onValue(playersRef, snapshot => {
+      const playersData = snapshot.val();
+      if (playersData) {
+        Object.keys(playersData).forEach(playerId => {
+          const playerScoresRef = ref(database, `players/${playerId}/scores`);
+          remove(playerScoresRef);
+        });
         setScores([]);
         setLatestScoreIndex(null);
-      })
-      .catch(error => {
-        console.log('Error: ' + error);
-      });
+      }
+    });
   };
 
   return (
