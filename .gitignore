@@ -35,6 +35,8 @@ yarn-error.*
 # typescript
 *.tsbuildinfo
 
-#google service
-google-services.json
-eas.json
+# Ignore all .json files
+*.json
+
+# Ignore babel.config.js
+babel.config.js
