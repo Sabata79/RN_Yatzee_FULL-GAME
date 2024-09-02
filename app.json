@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "Yatzy2023",
+    "name": "Yatzy2024",
     "slug": "GridTraining",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/whiteDices.png",
     "userInterfaceStyle": "light",
