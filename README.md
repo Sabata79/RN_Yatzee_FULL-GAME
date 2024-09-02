@@ -17,7 +17,7 @@ Welcome to the **React Native Yatzy Game!** This mobile application is a digital
 ## Download and Install
 
 1. **Download the APK:**
-   You can download the latest version of the Yatzy game for Android [here](https://github.com/Sabata79/RN_Yatzee/blob/master/release/Yatzy1102024.apk).  
+   You can download the latest version of the Yatzy game for Android [here](https://github.com/Sabata79/RN_Yatzee/blob/master/release/).  
 
 2. **Install the APK:**
    - Open the downloaded `.apk` file on your Android device.
