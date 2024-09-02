@@ -24,7 +24,12 @@
         "foregroundImage": "./assets/ic_launcher-web.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.sabata_79.GridTraining"
+      "package": "com.sabata_79.GridTraining",
+      "permissions": [
+        "INTERNET", 
+        "ACCESS_NETWORK_STATE", 
+        "WAKE_LOCK"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
