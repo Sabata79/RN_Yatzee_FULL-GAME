@@ -47,6 +47,7 @@ After launching the game, you'll be greeted with a simple menu where you can sta
 ## Feedback
 
 I value your feedback! If you have any suggestions, ideas, or encounter any issues, please let me know. Your input is invaluable for further development and improvement of the game.
+To provide feedback or participate in discussions, please visit the [Discussions]( https://github.com/Sabata79/RN_Yatzee_FULL-GAME/discussions/1 ) section of this repository.
 
 ## License
 
