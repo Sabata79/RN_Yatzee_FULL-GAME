@@ -21,42 +21,36 @@ export default function Home({ setIsUserRecognized }) {
     if (Device.isDevice) {
       const deviceIdentifier = Device.osBuildId || Device.modelId || Device.osInternalBuildId;
       setDeviceId(deviceIdentifier);
-      checkExistingDevice(deviceIdentifier);
+
+      // Aseta 2 sekunnin viive ennen kuin pelaajan tietoja tarkistetaan
+      const timer = setTimeout(() => {
+        checkExistingDevice(deviceIdentifier);
+      }, 2000);
+
+      return () => clearTimeout(timer); // Puhdista aikakatkaisu
     }
   }, []);
 
-const checkExistingDevice = (deviceId) => {
-  const playersRef = ref(database, 'players');
-  onValue(playersRef, (snapshot) => {
-    try {
+  const checkExistingDevice = (deviceId) => {
+    const playersRef = ref(database, 'players');
+    onValue(playersRef, (snapshot) => {
       const data = snapshot.val();
-      console.log('Data retrieved from Firebase:', data); // Debugging: Tarkista data
-
       if (data) {
         const existingPlayer = Object.values(data).find(player => player.deviceId === deviceId);
         if (existingPlayer) {
-          console.log('Existing player found:', existingPlayer); // Debugging
           setPlayerId(existingPlayer.playerId);
           setName(existingPlayer.name); 
           setShowRules(true); 
-          setIsUserRecognized(true); 
+          setIsUserRecognized(true); // Päivitetään käyttäjän tunnistus Headeriin
         } else {
-          console.log('No existing player found, creating new player ID');
           const newPlayerId = uuid.v4(); 
           setPlayerId(newPlayerId);
-          setIsUserRecognized(false); 
+          setIsUserRecognized(false); // Jos käyttäjää ei löydy, ei tunnistettu
         }
-      } else {
-        console.log('No data available for players'); 
-        setIsUserRecognized(false);
       }
-    } catch (error) {
-      console.error('Error fetching player data from Firebase:', error); // Debugging: Tarkista virheet
-    } finally {
       setLoading(false); 
-    }
-  });
-};
+    });
+  };
 
   const saveNewPlayer = (name, playerId, deviceId) => {
     const newPlayerRef = ref(database, `players/${playerId}`);
@@ -105,7 +99,7 @@ const checkExistingDevice = (deviceId) => {
           {loading ? ( 
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="large" color="#ffffff" />
-              <Text style={styles.loadingText}>Checking player data...</Text>
+              <Text style={styles.rulesText}>Checking player data...</Text> 
             </View>
           ) : !showRules ? (
             <View style={styles.homeContainer}>

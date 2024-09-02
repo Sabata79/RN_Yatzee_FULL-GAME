@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { FlatList, Text, View, Pressable, ImageBackground } from 'react-native';
+import { FlatList, Text, View, Pressable, ImageBackground, Alert } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import styles from '../styles/styles';
 import { NBR_OF_THROWS, NBR_OF_DICES, MAX_SPOTS, BONUS_POINTS, BONUS_POINTS_LIMIT } from '../constants/Game';
 import { database } from '../components/Firebase';
-import { ref, set, push } from 'firebase/database';
+import { ref, set, push, onValue, get } from 'firebase/database';
 
 let board = [];
 
@@ -12,10 +12,12 @@ export default function Gameboard({ route, navigation }) {
 
     // Pelaajan nimi
     const [playerName, setPlayerName] = useState('');
+    const [playerId, setPlayerId] = useState('');
 
     useEffect(() => {
         if (route.params?.player) {
             setPlayerName(route.params.player);
+            setPlayerId(route.params.playerId);
             resetGame();
         }
     }, [route.params?.player, route.params?.reset]);
@@ -42,27 +44,51 @@ export default function Gameboard({ route, navigation }) {
         setHasAppliedBonus(false);
     };
 
-    // Tulosten tallennus Firebaseen
-    const currentDate = new Date();
+// Tulosten tallennus Firebaseen
+const currentDate = new Date();
 
 const savePlayerPoints = async () => {
-    try {
-        // Luo uuden pistetiedon avain
-        const newKey = push(ref(database, `players/${route.params.playerId}/scores`)).key; // Tallennetaan pelaajan profiilin alle
+  try {
+    const playerRef = ref(database, `players/${playerId}`);
+    const snapshot = await get(playerRef); // Käytetään 'get' ja odotetaan vastaus
+
+    const playerData = snapshot.val();
+
+    if (playerData && playerData.scores) {
+      const existingScores = Object.values(playerData.scores);
+      const maxScore = Math.max(...existingScores.map(score => score.points));
+
+      // Vain jos uusi pistemäärä on korkeampi kuin vanha ennätys, tallennetaan
+      if (totalPoints > maxScore) {
+        const newKey = push(ref(database, `players/${playerId}/scores`)).key;
         const playerPoints = {
-            key: newKey,
-            date: currentDate.toLocaleDateString(),
-            time: currentDate.toLocaleTimeString(),
-            points: totalPoints,
+          key: newKey,
+          date: currentDate.toLocaleDateString(),
+          time: currentDate.toLocaleTimeString(),
+          points: totalPoints,
         };
 
-        // Tallennetaan uudet pisteet pelaajan profiilin alle Firebaseen
-        await set(ref(database, `players/${route.params.playerId}/scores/${newKey}`), playerPoints);
-
+        await set(ref(database, `players/${playerId}/scores/${newKey}`), playerPoints);
         navigation.navigate('Scoreboard');
-    } catch (error) {
-        console.log('Error:' + error);
+      } else {
+        Alert.alert('No new high score', 'You did not beat your previous high score.');
+      }
+    } else {
+      // Jos pelaajaa ei ole tai pelaajalla ei ole aiempia tuloksia, tallennetaan uusi tulos
+      const newKey = push(ref(database, `players/${playerId}/scores`)).key;
+      const playerPoints = {
+        key: newKey,
+        date: currentDate.toLocaleDateString(),
+        time: currentDate.toLocaleTimeString(),
+        points: totalPoints,
+      };
+
+      await set(ref(database, `players/${playerId}/scores/${newKey}`), playerPoints);
+      navigation.navigate('Scoreboard');
     }
+  } catch (error) {
+    console.log('Error:' + error.message); // Logataan tarkka virheviesti
+  }
 };
 
     // Gridin luominen
