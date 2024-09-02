@@ -50,7 +50,7 @@ const currentDate = new Date();
 const savePlayerPoints = async () => {
   try {
     const playerRef = ref(database, `players/${playerId}`);
-    const snapshot = await get(playerRef); // Käytetään 'get' ja odotetaan vastaus
+    const snapshot = await get(playerRef); 
 
     const playerData = snapshot.val();
 
@@ -58,7 +58,7 @@ const savePlayerPoints = async () => {
       const existingScores = Object.values(playerData.scores);
       const maxScore = Math.max(...existingScores.map(score => score.points));
 
-      // Vain jos uusi pistemäärä on korkeampi kuin vanha ennätys, tallennetaan
+      // Only save the score if it is higher than the previous high score
       if (totalPoints > maxScore) {
         const newKey = push(ref(database, `players/${playerId}/scores`)).key;
         const playerPoints = {
@@ -74,7 +74,7 @@ const savePlayerPoints = async () => {
         Alert.alert('No new high score', 'You did not beat your previous high score.');
       }
     } else {
-      // Jos pelaajaa ei ole tai pelaajalla ei ole aiempia tuloksia, tallennetaan uusi tulos
+      // IF the player does not have any scores saved, save the score
       const newKey = push(ref(database, `players/${playerId}/scores`)).key;
       const playerPoints = {
         key: newKey,
@@ -87,35 +87,25 @@ const savePlayerPoints = async () => {
       navigation.navigate('Scoreboard');
     }
   } catch (error) {
-    console.log('Error:' + error.message); // Logataan tarkka virheviesti
+    console.log('Error:' + error.message);
   }
 };
 
-    // Gridin luominen
+    // Making the gameboard
     const [data, setData] = useState([
         ...Array.from({ length: 32 }, (_, index) => ({ key: String(index + 2) })),
     ]);
 
     const [scores, setScores] = useState([]);
-    // Pelaajan jäljellä olevat heitot
+    // Player number of throws left
     const [nbrOfThrowsLeft, setNbrOfThrowsLeft] = useState(NBR_OF_THROWS);
-
-    //Peli Status toimii mutta lisäoptiona jos haluan lisätä pelin loppumisen
     const [status, setStatus] = useState('Throw the dices');
-
-    //Valinta nopista listana (true/false)
     const [selectedDices, setSelectedDices] = useState(new Array(NBR_OF_DICES).fill(false));
-
-    //Noppa valintojen resetointi
     const resetDiceSelection = () => { setSelectedDices(new Array(NBR_OF_DICES).fill(false)); };
-
-    //Kierrosten lukumäärä
     const [rounds, setRounds] = useState(MAX_SPOTS);
-
-    //Noppien silmäluvut listana 
     const [rolledDices, setRolledDices] = useState(new Array(NBR_OF_DICES).fill(0));
 
-    // Pisteet
+    // Points and categories
     const [scoringCategories, setScoringCategories] = useState([
         {
             name: 'ones',
@@ -221,7 +211,7 @@ const savePlayerPoints = async () => {
     const handleBonus = () => {
         if (!hasAppliedBonus && minorPoints >= BONUS_POINTS_LIMIT) {
             setTotalPoints(totalPoints + BONUS_POINTS);
-            setHasAppliedBonus(true); // Bonari totuusarvo trueksi
+            setHasAppliedBonus(true); 
         }
     };
 
@@ -229,22 +219,21 @@ const savePlayerPoints = async () => {
         if (selectedField !== null) {
             const minorNames = ['ones', 'twos', 'threes', 'fours', 'fives', 'sixes'];
 
-            // Etsitään valittu kategoria valintaindeksin perusteella
+            // Search for the selected category
             const selectedCategory = scoringCategories.find(category => category.index === selectedField);
 
             if (selectedCategory) {
-                // Tarkistetaan, ettei kategoria ole lukittu
+                // Check if the category is not locked
                 if (!selectedCategory.locked) {
-                    // Lasketaan pisteet valitulle kategorialle annettujen noppien perusteella
+                    // Count the points for the selected category
                     const points = selectedCategory.calculateScore(rolledDices);
 
-                    // Tarkistetaan, onko valittu kategoria minorNames-listalla
+                    // Check if the category is part of the minorNames list
                     const isMinorNames = minorNames.includes(selectedCategory.name);
 
-                    // Päivitetään kategoriat ja niiden pisteet
+                    // Update the selected category
                     const updatedCategories = scoringCategories.map(category => {
                         if (category.index === selectedField) {
-                            // Päivitetään valittu kategoria
                             return {
                                 ...category,
                                 points: points,
@@ -253,14 +242,14 @@ const savePlayerPoints = async () => {
                         }
                         return category;
                     });
-                    // Lisätään pisteet totalPoints-muuttujaan
+                    // Add the points to the total points
                     setTotalPoints(totalPoints + points);
-                    // Lisätään pisteet minorPoints-muuttujaan, jos kategoria on osa minorNames-listaa
+                    // Add the points to the minor points if the category is part of the minorNames list
                     if (isMinorNames) {
                         setMinorPoints(minorPoints + points);
                         handleBonus();
                     }
-                    // Päivitetään kategoriat ja lukitus kategorioille sekä tyhjennetään valittu kategoria
+                    // Update the categories
                     setScoringCategories(updatedCategories);
                     setSelectedField(null);
                 }
@@ -268,11 +257,11 @@ const savePlayerPoints = async () => {
         }
     };
 
-    //Silmälukujen summa
+    // Count the sum of the dices
     function calculateDiceSum(diceValue) {
         return rolledDices.reduce((sum, dice) => (dice === diceValue ? sum + dice : sum), 0);
     }
-    //Kolmoset 
+    // Three of a kind 
     function calculateThreeOfAKind(rolledDices) {
         return rolledDices.reduce((sum, dice) => {
             if (dice === 0) {
@@ -284,7 +273,7 @@ const savePlayerPoints = async () => {
             return sum;
         }, 0);
     }
-    //Neloset
+    // Four of a kind
     function calculateFourOfAKind(rolledDices) {
         return rolledDices.reduce((sum, dice) => {
             if (dice === 0) {
@@ -296,7 +285,7 @@ const savePlayerPoints = async () => {
             return sum;
         }, 0);
     }
-    //Yatzy
+    // Yahtzee
     function calculateYatzy(rolledDices) {
 
         return rolledDices.reduce((sum, dice) => {
@@ -304,12 +293,12 @@ const savePlayerPoints = async () => {
                 return sum;
             }
             if (rolledDices.filter(item => item === dice).length === 5) {
-                return 50; // Lisää 50 pistettä
+                return 50; // Adds 50 points
             }
             return sum;
         }, 0);
     }
-    //Täyskäsi
+    // Fullhouse
     function calculateFullHouse(rolledDices) {
         const counts = {};
         for (const dice of rolledDices) {
@@ -318,7 +307,7 @@ const savePlayerPoints = async () => {
         const values = Object.values(counts);
         return values.includes(3) && values.includes(2);
     }
-    //Pieni suora
+    // Small straight
     function calculateSmallStraight(rolledDices) {
         const sortedDiceValues = [...rolledDices].sort((a, b) => a - b);
         const smallStraights = [
@@ -333,7 +322,7 @@ const savePlayerPoints = async () => {
         }
         return 0;
     }
-    // Suuri suora OK!!!
+    // Big straight
     function calculateLargeStraight(rolledDices) {
         const sortedDiceValues = [...rolledDices].sort((a, b) => a - b);
         const largeStraights = [
@@ -347,7 +336,7 @@ const savePlayerPoints = async () => {
         }
         return 0;
     }
-    //Sattuma
+    // Random
     function calculateChange(rolledDices) {
         return rolledDices.reduce((sum, dice) => {
             if (dice === 0) {
@@ -387,30 +376,30 @@ const savePlayerPoints = async () => {
             }
         };
 
-        // Onko kenttä valittu
+        // Is field selected
         const isSelected = selectedField === index;
 
-        // Tarkistaa onko kategoria lukittu
+        // Is category locked
         const isLocked = (categoryName) => {
             const category = scoringCategories.find(category => category.name === categoryName);
             return category ? category.locked : false;
         };
 
-        // Haetaan nykyinen kategoria
+        // Get the current category
         const currentCategory = scoringCategories.find(category => category.index === index);
 
-        // Tyyli kentälle (lukittu tai valittu)
+        // Style for the field
         const fieldStyle = currentCategory && currentCategory.locked ? styles.lockedField : styles.selectScore;
 
 
-        // Indeksit Gridin kohdille
+        // Indexes of the grid
         if (index === 0) {
             return (
                 <View style={styles.item}>
                     <MaterialCommunityIcons name="dice-1" size={45} style={styles.icon} />
                 </View>
             );
-            //SUM OF ONES
+            //Sum of ones
         } else if (index === 1) {
             return (
                 <Pressable onPress={() => handlePressField(index)} disabled={isLocked('ones')}>
@@ -427,7 +416,7 @@ const savePlayerPoints = async () => {
                     <Text style={styles.gridTxt}>3X</Text>
                 </View>
             );
-            //SUM OF TRIPLES AND MORE
+            // Sum of Triples and more
         } else if (index === 3) {
             return (
                 <Pressable onPress={() => handlePressField(index)} disabled={isLocked('threeOfAKind')}>
@@ -444,7 +433,7 @@ const savePlayerPoints = async () => {
                     <MaterialCommunityIcons name="dice-2" size={45} style={styles.icon} />
                 </View>
             );
-            //SUM OF TWOS
+            // Sum of twos
         } else if (index === 5) {
             return (
                 <Pressable onPress={() => handlePressField(index)} disabled={isLocked('twos')}>
@@ -461,7 +450,7 @@ const savePlayerPoints = async () => {
                     <Text style={styles.gridTxt}>4X</Text>
                 </View>
             );
-            //SUM OF FOURS AND MORE
+            // Sum of Fours and more
         } else if (index === 7) {
             return (
                 <Pressable onPress={() => handlePressField(index)} disabled={isLocked('fourOfAKind')}>
@@ -478,7 +467,7 @@ const savePlayerPoints = async () => {
                     <MaterialCommunityIcons name="dice-3" size={45} style={styles.icon} />
                 </View>
             );
-            //SUM OF THREES
+            // Sum of Threes
         } else if (index === 9) {
             return (
                 <Pressable onPress={() => handlePressField(index)} disabled={isLocked('threes')}>
@@ -489,7 +478,7 @@ const savePlayerPoints = async () => {
                     </View>
                 </Pressable>
             );
-            // TÄYSKÄSI
+            // Fullhouse
         } else if (index === 10) {
             return (
                 <View style={styles.item}>
@@ -531,7 +520,7 @@ const savePlayerPoints = async () => {
                     <Text style={{ fontSize: 10, color: 'white' }}>small</Text>
                 </View>
             );
-            //SMALL STRAIGHT
+            // Small straight
         } else if (index === 15) {
             return (
                 <Pressable onPress={() => handlePressField(index)} disabled={isLocked('smallStraight')}>
@@ -548,7 +537,7 @@ const savePlayerPoints = async () => {
                     <MaterialCommunityIcons name="dice-5" size={45} style={styles.icon} />
                 </View>
             );
-            //SUM OF FIVES
+            // Sum of Fives
         } else if (index === 17) {
             return (
                 <Pressable onPress={() => handlePressField(index)} disabled={isLocked('fives')}>
@@ -566,7 +555,7 @@ const savePlayerPoints = async () => {
                     <Text style={{ fontSize: 10, color: 'white' }}>large</Text>
                 </View>
             );
-            //LARGE STRAIGHT
+            // Large straight
         } else if (index === 19) {
             return (
                 <Pressable onPress={() => handlePressField(index)} disabled={isLocked('largeStraight')}>
@@ -583,7 +572,7 @@ const savePlayerPoints = async () => {
                     <MaterialCommunityIcons name="dice-6" size={45} style={styles.icon} />
                 </View>
             );
-            //SUM OF SIXES
+            // Sum of Sixes
         } else if (index === 21) {
             return (
                 <Pressable onPress={() => handlePressField(index)} disabled={isLocked('sixes')}>
@@ -601,7 +590,7 @@ const savePlayerPoints = async () => {
                     <Text style={{ fontSize: 10, color: 'white' }}>Yatzy</Text>
                 </View>
             );
-            //YATZY
+            // YATZY
         } else if (index === 23) {
             return (
                 <Pressable onPress={() => handlePressField(index)} disabled={isLocked('yatzy')}>
@@ -623,7 +612,7 @@ const savePlayerPoints = async () => {
                     </View>
                 </View>
             );
-            // Minor pisteet
+            // Minor points
         } else if (index === 25) {
             return (
                 <View style={styles.item}>
@@ -638,7 +627,7 @@ const savePlayerPoints = async () => {
                     <Text style={{ fontSize: 10, color: 'white' }}>Change</Text>
                 </View>
             );
-            //SUM OF FACES
+            //Sum of Faces
         } else if (index === 27) {
             return (
                 <Pressable onPress={() => handlePressField(index)} disabled={isLocked('chance')}>

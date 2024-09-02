@@ -3,14 +3,14 @@ import { View, Text, ScrollView, ImageBackground } from 'react-native';
 import { DataTable } from 'react-native-paper';
 import styles from '../styles/styles';
 import { NBR_OF_SCOREBOARD_ROWS } from '../constants/Game';
-import { database } from '../components/Firebase'; // Import firebase configuration
+import { database } from '../components/Firebase'; 
 import { ref, onValue } from 'firebase/database';
-import * as Device from 'expo-device'; // Import to get device details
+import * as Device from 'expo-device'; 
 
 export default function Scoreboard({ navigation }) {
   const [scores, setScores] = useState([]);
   const [latestScoreIndex, setLatestScoreIndex] = useState(null);
-  const [deviceId, setDeviceId] = useState(''); // State to store the device ID
+  const [deviceId, setDeviceId] = useState(''); 
 
   useEffect(() => {
     // Get device ID
@@ -35,7 +35,6 @@ export default function Scoreboard({ navigation }) {
         Object.keys(playersData).forEach(playerId => {
           const player = playersData[playerId];
           if (player.scores) {
-            // Hae pelaajan korkein pistemäärä
             const maxScore = Math.max(...Object.values(player.scores).map(score => score.points));
             const highScore = Object.values(player.scores).find(score => score.points === maxScore);
 

@@ -22,12 +22,12 @@ export default function Home({ setIsUserRecognized }) {
       const deviceIdentifier = Device.osBuildId || Device.modelId || Device.osInternalBuildId;
       setDeviceId(deviceIdentifier);
 
-      // Aseta 2 sekunnin viive ennen kuin pelaajan tietoja tarkistetaan
+      // Timer to check if the player exists in the database
       const timer = setTimeout(() => {
         checkExistingDevice(deviceIdentifier);
       }, 2000);
 
-      return () => clearTimeout(timer); // Puhdista aikakatkaisu
+      return () => clearTimeout(timer); 
     }
   }, []);
 
@@ -41,11 +41,11 @@ export default function Home({ setIsUserRecognized }) {
           setPlayerId(existingPlayer.playerId);
           setName(existingPlayer.name); 
           setShowRules(true); 
-          setIsUserRecognized(true); // Päivitetään käyttäjän tunnistus Headeriin
+          setIsUserRecognized(true);
         } else {
           const newPlayerId = uuid.v4(); 
           setPlayerId(newPlayerId);
-          setIsUserRecognized(false); // Jos käyttäjää ei löydy, ei tunnistettu
+          setIsUserRecognized(false); 
         }
       }
       setLoading(false); 
@@ -69,7 +69,7 @@ export default function Home({ setIsUserRecognized }) {
       Alert.alert('Name is too short', 'Please enter a name with at least 3 characters and maximum 15 characters.');
     } else {
       setShowRules(true);
-      setIsUserRecognized(true); // Varmistetaan, että käyttäjä on tunnistettu, kun tallennetaan uusi pelaaja
+      setIsUserRecognized(true);
       if (!playerId) {
         const newPlayerId = uuid.v4(); 
         setPlayerId(newPlayerId);
@@ -87,7 +87,7 @@ export default function Home({ setIsUserRecognized }) {
   const handleChangeName = () => {
     setName('');
     setShowRules(false);
-    setIsUserRecognized(false); // Nollataan käyttäjän tunnistus
+    setIsUserRecognized(false); 
   };
 
   return (
