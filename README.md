@@ -1,4 +1,4 @@
-# React Native Yatzy Game ( Android iOS version is in development )
+# React Native Yatzy Game ( Android version )
 
 ## Description
 
