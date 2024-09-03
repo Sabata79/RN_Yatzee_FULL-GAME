@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { FlatList, Text, View, Pressable, ImageBackground, Alert } from 'react-native';
+import { FlatList, Text, View, Pressable, ImageBackground, Alert, Animated } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import styles from '../styles/styles';
 import { NBR_OF_THROWS, NBR_OF_DICES, MAX_SPOTS, BONUS_POINTS, BONUS_POINTS_LIMIT } from '../constants/Game';
 import { database } from '../components/Firebase';
 import { ref, set, push, onValue, get } from 'firebase/database';
+import DiceAnimation from '../components/DiceAnimation';
 
 let board = [];
 
@@ -44,52 +45,52 @@ export default function Gameboard({ route, navigation }) {
         setHasAppliedBonus(false);
     };
 
-// Tulosten tallennus Firebaseen
-const currentDate = new Date();
+    // Tulosten tallennus Firebaseen
+    const currentDate = new Date();
 
-const savePlayerPoints = async () => {
-  try {
-    const playerRef = ref(database, `players/${playerId}`);
-    const snapshot = await get(playerRef); 
+    const savePlayerPoints = async () => {
+        try {
+            const playerRef = ref(database, `players/${playerId}`);
+            const snapshot = await get(playerRef);
 
-    const playerData = snapshot.val();
+            const playerData = snapshot.val();
 
-    if (playerData && playerData.scores) {
-      const existingScores = Object.values(playerData.scores);
-      const maxScore = Math.max(...existingScores.map(score => score.points));
+            if (playerData && playerData.scores) {
+                const existingScores = Object.values(playerData.scores);
+                const maxScore = Math.max(...existingScores.map(score => score.points));
 
-      // Only save the score if it is higher than the previous high score
-      if (totalPoints > maxScore) {
-        const newKey = push(ref(database, `players/${playerId}/scores`)).key;
-        const playerPoints = {
-          key: newKey,
-          date: currentDate.toLocaleDateString(),
-          time: currentDate.toLocaleTimeString(),
-          points: totalPoints,
-        };
+                // Only save the score if it is higher than the previous high score
+                if (totalPoints > maxScore) {
+                    const newKey = push(ref(database, `players/${playerId}/scores`)).key;
+                    const playerPoints = {
+                        key: newKey,
+                        date: currentDate.toLocaleDateString(),
+                        time: currentDate.toLocaleTimeString(),
+                        points: totalPoints,
+                    };
 
-        await set(ref(database, `players/${playerId}/scores/${newKey}`), playerPoints);
-        navigation.navigate('Scoreboard');
-      } else {
-        Alert.alert('No new high score', 'You did not beat your previous high score.');
-      }
-    } else {
-      // IF the player does not have any scores saved, save the score
-      const newKey = push(ref(database, `players/${playerId}/scores`)).key;
-      const playerPoints = {
-        key: newKey,
-        date: currentDate.toLocaleDateString(),
-        time: currentDate.toLocaleTimeString(),
-        points: totalPoints,
-      };
+                    await set(ref(database, `players/${playerId}/scores/${newKey}`), playerPoints);
+                    navigation.navigate('Scoreboard');
+                } else {
+                    Alert.alert('No new high score', 'You did not beat your previous high score.');
+                }
+            } else {
+                // IF the player does not have any scores saved, save the score
+                const newKey = push(ref(database, `players/${playerId}/scores`)).key;
+                const playerPoints = {
+                    key: newKey,
+                    date: currentDate.toLocaleDateString(),
+                    time: currentDate.toLocaleTimeString(),
+                    points: totalPoints,
+                };
 
-      await set(ref(database, `players/${playerId}/scores/${newKey}`), playerPoints);
-      navigation.navigate('Scoreboard');
-    }
-  } catch (error) {
-    console.log('Error:' + error.message);
-  }
-};
+                await set(ref(database, `players/${playerId}/scores/${newKey}`), playerPoints);
+                navigation.navigate('Scoreboard');
+            }
+        } catch (error) {
+            console.log('Error:' + error.message);
+        }
+    };
 
     // Making the gameboard
     const [data, setData] = useState([
@@ -211,51 +212,51 @@ const savePlayerPoints = async () => {
     const handleBonus = () => {
         if (!hasAppliedBonus && minorPoints >= BONUS_POINTS_LIMIT) {
             setTotalPoints(totalPoints + BONUS_POINTS);
-            setHasAppliedBonus(true); 
+            setHasAppliedBonus(true);
         }
     };
 
-const handleSetPoints = () => {
-    if (selectedField !== null) {
-        const minorNames = ['ones', 'twos', 'threes', 'fours', 'fives', 'sixes'];
+    const handleSetPoints = () => {
+        if (selectedField !== null) {
+            const minorNames = ['ones', 'twos', 'threes', 'fours', 'fives', 'sixes'];
 
-        const selectedCategory = scoringCategories.find(category => category.index === selectedField);
+            const selectedCategory = scoringCategories.find(category => category.index === selectedField);
 
-        if (selectedCategory) {
-            if (!selectedCategory.locked) {
-                const points = selectedCategory.calculateScore(rolledDices);
+            if (selectedCategory) {
+                if (!selectedCategory.locked) {
+                    const points = selectedCategory.calculateScore(rolledDices);
 
-                const isMinorNames = minorNames.includes(selectedCategory.name);
+                    const isMinorNames = minorNames.includes(selectedCategory.name);
 
-                const updatedCategories = scoringCategories.map(category => {
-                    if (category.index === selectedField) {
-                        return {
-                            ...category,
-                            points: points,
-                            locked: true,
-                        };
+                    const updatedCategories = scoringCategories.map(category => {
+                        if (category.index === selectedField) {
+                            return {
+                                ...category,
+                                points: points,
+                                locked: true,
+                            };
+                        }
+                        return category;
+                    });
+
+                    setTotalPoints(totalPoints + points);
+
+                    if (isMinorNames) {
+                        const newMinorPoints = minorPoints + points;
+                        setMinorPoints(newMinorPoints);
+
+                        // Apply bonus if minor points are over 63
+                        if (newMinorPoints >= BONUS_POINTS_LIMIT && !hasAppliedBonus) {
+                            setTotalPoints(prevTotal => prevTotal + BONUS_POINTS);
+                            setHasAppliedBonus(true);
+                        }
                     }
-                    return category;
-                });
-                
-                setTotalPoints(totalPoints + points);
-
-                if (isMinorNames) {
-                    const newMinorPoints = minorPoints + points;
-                    setMinorPoints(newMinorPoints);
-                    
-                    // Apply bonus if minor points are over 63
-                    if (newMinorPoints >= BONUS_POINTS_LIMIT && !hasAppliedBonus) {
-                        setTotalPoints(prevTotal => prevTotal + BONUS_POINTS);
-                        setHasAppliedBonus(true);
-                    }
+                    setScoringCategories(updatedCategories);
+                    setSelectedField(null);
                 }
-                setScoringCategories(updatedCategories);
-                setSelectedField(null);
             }
         }
-    }
-};
+    };
 
     // Count the sum of the dices
     function calculateDiceSum(diceValue) {
@@ -548,7 +549,7 @@ const handleSetPoints = () => {
                     </View>
                 </Pressable>
             );
-        }else if (index === 18) {
+        } else if (index === 18) {
             return (
                 <View style={styles.item}>
                     <MaterialCommunityIcons name="cards-outline" size={25} style={styles.icon} />
@@ -654,43 +655,64 @@ const handleSetPoints = () => {
     };
 
     const renderDices = () => {
-
         const throwDices = () => {
             if (nbrOfThrowsLeft > 0) {
-                for (let i = 0; i < NBR_OF_DICES; i++) {
-                    if (!selectedDices[i]) {
-                        let randomNumber = Math.floor(Math.random() * 6) + 1;
-                        board[i] = 'dice-' + randomNumber;
-                        rolledDices[i] = randomNumber;
+                animateDices(); // Start Animation
+                setTimeout(() => {
+                    for (let i = 0; i < NBR_OF_DICES; i++) {
+                        if (!selectedDices[i]) {
+                            let randomNumber = Math.floor(Math.random() * 6) + 1;
+                            board[i] = 'dice-' + randomNumber;
+                            rolledDices[i] = randomNumber;
+                        }
                     }
-                }
-                setNbrOfThrowsLeft(nbrOfThrowsLeft - 1);
+                    setNbrOfThrowsLeft(nbrOfThrowsLeft - 1);
+                }, 500); // Wait for the animation to finish
             } else {
                 setStatus('No throws left');
-                setNbrOfThrowsLeft(NBR_OF_THROWS)
+                setNbrOfThrowsLeft(NBR_OF_THROWS);
             }
+        };
+
+        // 
+        const [diceAnimations] = useState(() =>
+            Array.from({ length: NBR_OF_DICES }, () => new Animated.Value(0))
+        );
+
+        // Animation for dices
+        const animateDices = () => {
+            Animated.parallel(
+                diceAnimations.map(anim =>
+                    Animated.timing(anim, {
+                        toValue: 1,
+                        duration: 500,
+                        useNativeDriver: true,
+                    })
+                )
+            ).start(() => {
+                diceAnimations.forEach(anim => anim.setValue(0)); // Return to initial state
+            });
         };
 
         const diceRow = [];
 
         for (let i = 0; i < NBR_OF_DICES; i++) {
             diceRow.push(
-                <Pressable key={"row" + i} onPress={() => selectDice(i)}>
-                    <MaterialCommunityIcons
-                        name={board[i]}
-                        key={"diceRow" + i}
-                        size={45}
-                        color={getDiceColor(i)}>
-                    </MaterialCommunityIcons>
-                </Pressable>
+                <DiceAnimation
+                    key={i}
+                    diceName={board[i]}
+                    isSelected={selectedDices[i]}
+                    onSelect={() => selectDice(i)}
+                    animationValue={diceAnimations[i]}
+                    color={getDiceColor(i)}
+                />
             );
         }
 
         function getDiceColor(index) {
             if (board.every((value, i, arr) => value === arr[0])) {
                 return 'red';
-            }
-            else {
+            } else {
                 return selectedDices[index] ? 'red' : 'white';
             }
         }
@@ -703,7 +725,7 @@ const handleSetPoints = () => {
             } else {
                 setStatus('Game has not started');
             }
-        }
+        };
 
         return (
             <View style={styles.gameboard}>
@@ -713,7 +735,6 @@ const handleSetPoints = () => {
                 </View>
                 <View style={styles.buttonContainer}>
                     {rounds === 0 ? (
-                        // Display "Game Over, Save Your Score" button when rounds is 0
                         <Pressable
                             style={({ pressed }) => [
                                 styles.button,
@@ -729,7 +750,6 @@ const handleSetPoints = () => {
                             <MaterialCommunityIcons name="scoreboard-outline" size={24} color="black" />
                         </Pressable>
                     ) : (
-                        // Display regular buttons for rolling dice and setting points
                         <>
                             <Pressable
                                 disabled={nbrOfThrowsLeft <= 0}
@@ -763,9 +783,9 @@ const handleSetPoints = () => {
                         </>
                     )}
                 </View>
-            </View >
+            </View>
         );
-    }
+    };
 
 
     return (
@@ -773,17 +793,17 @@ const handleSetPoints = () => {
             source={require('../assets/diceBackground.jpg')}
             style={styles.background}>
             <View style={styles.overlay}>
-            <FlatList
-                data={data}
-                renderItem={({ item, index }) =>
-                    renderGrid({ item, index, scoringCategories, totalPoints, minorPoints })}
-                numColumns={4}
-                keyExtractor={(item) => item.key}
-                contentContainerStyle={styles.container}
-                ListHeaderComponent={renderFirstRow}
-                ListEmptyComponent={renderGrid}
-                ListFooterComponent={renderDices}
-            />
+                <FlatList
+                    data={data}
+                    renderItem={({ item, index }) =>
+                        renderGrid({ item, index, scoringCategories, totalPoints, minorPoints })}
+                    numColumns={4}
+                    keyExtractor={(item) => item.key}
+                    contentContainerStyle={styles.container}
+                    ListHeaderComponent={renderFirstRow}
+                    ListEmptyComponent={renderGrid}
+                    ListFooterComponent={renderDices}
+                />
             </View>
         </ImageBackground>
     );
