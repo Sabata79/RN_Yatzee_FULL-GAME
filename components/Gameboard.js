@@ -4,14 +4,14 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import styles from '../styles/styles';
 import { NBR_OF_THROWS, NBR_OF_DICES, MAX_SPOTS, BONUS_POINTS, BONUS_POINTS_LIMIT } from '../constants/Game';
 import { database } from '../components/Firebase';
-import { ref, set, push, onValue, get } from 'firebase/database';
+import { ref, set, push, get } from 'firebase/database';
 import DiceAnimation from '../components/DiceAnimation';
 
 let board = [];
 
 export default function Gameboard({ route, navigation }) {
 
-    // Pelaajan nimi
+    // Player name and id
     const [playerName, setPlayerName] = useState('');
     const [playerId, setPlayerId] = useState('');
 
@@ -27,7 +27,7 @@ export default function Gameboard({ route, navigation }) {
         handleBonus(); // Calculate and apply the bonus when minorPoints or hasAppliedBonus changes
     }, [minorPoints, hasAppliedBonus]);
 
-    //Resetoi pelin
+    // Reset the game
     const resetGame = () => {
         const resetCategories = scoringCategories.map(category => {
             return {
@@ -44,8 +44,7 @@ export default function Gameboard({ route, navigation }) {
         setMinorPoints(0);
         setHasAppliedBonus(false);
     };
-
-    // Tulosten tallennus Firebaseen
+    //Add scores to the database
     const currentDate = new Date();
 
     const savePlayerPoints = async () => {
@@ -75,7 +74,7 @@ export default function Gameboard({ route, navigation }) {
                     Alert.alert('No new high score', 'You did not beat your previous high score.');
                 }
             } else {
-                // IF the player does not have any scores saved, save the score
+                // If the player does not have any scores saved, save the score
                 const newKey = push(ref(database, `players/${playerId}/scores`)).key;
                 const playerPoints = {
                     key: newKey,
@@ -786,7 +785,6 @@ export default function Gameboard({ route, navigation }) {
             </View>
         );
     };
-
 
     return (
         <ImageBackground
