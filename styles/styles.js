@@ -221,6 +221,9 @@ export default styles = StyleSheet.create({
     lastItem: {
         flex: 6,
     },
+        loadingContainer: {
+        marginTop: 20,
+    },
     icon: {
         justifyContent: 'center',
         alignItems: 'center',
