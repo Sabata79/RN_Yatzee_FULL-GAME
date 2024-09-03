@@ -654,9 +654,12 @@ export default function Gameboard({ route, navigation }) {
     };
 
     const renderDices = () => {
+        const [isRolling, setIsRolling] = useState(false);
+
         const throwDices = () => {
             if (nbrOfThrowsLeft > 0) {
-                animateDices(); // Start Animation
+                setIsRolling(true);
+                animateDices(); 
                 setTimeout(() => {
                     for (let i = 0; i < NBR_OF_DICES; i++) {
                         if (!selectedDices[i]) {
@@ -666,7 +669,8 @@ export default function Gameboard({ route, navigation }) {
                         }
                     }
                     setNbrOfThrowsLeft(nbrOfThrowsLeft - 1);
-                }, 500); // Wait for the animation to finish
+                    setIsRolling(false);
+                }, 500); 
             } else {
                 setStatus('No throws left');
                 setNbrOfThrowsLeft(NBR_OF_THROWS);
@@ -681,15 +685,21 @@ export default function Gameboard({ route, navigation }) {
         // Animation for dices
         const animateDices = () => {
             Animated.parallel(
-                diceAnimations.map(anim =>
-                    Animated.timing(anim, {
-                        toValue: 1,
-                        duration: 500,
-                        useNativeDriver: true,
-                    })
+                diceAnimations.map((anim, index) =>
+                    !selectedDices[index] 
+                        ? Animated.timing(anim, {
+                            toValue: 1,
+                            duration: 500,
+                            useNativeDriver: true,
+                        })
+                        : Animated.timing(anim, {
+                            toValue: 0,
+                            duration: 0,
+                            useNativeDriver: true,
+                        })
                 )
             ).start(() => {
-                diceAnimations.forEach(anim => anim.setValue(0)); // Return to initial state
+                diceAnimations.forEach(anim => anim.setValue(0)); 
             });
         };
 
@@ -704,6 +714,7 @@ export default function Gameboard({ route, navigation }) {
                     onSelect={() => selectDice(i)}
                     animationValue={diceAnimations[i]}
                     color={getDiceColor(i)}
+                    isRolling={isRolling && !selectedDices[i]}
                 />
             );
         }
