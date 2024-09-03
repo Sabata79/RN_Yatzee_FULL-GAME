@@ -215,47 +215,47 @@ const savePlayerPoints = async () => {
         }
     };
 
-    const handleSetPoints = () => {
-        if (selectedField !== null) {
-            const minorNames = ['ones', 'twos', 'threes', 'fours', 'fives', 'sixes'];
+const handleSetPoints = () => {
+    if (selectedField !== null) {
+        const minorNames = ['ones', 'twos', 'threes', 'fours', 'fives', 'sixes'];
 
-            // Search for the selected category
-            const selectedCategory = scoringCategories.find(category => category.index === selectedField);
+        const selectedCategory = scoringCategories.find(category => category.index === selectedField);
 
-            if (selectedCategory) {
-                // Check if the category is not locked
-                if (!selectedCategory.locked) {
-                    // Count the points for the selected category
-                    const points = selectedCategory.calculateScore(rolledDices);
+        if (selectedCategory) {
+            if (!selectedCategory.locked) {
+                const points = selectedCategory.calculateScore(rolledDices);
 
-                    // Check if the category is part of the minorNames list
-                    const isMinorNames = minorNames.includes(selectedCategory.name);
+                const isMinorNames = minorNames.includes(selectedCategory.name);
 
-                    // Update the selected category
-                    const updatedCategories = scoringCategories.map(category => {
-                        if (category.index === selectedField) {
-                            return {
-                                ...category,
-                                points: points,
-                                locked: true,
-                            };
-                        }
-                        return category;
-                    });
-                    // Add the points to the total points
-                    setTotalPoints(totalPoints + points);
-                    // Add the points to the minor points if the category is part of the minorNames list
-                    if (isMinorNames) {
-                        setMinorPoints(minorPoints + points);
-                        handleBonus();
+                const updatedCategories = scoringCategories.map(category => {
+                    if (category.index === selectedField) {
+                        return {
+                            ...category,
+                            points: points,
+                            locked: true,
+                        };
                     }
-                    // Update the categories
-                    setScoringCategories(updatedCategories);
-                    setSelectedField(null);
+                    return category;
+                });
+                
+                setTotalPoints(totalPoints + points);
+
+                if (isMinorNames) {
+                    const newMinorPoints = minorPoints + points;
+                    setMinorPoints(newMinorPoints);
+                    
+                    // Apply bonus if minor points are over 63
+                    if (newMinorPoints >= BONUS_POINTS_LIMIT && !hasAppliedBonus) {
+                        setTotalPoints(prevTotal => prevTotal + BONUS_POINTS);
+                        setHasAppliedBonus(true);
+                    }
                 }
+                setScoringCategories(updatedCategories);
+                setSelectedField(null);
             }
         }
-    };
+    }
+};
 
     // Count the sum of the dices
     function calculateDiceSum(diceValue) {
