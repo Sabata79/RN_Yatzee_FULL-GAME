@@ -1,4 +1,4 @@
-# React Native Yatzy Game
+# React Native Yatzy Game ( Android version )
 
 ## Description
 
@@ -9,7 +9,6 @@ Welcome to the **React Native Yatzy Game!** This mobile application is a digital
 - **Classic Yatzy Gameplay:** Experience the traditional Yatzy game with all the standard rules and scoring.
 - **Cross-Platform Compatibility:** Optimized for Android devices. (iOS version is in development)
 - **Intuitive User Interface:** Easy-to-navigate screens for a smooth gaming experience.
-- **Offline Play:** Play Yatzy anytime, anywhere without the need for an internet connection.
 - **Firebase Integration:** Manage and track your high scores using Firebase.
 - **Score Tracking:** Keep track of your high scores and personal records.
 - **User Device Recognition:** Improved user recognition for a better login experience.
@@ -47,6 +46,7 @@ After launching the game, you'll be greeted with a simple menu where you can sta
 ## Feedback
 
 I value your feedback! If you have any suggestions, ideas, or encounter any issues, please let me know. Your input is invaluable for further development and improvement of the game.
+To provide feedback or participate in discussions, please visit the [Discussions]( https://github.com/Sabata79/RN_Yatzee_FULL-GAME/discussions/1 ) section of this repository.
 
 ## License
 
