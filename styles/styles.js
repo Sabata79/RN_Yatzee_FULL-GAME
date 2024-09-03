@@ -23,19 +23,33 @@ export default styles = StyleSheet.create({
         marginTop: Constants.statusBarHeight + 0,
         backgroundColor: 'darkorange',
         flexDirection: 'row',
-        justifyContent: 'center',
+        justifyContent: 'flex-start',
         alignItems: 'center',
-        position: 'relative', 
+        position: 'relative',
+    },
+    titleContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginLeft: 10,
     },
     title: {
         fontSize: 24,
         fontWeight: 'bold',
+    },
+    userContainer: {
         flexDirection: 'row',
         alignItems: 'center',
+        position: 'absolute',
+        right: 10,
+    },
+    userName: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: 'black',  
+        marginRight: 5,
     },
     userIcon: {
-        position: 'absolute', 
-        right: 10, 
+        marginLeft: 5, 
     },
     footer: {
         backgroundColor: 'darkorange',
@@ -221,7 +235,7 @@ export default styles = StyleSheet.create({
     lastItem: {
         flex: 6,
     },
-        loadingContainer: {
+    loadingContainer: {
         marginTop: 20,
     },
     icon: {

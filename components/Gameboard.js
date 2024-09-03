@@ -352,7 +352,7 @@ export default function Gameboard({ route, navigation }) {
         <>
             <View style={styles.firstRow}>
                 <View style={styles.firstRowItem}>
-                    <Text style={styles.firstRowNameText}>Good luck, {playerName}</Text>
+                    {/* <Text style={styles.firstRowNameText}>Good luck, {playerName}</Text> */}
                 </View>
             </View>
             <View style={styles.firstRow}>

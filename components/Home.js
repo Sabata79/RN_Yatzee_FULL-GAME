@@ -6,12 +6,12 @@ import { useNavigation } from '@react-navigation/native';
 import { rulesTextContent, combinationsData } from '../constants/Game';
 import * as Device from 'expo-device';
 import { database } from '../components/Firebase';
-import { ref, onValue, set } from 'firebase/database';
+import { ref, onValue, set, get } from 'firebase/database'; // Käytetään myös "get"-funktiota
 import uuid from 'react-native-uuid';
 
-export default function Home({ setIsUserRecognized }) {
+export default function Home({ setIsUserRecognized, setName }) {
   const navigation = useNavigation();
-  const [name, setName] = useState('');
+  const [localName, setLocalName] = useState(''); // Käytetään paikallista tilaa tekstikenttään
   const [playerId, setPlayerId] = useState('');
   const [deviceId, setDeviceId] = useState('');
   const [showRules, setShowRules] = useState(false);
@@ -22,7 +22,6 @@ export default function Home({ setIsUserRecognized }) {
       const deviceIdentifier = Device.osBuildId || Device.modelId || Device.osInternalBuildId;
       setDeviceId(deviceIdentifier);
 
-      // Timer to check if the player exists in the database
       const timer = setTimeout(() => {
         checkExistingDevice(deviceIdentifier);
       }, 2000);
@@ -39,7 +38,8 @@ export default function Home({ setIsUserRecognized }) {
         const existingPlayer = Object.values(data).find(player => player.deviceId === deviceId);
         if (existingPlayer) {
           setPlayerId(existingPlayer.playerId);
-          setName(existingPlayer.name);
+          setLocalName(existingPlayer.name); // Päivitä paikallinen nimi
+          setName(existingPlayer.name); // Päivitä App.js nimi
           setShowRules(true);
           setIsUserRecognized(true);
         } else {
@@ -52,26 +52,25 @@ export default function Home({ setIsUserRecognized }) {
     });
   };
 
-  const saveNewPlayer = (name, playerId, deviceId) => {
+  const saveNewPlayer = async (name, playerId, deviceId) => {
     const playerRef = ref(database, `players/${playerId}`);
-    onValue(playerRef, (snapshot) => {
-      const playerData = snapshot.val();
+    const snapshot = await get(playerRef);
+    const playerData = snapshot.val();
 
-      const existingScores = playerData?.scores || {};
-
-      set(playerRef, {
-        ...playerData, // Keep the existing data
-        name: name, // Update only the name
-        deviceId: deviceId,
-        dateJoined: playerData?.dateJoined || new Date().toLocaleDateString(), // Keep the existing date
-      });
+    set(playerRef, {
+      ...playerData, // Säilytetään olemassa oleva data
+      name: name, // Päivitetään vain nimi
+      deviceId: deviceId,
+      dateJoined: playerData?.dateJoined || new Date().toLocaleDateString(), // Säilytetään olemassa oleva päivämäärä
     });
+
+    setName(name); // Päivitetään App.js nimi
   };
 
   const handlePress = () => {
-    if (name.trim() === '') {
+    if (localName.trim() === '') {
       Alert.alert('Name is required', 'Please enter your name.');
-    } else if (name.length < 3 || name.length > 15) {
+    } else if (localName.length < 3 || localName.length > 15) {
       Alert.alert('Name is too short', 'Please enter a name with at least 3 characters and maximum 15 characters.');
     } else {
       setShowRules(true);
@@ -79,19 +78,19 @@ export default function Home({ setIsUserRecognized }) {
       if (!playerId) {
         const newPlayerId = uuid.v4();
         setPlayerId(newPlayerId);
-        saveNewPlayer(name, newPlayerId, deviceId);
+        saveNewPlayer(localName, newPlayerId, deviceId); // Käytetään paikallista nimeä
       } else {
-        saveNewPlayer(name, playerId, deviceId);
+        saveNewPlayer(localName, playerId, deviceId); // Käytetään paikallista nimeä
       }
     }
   };
 
   const handlePlay = () => {
-    navigation.navigate('Gameboard', { player: name, playerId: playerId });
+    navigation.navigate('Gameboard', { player: localName, playerId: playerId }); // Käytä localName
   };
 
   const handleChangeName = () => {
-    setName('');
+    setLocalName(''); // Nollaa vain paikallinen nimi
     setShowRules(false);
     setIsUserRecognized(false);
   };
@@ -114,8 +113,8 @@ export default function Home({ setIsUserRecognized }) {
                 style={styles.input}
                 placeholder="Enter your name"
                 placeholderTextColor={'white'}
-                value={name}
-                onChangeText={(val) => setName(val)}
+                value={localName} // Käytetään paikallista nimeä
+                onChangeText={(val) => setLocalName(val)} // Päivitetään paikallinen nimi
                 autoFocus={true}
               />
               <Pressable
@@ -128,7 +127,7 @@ export default function Home({ setIsUserRecognized }) {
           ) : (
             <ScrollView contentContainerStyle={styles.rulesContainer}>
               <MaterialCommunityIcons name="information-variant" size={100} color="white" />
-              <Text style={styles.rulesText}>Hello, {name}!</Text>
+              <Text style={styles.rulesText}>Hello, {localName}!</Text>
               <Text style={styles.rulesText}>Here are the rules:</Text>
               <Text style={styles.rulesText}>
                 {rulesTextContent}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native';
 import Scoreboard from './components/Scoreboard';
@@ -14,7 +14,13 @@ import { useFonts } from 'expo-font';
 
 export default function App() {
   const [isUserRecognized, setIsUserRecognized] = useState(false);
+  const [name, setName] = useState('');
   const Tab = createBottomTabNavigator();
+
+    // Log the changes in name and isUserRecognized state
+  useEffect(() => {
+    console.log('App.js: isUserRecognized:', isUserRecognized, 'Name:', name);
+  }, [isUserRecognized, name]);
 
   const [loaded] = useFonts({
     AntonRegular: require('./assets/fonts/Anton-Regular.ttf'),
@@ -25,7 +31,7 @@ export default function App() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Header isUserRecognized={isUserRecognized} />
+      <Header isUserRecognized={isUserRecognized} name={name} />
       <NavigationContainer>
         <Tab.Navigator
           screenOptions={{
@@ -50,7 +56,7 @@ export default function App() {
               ),
             }}
           >
-            {() => <Home setIsUserRecognized={setIsUserRecognized} />}
+            {() => <Home setIsUserRecognized={setIsUserRecognized} setName={setName} />}
           </Tab.Screen>
           <Tab.Screen
             name="Gameboard"
