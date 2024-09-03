@@ -17,9 +17,8 @@ export default function App() {
   const [name, setName] = useState('');
   const Tab = createBottomTabNavigator();
 
-    // Log the changes in name and isUserRecognized state
+  // Log the changes in name and isUserRecognized state
   useEffect(() => {
-    console.log('App.js: isUserRecognized:', isUserRecognized, 'Name:', name);
   }, [isUserRecognized, name]);
 
   const [loaded] = useFonts({

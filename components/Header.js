@@ -4,7 +4,6 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import styles from '../styles/styles.js';
 
 export default function Header({ isUserRecognized, name }) {
-  console.log('Header.js: Name:', name);
   
   return (
     <View style={styles.header}>

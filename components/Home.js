@@ -6,12 +6,12 @@ import { useNavigation } from '@react-navigation/native';
 import { rulesTextContent, combinationsData } from '../constants/Game';
 import * as Device from 'expo-device';
 import { database } from '../components/Firebase';
-import { ref, onValue, set, get } from 'firebase/database'; // Käytetään myös "get"-funktiota
+import { ref, onValue, set, get } from 'firebase/database'; 
 import uuid from 'react-native-uuid';
 
 export default function Home({ setIsUserRecognized, setName }) {
   const navigation = useNavigation();
-  const [localName, setLocalName] = useState(''); // Käytetään paikallista tilaa tekstikenttään
+  const [localName, setLocalName] = useState('');
   const [playerId, setPlayerId] = useState('');
   const [deviceId, setDeviceId] = useState('');
   const [showRules, setShowRules] = useState(false);
@@ -38,8 +38,8 @@ export default function Home({ setIsUserRecognized, setName }) {
         const existingPlayer = Object.values(data).find(player => player.deviceId === deviceId);
         if (existingPlayer) {
           setPlayerId(existingPlayer.playerId);
-          setLocalName(existingPlayer.name); // Päivitä paikallinen nimi
-          setName(existingPlayer.name); // Päivitä App.js nimi
+          setLocalName(existingPlayer.name); 
+          setName(existingPlayer.name); 
           setShowRules(true);
           setIsUserRecognized(true);
         } else {
@@ -58,13 +58,13 @@ export default function Home({ setIsUserRecognized, setName }) {
     const playerData = snapshot.val();
 
     set(playerRef, {
-      ...playerData, // Säilytetään olemassa oleva data
-      name: name, // Päivitetään vain nimi
+      ...playerData, 
+      name: name, 
       deviceId: deviceId,
-      dateJoined: playerData?.dateJoined || new Date().toLocaleDateString(), // Säilytetään olemassa oleva päivämäärä
+      dateJoined: playerData?.dateJoined || new Date().toLocaleDateString(),
     });
 
-    setName(name); // Päivitetään App.js nimi
+    setName(name);
   };
 
   const handlePress = () => {
@@ -78,19 +78,19 @@ export default function Home({ setIsUserRecognized, setName }) {
       if (!playerId) {
         const newPlayerId = uuid.v4();
         setPlayerId(newPlayerId);
-        saveNewPlayer(localName, newPlayerId, deviceId); // Käytetään paikallista nimeä
+        saveNewPlayer(localName, newPlayerId, deviceId); 
       } else {
-        saveNewPlayer(localName, playerId, deviceId); // Käytetään paikallista nimeä
+        saveNewPlayer(localName, playerId, deviceId); 
       }
     }
   };
 
   const handlePlay = () => {
-    navigation.navigate('Gameboard', { player: localName, playerId: playerId }); // Käytä localName
+    navigation.navigate('Gameboard', { player: localName, playerId: playerId }); 
   };
 
   const handleChangeName = () => {
-    setLocalName(''); // Nollaa vain paikallinen nimi
+    setLocalName(''); 
     setShowRules(false);
     setIsUserRecognized(false);
   };
@@ -113,8 +113,8 @@ export default function Home({ setIsUserRecognized, setName }) {
                 style={styles.input}
                 placeholder="Enter your name"
                 placeholderTextColor={'white'}
-                value={localName} // Käytetään paikallista nimeä
-                onChangeText={(val) => setLocalName(val)} // Päivitetään paikallinen nimi
+                value={localName} 
+                onChangeText={(val) => setLocalName(val)} 
                 autoFocus={true}
               />
               <Pressable
