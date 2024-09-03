@@ -4,18 +4,18 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import styles from '../styles/styles';
 import { useNavigation } from '@react-navigation/native';
 import { rulesTextContent, combinationsData } from '../constants/Game';
-import * as Device from 'expo-device'; 
+import * as Device from 'expo-device';
 import { database } from '../components/Firebase';
 import { ref, onValue, set } from 'firebase/database';
-import uuid from 'react-native-uuid'; 
+import uuid from 'react-native-uuid';
 
 export default function Home({ setIsUserRecognized }) {
   const navigation = useNavigation();
   const [name, setName] = useState('');
-  const [playerId, setPlayerId] = useState(''); 
-  const [deviceId, setDeviceId] = useState(''); 
+  const [playerId, setPlayerId] = useState('');
+  const [deviceId, setDeviceId] = useState('');
   const [showRules, setShowRules] = useState(false);
-  const [loading, setLoading] = useState(true); 
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (Device.isDevice) {
@@ -27,7 +27,7 @@ export default function Home({ setIsUserRecognized }) {
         checkExistingDevice(deviceIdentifier);
       }, 2000);
 
-      return () => clearTimeout(timer); 
+      return () => clearTimeout(timer);
     }
   }, []);
 
@@ -39,26 +39,32 @@ export default function Home({ setIsUserRecognized }) {
         const existingPlayer = Object.values(data).find(player => player.deviceId === deviceId);
         if (existingPlayer) {
           setPlayerId(existingPlayer.playerId);
-          setName(existingPlayer.name); 
-          setShowRules(true); 
+          setName(existingPlayer.name);
+          setShowRules(true);
           setIsUserRecognized(true);
         } else {
-          const newPlayerId = uuid.v4(); 
+          const newPlayerId = uuid.v4();
           setPlayerId(newPlayerId);
-          setIsUserRecognized(false); 
+          setIsUserRecognized(false);
         }
       }
-      setLoading(false); 
+      setLoading(false);
     });
   };
 
   const saveNewPlayer = (name, playerId, deviceId) => {
-    const newPlayerRef = ref(database, `players/${playerId}`);
-    set(newPlayerRef, {
-      playerId: playerId,
-      name: name,
-      deviceId: deviceId, 
-      dateJoined: new Date().toLocaleDateString(),
+    const playerRef = ref(database, `players/${playerId}`);
+    onValue(playerRef, (snapshot) => {
+      const playerData = snapshot.val();
+
+      const existingScores = playerData?.scores || {};
+
+      set(playerRef, {
+        ...playerData, // Keep the existing data
+        name: name, // Update only the name
+        deviceId: deviceId,
+        dateJoined: playerData?.dateJoined || new Date().toLocaleDateString(), // Keep the existing date
+      });
     });
   };
 
@@ -71,7 +77,7 @@ export default function Home({ setIsUserRecognized }) {
       setShowRules(true);
       setIsUserRecognized(true);
       if (!playerId) {
-        const newPlayerId = uuid.v4(); 
+        const newPlayerId = uuid.v4();
         setPlayerId(newPlayerId);
         saveNewPlayer(name, newPlayerId, deviceId);
       } else {
@@ -87,7 +93,7 @@ export default function Home({ setIsUserRecognized }) {
   const handleChangeName = () => {
     setName('');
     setShowRules(false);
-    setIsUserRecognized(false); 
+    setIsUserRecognized(false);
   };
 
   return (
@@ -96,10 +102,10 @@ export default function Home({ setIsUserRecognized }) {
         source={require('../assets/diceBackground.jpg')}
         style={styles.background}>
         <View style={styles.overlay}>
-          {loading ? ( 
+          {loading ? (
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="large" color="#ffffff" />
-              <Text style={styles.rulesText}>Checking player data...</Text> 
+              <Text style={styles.rulesText}>Checking player data...</Text>
             </View>
           ) : !showRules ? (
             <View style={styles.homeContainer}>
@@ -108,7 +114,7 @@ export default function Home({ setIsUserRecognized }) {
                 style={styles.input}
                 placeholder="Enter your name"
                 placeholderTextColor={'white'}
-                value={name} 
+                value={name}
                 onChangeText={(val) => setName(val)}
                 autoFocus={true}
               />
