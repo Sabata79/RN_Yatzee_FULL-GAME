@@ -32,6 +32,12 @@ After launching the game, you'll be greeted with a simple menu where you can sta
 
 ## Changelog
 
+### Version 1.1.1
+- **Improved Player Recognition:** Switched to **Expo Secure Store** for better user data handling and security.
+- **Added Dice Animation:** Enhanced visual experience with animations for dice rolls.
+- **UI/UX Improvements:** Minor adjustments for a smoother user interface.
+- **Bug Fixes:** Corrected logic for sector bonus points to ensure accurate score calculation.
+
 ### Version 1.1.0
 - Integrated **Firebase** for high score management and storage.
 - Enhanced **User Device Recognition** for a better login experience.
