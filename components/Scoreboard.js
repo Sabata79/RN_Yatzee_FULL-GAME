@@ -5,19 +5,20 @@ import styles from '../styles/styles';
 import { NBR_OF_SCOREBOARD_ROWS } from '../constants/Game';
 import { database } from '../components/Firebase'; 
 import { ref, onValue } from 'firebase/database';
-import * as Device from 'expo-device'; 
+import * as SecureStore from 'expo-secure-store'; // Lisää tämä importti
 
 export default function Scoreboard({ navigation }) {
   const [scores, setScores] = useState([]);
   const [latestScoreIndex, setLatestScoreIndex] = useState(null);
-  const [deviceId, setDeviceId] = useState(''); 
+  const [userId, setUserId] = useState(''); 
 
   useEffect(() => {
-    // Get device ID
-    if (Device.isDevice) {
-      const deviceIdentifier = Device.osBuildId || Device.modelId || Device.osInternalBuildId;
-      setDeviceId(deviceIdentifier);
-    }
+    // Hae tallennettu käyttäjä ID SecureStore:sta
+    SecureStore.getItemAsync('user_id').then((storedUserId) => {
+      if (storedUserId) {
+        setUserId(storedUserId);
+      }
+    });
 
     const unsubscribe = navigation.addListener('focus', () => {
       getScoreboardData();
@@ -93,7 +94,7 @@ export default function Scoreboard({ navigation }) {
               {scores.slice(0, NBR_OF_SCOREBOARD_ROWS).map((score, index) => (
                 <DataTable.Row
                   key={score.key}
-                  style={score.deviceId === deviceId ? { backgroundColor: 'yellow' } : {}}>
+                  style={score.playerId === userId ? { backgroundColor: 'red' } : {}}>
                   <DataTable.Cell style={styles.cell}>
                     <Text style={styles.scoreboardText}>{index + 1}.</Text>
                   </DataTable.Cell>

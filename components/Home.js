@@ -4,7 +4,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import styles from '../styles/styles';
 import { useNavigation } from '@react-navigation/native';
 import { rulesTextContent, combinationsData } from '../constants/Game';
-import * as Device from 'expo-device';
+import * as SecureStore from 'expo-secure-store';
 import { database } from '../components/Firebase';
 import { ref, onValue, set, get } from 'firebase/database'; 
 import uuid from 'react-native-uuid';
@@ -13,38 +13,39 @@ export default function Home({ setIsUserRecognized, setName }) {
   const navigation = useNavigation();
   const [localName, setLocalName] = useState('');
   const [playerId, setPlayerId] = useState('');
-  const [deviceId, setDeviceId] = useState('');
   const [showRules, setShowRules] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (Device.isDevice) {
-      const deviceIdentifier = Device.osBuildId || Device.modelId || Device.osInternalBuildId;
-      setDeviceId(deviceIdentifier);
-
-      const timer = setTimeout(() => {
-        checkExistingDevice(deviceIdentifier);
-      }, 2000);
-
-      return () => clearTimeout(timer);
-    }
+    // Tarkista onko tallennettu käyttäjä tunniste olemassa
+    getOrCreateUserId().then((userId) => {
+      setPlayerId(userId);
+      checkExistingUser(userId);
+    });
   }, []);
 
-  const checkExistingDevice = (deviceId) => {
+  // Funktio hakee tai luo käyttäjälle tunnisteen
+  async function getOrCreateUserId() {
+    let userId = await SecureStore.getItemAsync('user_id');
+    if (!userId) {
+      userId = uuid.v4();
+      await SecureStore.setItemAsync('user_id', userId);
+    }
+    return userId;
+  }
+
+  const checkExistingUser = (userId) => {
     const playersRef = ref(database, 'players');
     onValue(playersRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
-        const existingPlayer = Object.values(data).find(player => player.deviceId === deviceId);
+        const existingPlayer = data[userId];
         if (existingPlayer) {
-          setPlayerId(existingPlayer.playerId);
-          setLocalName(existingPlayer.name); 
+          setLocalName(existingPlayer.name);
           setName(existingPlayer.name); 
           setShowRules(true);
           setIsUserRecognized(true);
         } else {
-          const newPlayerId = uuid.v4();
-          setPlayerId(newPlayerId);
           setIsUserRecognized(false);
         }
       }
@@ -52,15 +53,15 @@ export default function Home({ setIsUserRecognized, setName }) {
     });
   };
 
-  const saveNewPlayer = async (name, playerId, deviceId) => {
-    const playerRef = ref(database, `players/${playerId}`);
+  const saveNewPlayer = async (name, userId) => {
+    const playerRef = ref(database, `players/${userId}`);
     const snapshot = await get(playerRef);
     const playerData = snapshot.val();
 
     set(playerRef, {
       ...playerData, 
       name: name, 
-      deviceId: deviceId,
+      userId: userId,
       dateJoined: playerData?.dateJoined || new Date().toLocaleDateString(),
     });
 
@@ -78,9 +79,9 @@ export default function Home({ setIsUserRecognized, setName }) {
       if (!playerId) {
         const newPlayerId = uuid.v4();
         setPlayerId(newPlayerId);
-        saveNewPlayer(localName, newPlayerId, deviceId); 
+        saveNewPlayer(localName, newPlayerId); 
       } else {
-        saveNewPlayer(localName, playerId, deviceId); 
+        saveNewPlayer(localName, playerId); 
       }
     }
   };
@@ -90,7 +91,7 @@ export default function Home({ setIsUserRecognized, setName }) {
   };
 
   const handleChangeName = () => {
-    setLocalName(''); 
+    setLocalName('');
     setShowRules(false);
     setIsUserRecognized(false);
   };
@@ -113,8 +114,8 @@ export default function Home({ setIsUserRecognized, setName }) {
                 style={styles.input}
                 placeholder="Enter your name"
                 placeholderTextColor={'white'}
-                value={localName} 
-                onChangeText={(val) => setLocalName(val)} 
+                value={localName}
+                onChangeText={(val) => setLocalName(val)}
                 autoFocus={true}
               />
               <Pressable
