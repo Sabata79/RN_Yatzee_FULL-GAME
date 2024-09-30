@@ -8,18 +8,18 @@ import Header from './components/Header';
 import Footer from './components/Footer';
 import styles from './styles/styles';
 import { NavigationContainer } from '@react-navigation/native';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
 
 export default function App() {
   const [isUserRecognized, setIsUserRecognized] = useState(false);
   const [name, setName] = useState('');
-  const Tab = createBottomTabNavigator();
 
-  // Log the changes in name and isUserRecognized state
-  useEffect(() => {
-  }, [isUserRecognized, name]);
+  const Tab = createMaterialTopTabNavigator();
+
+  useEffect(() => {}, [isUserRecognized, name]);
 
   const [loaded] = useFonts({
     AntonRegular: require('./assets/fonts/Anton-Regular.ttf'),
@@ -29,56 +29,80 @@ export default function App() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Header isUserRecognized={isUserRecognized} name={name} />
-      <NavigationContainer>
-        <Tab.Navigator
-          screenOptions={{
-            headerShown: false,
-            tabBarStyle: {
-              height: 60,
-              backgroundColor: 'darkorange',
-            },
-            tabBarActiveTintColor: '#ffffff',
-            tabBarInactiveTintColor: '#22201e',
-            tabBarLabelStyle: {
-              fontSize: 12,
-              fontFamily: 'AntonRegular',
-            },
-          }}>
-          <Tab.Screen
-            name="Home"
-            options={{
-              tabBarStyle: { display: 'none' },
-              tabBarIcon: () => (
-                <MaterialCommunityIcons name="home" color={'black'} size={28} />
-              ),
-            }}
+    <SafeAreaProvider>
+      <SafeAreaView style={styles.container}>
+        <Header isUserRecognized={isUserRecognized} name={name} />
+        <NavigationContainer>
+          <Tab.Navigator
+            tabBarPosition="bottom"
+            screenOptions={({ route }) => ({
+              headerShown: false,
+              tabBarStyle: {
+                height: 70,
+                backgroundColor: 'darkorange',
+              },
+              tabBarActiveTintColor: '#ffffff',
+              tabBarInactiveTintColor: '#22201e',
+              tabBarLabelStyle: {
+                fontSize: 12,
+                fontFamily: 'AntonRegular',
+              },
+              tabBarIndicatorStyle: { height: 0 },
+              tabBarIcon: ({ focused, color, size }) => {
+                let iconName;
+
+                if (route.name === 'Home') {
+                  iconName = 'home';
+                  return (
+                    <MaterialCommunityIcons
+                      name={iconName}
+                      size={28}
+                      color={focused ? '#ffffff' : 'black'}
+                    />
+                  );
+                } else if (route.name === 'Gameboard') {
+                  iconName = 'dice';
+                  return (
+                    <FontAwesome5
+                      name={iconName}
+                      size={26}
+                      color={focused ? '#ffffff' : 'black'}
+                    />
+                  );
+                } else if (route.name === 'Scoreboard') {
+                  iconName = 'list';
+                  return (
+                    <FontAwesome5
+                      name={iconName}
+                      size={26}
+                      color={focused ? '#ffffff' : 'black'}
+                    />
+                  );
+                }
+              },
+            })}
           >
-            {() => <Home setIsUserRecognized={setIsUserRecognized} setName={setName} />}
-          </Tab.Screen>
-          <Tab.Screen
-            name="Gameboard"
-            component={Gameboard}
-            options={{
-              tabBarIcon: () => (
-                <FontAwesome5 name="dice" size={28} color="black" />
-              ),
-            }}
-          />
-          <Tab.Screen
-            name="Scoreboard"
-            component={Scoreboard}
-            options={{
-              tabBarIcon: () => (
-                <FontAwesome5 name="list" size={28} color="black" />
-              ),
-            }}
-          />
-        </Tab.Navigator>
-        <Footer />
-      </NavigationContainer>
-      <StatusBar style="light" backgroundColor="black" />
-    </SafeAreaView>
+            <Tab.Screen
+              name="Home"
+              options={{
+                tabBarStyle: { display: 'none' },
+              }}
+            >
+              {() => <Home setIsUserRecognized={setIsUserRecognized} setName={setName} />}
+            </Tab.Screen>
+            <Tab.Screen
+              name="Gameboard"
+              component={Gameboard}
+            />
+            <Tab.Screen
+              name="Scoreboard"
+              component={Scoreboard}
+            />
+          </Tab.Navigator>
+          <Footer />
+        </NavigationContainer>
+        <StatusBar style="light" backgroundColor="black" />
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
