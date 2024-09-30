@@ -26,10 +26,6 @@ export default function Gameboard({ route, navigation }) {
         }
     }, [route.params?.player, route.params?.reset]);
 
-    useEffect(() => {
-        handleBonus(); // Calculate and apply the bonus when minorPoints or hasAppliedBonus changes
-    }, [minorPoints, hasAppliedBonus]);
-
     // Reset the game
     const resetGame = () => {
         const resetCategories = scoringCategories.map(category => {
@@ -229,9 +225,9 @@ export default function Gameboard({ route, navigation }) {
             if (selectedCategory) {
                 if (!selectedCategory.locked) {
                     const points = selectedCategory.calculateScore(rolledDices);
-
                     const isMinorNames = minorNames.includes(selectedCategory.name);
 
+                    // Päivitä pisteet valitulle kentälle
                     const updatedCategories = scoringCategories.map(category => {
                         if (category.index === selectedField) {
                             return {
@@ -243,18 +239,23 @@ export default function Gameboard({ route, navigation }) {
                         return category;
                     });
 
-                    setTotalPoints(totalPoints + points);
+                    // Päivitä kokonaispisteet
+                    let newTotalPoints = totalPoints + points;
 
+                    // Jos kenttä kuuluu minor-ryhmään, päivitä minor-pisteet
                     if (isMinorNames) {
                         const newMinorPoints = minorPoints + points;
-                        setMinorPoints(newMinorPoints);
 
-                        // Apply bonus if minor points are over 63
+                        // Tarkista, ylittyykö bonusraja
                         if (newMinorPoints >= BONUS_POINTS_LIMIT && !hasAppliedBonus) {
-                            setTotalPoints(prevTotal => prevTotal + BONUS_POINTS);
-                            setHasAppliedBonus(true);
+                            newTotalPoints += BONUS_POINTS; // Lisää bonus kokonaispisteisiin
+                            setHasAppliedBonus(true); // Aseta bonus kerran käyttöön
                         }
+                        setMinorPoints(newMinorPoints); // Päivitä minor-pisteet
                     }
+
+                    // Aseta päivitetyt pisteet
+                    setTotalPoints(newTotalPoints);
                     setScoringCategories(updatedCategories);
                     setSelectedField(null);
                 }
@@ -664,7 +665,7 @@ export default function Gameboard({ route, navigation }) {
         const throwDices = () => {
             if (nbrOfThrowsLeft > 0) {
                 setIsRolling(true);
-                animateDices(); 
+                animateDices();
                 setTimeout(() => {
                     for (let i = 0; i < NBR_OF_DICES; i++) {
                         if (!selectedDices[i]) {
@@ -675,7 +676,7 @@ export default function Gameboard({ route, navigation }) {
                     }
                     setNbrOfThrowsLeft(nbrOfThrowsLeft - 1);
                     setIsRolling(false);
-                }, 500); 
+                }, 500);
             } else {
                 setStatus('No throws left');
                 setNbrOfThrowsLeft(NBR_OF_THROWS);
@@ -691,7 +692,7 @@ export default function Gameboard({ route, navigation }) {
         const animateDices = () => {
             Animated.parallel(
                 diceAnimations.map((anim, index) =>
-                    !selectedDices[index] 
+                    !selectedDices[index]
                         ? Animated.timing(anim, {
                             toValue: 1,
                             duration: 500,
@@ -704,7 +705,7 @@ export default function Gameboard({ route, navigation }) {
                         })
                 )
             ).start(() => {
-                diceAnimations.forEach(anim => anim.setValue(0)); 
+                diceAnimations.forEach(anim => anim.setValue(0));
             });
         };
 
@@ -819,11 +820,11 @@ export default function Gameboard({ route, navigation }) {
                     ListFooterComponent={renderDices}
                 />
             </View>
-        <ModalAlert
-            visible={modalVisible}
-            message={modalMessage}
-            onClose={() => setModalVisible(false)}
-        />
+            <ModalAlert
+                visible={modalVisible}
+                message={modalMessage}
+                onClose={() => setModalVisible(false)}
+            />
         </ImageBackground>
     );
 }

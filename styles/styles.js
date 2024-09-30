@@ -404,6 +404,13 @@ export default styles = StyleSheet.create({
         alignItems: 'center',
         textAlign: 'center',
     },
+    rulesContent: {
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 15,
+        backgroundColor: '#282828',
+        borderRadius: 10,
+    },
     rulesText: {
         fontSize: 16,
         paddingRight: 10,
@@ -513,5 +520,46 @@ export default styles = StyleSheet.create({
         color: 'black',
         fontWeight: 'bold',
         textAlign: 'center',
+    },
+    // AboutMe
+    aboutContainer: {
+        flexGrow: 1,
+        backgroundColor: '#282828',
+        padding: 20, 
+    },
+    headerContainer: {
+        flexDirection: 'row', 
+        alignItems: 'center', 
+        justifyContent: 'flex-start', 
+    },
+    profileImage: {
+        width: 100, 
+        height: 100, 
+        borderRadius: 50, 
+        borderWidth: 2,
+        borderColor: '#e3dddd', 
+        marginLeft: 20, 
+    },
+    aboutTitle: {
+        fontSize: 24,
+        paddingLeft: 20,
+        color: '#e3dddd',
+        fontFamily: 'AntonRegular',
+    },
+    aboutText: {
+        fontSize: 16,
+        padding: 15,
+        color: '#e3dddd',
+        textAlign: 'center',
+        fontFamily: 'AntonRegular',
+    },
+    aboutFeatureText: {
+        fontSize: 16,
+        marginLeft: 15,
+        marginRight: 15,
+        marginBottom: 20,
+        color: '#e3dddd',
+        fontFamily: 'AntonRegular',
+        textAlign: 'left',
     },
 });

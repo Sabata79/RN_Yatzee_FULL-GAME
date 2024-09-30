@@ -3,6 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native';
 import Scoreboard from './components/Scoreboard';
 import Gameboard from './components/Gameboard';
+import About from './components/AboutMe';
 import Home from './components/Home';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -19,7 +20,7 @@ export default function App() {
 
   const Tab = createMaterialTopTabNavigator();
 
-  useEffect(() => {}, [isUserRecognized, name]);
+  useEffect(() => { }, [isUserRecognized, name]);
 
   const [loaded] = useFonts({
     AntonRegular: require('./assets/fonts/Anton-Regular.ttf'),
@@ -48,7 +49,7 @@ export default function App() {
                 fontFamily: 'AntonRegular',
               },
               tabBarIndicatorStyle: { height: 0 },
-              tabBarIcon: ({ focused, color, size }) => {
+              tabBarIcon: ({ focused }) => {
                 let iconName;
 
                 if (route.name === 'Home') {
@@ -56,7 +57,7 @@ export default function App() {
                   return (
                     <MaterialCommunityIcons
                       name={iconName}
-                      size={28}
+                      size={24}
                       color={focused ? '#ffffff' : 'black'}
                     />
                   );
@@ -65,8 +66,9 @@ export default function App() {
                   return (
                     <FontAwesome5
                       name={iconName}
-                      size={26}
+                      size={24}
                       color={focused ? '#ffffff' : 'black'}
+                      style={{ marginLeft: -5 }}
                     />
                   );
                 } else if (route.name === 'Scoreboard') {
@@ -74,8 +76,18 @@ export default function App() {
                   return (
                     <FontAwesome5
                       name={iconName}
-                      size={26}
+                      size={24}
                       color={focused ? '#ffffff' : 'black'}
+                    />
+                  );
+                } else if (route.name === 'About Me') {
+                  iconName = 'info';
+                  return (
+                    <FontAwesome5
+                      name={iconName}
+                      size={24}
+                      color={focused ? '#ffffff' : 'black'}
+                      style={{ marginLeft: 4 }}
                     />
                   );
                 }
@@ -97,6 +109,10 @@ export default function App() {
             <Tab.Screen
               name="Scoreboard"
               component={Scoreboard}
+            />
+            <Tab.Screen
+              name="About Me"
+              component={About}
             />
           </Tab.Navigator>
           <Footer />

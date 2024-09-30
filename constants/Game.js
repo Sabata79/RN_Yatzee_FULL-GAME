@@ -11,7 +11,7 @@ export const FULLHOUSE_PONITS = 25;
 export const SMALL_STRAIGHT_POINTS = 30;
 export const LARGE_STRAIGHT_POINTS = 40;
 
-//  Perus Säännöt
+//  Base description for the rules
 export const rulesTextContent = `
       Score as many points as possible
       by rolling dice to reach the ${MAX_SPOTS} combinations
@@ -52,7 +52,7 @@ export const rulesTextContent = `
       been scored.
 `;
 
-//  Rules and Combinations
+//  Specific Rules and combinations
 export const combinationsData = [
   {
     icon: 'dice-multiple',
