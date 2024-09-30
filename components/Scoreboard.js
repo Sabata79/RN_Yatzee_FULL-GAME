@@ -5,7 +5,7 @@ import styles from '../styles/styles';
 import { NBR_OF_SCOREBOARD_ROWS } from '../constants/Game';
 import { database } from '../components/Firebase'; 
 import { ref, onValue } from 'firebase/database';
-import * as SecureStore from 'expo-secure-store'; // Lisää tämä importti
+import * as SecureStore from 'expo-secure-store';
 
 export default function Scoreboard({ navigation }) {
   const [scores, setScores] = useState([]);

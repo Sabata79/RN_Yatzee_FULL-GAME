@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { FlatList, Text, View, Pressable, ImageBackground, Alert, Animated } from 'react-native';
+import { FlatList, Text, View, Pressable, ImageBackground, Animated } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import styles from '../styles/styles';
 import { NBR_OF_THROWS, NBR_OF_DICES, MAX_SPOTS, BONUS_POINTS, BONUS_POINTS_LIMIT } from '../constants/Game';
 import { database } from '../components/Firebase';
 import { ref, set, push, get } from 'firebase/database';
 import DiceAnimation from '../components/DiceAnimation';
+import ModalAlert from '../constants/ModalAlert';
 
 let board = [];
 
@@ -14,6 +15,8 @@ export default function Gameboard({ route, navigation }) {
     // Player name and id
     const [playerName, setPlayerName] = useState('');
     const [playerId, setPlayerId] = useState('');
+    const [modalVisible, setModalVisible] = useState(false);
+    const [modalMessage, setModalMessage] = useState('');
 
     useEffect(() => {
         if (route.params?.player) {
@@ -58,7 +61,7 @@ export default function Gameboard({ route, navigation }) {
                 const existingScores = Object.values(playerData.scores);
                 const maxScore = Math.max(...existingScores.map(score => score.points));
 
-                // Only save the score if it is higher than the previous high score
+                // Vain jos uusi tulos on korkeampi kuin aikaisempi
                 if (totalPoints > maxScore) {
                     const newKey = push(ref(database, `players/${playerId}/scores`)).key;
                     const playerPoints = {
@@ -71,10 +74,12 @@ export default function Gameboard({ route, navigation }) {
                     await set(ref(database, `players/${playerId}/scores/${newKey}`), playerPoints);
                     navigation.navigate('Scoreboard');
                 } else {
-                    Alert.alert('No new high score', 'You did not beat your previous high score.');
+                    // Jos uutta ennätystä ei saavutettu, näytetään modal
+                    setModalMessage(`Your highest score is ${maxScore}.\nYour score was now ${totalPoints}.\nYou didn't beat the previous high score.\nOnly the highest score will show up in the scoreboard.`);
+                    setModalVisible(true);
                 }
             } else {
-                // If the player does not have any scores saved, save the score
+                // Jos pelaajalla ei ole aikaisempia tuloksia, tallennetaan tulos
                 const newKey = push(ref(database, `players/${playerId}/scores`)).key;
                 const playerPoints = {
                     key: newKey,
@@ -814,6 +819,11 @@ export default function Gameboard({ route, navigation }) {
                     ListFooterComponent={renderDices}
                 />
             </View>
+        <ModalAlert
+            visible={modalVisible}
+            message={modalMessage}
+            onClose={() => setModalVisible(false)}
+        />
         </ImageBackground>
     );
 }

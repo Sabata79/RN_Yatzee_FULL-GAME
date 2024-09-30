@@ -45,11 +45,11 @@ export default styles = StyleSheet.create({
     userName: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: 'black',  
+        color: 'black',
         marginRight: 5,
     },
     userIcon: {
-        marginLeft: 5, 
+        marginLeft: 5,
     },
     footer: {
         backgroundColor: 'darkorange',
@@ -474,5 +474,44 @@ export default styles = StyleSheet.create({
         color: 'black',
         textAlign: 'center',
         fontFamily: 'AntonRegular',
+    },
+    //Modal
+    modalCenteredView: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.28)',
+    },
+    modalView: {
+        margin: 20,
+        backgroundColor: '#f5f5f5f3',
+        borderRadius: 20,
+        padding: 35,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 5,
+    },
+    modalText: {
+        marginBottom: 15,
+        textAlign: 'center',
+        fontSize: 18,
+        color: 'black',
+    },
+    modalButton: {
+        borderRadius: 10,
+        padding: 10,
+        elevation: 2,
+        backgroundColor: 'darkorange',
+    },
+    modalButtonText: {
+        color: 'black',
+        fontWeight: 'bold',
+        textAlign: 'center',
     },
 });
