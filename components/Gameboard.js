@@ -53,37 +53,38 @@ export default function Gameboard({ route, navigation }) {
 
             const playerData = snapshot.val();
 
+            // Luo uusi pistetieto
+            const newKey = push(ref(database, `players/${playerId}/scores`)).key;
+            const playerPoints = {
+                key: newKey,
+                date: currentDate.toLocaleDateString(),
+                time: currentDate.toLocaleTimeString(),
+                points: totalPoints,
+            };
+
             if (playerData && playerData.scores) {
+                // Jos pelaajalla on aiempia pisteitä
                 const existingScores = Object.values(playerData.scores);
-                const maxScore = Math.max(...existingScores.map(score => score.points));
 
-                // Vain jos uusi tulos on korkeampi kuin aikaisempi
-                if (totalPoints > maxScore) {
-                    const newKey = push(ref(database, `players/${playerId}/scores`)).key;
-                    const playerPoints = {
-                        key: newKey,
-                        date: currentDate.toLocaleDateString(),
-                        time: currentDate.toLocaleTimeString(),
-                        points: totalPoints,
-                    };
+                // Lisää uusi piste listaan
+                const updatedScores = [...existingScores, playerPoints];
 
-                    await set(ref(database, `players/${playerId}/scores/${newKey}`), playerPoints);
-                    navigation.navigate('Scoreboard');
-                } else {
-                    // Jos uutta ennätystä ei saavutettu, näytetään modal
-                    setModalMessage(`Your highest score is ${maxScore}.\nYour score was now ${totalPoints}.\nYou didn't beat the previous high score.\nOnly the highest score will show up in the scoreboard.`);
-                    setModalVisible(true);
-                }
+                // Järjestä pisteet laskevassa järjestyksessä
+                updatedScores.sort((a, b) => b.points - a.points);
+
+                // Pidä vain 5 parasta tulosta
+                const topFiveScores = updatedScores.slice(0, 5);
+
+                // Päivitä tietokanta uudella pistelistalla
+                const scoresRef = ref(database, `players/${playerId}/scores`);
+                await set(scoresRef, topFiveScores.reduce((acc, score) => {
+                    acc[score.key] = score;
+                    return acc;
+                }, {}));
+
+                navigation.navigate('Scoreboard');
             } else {
-                // Jos pelaajalla ei ole aikaisempia tuloksia, tallennetaan tulos
-                const newKey = push(ref(database, `players/${playerId}/scores`)).key;
-                const playerPoints = {
-                    key: newKey,
-                    date: currentDate.toLocaleDateString(),
-                    time: currentDate.toLocaleTimeString(),
-                    points: totalPoints,
-                };
-
+                // Jos pelaajalla ei ole aikaisempia tuloksia, tallennetaan uusi tulos
                 await set(ref(database, `players/${playerId}/scores/${newKey}`), playerPoints);
                 navigation.navigate('Scoreboard');
             }

@@ -17,10 +17,11 @@ import { useFonts } from 'expo-font';
 export default function App() {
   const [isUserRecognized, setIsUserRecognized] = useState(false);
   const [name, setName] = useState('');
+  const [playerId, setPlayerId] = useState(null);
 
   const Tab = createMaterialTopTabNavigator();
 
-  useEffect(() => { }, [isUserRecognized, name]);
+  useEffect(() => { }, [isUserRecognized, name, playerId]);
 
   const [loaded] = useFonts({
     AntonRegular: require('./assets/fonts/Anton-Regular.ttf'),
@@ -32,7 +33,7 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container}>
-        <Header isUserRecognized={isUserRecognized} name={name} />
+        <Header isUserRecognized={isUserRecognized} name={name} playerId={playerId} />
         <NavigationContainer>
           <Tab.Navigator
             tabBarPosition="bottom"
@@ -100,7 +101,13 @@ export default function App() {
                 tabBarStyle: { display: 'none' },
               }}
             >
-              {() => <Home setIsUserRecognized={setIsUserRecognized} setName={setName} />}
+              {() => (
+                <Home
+                  setIsUserRecognized={setIsUserRecognized}
+                  setName={setName}
+                  setPlayerId={setPlayerId}
+                />
+              )}
             </Tab.Screen>
             <Tab.Screen
               name="Gameboard"
