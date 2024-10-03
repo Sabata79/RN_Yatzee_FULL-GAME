@@ -67,7 +67,11 @@ export default function Header({ isUserRecognized, name, playerId }) {
       </Text>
       {isUserRecognized && name && (
         <Pressable
-          style={styles.userContainer}
+          style={({ pressed }) => [
+            styles.button,
+            pressed && styles.buttonPressed,
+            { marginLeft: 'auto',top: -5 }, 
+          ]}
           onPress={() => {
             setModalVisible(true);
           }}
@@ -77,6 +81,7 @@ export default function Header({ isUserRecognized, name, playerId }) {
             name="user"
             size={22}
             color="black"
+style={{ marginLeft: 5 }}
           />
         </Pressable>
       )}
