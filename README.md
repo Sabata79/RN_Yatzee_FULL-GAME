@@ -32,6 +32,15 @@ After launching the game, you'll be greeted with a simple menu where you can sta
 
 ## Changelog
 
+### Version 1.2.0
+
+- **Added About Me Page: New 'About Me' page with details about the project and the developer.
+- **Implemented Swipe Navigation: Users can now navigate between screens using swipe gestures for an enhanced user experience.
+- **Player Top 5 Scores: Added functionality to view the player's top 5 scores in a detailed modal.
+- **Updated Header Button Design: Fixed positioning and styling issues with the header button.
+- **Modal Integration: Replaced alert notifications with modals for a more modern user interface.
+- **UI/UX Improvements: Minor styling adjustments for a cleaner interface.
+
 ### Version 1.1.1
 - **Improved Player Recognition:** Switched to **Expo Secure Store** for better user data handling and security.
 - **Added Dice Animation:** Enhanced visual experience with animations for dice rolls.
