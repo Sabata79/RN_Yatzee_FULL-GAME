@@ -41,6 +41,11 @@ export default function Header({ isUserRecognized, name, playerId }) {
     }
   };
 
+  const getTopScoresWithEmptySlots = () => {
+    const emptyScores = Array(5 - topScores.length).fill({ points: '---', date: '' });
+    return [...topScores, ...emptyScores].slice(0, 5);
+  };
+
   // Close the app
   const handleAppClose = () => {
     Alert.alert(
@@ -70,7 +75,7 @@ export default function Header({ isUserRecognized, name, playerId }) {
           style={({ pressed }) => [
             styles.button,
             pressed && styles.buttonPressed,
-            { marginLeft: 'auto',top: -5 }, 
+            { marginLeft: 'auto', top: -5 }, 
           ]}
           onPress={() => {
             setModalVisible(true);
@@ -81,7 +86,7 @@ export default function Header({ isUserRecognized, name, playerId }) {
             name="user"
             size={22}
             color="black"
-style={{ marginLeft: 5 }}
+            style={{ marginLeft: 5 }}
           />
         </Pressable>
       )}
@@ -100,24 +105,20 @@ style={{ marginLeft: 5 }}
               <Text style={styles.modalCloseButtonText}>X</Text>
             </TouchableOpacity>
 
-            <Text style={styles.modalText}>Your top 5 Scores</Text>
-            {topScores.length > 0 ? (
-              <FlatList
-                data={topScores}
-                keyExtractor={(item, index) => index.toString()}
-                renderItem={({ item, index }) => (
-                  <View>
-                    <View style={styles.modalItemRow}>
-                      <Text style={styles.modalText}>{`${index + 1}. ${item.points} points`}</Text>
-                      <Text style={styles.modalSubText}>{`${item.date}`}</Text>
-                    </View>
-                    <View style={styles.modalDivider} />
+            <Text style={styles.modalText}>Your Top 5 Scores</Text>
+            <FlatList
+              data={getTopScoresWithEmptySlots()}
+              keyExtractor={(item, index) => index.toString()}
+              renderItem={({ item, index }) => (
+                <View>
+                  <View style={styles.modalItemRow}>
+                    <Text style={styles.modalText}>{`${index + 1}. ${item.points} points`}</Text>
+                    <Text style={styles.modalSubText}>{item.date || 'No date'}</Text>
                   </View>
-                )}
-              />
-            ) : (
-              <Text style={styles.modalText}>No scores available.</Text>
-            )}
+                  <View style={styles.modalDivider} />
+                </View>
+              )}
+            />
             <TouchableOpacity style={styles.modalButton} onPress={handleAppClose}>
               <Text style={styles.modalButtonText}>Close Application</Text>
             </TouchableOpacity>

@@ -40,3 +40,4 @@ yarn-error.*
 
 # Ignore babel.config.js
 babel.config.js
+eas.config.js

@@ -43,7 +43,6 @@ export default function Gameboard({ route, navigation }) {
         setMinorPoints(0);
         setHasAppliedBonus(false);
     };
-    //Add scores to the database
     const currentDate = new Date();
 
     const savePlayerPoints = async () => {
@@ -53,8 +52,9 @@ export default function Gameboard({ route, navigation }) {
 
             const playerData = snapshot.val();
 
-            // Luo uusi pistetieto
+
             const newKey = push(ref(database, `players/${playerId}/scores`)).key;
+
             const playerPoints = {
                 key: newKey,
                 date: currentDate.toLocaleDateString(),
@@ -63,20 +63,14 @@ export default function Gameboard({ route, navigation }) {
             };
 
             if (playerData && playerData.scores) {
-                // Jos pelaajalla on aiempia pisteitä
                 const existingScores = Object.values(playerData.scores);
-
-                // Lisää uusi piste listaan
                 const updatedScores = [...existingScores, playerPoints];
 
-                // Järjestä pisteet laskevassa järjestyksessä
                 updatedScores.sort((a, b) => b.points - a.points);
 
-                // Pidä vain 5 parasta tulosta
                 const topFiveScores = updatedScores.slice(0, 5);
-
-                // Päivitä tietokanta uudella pistelistalla
                 const scoresRef = ref(database, `players/${playerId}/scores`);
+
                 await set(scoresRef, topFiveScores.reduce((acc, score) => {
                     acc[score.key] = score;
                     return acc;
@@ -84,7 +78,6 @@ export default function Gameboard({ route, navigation }) {
 
                 navigation.navigate('Scoreboard');
             } else {
-                // Jos pelaajalla ei ole aikaisempia tuloksia, tallennetaan uusi tulos
                 await set(ref(database, `players/${playerId}/scores/${newKey}`), playerPoints);
                 navigation.navigate('Scoreboard');
             }
@@ -228,7 +221,6 @@ export default function Gameboard({ route, navigation }) {
                     const points = selectedCategory.calculateScore(rolledDices);
                     const isMinorNames = minorNames.includes(selectedCategory.name);
 
-                    // Päivitä pisteet valitulle kentälle
                     const updatedCategories = scoringCategories.map(category => {
                         if (category.index === selectedField) {
                             return {
@@ -240,22 +232,17 @@ export default function Gameboard({ route, navigation }) {
                         return category;
                     });
 
-                    // Päivitä kokonaispisteet
                     let newTotalPoints = totalPoints + points;
 
-                    // Jos kenttä kuuluu minor-ryhmään, päivitä minor-pisteet
                     if (isMinorNames) {
                         const newMinorPoints = minorPoints + points;
 
-                        // Tarkista, ylittyykö bonusraja
                         if (newMinorPoints >= BONUS_POINTS_LIMIT && !hasAppliedBonus) {
-                            newTotalPoints += BONUS_POINTS; // Lisää bonus kokonaispisteisiin
-                            setHasAppliedBonus(true); // Aseta bonus kerran käyttöön
+                            newTotalPoints += BONUS_POINTS;
+                            setHasAppliedBonus(true);
                         }
-                        setMinorPoints(newMinorPoints); // Päivitä minor-pisteet
+                        setMinorPoints(newMinorPoints);
                     }
-
-                    // Aseta päivitetyt pisteet
                     setTotalPoints(newTotalPoints);
                     setScoringCategories(updatedCategories);
                     setSelectedField(null);
@@ -359,7 +346,6 @@ export default function Gameboard({ route, navigation }) {
         <>
             <View style={styles.firstRow}>
                 <View style={styles.firstRowItem}>
-                    {/* <Text style={styles.firstRowNameText}>Good luck, {playerName}</Text> */}
                 </View>
             </View>
             <View style={styles.firstRow}>

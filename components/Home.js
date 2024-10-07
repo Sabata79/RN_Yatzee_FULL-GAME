@@ -69,8 +69,8 @@ export default function Home({ setIsUserRecognized, setName, setPlayerId }) {
   const handlePress = () => {
     if (localName.trim() === '') {
       Alert.alert('Name is required', 'Please enter your name.');
-    } else if (localName.length < 3 || localName.length > 15) {
-      Alert.alert('Name is too short', 'Please enter a name with at least 3 characters and maximum 15 characters.');
+    } else if (localName.length < 3 || localName.length > 10) {
+      Alert.alert('Name is too short', 'Please enter a name with at least 3 characters and maximum 10 characters.');
     } else {
       setUserRecognized(true);
       setIsUserRecognized(true);
@@ -145,7 +145,7 @@ export default function Home({ setIsUserRecognized, setName, setPlayerId }) {
                       style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
                       onPress={handleChangeName}
                     >
-                      <Text style={[styles.buttonText, { fontSize: 18 }]}>Change name</Text>
+                      <Text style={[styles.buttonText, { fontSize: 16 }]}>Change name</Text>
                     </Pressable>
                     <Pressable
                       style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}

@@ -25,7 +25,7 @@ export default function DiceAnimation({ diceName, isSelected, onSelect, animatio
   return (
     <Pressable onPress={onSelect}>
       <Animated.View style={animatedStyle}>
-        <MaterialCommunityIcons name={diceName} size={45} color={color} />
+        <MaterialCommunityIcons name={diceName} size={55} color={color} />
       </Animated.View>
     </Pressable>
   );

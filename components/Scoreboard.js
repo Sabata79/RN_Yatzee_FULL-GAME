@@ -3,14 +3,14 @@ import { View, Text, ScrollView, ImageBackground } from 'react-native';
 import { DataTable } from 'react-native-paper';
 import styles from '../styles/styles';
 import { NBR_OF_SCOREBOARD_ROWS } from '../constants/Game';
-import { database } from '../components/Firebase'; 
+import { database } from '../components/Firebase';
 import { ref, onValue } from 'firebase/database';
 import * as SecureStore from 'expo-secure-store';
 
 export default function Scoreboard({ navigation }) {
   const [scores, setScores] = useState([]);
   const [latestScoreIndex, setLatestScoreIndex] = useState(null);
-  const [userId, setUserId] = useState(''); 
+  const [userId, setUserId] = useState('');
 
   useEffect(() => {
     // Hae tallennettu käyttäjä ID SecureStore:sta
@@ -34,25 +34,30 @@ export default function Scoreboard({ navigation }) {
 
       if (playersData) {
         Object.keys(playersData).forEach(playerId => {
-          const player = playersData[playerId];
-          if (player.scores) {
-            const maxScore = Math.max(...Object.values(player.scores).map(score => score.points));
-            const highScore = Object.values(player.scores).find(score => score.points === maxScore);
+          if (playersData[playerId] && playersData[playerId].name) { // Tarkistetaan, että kyseessä on oikea pelaaja
+            const player = playersData[playerId];
+            if (player.scores) {
+              const maxScore = Math.max(...Object.values(player.scores).map(score => score.points));
+              const highScore = Object.values(player.scores).find(score => score.points === maxScore);
 
-            tmpScores.push({
-              ...highScore,
-              name: player.name,
-              playerId: playerId,
-            });
+              if (highScore) { // Varmista, että highScore ei ole undefined
+                tmpScores.push({
+                  ...highScore,
+                  name: player.name,
+                  playerId: playerId,
+                });
+              }
+            }
           }
         });
 
-        const sortedScores = tmpScores.slice().sort((a, b) => b.points - a.points);
+        // Järjestetään tulokset laskevassa järjestyksessä
+        const sortedScores = tmpScores.sort((a, b) => b.points - a.points);
         setScores(sortedScores);
 
+        // Asetetaan viimeisin tulos, jos löytyy
         if (sortedScores.length > 0) {
-          const latestScore = sortedScores[0];
-          const latestScoreIndex = tmpScores.findIndex(score => score.key === latestScore.key);
+          const latestScoreIndex = sortedScores.findIndex(score => score.playerId === userId);
           setLatestScoreIndex(latestScoreIndex);
         }
       } else {
@@ -61,6 +66,8 @@ export default function Scoreboard({ navigation }) {
       }
     });
   };
+
+
 
   return (
     <ImageBackground

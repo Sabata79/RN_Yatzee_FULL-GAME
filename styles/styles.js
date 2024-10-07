@@ -58,7 +58,7 @@ export default styles = StyleSheet.create({
         justifyContent: 'center',
         textAlign: 'center',
         fontFamily: 'AntonRegular',
-        color: 'white',
+        color: '#ccc9c9',
     },
     inputIndexShown: {
         fontSize: 16,
@@ -83,37 +83,38 @@ export default styles = StyleSheet.create({
     },
     firstRowItem: {
         flex: 1,
-        height: 30,
         alignItems: 'center',
+        justifyContent: 'center',
     },
     firstRowNameText: {
         fontFamily: 'AntonRegular',
         fontSize: 15,
-        color: 'white'
+        color: '#ccc9c9',
+        marginVertical: 0,
     },
     firstRowCategoryText: {
         fontFamily: 'AntonRegular',
         fontSize: 17,
-        color: 'white'
+        color: '#ccc9c9',
+        marginVertical: 0,
     },
-    text: {
-        fontWeight: 'bold',
+    firstRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: 0,
+        margin: 0,
+    },
+    lastRow: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        marginTop: 5,
     },
     playerText: {
         fontWeight: 'bold',
         fontSize: 18,
         paddingTop: 5,
         textAlign: 'center',
-    },
-    firstRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        padding: 5,
-    },
-    lastRow: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        marginTop: 5,
     },
     diceContainer: {
         flexDirection: 'row',
@@ -209,7 +210,7 @@ export default styles = StyleSheet.create({
 
     buttonText: {
         color: 'black',
-        fontSize: 20,
+        fontSize: 18,
         textAlign: 'center',
         fontFamily: 'AntonRegular',
     },
@@ -244,9 +245,9 @@ export default styles = StyleSheet.create({
         textAlign: 'center',
         padding: 5,
         marginTop: 5,
-        borderColor: 'white',
+        borderColor: '#ccc9c9',
         borderRadius: 4,
-        backgroundColor: 'white',
+        backgroundColor: '#ccc9c9',
     },
     selectScore: {
         flex: 1,
@@ -356,7 +357,7 @@ export default styles = StyleSheet.create({
     },
     diceBorder: {
         width: '80%',
-        height: 50,
+        height: 60,
         borderWidth: 2,
         borderColor: '#ccc9c9',
         borderRadius: 4,
@@ -383,7 +384,7 @@ export default styles = StyleSheet.create({
         fontWeight: 'bold',
         fontSize: 10,
         textAlign: 'center',
-        margin: 10,
+        margin: 5,
     },
     title: {
         fontSize: 24,
@@ -408,7 +409,7 @@ export default styles = StyleSheet.create({
     rulesText: {
         fontSize: 16,
         paddingRight: 10,
-        color: 'white',
+        color: '#ccc9c9',
         textAlign: 'center',
         fontFamily: 'AntonRegular',
     },
@@ -423,7 +424,7 @@ export default styles = StyleSheet.create({
     rulesCombinationTxt: {
         flex: 1,
         fontSize: 12,
-        color: 'white',
+        color: '#ccc9c9',
         textAlign: 'center',
         justifyContent: 'center',
         marginBottom: 10,
@@ -433,6 +434,14 @@ export default styles = StyleSheet.create({
     },
     lockedTextColor: {
         color: 'black',
+    },
+    topPlayersHeader: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        color: '#ccc9c9',
+        textAlign: 'center',
+        marginVertical: 20,
+        fontFamily: 'AntonRegular',
     },
     scoreBoardHeader: {
         alignSelf: 'center',
