@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { View, Text, TextInput, Pressable, Alert, ScrollView, ImageBackground, ActivityIndicator } from "react-native";
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import styles from '../styles/styles';
@@ -15,6 +15,7 @@ export default function Home({ setIsUserRecognized, setName, setPlayerId }) {
   const [playerId, setLocalPlayerId] = useState(''); 
   const [loading, setLoading] = useState(true); 
   const [isUserRecognized, setUserRecognized] = useState(false); 
+  const inputRef = useRef(null); // Lisää ref
 
   useEffect(() => {
     getOrCreateUserId().then((userId) => {
@@ -23,6 +24,15 @@ export default function Home({ setIsUserRecognized, setName, setPlayerId }) {
       checkExistingUser(userId);
     });
   }, []);
+
+  useEffect(() => {
+    if (!isUserRecognized && inputRef.current) {
+      // Aseta timeout, jotta varmistetaan fokusoituminen
+      setTimeout(() => {
+        inputRef.current.focus(); // Fokusoi kenttä
+      }, 100);
+    }
+  }, [isUserRecognized]);
 
   async function getOrCreateUserId() {
     let userId = await SecureStore.getItemAsync('user_id');
@@ -58,7 +68,6 @@ export default function Home({ setIsUserRecognized, setName, setPlayerId }) {
     set(playerRef, {
       ...playerData,
       name: name,
-      userId: userId,
       dateJoined: playerData?.dateJoined || new Date().toLocaleDateString(),
     });
 
@@ -112,12 +121,13 @@ export default function Home({ setIsUserRecognized, setName, setPlayerId }) {
                 <View style={styles.homeContainer}>
                   <Text style={styles.rulesText}>Hi, Stranger! Can you tell your name? </Text>
                   <TextInput
+                    ref={inputRef}
                     style={styles.input}
                     placeholder="Enter your name"
                     placeholderTextColor={'white'}
                     value={localName}
                     onChangeText={(val) => setLocalName(val)}
-                    autoFocus={true}
+                    autoFocus={false}
                   />
                   <Pressable
                     style={({ pressed }) => [styles.homeButton, pressed && styles.homeButtonPressed]}

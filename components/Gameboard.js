@@ -52,7 +52,6 @@ export default function Gameboard({ route, navigation }) {
 
             const playerData = snapshot.val();
 
-
             const newKey = push(ref(database, `players/${playerId}/scores`)).key;
 
             const playerPoints = {
@@ -69,22 +68,22 @@ export default function Gameboard({ route, navigation }) {
                 updatedScores.sort((a, b) => b.points - a.points);
 
                 const topFiveScores = updatedScores.slice(0, 5);
-                const scoresRef = ref(database, `players/${playerId}/scores`);
 
+                const scoresRef = ref(database, `players/${playerId}/scores`);
                 await set(scoresRef, topFiveScores.reduce((acc, score) => {
                     acc[score.key] = score;
                     return acc;
                 }, {}));
-
-                navigation.navigate('Scoreboard');
             } else {
                 await set(ref(database, `players/${playerId}/scores/${newKey}`), playerPoints);
-                navigation.navigate('Scoreboard');
             }
+            navigation.navigate('Scoreboard');
         } catch (error) {
-            console.log('Error:' + error.message);
+            console.error('Error saving player points: ', error.message);
         }
     };
+
+
 
     // Making the gameboard
     const [data, setData] = useState([
