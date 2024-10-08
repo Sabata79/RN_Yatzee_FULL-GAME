@@ -15,7 +15,7 @@ export default function Home({ setIsUserRecognized, setName, setPlayerId }) {
   const [playerId, setLocalPlayerId] = useState(''); 
   const [loading, setLoading] = useState(true); 
   const [isUserRecognized, setUserRecognized] = useState(false); 
-  const inputRef = useRef(null); // Lisää ref
+  const inputRef = useRef(null);
 
   useEffect(() => {
     getOrCreateUserId().then((userId) => {
@@ -27,21 +27,29 @@ export default function Home({ setIsUserRecognized, setName, setPlayerId }) {
 
   useEffect(() => {
     if (!isUserRecognized && inputRef.current) {
-      // Aseta timeout, jotta varmistetaan fokusoituminen
       setTimeout(() => {
-        inputRef.current.focus(); // Fokusoi kenttä
+        inputRef.current.focus();
       }, 100);
     }
   }, [isUserRecognized]);
 
-  async function getOrCreateUserId() {
+
+async function getOrCreateUserId() {
+  try {
     let userId = await SecureStore.getItemAsync('user_id');
     if (!userId) {
       userId = uuid.v4();
       await SecureStore.setItemAsync('user_id', userId);
+      console.log('Created new user ID: ', userId);
+    } else {
+      console.log('Existing user ID found: ', userId);
     }
     return userId;
+  } catch (error) {
+    console.error('Error retrieving user ID:', error);
+    return null;
   }
+}
 
   const checkExistingUser = (userId) => {
     const playerRef = ref(database, `players/${userId}`);

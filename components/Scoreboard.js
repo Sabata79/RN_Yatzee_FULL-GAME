@@ -13,7 +13,6 @@ export default function Scoreboard({ navigation }) {
   const [userId, setUserId] = useState('');
 
   useEffect(() => {
-    // Hae tallennettu käyttäjä ID SecureStore:sta
     SecureStore.getItemAsync('user_id').then((storedUserId) => {
       if (storedUserId) {
         setUserId(storedUserId);
@@ -34,13 +33,13 @@ export default function Scoreboard({ navigation }) {
 
       if (playersData) {
         Object.keys(playersData).forEach(playerId => {
-          if (playersData[playerId] && playersData[playerId].name) { // Tarkistetaan, että kyseessä on oikea pelaaja
+          if (playersData[playerId] && playersData[playerId].name) { 
             const player = playersData[playerId];
             if (player.scores) {
               const maxScore = Math.max(...Object.values(player.scores).map(score => score.points));
               const highScore = Object.values(player.scores).find(score => score.points === maxScore);
 
-              if (highScore) { // Varmista, että highScore ei ole undefined
+              if (highScore) { 
                 tmpScores.push({
                   ...highScore,
                   name: player.name,
@@ -51,11 +50,9 @@ export default function Scoreboard({ navigation }) {
           }
         });
 
-        // Järjestetään tulokset laskevassa järjestyksessä
         const sortedScores = tmpScores.sort((a, b) => b.points - a.points);
         setScores(sortedScores);
 
-        // Asetetaan viimeisin tulos, jos löytyy
         if (sortedScores.length > 0) {
           const latestScoreIndex = sortedScores.findIndex(score => score.playerId === userId);
           setLatestScoreIndex(latestScoreIndex);
