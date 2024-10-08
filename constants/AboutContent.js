@@ -2,8 +2,9 @@ export const aboutTitle = 'About Me';
 export const aboutTextContent = `
 Welcome to My React Native Yatzy Game!
 
-I am a software development student at Oulu University of Applied Sciences, and this project started as part of my coursework. The initial idea came from a class exercise where I needed to create an application with rotating dices that could be selected by tapping on the desired dice.
-From there, I decided to transform it into a complete Yatzy game.
+I am a computer science student from Oulu University of Applied Sciences, and this project started as part of my coursework. The initial idea came from a course where we studied React Native with Expo. One of the course tasks was to create an application with rotating dices that could be selected by tapping on the desired one.
+
+From there, I decided to transform it into a complete Yatzy game...
 
 This project has grown into a personal hobby, and I’ve been developing it at my own pace without pressure. The goal is to create a smooth and enjoyable experience for anyone who loves the classic game of Yatzy.
 
