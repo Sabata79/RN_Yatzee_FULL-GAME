@@ -45,22 +45,22 @@ export default function Gameboard({ route, navigation }) {
     };
     const currentDate = new Date();
     // Log debug messages to Firebase
-    const logDebugToFirebase = async (message) => {
-        try {
-            const debugRef = ref(database, 'debugLogs/');
-            const newKey = push(debugRef).key;
-            await set(ref(database, `debugLogs/${newKey}`), {
-                message: message,
-                timestamp: new Date().toISOString(),
-            });
-        } catch (error) {
-            console.error("Error logging to Firebase: ", error);
-        }
-    };
+    // const logDebugToFirebase = async (message) => {
+    //     try {
+    //         const debugRef = ref(database, 'debugLogs/');
+    //         const newKey = push(debugRef).key;
+    //         await set(ref(database, `debugLogs/${newKey}`), {
+    //             message: message,
+    //             timestamp: new Date().toISOString(),
+    //         });
+    //     } catch (error) {
+    //         console.error("Error logging to Firebase: ", error);
+    //     }
+    // };
 
     const savePlayerPoints = async () => {
         try {
-            logDebugToFirebase(`Saving points for playerId: ${playerId}`); 
+            // logDebugToFirebase(`Saving points for playerId: ${playerId}`); 
             const playerRef = ref(database, `players/${playerId}`);
             const snapshot = await get(playerRef);
 
