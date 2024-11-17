@@ -158,50 +158,57 @@ export default function Gameboard({ route, navigation }) {
             points: 0,
         },
         {
-            name: 'threeOfAKind',
+            name: 'twoOfKind',
             index: 3,
+            calculateScore: (rolledDices) => calculateTwoOfKind(rolledDices),
+            locked: false,
+            points: 0,
+        },
+        {
+            name: 'threeOfAKind',
+            index: 7,
             calculateScore: (rolledDices) => calculateThreeOfAKind(rolledDices),
             locked: false,
             points: 0,
         },
         {
             name: 'fourOfAKind',
-            index: 7,
+            index: 11,
             calculateScore: (rolledDices) => calculateFourOfAKind(rolledDices),
             locked: false,
             points: 0,
         },
         {
             name: 'yatzy',
-            index: 23,
+            index: 27,
             calculateScore: (rolledDices) => calculateYatzy(rolledDices),
             locked: false,
             points: 0,
         },
         {
             name: 'fullHouse',
-            index: 11,
+            index: 15,
             calculateScore: (rolledDices) => calculateFullHouse(rolledDices) ? 25 : 0,
             locked: false,
             points: 0,
         },
         {
             name: 'smallStraight',
-            index: 15,
+            index: 19,
             calculateScore: (rolledDices) => calculateSmallStraight(rolledDices),
             locked: false,
             points: 0,
         },
         {
             name: 'largeStraight',
-            index: 19,
+            index: 23,
             calculateScore: (rolledDices) => calculateLargeStraight(rolledDices),
             locked: false,
             points: 0,
         },
         {
             name: 'chance',
-            index: 27,
+            index: 31,
             calculateScore: (rolledDices) => calculateChange(rolledDices),
             locked: false,
             points: 0,
@@ -268,6 +275,23 @@ export default function Gameboard({ route, navigation }) {
     function calculateDiceSum(diceValue) {
         return rolledDices.reduce((sum, dice) => (dice === diceValue ? sum + dice : sum), 0);
     }
+// Calculate two of a kind (pair)
+function calculateTwoOfKind(rolledDices) {
+    const counts = {};
+    rolledDices.forEach(dice => {
+        counts[dice] = (counts[dice] || 0) + 1;
+    });
+
+    let maxPairValue = 0;
+
+    for (let dice in counts) {
+        if (counts[dice] >= 2) {
+            maxPairValue = Math.max(maxPairValue, parseInt(dice));  // Muutetaan dice numeroksi
+        }
+    }
+    return maxPairValue * 2;
+}
+
     // Three of a kind 
     function calculateThreeOfAKind(rolledDices) {
         return rolledDices.reduce((sum, dice) => {
@@ -419,11 +443,27 @@ export default function Gameboard({ route, navigation }) {
         } else if (index === 2) {
             return (
                 <View style={styles.item}>
+                    <Text style={styles.gridTxt}>2X</Text>
+                </View>
+            );
+        } else if (index === 3) {
+            return (
+                <Pressable onPress={() => handlePressField(index)} disabled={isLocked('twoOfKind')}>
+                    <View style={[styles.item, isSelected ? styles.selectScorePressed : fieldStyle]}>
+                        <Text style={styles.inputIndexShown}>
+                            {isLocked('twoOfKind') ? currentCategory.points : currentCategory.calculateScore(rolledDices)}
+                        </Text>
+                    </View>
+                </Pressable>
+            );
+        } else if (index === 6) {
+            return (
+                <View style={styles.item}>
                     <Text style={styles.gridTxt}>3X</Text>
                 </View>
             );
             // Sum of Triples and more
-        } else if (index === 3) {
+        } else if (index === 7) {
             return (
                 <Pressable onPress={() => handlePressField(index)} disabled={isLocked('threeOfAKind')}>
                     <View style={[styles.item, isSelected ? styles.selectScorePressed : fieldStyle]}>
@@ -450,14 +490,14 @@ export default function Gameboard({ route, navigation }) {
                     </View>
                 </Pressable>
             );
-        } else if (index === 6) {
+        } else if (index === 10) {
             return (
                 <View style={styles.item}>
                     <Text style={styles.gridTxt}>4X</Text>
                 </View>
             );
             // Sum of Fours and more
-        } else if (index === 7) {
+        } else if (index === 11) {
             return (
                 <Pressable onPress={() => handlePressField(index)} disabled={isLocked('fourOfAKind')}>
                     <View style={[styles.item, isSelected ? styles.selectScorePressed : fieldStyle]}>
@@ -485,14 +525,14 @@ export default function Gameboard({ route, navigation }) {
                 </Pressable>
             );
             // Fullhouse
-        } else if (index === 10) {
+        } else if (index === 14) {
             return (
                 <View style={styles.item}>
                     <MaterialCommunityIcons name="home" size={25} style={styles.icon} />
                     <Text style={{ fontSize: 10, color: 'white' }}>FullHouse</Text>
                 </View>
             );
-        } else if (index === 11) {
+        } else if (index === 15) {
             return (
                 <Pressable onPress={() => handlePressField(index)} disabled={isLocked('fullHouse')}>
                     <View style={[styles.item, isSelected ? styles.selectScorePressed : fieldStyle]}>
@@ -519,7 +559,7 @@ export default function Gameboard({ route, navigation }) {
                     </View>
                 </Pressable>
             );
-        } else if (index === 14) {
+        } else if (index === 18) {
             return (
                 <View style={styles.item}>
                     <MaterialCommunityIcons name="cards-outline" size={25} style={styles.icon} />
@@ -527,7 +567,7 @@ export default function Gameboard({ route, navigation }) {
                 </View>
             );
             // Small straight
-        } else if (index === 15) {
+        } else if (index === 19) {
             return (
                 <Pressable onPress={() => handlePressField(index)} disabled={isLocked('smallStraight')}>
                     <View style={[styles.item, isSelected ? styles.selectScorePressed : fieldStyle]}>
@@ -554,7 +594,7 @@ export default function Gameboard({ route, navigation }) {
                     </View>
                 </Pressable>
             );
-        } else if (index === 18) {
+        } else if (index === 22) {
             return (
                 <View style={styles.item}>
                     <MaterialCommunityIcons name="cards-outline" size={25} style={styles.icon} />
@@ -562,7 +602,7 @@ export default function Gameboard({ route, navigation }) {
                 </View>
             );
             // Large straight
-        } else if (index === 19) {
+        } else if (index === 23) {
             return (
                 <Pressable onPress={() => handlePressField(index)} disabled={isLocked('largeStraight')}>
                     <View style={[styles.item, isSelected ? styles.selectScorePressed : fieldStyle]}>
@@ -589,7 +629,7 @@ export default function Gameboard({ route, navigation }) {
                     </View>
                 </Pressable>
             );
-        } else if (index === 22) {
+        } else if (index === 26) {
             return (
                 <View style={styles.item}>
                     <MaterialCommunityIcons name="star-outline" size={25} style={styles.icon} />
@@ -597,7 +637,7 @@ export default function Gameboard({ route, navigation }) {
                 </View>
             );
             // YATZY
-        } else if (index === 23) {
+        } else if (index === 27) {
             return (
                 <Pressable onPress={() => handlePressField(index)} disabled={isLocked('yatzy')}>
                     <View style={[styles.item, isSelected ? styles.selectScorePressed : fieldStyle]}>
@@ -626,7 +666,7 @@ export default function Gameboard({ route, navigation }) {
                         {minorPoints} / {BONUS_POINTS_LIMIT}</Text>
                 </View>
             );
-        } else if (index === 26) {
+        } else if (index === 30) {
             return (
                 <View style={styles.item}>
                     <MaterialCommunityIcons name="account-question-outline" size={25} style={styles.icon} />
@@ -634,7 +674,7 @@ export default function Gameboard({ route, navigation }) {
                 </View>
             );
             //Sum of Faces
-        } else if (index === 27) {
+        } else if (index === 31) {
             return (
                 <Pressable onPress={() => handlePressField(index)} disabled={isLocked('chance')}>
                     <View style={[styles.item, isSelected ? styles.selectScorePressed : fieldStyle]}>

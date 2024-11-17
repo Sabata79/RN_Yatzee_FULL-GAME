@@ -70,6 +70,8 @@ export default styles = StyleSheet.create({
         flex: 1,
         height: 40,
         alignItems: 'center',
+        // borderWidth: 1, // REMOVE
+        // borderColor: 'red', // REMOVE
         justifyContent: 'center',
         marginTop: 3,
         shadowColor: '#000000',
@@ -304,7 +306,7 @@ export default styles = StyleSheet.create({
     sectionContainer: {
         width: 70,
         height: 70,
-        marginTop: 40,
+        marginTop: 45,
         marginLeft: 10,
         justifyContent: 'center',
         alignItems: 'center',
@@ -351,7 +353,7 @@ export default styles = StyleSheet.create({
     },
     gameboard: {
         flex: 1,
-        marginTop: 80,
+        marginTop: 90,
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -466,7 +468,7 @@ export default styles = StyleSheet.create({
         alignItems: 'center',
     },
     scoreboardText: {
-        fontSize: 11,
+        fontSize: 12,
         textAlign: 'center',
         fontFamily: 'AntonRegular',
         color: 'black',
