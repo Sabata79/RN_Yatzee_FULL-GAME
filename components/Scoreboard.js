@@ -76,29 +76,29 @@ export default function Scoreboard({ navigation }) {
           {scores.length === 0 ? (
             <Text style={styles.scoreboardText}>No scores yet</Text>
           ) : (
-            <DataTable style={styles.scoreBoardHeader}>
+            <DataTable style={styles.scoreboardContainer}>
               <DataTable.Header>
                 <DataTable.Title style={styles.cell}>
-                  <Text style={styles.scoreboardText}>Position #</Text>
+                  <Text style={styles.scoreboardHeader}>Ranking #</Text>
                 </DataTable.Title>
                 <DataTable.Title style={styles.cell}>
-                  <Text style={styles.scoreboardText}>Name</Text>
+                  <Text style={styles.scoreboardHeader}>Name</Text>
                 </DataTable.Title>
                 <DataTable.Title style={styles.cell}>
-                  <Text style={styles.scoreboardText}>Date</Text>
+                  <Text style={styles.scoreboardHeader}>Date</Text>
                 </DataTable.Title>
                 <DataTable.Title style={styles.cell}>
-                  <Text style={styles.scoreboardText}>Time</Text>
+                  <Text style={styles.scoreboardHeader}>Duration</Text>
                 </DataTable.Title>
                 <DataTable.Title style={styles.cell}>
-                  <Text style={styles.scoreboardText}>Points</Text>
+                  <Text style={styles.scoreboardHeader}>Points</Text>
                 </DataTable.Title>
               </DataTable.Header>
 
               {scores.slice(0, NBR_OF_SCOREBOARD_ROWS).map((score, index) => (
                 <DataTable.Row
                   key={score.key}
-                  style={score.playerId === userId ? { backgroundColor: 'red' } : {}}>
+                  style={score.playerId === userId ? { backgroundColor: '#d7b357' } : {}}>
                   <DataTable.Cell style={styles.cell}>
                     <Text style={styles.scoreboardText}>{index + 1}.</Text>
                   </DataTable.Cell>

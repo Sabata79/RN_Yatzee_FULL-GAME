@@ -437,15 +437,7 @@ export default styles = StyleSheet.create({
     lockedTextColor: {
         color: 'black',
     },
-    topPlayersHeader: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: '#ccc9c9',
-        textAlign: 'center',
-        marginVertical: 20,
-        fontFamily: 'AntonRegular',
-    },
-    scoreBoardHeader: {
+    scoreboardContainer: {
         alignSelf: 'center',
         borderRadius: 5,
         backgroundColor: '#ee8d1ef5',
@@ -467,13 +459,23 @@ export default styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
-    scoreboardText: {
-        fontSize: 12,
+    scoreboardHeader: {
+        fontSize: 14,
         textAlign: 'center',
         fontFamily: 'AntonRegular',
         color: 'black',
         paddingVertical: 5,
     },
+    
+    scoreboardText: {
+        fontSize: 12,
+        textAlign: 'center',
+        fontFamily: 'Roboto',
+        fontWeight: '800',
+        color: 'black',
+        paddingVertical: 5,
+       
+    },  
     resetButton: {
         flex: 1,
         justifyContent: 'center',
