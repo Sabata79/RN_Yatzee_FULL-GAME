@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, Animated } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useGame } from '../components/GameContext';
 import { useStopwatch } from 'react-timer-hook'; 
@@ -7,27 +7,52 @@ import styles from '../styles/styles';
 
 const RenderFirstRow = () => {
   const { gameStarted, gameEnded, setElapsedTimeContext, isGameSaved, setIsGameSaved} = useGame();
-  const { seconds, start, reset, pause } = useStopwatch({
+  const { totalSeconds, start, reset, pause } = useStopwatch({
     autoStart: false, 
   });
 
   const [hasStarted, setHasStarted] = useState(false);
+  const [glowAnim] = useState(new Animated.Value(1)); // Glow animaation arvo (1 = normaali kirkkaus)
 
   useEffect(() => {
     if (gameStarted && !hasStarted) {
       start();
       setHasStarted(true);  
+      startGlowEffect();
     } else if (gameEnded) {
         pause();  
-      setElapsedTimeContext(seconds);  
+      setElapsedTimeContext(totalSeconds);  
       if (isGameSaved) { 
         reset();  
         setElapsedTimeContext(0);
         setHasStarted(false);
         setIsGameSaved(false);
+        stopGlowEffect();
       }
     }
-  }, [gameStarted, gameEnded, seconds, start, reset, setElapsedTimeContext, isGameSaved, hasStarted]);
+  }, [gameStarted, gameEnded, totalSeconds, start, reset, setElapsedTimeContext, isGameSaved, hasStarted]);
+
+  const startGlowEffect = () => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(glowAnim, {
+          toValue: 1.5, // Kasvatetaan kirkastusta
+          duration: 500, // Koko animaation kesto
+          useNativeDriver: true,
+        }),
+        Animated.timing(glowAnim, {
+          toValue: 1, // Palautetaan alkuperäiseen kirkastukseen
+          duration: 500,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  };
+
+  const stopGlowEffect = () => {
+    glowAnim.stopAnimation();
+    glowAnim.setValue(1); // Palautetaan kirkastus normaaliin
+  };
 
   return (
     <View style={styles.firstRow}>
@@ -41,11 +66,11 @@ const RenderFirstRow = () => {
             name="timer"
             size={22}
             color="#ccc9c9"
-            style={{ marginRight: 10, marginTop: 3 }}
+            style={{ marginRight: 5, marginTop: 3 }}
           />
-          <Text style={styles.firstRowCategoryText}>
-            {seconds}s
-          </Text>
+          <Animated.Text style={[styles.firstRowCategoryText,{ width: 60, textAlign: 'center' },{ transform: [{ scale: glowAnim }] }]}>
+            {totalSeconds}s
+          </Animated.Text>
         </View>
       </View>
 
