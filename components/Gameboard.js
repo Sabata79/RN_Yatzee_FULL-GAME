@@ -147,7 +147,7 @@ export default function Gameboard({ route, navigation }) {
         if (rounds === MAX_SPOTS) {
             setLayerVisible(true);
         } else {
-            setLayerVisible(false); 
+            setLayerVisible(false);
         }
     }, [rounds]);
 
@@ -238,15 +238,15 @@ export default function Gameboard({ route, navigation }) {
     }
     // Calculate two of a kind (pair)
     function calculateTwoOfKind(rolledDices) {
-        const counts = {};
+        const countsTwoOfaKind = {};
         rolledDices.forEach(dice => {
-            counts[dice] = (counts[dice] || 0) + 1;
+            countsTwoOfaKind[dice] = (countsTwoOfaKind[dice] || 0) + 1;
         });
 
         let maxPairValue = 0;
 
-        for (let dice in counts) {
-            if (counts[dice] >= 2) {
+        for (let dice in countsTwoOfaKind) {
+            if (countsTwoOfaKind[dice] >= 2) {
                 maxPairValue = Math.max(maxPairValue, parseInt(dice));
             }
         }
@@ -255,27 +255,32 @@ export default function Gameboard({ route, navigation }) {
 
     // Three of a kind 
     function calculateThreeOfAKind(rolledDices) {
-        return rolledDices.reduce((sum, dice) => {
-            if (dice === 0) {
-                return sum;
+        const countsThreeOfaKind = {};
+        rolledDices.forEach(dice => {
+            countsThreeOfaKind[dice] = (countsThreeOfaKind[dice] || 0) + 1;
+        });
+
+        for (let dice in countsThreeOfaKind) {
+            if (countsThreeOfaKind[dice] >= 3) {
+                return dice * 3;
             }
-            if (rolledDices.filter(item => item === dice).length >= 3) {
-                return rolledDices.reduce((sum, dice) => sum + dice, 0);
-            }
-            return sum;
-        }, 0);
+        }
+        return 0;
     }
+
     // Four of a kind
     function calculateFourOfAKind(rolledDices) {
-        return rolledDices.reduce((sum, dice) => {
-            if (dice === 0) {
-                return sum;
+        const countsFourOfaKind = {};
+        rolledDices.forEach(dice => {
+            countsFourOfaKind[dice] = (countsFourOfaKind[dice] || 0) + 1;
+        });
+
+        for (let dice in countsFourOfaKind) {
+            if (countsFourOfaKind[dice] >= 4) {
+                return dice * 4;
             }
-            if (rolledDices.filter(item => item === dice).length >= 4) {
-                return rolledDices.reduce((sum, dice) => sum + dice, 0);
-            }
-            return sum;
-        }, 0);
+        }
+        return 0;
     }
     // Yahtzee
     function calculateYatzy(rolledDices) {
