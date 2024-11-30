@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Pressable, Modal, FlatList, Alert, TouchableOpacity, Platform, BackHandler } from 'react-native';
+import { View, Text, Pressable, Modal, FlatList, TouchableOpacity } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import styles from '../styles/styles';
 import { database } from './Firebase';
 import { ref, onValue } from 'firebase/database';
+import { useGame } from './GameContext'; // Tuodaan GameContext
 
-export default function Header({ isUserRecognized, name, playerId }) {
+export default function Header({ isUserRecognized, name }) {
+  const { playerId } = useGame(); // Haetaan playerId GameContextista
   const [modalVisible, setModalVisible] = useState(false);
   const [topScores, setTopScores] = useState([]);
 
   useEffect(() => {
     if (modalVisible && playerId) {
-      fetchTopScores();
+      fetchTopScores(); // Haetaan top 5 tulokset, kun modal on avoinna ja playerId on olemassa
     }
   }, [modalVisible, playerId]);
 
@@ -24,15 +26,34 @@ export default function Header({ isUserRecognized, name, playerId }) {
           if (snapshot.exists()) {
             const scores = snapshot.val();
             if (scores) {
+              // Käytetään Object.values(scores) ja järjestetään se points mukaan
               const sortedScores = Object.values(scores)
-                .sort((a, b) => b.points - a.points)
-                .slice(0, 5);
-              setTopScores(sortedScores);
+                .map(score => ({
+                  points: score.points,  // Pisteet
+                  date: score.date,      // Päivämäärä
+                  duration: score.duration, // Duration
+                  time: score.time,      // Aika
+                }))
+                .sort((a, b) => {
+                  // Järjestetään pistemäärän mukaan, ja jos pistemäärät ovat samat, niin tarkastetaan duration
+                  if (b.points === a.points) {
+                    if (b.duration === a.duration) {
+                      // Jos pistemäärät ja duration on samat, vertaa aikaleimaa (date + time)
+                      const dateB = new Date(b.date + ' ' + b.time);
+                      const dateA = new Date(a.date + ' ' + a.time);
+                      return dateB - dateA;  // Järjestetään aikaleiman mukaan
+                    }
+                    return a.duration - b.duration;  // Jos duration sama, lajitellaan durationin mukaan
+                  }
+                  return b.points - a.points; // Muussa tapauksessa lajitellaan pistemäärän mukaan
+                })
+                .slice(0, 5); // Haetaan top 5
+              setTopScores(sortedScores); // Asetetaan top 5
             } else {
-              setTopScores([]);
+              setTopScores([]); // Jos ei löydy tuloksia
             }
           } else {
-            setTopScores([]);
+            setTopScores([]); // Jos snapshot ei sisällä dataa
           }
         });
       }
@@ -42,27 +63,8 @@ export default function Header({ isUserRecognized, name, playerId }) {
   };
 
   const getTopScoresWithEmptySlots = () => {
-    const emptyScores = Array(5 - topScores.length).fill({ points: '---', date: '' });
-    return [...topScores, ...emptyScores].slice(0, 5);
-  };
-
-  // Close the app
-  const handleAppClose = () => {
-    Alert.alert(
-      'Exit Game',
-      'Are you sure you want to exit the game?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Exit', onPress: () => handleCloseApp() },
-      ],
-      { cancelable: false }
-    );
-  };
-
-  const handleCloseApp = () => {
-    if (Platform.OS === 'android') {
-      BackHandler.exitApp();
-    }
+    const emptyScores = Array(5 - topScores.length).fill({ points: '---', date: '', duration: '---' });
+    return [...topScores, ...emptyScores].slice(0, 5); // Varmistetaan, että listassa on 5 tulosta
   };
 
   return (
@@ -73,7 +75,7 @@ export default function Header({ isUserRecognized, name, playerId }) {
       {isUserRecognized && name && (
         <Pressable
           style={({ pressed }) => [
-            styles.button,
+            styles.userButton,
             pressed && styles.buttonPressed,
             { marginLeft: 'auto', top: -5 }, 
           ]}
@@ -107,21 +109,18 @@ export default function Header({ isUserRecognized, name, playerId }) {
 
             <Text style={styles.modalText}>Your Top 5 Scores</Text>
             <FlatList
-              data={getTopScoresWithEmptySlots()}
+              data={getTopScoresWithEmptySlots()} 
               keyExtractor={(item, index) => index.toString()}
               renderItem={({ item, index }) => (
                 <View>
                   <View style={styles.modalItemRow}>
-                    <Text style={styles.modalText}>{`${index + 1}. ${item.points} points`}</Text>
+                    <Text style={styles.modalText}>{`${index + 1}. ${item.points} points    (${item.duration} sec)`}</Text>
                     <Text style={styles.modalSubText}>{item.date || 'No date'}</Text>
                   </View>
                   <View style={styles.modalDivider} />
                 </View>
               )}
             />
-            <TouchableOpacity style={styles.modalButton} onPress={handleAppClose}>
-              <Text style={styles.modalButtonText}>Close Application</Text>
-            </TouchableOpacity>
           </View>
         </View>
       </Modal>
