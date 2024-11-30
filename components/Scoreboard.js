@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, ImageBackground } from 'react-native';
+import { View, Text, ScrollView, ImageBackground, Modal, TouchableOpacity } from 'react-native';
 import { DataTable } from 'react-native-paper';
+import { FontAwesome5 } from '@expo/vector-icons';
 import styles from '../styles/styles';
 import { NBR_OF_SCOREBOARD_ROWS } from '../constants/Game';
-import { database } from '../components/Firebase';
+import { database } from './Firebase';
 import { ref, onValue } from 'firebase/database';
 import * as SecureStore from 'expo-secure-store';
 
@@ -11,6 +12,7 @@ export default function Scoreboard({ navigation }) {
   const [scores, setScores] = useState([]);
   const [latestScoreIndex, setLatestScoreIndex] = useState(null);
   const [userId, setUserId] = useState('');
+  const [modalVisible, setModalVisible] = useState(false);
 
   useEffect(() => {
     SecureStore.getItemAsync('user_id').then((storedUserId) => {
@@ -50,7 +52,18 @@ export default function Scoreboard({ navigation }) {
           }
         });
 
-        const sortedScores = tmpScores.sort((a, b) => b.points - a.points);
+        const sortedScores = tmpScores.sort((a, b) => {
+          if (b.points === a.points) {
+            if (b.duration === a.duration) {
+              const dateB = new Date(b.date + ' ' + b.time);
+              const dateA = new Date(a.date + ' ' + a.time);
+              return dateB - dateA;
+            }
+            return a.duration - b.duration;
+          }
+          return b.points - a.points;
+        });
+
         setScores(sortedScores);
 
         if (sortedScores.length > 0) {
@@ -63,8 +76,6 @@ export default function Scoreboard({ navigation }) {
       }
     });
   };
-
-
 
   return (
     <ImageBackground
@@ -79,7 +90,7 @@ export default function Scoreboard({ navigation }) {
             <DataTable style={styles.scoreboardContainer}>
               <DataTable.Header>
                 <DataTable.Title style={styles.cell}>
-                  <Text style={styles.scoreboardHeader}>Ranking #</Text>
+                  <Text style={styles.scoreboardHeader}>Rank #</Text>
                 </DataTable.Title>
                 <DataTable.Title style={styles.cell}>
                   <Text style={styles.scoreboardHeader}>Name</Text>
@@ -98,27 +109,67 @@ export default function Scoreboard({ navigation }) {
               {scores.slice(0, NBR_OF_SCOREBOARD_ROWS).map((score, index) => (
                 <DataTable.Row
                   key={score.key}
-                  style={score.playerId === userId ? { backgroundColor: '#d7b357' } : {}}>
+                    style={score.playerId === userId? { borderWidth: 0.6, borderColor: 'red',backgroundColor: '#ffffff82' } // Punaiset reunat pelaajalle
+      : {}
+  }>
                   <DataTable.Cell style={styles.cell}>
-                    <Text style={styles.scoreboardText}>{index + 1}.</Text>
+                    {index === 0 && <FontAwesome5 name="medal" size={30} color="gold" />}
+                    {index === 1 && <FontAwesome5 name="medal" size={25} color="silver" />}
+                    {index === 2 && <FontAwesome5 name="medal" size={20} color="brown" />}
+                    {index > 2 && <Text style={styles.scoreboardText}>{index + 1}.</Text>}
                   </DataTable.Cell>
                   <DataTable.Cell style={styles.cell}>
                     <Text style={styles.scoreboardText}>{score.name}</Text>
                   </DataTable.Cell>
                   <DataTable.Cell style={styles.cell}>
-                    <Text style={styles.scoreboardText}>{score.date}</Text>
+                    <Text style={[styles.scoreboardText, { fontSize: 10 }]}>{score.date}</Text>
                   </DataTable.Cell>
                   <DataTable.Cell style={styles.cell}>
-                    <Text style={styles.scoreboardText}>{score.time}</Text>
+                    <Text style={styles.scoreboardText}>{score.duration}s</Text>
                   </DataTable.Cell>
                   <DataTable.Cell style={styles.cell}>
-                    <Text style={styles.scoreboardText}>{score.points}</Text>
+                    <Text style={[styles.scoreboardText, { fontSize: 14 }]}>{score.points}</Text>
                   </DataTable.Cell>
                 </DataTable.Row>
               ))}
             </DataTable>
           )}
         </ScrollView>
+
+        {/* Info Button */}
+        <TouchableOpacity
+          style={styles.infoButton}
+          onPress={() => setModalVisible(true)}>
+          <FontAwesome5 name="info-circle" size={40} color="white" />
+        </TouchableOpacity>
+
+        {/* Modal to display comparison explanation */}
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={() => setModalVisible(false)}>
+          <View style={styles.modalCenteredView}>
+            <View style={styles.modalView}>
+              <TouchableOpacity
+                style={styles.modalCloseButton}
+                onPress={() => setModalVisible(false)}>
+                <Text style={styles.modalCloseButtonText}>X</Text>
+              </TouchableOpacity>
+
+              <Text style={styles.modalText}>How Scores Are Compared</Text>
+              <Text style={styles.modalSubText}>
+                1. **Points**: Higher points are ranked first.
+              </Text>
+              <Text style={styles.modalSubText}>
+                2. **Duration**: If points are equal, the score with the shorter duration comes first.
+              </Text>
+              <Text style={styles.modalSubText}>
+                3. **Date/Time**: If both points and duration are equal, the score that was achieved earlier is ranked higher.
+              </Text>
+            </View>
+          </View>
+        </Modal>
       </View>
     </ImageBackground>
   );
