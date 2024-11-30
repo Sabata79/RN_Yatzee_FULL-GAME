@@ -87,15 +87,10 @@ export default styles = StyleSheet.create({
         justifyContent: 'center',
         zIndex: 10,
     },
-    firstRowNameText: {
-        fontFamily: 'AntonRegular',
-        fontSize: 15,
-        color: '#ccc9c9',
-        marginVertical: 0,
-    },
+
     firstRowCategoryText: {
         fontFamily: 'AntonRegular',
-        fontSize: 17,
+        fontSize: 16,
         color: '#ccc9c9',
         marginVertical: 0,
     },
@@ -209,7 +204,50 @@ export default styles = StyleSheet.create({
         shadowRadius: 0,
         elevation: 0,
     },
-
+    userButton: {
+        margin: 5,
+        marginTop: 15,
+        flexDirection: 'row',
+        paddingLeft: 10,
+        paddingRight: 10,
+        backgroundColor: '#ee8d1ef5',
+        borderWidth: 3,
+        borderColor: 'black',
+        width: '39%',
+        height: 50,
+        borderRadius: 5,
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        shadowColor: '#000000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 10,
+    },
+    userButtonPressed: {
+                margin: 5,
+        marginTop: 15,
+        flexDirection: 'row',
+        paddingLeft: 10,
+        paddingRight: 10,
+        backgroundColor: '#ee8d1ef5',
+        width: '39%',
+        height: 50,
+        borderRadius: 5,
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        shadowColor: '#000000',
+        shadowOffset: {
+            width: 0,
+            height: 0,
+        },
+        shadowOpacity: 0.0,
+        shadowRadius: 0,
+        elevation: 0,
+    },
     buttonText: {
         color: 'black',
         fontSize: 18,
@@ -363,22 +401,22 @@ export default styles = StyleSheet.create({
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',  // Läpinäkyvä harmaa
-        zIndex: 999,  // Layer tulee pelilaudan päälle
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',  
+        zIndex: 999,  
         justifyContent: 'center',
         alignItems: 'center',
         display: 'flex',
     },
     centeredText: {
-    color: 'white',
-    fontSize: 32,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    textShadowColor: '#ff0000',  // Glowing text effect
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 10,
-    zIndex: 1000,
-},
+        color: 'white',
+        fontSize: 32,
+        fontWeight: 'bold',
+        textAlign: 'center',
+        textShadowColor: '#ff0000',
+        textShadowOffset: { width: 0, height: 0 },
+        textShadowRadius: 10,
+        zIndex: 1000,
+    },
     diceBorder: {
         width: '80%',
         height: 60,
@@ -462,12 +500,13 @@ export default styles = StyleSheet.create({
     scoreboardContainer: {
         alignSelf: 'center',
         borderRadius: 5,
-        backgroundColor: '#ee8d1ef5',
+        backgroundColor: '#575555',
         width: '95%',
         textAlign: 'center',
         justifyContent: 'center',
-        borderColor: 'orange',
-        borderWidth: 3,
+        borderColor: '#393838',
+        opacity: 0.90,
+        borderWidth: 2,
         shadowColor: '#000000',
         shadowOffset: {
             width: 0,
@@ -494,21 +533,8 @@ export default styles = StyleSheet.create({
         textAlign: 'center',
         fontFamily: 'Roboto',
         fontWeight: '800',
-        color: 'black',
+        color: '#050404',
         paddingVertical: 5,
-
-    },
-    resetButton: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginTop: 5,
-    },
-    resetButtonText: {
-        flex: 1,
-        color: 'black',
-        textAlign: 'center',
-        fontFamily: 'AntonRegular',
     },
     //Modal
     modalCenteredView: {
@@ -517,7 +543,7 @@ export default styles = StyleSheet.create({
         alignItems: 'center',
         backgroundColor: 'rgba(0, 0, 0, 0.4)',
         maxHeight: '60%',
-        position: 'absolute',  // Asetetaan modali päällekkäin
+        position: 'absolute',  
         top: 0,
         left: 0,
         right: 0,
@@ -662,23 +688,38 @@ export default styles = StyleSheet.create({
         alignItems: 'center',
         backgroundColor: 'rgba(1, 1, 1, 1)',
         maxHeight: '100%',
-        position: 'absolute',  // Asetetaan modali päällekkäin
+        position: 'absolute',
         top: 0,
         left: 0,
         right: 0,
         bottom: 0,
         zIndex: 999,
-        
-    },
 
-   startModalButtonText: {
-    color: 'white',
-    textAlign: 'center',
-    fontSize: 20, // Voit säätää tätä tarpeen mukaan
-    fontWeight: 'bold', // Voit myös lisätä lihavoinnin
-    textShadowColor: '#ff0000',  // Valitse väri, esim. punainen
-    textShadowOffset: { width: 0, height: 0 },  // Aseta varjon siirtymät
-    textShadowRadius: 10,  // Aseta varjon häivytyksen voimakkuus
-    zIndex: 999,
-}
+    },
+    // StartGame button text
+    startModalButtonText: {
+        color: 'white',
+        textAlign: 'center',
+        fontSize: 20,
+        fontWeight: 'bold',
+        textShadowColor: '#ff0000',
+        textShadowOffset: { width: 0, height: 0 },
+        textShadowRadius: 10,
+        zIndex: 999,
+    },
+    // Info button
+    infoButton: {
+        position: 'absolute',
+        top: 0,
+        left: 5,
+        borderRadius: 30,
+        padding: 5,
+        alignItems: 'center',
+        justifyContent: 'center',
+        shadowColor: '#fff',
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 5,
+    },
 });
