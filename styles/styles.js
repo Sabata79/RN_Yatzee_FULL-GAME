@@ -70,8 +70,6 @@ export default styles = StyleSheet.create({
         flex: 1,
         height: 40,
         alignItems: 'center',
-        // borderWidth: 1, // REMOVE
-        // borderColor: 'red', // REMOVE
         justifyContent: 'center',
         marginTop: 3,
         shadowColor: '#000000',
@@ -87,6 +85,7 @@ export default styles = StyleSheet.create({
         flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
+        zIndex: 10,
     },
     firstRowNameText: {
         fontFamily: 'AntonRegular',
@@ -106,6 +105,7 @@ export default styles = StyleSheet.create({
         alignItems: 'center',
         padding: 0,
         margin: 0,
+        zIndex: 10,
     },
     lastRow: {
         flexDirection: 'row',
@@ -357,6 +357,28 @@ export default styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
+    filterLayer: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',  // Läpinäkyvä harmaa
+        zIndex: 999,  // Layer tulee pelilaudan päälle
+        justifyContent: 'center',
+        alignItems: 'center',
+        display: 'flex',
+    },
+    centeredText: {
+    color: 'white',
+    fontSize: 32,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    textShadowColor: '#ff0000',  // Glowing text effect
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 10,
+    zIndex: 1000,
+},
     diceBorder: {
         width: '80%',
         height: 60,
@@ -466,7 +488,7 @@ export default styles = StyleSheet.create({
         color: 'black',
         paddingVertical: 5,
     },
-    
+
     scoreboardText: {
         fontSize: 12,
         textAlign: 'center',
@@ -474,8 +496,8 @@ export default styles = StyleSheet.create({
         fontWeight: '800',
         color: 'black',
         paddingVertical: 5,
-       
-    },  
+
+    },
     resetButton: {
         flex: 1,
         justifyContent: 'center',
@@ -495,6 +517,12 @@ export default styles = StyleSheet.create({
         alignItems: 'center',
         backgroundColor: 'rgba(0, 0, 0, 0.4)',
         maxHeight: '60%',
+        position: 'absolute',  // Asetetaan modali päällekkäin
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 1,
     },
     modalView: {
         margin: 20,
@@ -618,4 +646,39 @@ export default styles = StyleSheet.create({
         fontFamily: 'AntonRegular',
         textAlign: 'left',
     },
+    timer: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: 'black',
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: [{ translateX: -50 }, { translateY: -50 }],
+    },
+    // StartGame button
+    startModalButton: {
+        flexGrow: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(1, 1, 1, 1)',
+        maxHeight: '100%',
+        position: 'absolute',  // Asetetaan modali päällekkäin
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 999,
+        
+    },
+
+   startModalButtonText: {
+    color: 'white',
+    textAlign: 'center',
+    fontSize: 20, // Voit säätää tätä tarpeen mukaan
+    fontWeight: 'bold', // Voit myös lisätä lihavoinnin
+    textShadowColor: '#ff0000',  // Valitse väri, esim. punainen
+    textShadowOffset: { width: 0, height: 0 },  // Aseta varjon siirtymät
+    textShadowRadius: 10,  // Aseta varjon häivytyksen voimakkuus
+    zIndex: 999,
+}
 });
