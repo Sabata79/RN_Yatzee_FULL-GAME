@@ -8,48 +8,35 @@ import * as SecureStore from 'expo-secure-store';
 import { database } from '../components/Firebase';
 import { ref, onValue, set, get } from 'firebase/database'; 
 import uuid from 'react-native-uuid';
+import { useGame } from '../components/GameContext';
 
 export default function Home({ setIsUserRecognized, setName, setPlayerId }) {
-  const navigation = useNavigation();
   const [localName, setLocalName] = useState('');
-  const [playerId, setLocalPlayerId] = useState(''); 
-  const [loading, setLoading] = useState(true); 
-  const [isUserRecognized, setUserRecognized] = useState(false); 
+  const [playerId, setLocalPlayerId] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [isUserRecognized, setUserRecognized] = useState(false);
   const inputRef = useRef(null);
+  const navigation = useNavigation();
 
   useEffect(() => {
     getOrCreateUserId().then((userId) => {
       setLocalPlayerId(userId);
-      setPlayerId(userId);
+      setPlayerIdContext(userId);
       checkExistingUser(userId);
     });
   }, []);
 
-  useEffect(() => {
-    if (!isUserRecognized && inputRef.current) {
-      setTimeout(() => {
-        inputRef.current.focus();
-      }, 100);
-    }
-  }, [isUserRecognized]);
+    // Haetaan ja asetetaan playerId
+  const { setPlayerIdContext } = useGame(); 
 
-
-async function getOrCreateUserId() {
-  try {
+  const getOrCreateUserId = async () => {
     let userId = await SecureStore.getItemAsync('user_id');
     if (!userId) {
       userId = uuid.v4();
       await SecureStore.setItemAsync('user_id', userId);
-      console.log('Created new user ID: ', userId);
-    } else {
-      console.log('Existing user ID found: ', userId);
     }
     return userId;
-  } catch (error) {
-    console.error('Error retrieving user ID:', error);
-    return null;
-  }
-}
+  };
 
   const checkExistingUser = (userId) => {
     const playerRef = ref(database, `players/${userId}`);
@@ -64,7 +51,7 @@ async function getOrCreateUserId() {
         setUserRecognized(false);
         setIsUserRecognized(false);
       }
-      setLoading(false); 
+      setLoading(false);
     });
   };
 
@@ -80,7 +67,7 @@ async function getOrCreateUserId() {
     });
 
     setName(name);
-    setPlayerId(userId); 
+    setPlayerId(userId);
   };
 
   const handlePress = () => {
@@ -103,7 +90,7 @@ async function getOrCreateUserId() {
   };
 
   const handlePlay = () => {
-    navigation.navigate('Gameboard', { player: localName, playerId: playerId });
+    navigation.navigate('Gameboard');
   };
 
   const handleChangeName = () => {

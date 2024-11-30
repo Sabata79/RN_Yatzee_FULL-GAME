@@ -13,11 +13,12 @@ import { createMaterialTopTabNavigator } from '@react-navigation/material-top-ta
 import { MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
+import { GameProvider } from './components/GameContext';
 
 export default function App() {
   const [isUserRecognized, setIsUserRecognized] = useState(false);
   const [name, setName] = useState('');
-  const [playerId, setPlayerId] = useState(null);
+  const [playerId, setPlayerId] = useState('');
 
   const Tab = createMaterialTopTabNavigator();
 
@@ -32,100 +33,103 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      <SafeAreaView style={styles.container}>
-        <Header isUserRecognized={isUserRecognized} name={name} playerId={playerId} />
-        <NavigationContainer>
-          <Tab.Navigator
-            tabBarPosition="bottom"
-            screenOptions={({ route }) => ({
-              headerShown: false,
-              tabBarStyle: {
-                height: 70,
-                backgroundColor: 'darkorange',
-              },
-              tabBarActiveTintColor: '#ffffff',
-              tabBarInactiveTintColor: '#22201e',
-              tabBarLabelStyle: {
-                fontSize: 12,
-                fontFamily: 'AntonRegular',
-              },
-              tabBarIndicatorStyle: { height: 0 },
-              tabBarIcon: ({ focused }) => {
-                let iconName;
+      <GameProvider>
+        <SafeAreaView style={styles.container}>
+          <Header isUserRecognized={isUserRecognized} name={name} playerId={playerId} />
+          <NavigationContainer>
+            <Tab.Navigator
+              tabBarPosition="bottom"
+              screenOptions={({ route }) => ({
+                headerShown: false,
+                tabBarStyle: {
+                  height: 70,
+                  backgroundColor: 'darkorange',
+                },
+                tabBarActiveTintColor: '#ffffff',
+                tabBarInactiveTintColor: '#22201e',
+                tabBarLabelStyle: {
+                  fontSize: 12,
+                  fontFamily: 'AntonRegular',
+                },
+                tabBarIndicatorStyle: { height: 0 },
+                tabBarIcon: ({ focused }) => {
+                  let iconName;
 
-                if (route.name === 'Home') {
-                  iconName = 'home';
-                  return (
-                    <MaterialCommunityIcons
-                      name={iconName}
-                      size={24}
-                      color={focused ? '#ffffff' : 'black'}
-                    />
-                  );
-                } else if (route.name === 'Gameboard') {
-                  iconName = 'dice';
-                  return (
-                    <FontAwesome5
-                      name={iconName}
-                      size={24}
-                      color={focused ? '#ffffff' : 'black'}
-                      style={{ marginLeft: -5 }}
-                    />
-                  );
-                } else if (route.name === 'Scoreboard') {
-                  iconName = 'list';
-                  return (
-                    <FontAwesome5
-                      name={iconName}
-                      size={24}
-                      color={focused ? '#ffffff' : 'black'}
-                    />
-                  );
-                } else if (route.name === 'About Me') {
-                  iconName = 'info';
-                  return (
-                    <FontAwesome5
-                      name={iconName}
-                      size={24}
-                      color={focused ? '#ffffff' : 'black'}
-                      style={{ marginLeft: 4 }}
-                    />
-                  );
-                }
-              },
-            })}
-          >
-            <Tab.Screen
-              name="Home"
-              options={{
-                tabBarStyle: { display: 'none' },
-              }}
+                  if (route.name === 'Home') {
+                    iconName = 'home';
+                    return (
+                      <MaterialCommunityIcons
+                        name={iconName}
+                        size={24}
+                        color={focused ? '#ffffff' : 'black'}
+                      />
+                    );
+                  } else if (route.name === 'Gameboard') {
+                    iconName = 'dice';
+                    return (
+                      <FontAwesome5
+                        name={iconName}
+                        size={24}
+                        color={focused ? '#ffffff' : 'black'}
+                        style={{ marginLeft: -5 }}
+                      />
+                    );
+                  } else if (route.name === 'Scoreboard') {
+                    iconName = 'list';
+                    return (
+                      <FontAwesome5
+                        name={iconName}
+                        size={24}
+                        color={focused ? '#ffffff' : 'black'}
+                      />
+                    );
+                  } else if (route.name === 'About Me') {
+                    iconName = 'info';
+                    return (
+                      <FontAwesome5
+                        name={iconName}
+                        size={24}
+                        color={focused ? '#ffffff' : 'black'}
+                        style={{ marginLeft: 4 }}
+                      />
+                    );
+                  }
+                },
+              })}
             >
-              {() => (
-                <Home
-                  setIsUserRecognized={setIsUserRecognized}
-                  setName={setName}
-                  setPlayerId={setPlayerId}
-                />
-              )}
-            </Tab.Screen>
-            <Tab.Screen
-              name="Gameboard"
-              component={Gameboard}
-            />
-            <Tab.Screen
-              name="Scoreboard"
-              component={Scoreboard}
-            />
-            <Tab.Screen
-              name="About Me"
-              component={About}
-            />
-          </Tab.Navigator>
-          <Footer />
-        </NavigationContainer>
-        <StatusBar style="light" backgroundColor="black" />
-      </SafeAreaView>
+              <Tab.Screen
+                name="Home"
+                options={{
+                  tabBarStyle: { display: 'none' },
+                }}
+              >
+                {() => (
+                  <Home
+                    setIsUserRecognized={setIsUserRecognized}
+                    setName={setName}
+                    setPlayerId={setPlayerId} // Varmista, että tämä menee oikein
+                  />
+                )}
+              </Tab.Screen>
+              <Tab.Screen
+                name="Gameboard"
+                component={Gameboard}
+                playerId={playerId}
+              />
+              <Tab.Screen
+                name="Scoreboard"
+                component={Scoreboard}
+              />
+              <Tab.Screen
+                name="About Me"
+                component={About}
+              />
+            </Tab.Navigator>
+            <Footer />
+          </NavigationContainer>
+          <StatusBar style="light" backgroundColor="black" />
+        </SafeAreaView>
+      </GameProvider>
     </SafeAreaProvider>
   );
 }

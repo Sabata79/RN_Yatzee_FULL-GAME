@@ -1,111 +1,32 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { FlatList, Text, View, Pressable, ImageBackground, Animated } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import styles from '../styles/styles';
 import { NBR_OF_THROWS, NBR_OF_DICES, MAX_SPOTS, BONUS_POINTS, BONUS_POINTS_LIMIT } from '../constants/Game';
-import { database } from '../components/Firebase';
-import { ref, set, push, get } from 'firebase/database';
 import DiceAnimation from '../components/DiceAnimation';
 import ModalAlert from '../constants/ModalAlert';
+import { useGame } from '../components/GameContext';
+import RenderFirstRow from '../components/RenderFirstRow';
+import GlowingText from './AnimatedText';
+import GameSave from '../components/GameSave';
 
 let board = [];
 
 export default function Gameboard({ route, navigation }) {
 
-    // Player name and id
+    // 1. Player name and ID
     const [playerName, setPlayerName] = useState('');
-    const [playerId, setPlayerId] = useState('');
+    const { playerId, setPlayer } = useGame();
     const [modalVisible, setModalVisible] = useState(false);
     const [modalMessage, setModalMessage] = useState('');
 
-    useEffect(() => {
-        if (route.params?.player) {
-            setPlayerName(route.params.player);
-            setPlayerId(route.params.playerId);
-            resetGame();
-        }
-    }, [route.params?.player, route.params?.reset]);
+    const { gameStarted, gameEnded, startGame, endGame, totalPoints, setTotalPoints } = useGame();
+    const [elapsedTime, setElapsedTime] = useState(0);
+    const { savePlayerPoints } = GameSave({ playerId, totalPoints, elapsedTime, navigation });
 
-    // Reset the game
-    const resetGame = () => {
-        const resetCategories = scoringCategories.map(category => {
-            return {
-                ...category,
-                points: 0,
-                locked: false,
-            };
-        });
-        setScoringCategories(resetCategories);
-        setRounds(MAX_SPOTS);
-        setNbrOfThrowsLeft(NBR_OF_THROWS);
-        resetDiceSelection();
-        setTotalPoints(0);
-        setMinorPoints(0);
-        setHasAppliedBonus(false);
-    };
-    const currentDate = new Date();
-    // Log debug messages to Firebase
-    // const logDebugToFirebase = async (message) => {
-    //     try {
-    //         const debugRef = ref(database, 'debugLogs/');
-    //         const newKey = push(debugRef).key;
-    //         await set(ref(database, `debugLogs/${newKey}`), {
-    //             message: message,
-    //             timestamp: new Date().toISOString(),
-    //         });
-    //     } catch (error) {
-    //         console.error("Error logging to Firebase: ", error);
-    //     }
-    // };
+    const [isLayerVisible, setLayerVisible] = useState(true);
 
-    const savePlayerPoints = async () => {
-        try {
-            // logDebugToFirebase(`Saving points for playerId: ${playerId}`); 
-            const playerRef = ref(database, `players/${playerId}`);
-            const snapshot = await get(playerRef);
-
-            const playerData = snapshot.val();
-
-            const newKey = push(ref(database, `players/${playerId}/scores`)).key;
-
-            const playerPoints = {
-                key: newKey,
-                date: currentDate.toLocaleDateString(),
-                time: currentDate.toLocaleTimeString(),
-                points: totalPoints,
-            };
-
-            if (playerData && playerData.scores) {
-                const existingScores = Object.values(playerData.scores);
-                const updatedScores = [...existingScores, playerPoints];
-
-                updatedScores.sort((a, b) => b.points - a.points);
-
-                const topFiveScores = updatedScores.slice(0, 5);
-
-                const scoresRef = ref(database, `players/${playerId}/scores`);
-                await set(scoresRef, topFiveScores.reduce((acc, score) => {
-                    acc[score.key] = score;
-                    return acc;
-                }, {}));
-            } else {
-                await set(ref(database, `players/${playerId}/scores/${newKey}`), playerPoints);
-            }
-            navigation.navigate('Scoreboard');
-        } catch (error) {
-            console.error('Error saving player points: ', error.message);
-        }
-    };
-
-
-
-    // Making the gameboard
-    const [data, setData] = useState([
-        ...Array.from({ length: 32 }, (_, index) => ({ key: String(index + 2) })),
-    ]);
-
-    const [scores, setScores] = useState([]);
-    // Player number of throws left
+    // 2. Logic for the game
     const [nbrOfThrowsLeft, setNbrOfThrowsLeft] = useState(NBR_OF_THROWS);
     const [status, setStatus] = useState('Throw the dices');
     const [selectedDices, setSelectedDices] = useState(new Array(NBR_OF_DICES).fill(false));
@@ -113,7 +34,7 @@ export default function Gameboard({ route, navigation }) {
     const [rounds, setRounds] = useState(MAX_SPOTS);
     const [rolledDices, setRolledDices] = useState(new Array(NBR_OF_DICES).fill(0));
 
-    // Points and categories
+    // 3. Scoring categories and points
     const [scoringCategories, setScoringCategories] = useState([
         {
             name: 'ones',
@@ -219,9 +140,49 @@ export default function Gameboard({ route, navigation }) {
         },
     ]);
 
-    const [totalPoints, setTotalPoints] = useState(0);
     const [minorPoints, setMinorPoints] = useState(0);
     const [hasAppliedBonus, setHasAppliedBonus] = useState(false);
+
+    useEffect(() => {
+        if (rounds === MAX_SPOTS) {
+            setLayerVisible(true);
+        } else {
+            setLayerVisible(false); 
+        }
+    }, [rounds]);
+
+    useEffect(() => {
+        if (route.params?.playerId) {
+            setPlayer(route.params?.playerId);
+        }
+    }, [route.params?.playerId]);
+
+
+    // Reset the game
+    const resetGame = () => {
+        const resetCategories = scoringCategories.map(category => {
+            return {
+                ...category,
+                points: 0,
+                locked: false,
+            };
+        });
+        setScoringCategories(resetCategories);
+        setRounds(MAX_SPOTS);
+        setNbrOfThrowsLeft(NBR_OF_THROWS);
+        resetDiceSelection();
+        setTotalPoints(0);
+        setMinorPoints(0);
+        setHasAppliedBonus(false);
+        setElapsedTime(0);
+    };
+
+    // Making the gameboard
+    const [data, setData] = useState([
+        ...Array.from({ length: 32 }, (_, index) => ({ key: String(index + 2) })),
+    ]);
+
+
 
     const handleBonus = () => {
         if (!hasAppliedBonus && minorPoints >= BONUS_POINTS_LIMIT) {
@@ -275,22 +236,22 @@ export default function Gameboard({ route, navigation }) {
     function calculateDiceSum(diceValue) {
         return rolledDices.reduce((sum, dice) => (dice === diceValue ? sum + dice : sum), 0);
     }
-// Calculate two of a kind (pair)
-function calculateTwoOfKind(rolledDices) {
-    const counts = {};
-    rolledDices.forEach(dice => {
-        counts[dice] = (counts[dice] || 0) + 1;
-    });
+    // Calculate two of a kind (pair)
+    function calculateTwoOfKind(rolledDices) {
+        const counts = {};
+        rolledDices.forEach(dice => {
+            counts[dice] = (counts[dice] || 0) + 1;
+        });
 
-    let maxPairValue = 0;
+        let maxPairValue = 0;
 
-    for (let dice in counts) {
-        if (counts[dice] >= 2) {
-            maxPairValue = Math.max(maxPairValue, parseInt(dice));  // Muutetaan dice numeroksi
+        for (let dice in counts) {
+            if (counts[dice] >= 2) {
+                maxPairValue = Math.max(maxPairValue, parseInt(dice));
+            }
         }
+        return maxPairValue * 2;
     }
-    return maxPairValue * 2;
-}
 
     // Three of a kind 
     function calculateThreeOfAKind(rolledDices) {
@@ -378,23 +339,6 @@ function calculateTwoOfKind(rolledDices) {
     }
 
     const [selectedField, setSelectedField] = useState(null);
-
-    const renderFirstRow = () => (
-        <>
-            <View style={styles.firstRow}>
-                <View style={styles.firstRowItem}>
-                </View>
-            </View>
-            <View style={styles.firstRow}>
-                <View style={styles.firstRowItem}>
-                    <Text style={styles.firstRowCategoryText}>Minor</Text>
-                </View>
-                <View style={styles.firstRowItem}>
-                    <Text style={styles.firstRowCategoryText}>Major</Text>
-                </View>
-            </View>
-        </>
-    );
 
     const renderGrid = ({ index, scoringCategories, totalPoints, minorPoints }) => {
 
@@ -723,12 +667,10 @@ function calculateTwoOfKind(rolledDices) {
             }
         };
 
-        // 
         const [diceAnimations] = useState(() =>
             Array.from({ length: NBR_OF_DICES }, () => new Animated.Value(0))
         );
 
-        // Animation for dices
         const animateDices = () => {
             Animated.parallel(
                 diceAnimations.map((anim, index) =>
@@ -750,7 +692,6 @@ function calculateTwoOfKind(rolledDices) {
         };
 
         const diceRow = [];
-
         for (let i = 0; i < NBR_OF_DICES; i++) {
             diceRow.push(
                 <DiceAnimation
@@ -782,6 +723,11 @@ function calculateTwoOfKind(rolledDices) {
                 setStatus('Game has not started');
             }
         };
+        useEffect(() => {
+            if (rounds === 0) {
+                endGame();
+            }
+        }, [rounds]);
 
         return (
             <View style={styles.gameboard}>
@@ -791,20 +737,22 @@ function calculateTwoOfKind(rolledDices) {
                 </View>
                 <View style={styles.buttonContainer}>
                     {rounds === 0 ? (
-                        <Pressable
-                            style={({ pressed }) => [
-                                styles.button,
-                                pressed && styles.buttonPressed,
-                                { width: '80%' },
-                            ]}
-                            onPress={() => {
-                                savePlayerPoints();
-                                resetGame();
-                            }}
-                        >
-                            <Text style={styles.buttonText}>Game Over, Save Your Score</Text>
-                            <MaterialCommunityIcons name="scoreboard-outline" size={24} color="black" />
-                        </Pressable>
+                        <>
+                            <Pressable
+                                style={({ pressed }) => [
+                                    styles.button,
+                                    pressed && styles.buttonPressed,
+                                    { width: '80%' },
+                                ]}
+                                onPress={() => {
+                                    savePlayerPoints();
+                                    resetGame();
+                                }}
+                            >
+                                <Text style={styles.buttonText}>Game Over, Save Your Score</Text>
+                                <MaterialCommunityIcons name="scoreboard-outline" size={24} color="black" />
+                            </Pressable>
+                        </>
                     ) : (
                         <>
                             <Pressable
@@ -814,11 +762,15 @@ function calculateTwoOfKind(rolledDices) {
                                     pressed && styles.buttonPressed,
                                     { width: '39%' },
                                 ]}
-                                onPress={() => throwDices()}
+                                onPress={() => {
+                                    if (rounds === MAX_SPOTS && nbrOfThrowsLeft === 3) {
+                                        startGame();
+                                    }
+                                    throwDices();
+                                }}
                             >
                                 <Text style={styles.buttonText}>Roll Dices</Text>
                                 {rounds > 0 && <Text style={styles.nbrThrowsText}>{nbrOfThrowsLeft}</Text>}
-                                {rounds === 0 && <MaterialCommunityIcons name="scoreboard-outline" size={24} color="black" />}
                             </Pressable>
                             <Pressable
                                 disabled={!selectedField}
@@ -843,10 +795,30 @@ function calculateTwoOfKind(rolledDices) {
         );
     };
 
+    const handleStartGame = () => {
+        setLayerVisible(false);
+        setStatus("Throw the dices");
+        console.log("Game starting...");
+    };
+
     return (
-        <ImageBackground
-            source={require('../assets/diceBackground.jpg')}
-            style={styles.background}>
+        <ImageBackground source={require('../assets/diceBackground.jpg')} style={styles.background}>
+            {isLayerVisible && (
+                <Pressable
+                    onPress={() => {
+                        if (!gameStarted && rounds === MAX_SPOTS) {
+                            console.log('Start game button clicked from layer');
+                            handleStartGame();
+                        }
+                    }}
+                    style={styles.filterLayer}
+                >
+                    <GlowingText style={styles.centeredText}>
+                        Start Game
+                    </GlowingText>
+                </Pressable>
+            )}
+
             <View style={styles.overlay}>
                 <FlatList
                     data={data}
@@ -855,11 +827,12 @@ function calculateTwoOfKind(rolledDices) {
                     numColumns={4}
                     keyExtractor={(item) => item.key}
                     contentContainerStyle={styles.container}
-                    ListHeaderComponent={renderFirstRow}
+                    ListHeaderComponent={<RenderFirstRow />}
                     ListEmptyComponent={renderGrid}
                     ListFooterComponent={renderDices}
                 />
             </View>
+
             <ModalAlert
                 visible={modalVisible}
                 message={modalMessage}
