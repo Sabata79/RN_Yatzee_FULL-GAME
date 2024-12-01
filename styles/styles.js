@@ -710,9 +710,9 @@ export default styles = StyleSheet.create({
     // Info button
     infoButton: {
         position: 'absolute',
-        top: 0,
-        left: 5,
-        borderRadius: 30,
+        top: 10,
+        right: 10,
+        borderRadius: 40,
         padding: 5,
         alignItems: 'center',
         justifyContent: 'center',
@@ -722,4 +722,33 @@ export default styles = StyleSheet.create({
         shadowRadius: 4,
         elevation: 5,
     },
+        tabContainer: {
+        flexDirection: 'row',
+        justifyContent: 'center', // Keskitetään välilehdet
+        marginTop: 20,
+        marginBottom: 10,  // Väli pääsisältöön
+        },
+        tabText: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: 'white',
+        padding: 10,
+        },
+        activeTab: {
+        borderBottomWidth: 2,
+        borderBottomColor: 'gold', // Aktiiviselle välilehdelle kultainen viiva
+        padding: 10,
+        },
+        inactiveTab: {
+        padding: 10,
+        },
+        scoresHeaderContainer: {
+        alignItems: 'center',
+        marginTop: 20,  // Väli välilehtien ja "Scores"-tekstin väliin
+        },
+        scoresHeaderText: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        color: 'white',
+        },
 });

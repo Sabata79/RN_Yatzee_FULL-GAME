@@ -9,10 +9,11 @@ import { ref, onValue } from 'firebase/database';
 import * as SecureStore from 'expo-secure-store';
 
 export default function Scoreboard({ navigation }) {
-  const [scores, setScores] = useState([]);
-  const [latestScoreIndex, setLatestScoreIndex] = useState(null);
+  const [scores, setScores] = useState([]); // State, joka tallentaa tulokset
+  const [scoreType, setScoreType] = useState('allTime'); // Oletus on 'allTime'
   const [userId, setUserId] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
+  const [cachedScores, setCachedScores] = useState(null); // Välimuisti tallennettaville tuloksille
 
   useEffect(() => {
     SecureStore.getItemAsync('user_id').then((storedUserId) => {
@@ -24,58 +25,71 @@ export default function Scoreboard({ navigation }) {
     const unsubscribe = navigation.addListener('focus', () => {
       getScoreboardData();
     });
+
+    // Haetaan tulokset aina kun scoreType muuttuu
+    getScoreboardData();
+    
     return unsubscribe;
-  }, [navigation]);
+  }, [navigation, scoreType]); // Varmistetaan, että data haetaan aina, kun 'scoreType' muuttuu
 
   const getScoreboardData = () => {
-    const playersRef = ref(database, 'players');
-    onValue(playersRef, snapshot => {
-      const playersData = snapshot.val();
-      const tmpScores = [];
+    // Välimuistissa olevat tulokset tarkistetaan ennen kuin lähdetään hakemaan uutta dataa.
+    if (cachedScores) {
+      setScores(cachedScores);
+    }
 
-      if (playersData) {
-        Object.keys(playersData).forEach(playerId => {
-          if (playersData[playerId] && playersData[playerId].name) { 
-            const player = playersData[playerId];
-            if (player.scores) {
-              const maxScore = Math.max(...Object.values(player.scores).map(score => score.points));
-              const highScore = Object.values(player.scores).find(score => score.points === maxScore);
+  const playersRef = ref(database, 'players');
+  onValue(playersRef, snapshot => {
+    const playersData = snapshot.val();
+    const tmpScores = [];
 
-              if (highScore) { 
-                tmpScores.push({
-                  ...highScore,
-                  name: player.name,
-                  playerId: playerId,
-                });
+    if (playersData) {
+      Object.keys(playersData).forEach(playerId => {
+        if (playersData[playerId] && playersData[playerId].name) {
+          const player = playersData[playerId];
+          
+          // Haetaan scoresMonthly, jos scoreType on 'monthly'
+          const scoresToUse = scoreType === 'monthly' ? player.scoresMonthly : player.scores;
+          
+          if (scoresToUse) {
+            let bestScore = null;
+            Object.values(scoresToUse).forEach(score => {
+              if (!bestScore || score.points > bestScore.points) {
+                bestScore = score;
               }
+            });
+
+            if (bestScore) {
+              tmpScores.push({
+                ...bestScore,
+                name: player.name,
+                playerId: playerId,
+              });
             }
           }
-        });
-
-        const sortedScores = tmpScores.sort((a, b) => {
-          if (b.points === a.points) {
-            if (b.duration === a.duration) {
-              const dateB = new Date(b.date + ' ' + b.time);
-              const dateA = new Date(a.date + ' ' + a.time);
-              return dateB - dateA;
-            }
-            return a.duration - b.duration;
-          }
-          return b.points - a.points;
-        });
-
-        setScores(sortedScores);
-
-        if (sortedScores.length > 0) {
-          const latestScoreIndex = sortedScores.findIndex(score => score.playerId === userId);
-          setLatestScoreIndex(latestScoreIndex);
         }
-      } else {
-        setScores([]);
-        setLatestScoreIndex(null);
-      }
-    });
-  };
+      });
+
+      const sortedScores = tmpScores.sort((a, b) => {
+        if (b.points === a.points) {
+          if (b.duration === a.duration) {
+            const dateB = new Date(b.date + ' ' + b.time);
+            const dateA = new Date(a.date + ' ' + a.time);
+            return dateB - dateA;
+          }
+          return a.duration - b.duration;
+        }
+        return b.points - a.points;
+      });
+
+      // Päivitetään välimuisti ja näytetään tulokset
+      setCachedScores(sortedScores);
+      setScores(sortedScores);
+    } else {
+      setScores([]);
+    }
+  });
+};
 
   return (
     <ImageBackground
@@ -83,7 +97,26 @@ export default function Scoreboard({ navigation }) {
       style={styles.background}>
       <View style={styles.overlay}>
         <ScrollView style={styles.container}>
-          <Text style={styles.buttonText}>Scoreboard</Text>
+          {/* Keskitetty "Scores" teksti */}
+          <View style={styles.scoresHeaderContainer}>
+            <Text style={styles.scoresHeaderText}>SCOREBOARD</Text>
+          </View>
+
+          {/* Välilehdet */}
+          <View style={styles.tabContainer}>
+            <TouchableOpacity
+              style={scoreType === 'allTime' ? styles.activeTab : styles.inactiveTab}
+              onPress={() => setScoreType('allTime')}>
+              <Text style={styles.tabText}>All Time</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={scoreType === 'monthly' ? styles.activeTab : styles.inactiveTab}
+              onPress={() => setScoreType('monthly')}>
+              <Text style={styles.tabText}>Monthly</Text>
+            </TouchableOpacity>
+          </View>
+
           {scores.length === 0 ? (
             <Text style={styles.scoreboardText}>No scores yet</Text>
           ) : (
@@ -109,9 +142,7 @@ export default function Scoreboard({ navigation }) {
               {scores.slice(0, NBR_OF_SCOREBOARD_ROWS).map((score, index) => (
                 <DataTable.Row
                   key={score.key}
-                    style={score.playerId === userId? { borderWidth: 0.6, borderColor: 'red',backgroundColor: '#ffffff82' } // Punaiset reunat pelaajalle
-      : {}
-  }>
+                  style={score.playerId === userId ? { borderWidth: 0.6, borderColor: 'red', backgroundColor: '#ffffff82' } : {}}>
                   <DataTable.Cell style={styles.cell}>
                     {index === 0 && <FontAwesome5 name="medal" size={30} color="gold" />}
                     {index === 1 && <FontAwesome5 name="medal" size={25} color="silver" />}

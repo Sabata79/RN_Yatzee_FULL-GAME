@@ -18,6 +18,8 @@ export default function Home({ setIsUserRecognized, setName, setPlayerId }) {
   const inputRef = useRef(null);
   const navigation = useNavigation();
 
+  console.log("Home.js - ", localName);
+
   useEffect(() => {
     getOrCreateUserId().then((userId) => {
       setLocalPlayerId(userId);

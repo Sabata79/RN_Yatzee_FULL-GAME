@@ -734,6 +734,7 @@ export default function Gameboard({ route, navigation }) {
             }
         }, [rounds]);
 
+
         return (
             <View style={styles.gameboard}>
                 <Text style={styles.status}>{status}</Text>
