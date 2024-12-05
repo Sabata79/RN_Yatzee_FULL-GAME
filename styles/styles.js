@@ -7,15 +7,15 @@ export default styles = StyleSheet.create({
         alignSelf: 'stretch',
     },
   background: {
-    flex: 1, // Taustakuva venyy koko ruudulle
-    justifyContent: 'flex-start', // Varmistaa, että komponentit asettuvat oikein
+    flex: 1, 
+    justifyContent: 'flex-start', 
   },
     safeAreaView: {
         flex: 1,  
         },
     overlay: {
         flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)', // Aseta läpinäkyväksi
+        backgroundColor: 'rgba(0, 0, 0, 0.6)', // Aseta läpinäkyväksi
     },
     homeContainer: {
         flex: 1,

@@ -58,17 +58,17 @@ export default function PlayerCard({ playerId, playerName, isModalVisible, setMo
                     // Käydään läpi kaikkien pelaajien tulokset
                     Object.keys(playersData).forEach(playerId => {
                         const playerScores = playersData[playerId].scores || {}; // Hakee pelaajan tulokset
-                        
+
                         // Haetaan pelaajan paras tulos jokaiselta kuukaudelta
                         Object.values(playerScores).forEach(score => {
                             const scoreDate = new Date(score.date.split('.').reverse().join('-')); // Muotoillaan "4.12.2024" -> "2024-12-04"
-                            
+
                             console.log(`Score Date for ${playerId}:`, scoreDate); // Debug: Tulostetaan oikea päivämäärä
 
                             if (scoreDate.getFullYear() === currentYear) {
                                 const monthIndex = scoreDate.getMonth();
                                 console.log(`Score for ${playerId} on month ${months[monthIndex]}:`); // Debug: Näytetään mikä kuukauden tulos
-                                
+
                                 // Lisätään pelaajan paras tulos kuukauden mukaan
                                 const existingMonthScores = monthlyScores[monthIndex];
                                 const playerBestScore = existingMonthScores.find(score => score.playerId === playerId);
@@ -98,7 +98,7 @@ export default function PlayerCard({ playerId, playerName, isModalVisible, setMo
                         // Järjestetään kuukauden tulokset ja lasketaan sijoitus
                         monthScores.sort((a, b) => b.points - a.points); // Järjestetään tulokset
                         const rank = monthScores.findIndex(score => score.playerId === playerId) + 1; // Etsitään pelaajan sijoitus
-                        
+
                         console.log(`Kuukauden ${months[index]} sijoitus pelaajalle ${playerId}:`, rank); // Debug: Näytetään kuukauden sijoitus
 
                         return rank === 0 ? '--' : rank; // Jos sijoitus on 0, asetetaan -- (ei pelannut)
@@ -130,10 +130,10 @@ export default function PlayerCard({ playerId, playerName, isModalVisible, setMo
     const getTrophyForMonth = (monthIndex) => {
         const rank = monthlyRanks[monthIndex];
         if (rank === '--') return <Text style={styles.emptySlotText}>--</Text>; // Jos ei tulosta kuukaudelta
-        if (rank === 1) return <FontAwesome5 name="trophy" size={20} color="gold" />;
-        if (rank === 2) return <FontAwesome5 name="trophy" size={20} color="silver" />;
+        if (rank === 1) return <FontAwesome5 name="trophy" size={30} color="gold" />;
+        if (rank === 2) return <FontAwesome5 name="trophy" size={25} color="silver" />;
         if (rank === 3) return <FontAwesome5 name="trophy" size={20} color="brown" />;
-        return <Text style={styles.playerCardMonthText}>{rank}</Text>; // Muut sijoitukset, kuten 4, 5, 6 jne.
+         return <Text style={[styles.playerCardMonthText, { fontWeight: 'bold', marginTop: 30, fontSize: 20 }]}>{rank}.</Text>; // Muut sijoitukset, kuten 4, 5, 6 jne.
     };
 
     return (

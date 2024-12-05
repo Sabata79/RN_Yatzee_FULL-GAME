@@ -15,7 +15,7 @@ export default styles = StyleSheet.create({
         marginBottom: 5,
     },
     playerNameContainer: {
-        marginLeft: 0, 
+        marginLeft: 0,
     },
 
     playerCardName: {
@@ -54,7 +54,7 @@ export default styles = StyleSheet.create({
         marginBottom: 5,
         borderWidth: 2,
         borderColor: '#000',
-        marginRight: 10, 
+        marginRight: 10,
     },
 
     avatar: {
@@ -109,14 +109,17 @@ export default styles = StyleSheet.create({
         backgroundColor: '#f3f3f3',
         borderRadius: 5,
         position: 'relative',
+        flexDirection: 'column',
     },
 
     playerCardMonthText: {
-        fontSize: 14,
-        color: '#333',
+        fontSize: 16,
+        fontWeight: 'normal',
         textAlign: 'center',
+        color: '#000000',
+        top: 0,
+        marginBottom: 10,
         position: 'absolute',
-        top: 2,
     },
 
     emptySlotText: {
