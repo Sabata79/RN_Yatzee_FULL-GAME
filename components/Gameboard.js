@@ -806,9 +806,9 @@ export default function Gameboard({ route, navigation }) {
         setStatus("Throw the dices");
         console.log("Game starting...");
     };
-
+     // Remove ImageBackground
     return (
-        <ImageBackground source={require('../assets/diceBackground.jpg')} style={styles.background}>
+        <ImageBackground source={require('../assets/diceBackground.jpg')} style={styles.background}> 
             {isLayerVisible && (
                 <Pressable
                     onPress={() => {

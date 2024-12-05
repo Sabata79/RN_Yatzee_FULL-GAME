@@ -11,9 +11,9 @@ import * as SecureStore from 'expo-secure-store';
 export default function Scoreboard({ navigation }) {
   const [scores, setScores] = useState([]); // State, joka tallentaa tulokset
   const [scoreType, setScoreType] = useState('allTime'); // Oletus on 'allTime'
-  const [userId, setUserId] = useState('');
+  const [userId, setUserId] = useState(''); 
   const [modalVisible, setModalVisible] = useState(false);
-  const [cachedScores, setCachedScores] = useState(null); // Välimuisti tallennettaville tuloksille
+  const [cachedScores, setCachedScores] = useState(null); 
 
   useEffect(() => {
     SecureStore.getItemAsync('user_id').then((storedUserId) => {
@@ -23,37 +23,54 @@ export default function Scoreboard({ navigation }) {
     });
 
     const unsubscribe = navigation.addListener('focus', () => {
-      getScoreboardData();
+      getScoreboardData(); 
     });
 
-    // Haetaan tulokset aina kun scoreType muuttuu
-    getScoreboardData();
+    getScoreboardData(); 
     
     return unsubscribe;
-  }, [navigation, scoreType]); // Varmistetaan, että data haetaan aina, kun 'scoreType' muuttuu
+  }, [navigation, scoreType]);
 
-  const getScoreboardData = () => {
-    // Välimuistissa olevat tulokset tarkistetaan ennen kuin lähdetään hakemaan uutta dataa.
-    if (cachedScores) {
-      setScores(cachedScores);
-    }
-
+const getScoreboardData = () => {
   const playersRef = ref(database, 'players');
   onValue(playersRef, snapshot => {
     const playersData = snapshot.val();
     const tmpScores = [];
+    const currentMonth = new Date().getMonth(); 
+    const currentYear = new Date().getFullYear(); 
 
     if (playersData) {
       Object.keys(playersData).forEach(playerId => {
         if (playersData[playerId] && playersData[playerId].name) {
           const player = playersData[playerId];
-          
-          // Haetaan scoresMonthly, jos scoreType on 'monthly'
-          const scoresToUse = scoreType === 'monthly' ? player.scoresMonthly : player.scores;
-          
-          if (scoresToUse) {
+
+          let scoresToUse = [];
+          if (scoreType === 'monthly') {
+            scoresToUse = Object.values(player.scores || {}).filter(score => {
+
+              // Tarkistetaan, että 'score.date' on kelvollinen
+              const dateParts = score.date.split('.'); 
+              if (dateParts.length === 3) {
+                // Muodostetaan uusi päivämäärä muodossa YYYY-MM-DD
+                const formattedDate = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
+                const scoreDate = new Date(formattedDate);
+
+                if (isNaN(scoreDate)) {
+                  return false; 
+                }
+
+                return scoreDate.getMonth() === currentMonth && scoreDate.getFullYear() === currentYear;
+              } else {
+                return false;
+              }
+            });
+          } else if (scoreType === 'allTime') {
+            scoresToUse = Object.values(player.scores || []);
+          }
+
+          if (scoresToUse.length > 0) {
             let bestScore = null;
-            Object.values(scoresToUse).forEach(score => {
+            scoresToUse.forEach(score => {
               if (!bestScore || score.points > bestScore.points) {
                 bestScore = score;
               }
@@ -70,21 +87,10 @@ export default function Scoreboard({ navigation }) {
         }
       });
 
-      const sortedScores = tmpScores.sort((a, b) => {
-        if (b.points === a.points) {
-          if (b.duration === a.duration) {
-            const dateB = new Date(b.date + ' ' + b.time);
-            const dateA = new Date(a.date + ' ' + a.time);
-            return dateB - dateA;
-          }
-          return a.duration - b.duration;
-        }
-        return b.points - a.points;
-      });
+      // Lajitellaan tulokset
+      const sortedScores = tmpScores.sort((a, b) => b.points - a.points);
 
-      // Päivitetään välimuisti ja näytetään tulokset
-      setCachedScores(sortedScores);
-      setScores(sortedScores);
+      setScores(sortedScores); 
     } else {
       setScores([]);
     }
@@ -97,12 +103,10 @@ export default function Scoreboard({ navigation }) {
       style={styles.background}>
       <View style={styles.overlay}>
         <ScrollView style={styles.container}>
-          {/* Keskitetty "Scores" teksti */}
           <View style={styles.scoresHeaderContainer}>
             <Text style={styles.scoresHeaderText}>SCOREBOARD</Text>
           </View>
 
-          {/* Välilehdet */}
           <View style={styles.tabContainer}>
             <TouchableOpacity
               style={scoreType === 'allTime' ? styles.activeTab : styles.inactiveTab}
@@ -167,14 +171,12 @@ export default function Scoreboard({ navigation }) {
           )}
         </ScrollView>
 
-        {/* Info Button */}
         <TouchableOpacity
           style={styles.infoButton}
           onPress={() => setModalVisible(true)}>
           <FontAwesome5 name="info-circle" size={40} color="white" />
         </TouchableOpacity>
 
-        {/* Modal to display comparison explanation */}
         <Modal
           animationType="slide"
           transparent={true}

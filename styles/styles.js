@@ -33,7 +33,7 @@ export default styles = StyleSheet.create({
         left: 0,
         right: 0,
         zIndex: 100,
-        backgroundColor: 'rgba(0, 0, 0, 0.85)',
+        backgroundColor: 'rgba(0, 0, 0, 0.959)',
     },
     titleContainer: {
         flexDirection: 'row',

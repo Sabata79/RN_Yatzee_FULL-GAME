@@ -18,8 +18,6 @@ export default function Home({ setIsUserRecognized, setName, setPlayerId }) {
   const inputRef = useRef(null);
   const navigation = useNavigation();
 
-  console.log("Home.js - ", localName);
-
   useEffect(() => {
     getOrCreateUserId().then((userId) => {
       setLocalPlayerId(userId);
@@ -100,7 +98,7 @@ export default function Home({ setIsUserRecognized, setName, setPlayerId }) {
     setUserRecognized(false);
     setIsUserRecognized(false); 
   };
-
+// Remove ImageBackground
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <ImageBackground
