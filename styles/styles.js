@@ -6,12 +6,16 @@ export default styles = StyleSheet.create({
         flex: 1,
         alignSelf: 'stretch',
     },
-    background: {
-        flex: 1,
-    },
+  background: {
+    flex: 1, // Taustakuva venyy koko ruudulle
+    justifyContent: 'flex-start', // Varmistaa, että komponentit asettuvat oikein
+  },
+    safeAreaView: {
+        flex: 1,  
+        },
     overlay: {
         flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)', // Aseta läpinäkyväksi
     },
     homeContainer: {
         flex: 1,
@@ -21,11 +25,15 @@ export default styles = StyleSheet.create({
     },
     header: {
         marginTop: Constants.statusBarHeight + 0,
-        backgroundColor: 'darkorange',
         flexDirection: 'row',
         justifyContent: 'flex-start',
         alignItems: 'center',
-        position: 'relative',
+        position: 'relative', 
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 100,
+        backgroundColor: 'rgba(0, 0, 0, 0.85)',
     },
     titleContainer: {
         flexDirection: 'row',
@@ -37,16 +45,17 @@ export default styles = StyleSheet.create({
         fontWeight: 'bold',
     },
     userContainer: {
+        flex: 1,
         right: 10,
     },
     userName: {
-        fontSize: 13,
+        fontSize: 12,
         fontWeight: 'bold',
         color: 'black',
         marginRight: 2,
     },
     footer: {
-        backgroundColor: 'darkorange',
+        backgroundColor: 'rgba(0, 0, 0, 0.95)',
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
@@ -228,7 +237,7 @@ export default styles = StyleSheet.create({
         elevation: 10,
     },
     userButtonPressed: {
-                margin: 5,
+        margin: 5,
         marginTop: 15,
         flexDirection: 'row',
         paddingLeft: 10,
@@ -401,8 +410,8 @@ export default styles = StyleSheet.create({
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',  
-        zIndex: 999,  
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        zIndex: 999,
         justifyContent: 'center',
         alignItems: 'center',
         display: 'flex',
@@ -447,12 +456,14 @@ export default styles = StyleSheet.create({
         fontSize: 10,
         textAlign: 'center',
         margin: 5,
+        color: '#ccc9c9',
     },
-    title: {
+    headerTitle: {
         fontSize: 24,
         textAlign: 'center',
-        margin: 5,
+        margin: 10,
         fontFamily: 'AntonRegular',
+        color: '#ccc9c9',
     },
     rulesContainer: {
         height: 1750,
@@ -543,7 +554,7 @@ export default styles = StyleSheet.create({
         alignItems: 'center',
         backgroundColor: 'rgba(0, 0, 0, 0.4)',
         maxHeight: '60%',
-        position: 'absolute',  
+        position: 'absolute',
         top: 0,
         left: 0,
         right: 0,
@@ -634,7 +645,7 @@ export default styles = StyleSheet.create({
     // AboutMe
     aboutContainer: {
         flexGrow: 1,
-        backgroundColor: '#282828',
+        backgroundColor: 'rgba(0, 0, 0, 0)',
         padding: 20,
     },
     headerContainer: {
@@ -722,33 +733,34 @@ export default styles = StyleSheet.create({
         shadowRadius: 4,
         elevation: 5,
     },
-        tabContainer: {
+    tabContainer: {
         flexDirection: 'row',
-        justifyContent: 'center', // Keskitetään välilehdet
+        justifyContent: 'center',
         marginTop: 20,
-        marginBottom: 10,  // Väli pääsisältöön
-        },
-        tabText: {
+        marginBottom: 10,  
+    },
+    tabText: {
         fontSize: 16,
         fontWeight: 'bold',
         color: 'white',
         padding: 10,
-        },
-        activeTab: {
+    },
+    activeTab: {
         borderBottomWidth: 2,
-        borderBottomColor: 'gold', // Aktiiviselle välilehdelle kultainen viiva
+        borderBottomColor: 'gold', 
         padding: 10,
-        },
-        inactiveTab: {
+    },
+    inactiveTab: {
         padding: 10,
-        },
-        scoresHeaderContainer: {
+    },
+    scoresHeaderContainer: {
         alignItems: 'center',
-        marginTop: 20,  // Väli välilehtien ja "Scores"-tekstin väliin
-        },
-        scoresHeaderText: {
+        marginTop: 20,  
+    },
+    scoresHeaderText: {
         fontSize: 24,
         fontWeight: 'bold',
         color: 'white',
-        },
+    },
+
 });
