@@ -12,7 +12,11 @@ Welcome to the **React Native Yatzy Game!** This mobile application is a digital
 - **Firebase Integration:** Manage and track your high scores using Firebase.
 - **Score Tracking:** Keep track of your high scores and personal records.
 - **User Device Recognition:** Improved user recognition for a better login experience.
-
+- **Player Top 5 Scores:** View a player's top 5 scores with detailed information.
+- **Monthly Best Players:** Check the best players for each month.
+- **PlayerCard with Trophies:** View a player's top 5 scores along with a trophy case showing their rankings for each month.
+- **Modal for Score Rules:** Display score comparison rules in an easy-to-understand modal.
+  
 ## Download and Install
 
 1. **Download the APK:**
@@ -32,14 +36,16 @@ After launching the game, you'll be greeted with a simple menu where you can sta
 
 ## Changelog
 
-### Version 1.2.0
+### Version 1.2.0 Yazee For Testers
 
-- **Added About Me Page: New 'About Me' page with details about the project and the developer.
-- **Implemented Swipe Navigation: Users can now navigate between screens using swipe gestures for an enhanced user experience.
-- **Player Top 5 Scores: Added functionality to view the player's top 5 scores in a detailed modal.
-- **Updated Header Button Design: Fixed positioning and styling issues with the header button.
-- **Modal Integration: Replaced alert notifications with modals for a more modern user interface.
-- **UI/UX Improvements: Minor styling adjustments for a cleaner interface.
+- **Added About Me Page:** New 'About Me' page with details about the project and the developer.
+- **Implemented Swipe Navigation:** Users can now navigate between screens using swipe gestures for an enhanced user experience.
+- **Player Top 5 Scores:** Added functionality to view the player's top 5 scores in a detailed modal.
+- **Updated Header Button Design:** Fixed positioning and styling issues with the header button.
+- **Modal Integration:** Replaced alert notifications with modals for a more modern user interface.
+- **UI/UX Improvements:** Minor styling adjustments for a cleaner interface.
+- **Monthly Best Players:** Added a feature to view the best players for each month.
+- **PlayerCard with Trophies:** Display player's top 5 scores along with a trophy case showing monthly rankings.
 
 ### Version 1.1.1
 - **Improved Player Recognition:** Switched to **Expo Secure Store** for better user data handling and security.
@@ -61,7 +67,7 @@ After launching the game, you'll be greeted with a simple menu where you can sta
 ## Feedback
 
 I value your feedback! If you have any suggestions, ideas, or encounter any issues, please let me know. Your input is invaluable for further development and improvement of the game.
-To provide feedback or participate in discussions, please visit the [Discussions]( https://github.com/Sabata79/RN_Yatzee_FULL-GAME/discussions/1 ) section of this repository.
+To provide feedback or participate in discussions, please visit the [Discussions](https://github.com/Sabata79/RN_Yatzee_FULL-GAME/discussions/1) section of this repository.
 
 ## License
 
