@@ -8,9 +8,10 @@ import styles from '../styles/playerCardStyles'; // Käytetään styles.js tiedo
 export default function PlayerCard({ playerId, playerName, isModalVisible, setModalVisible }) {
     const [topScores, setTopScores] = useState([]);
     const [avatarUrl, setAvatarUrl] = useState('');
-    const [monthlyRanks, setMonthlyRanks] = useState(Array(12).fill(null));  // Alustetaan 12 kuukauden tyhjällä arvolla
+    const [monthlyRanks, setMonthlyRanks] = useState(Array(12).fill(null)); 
+    const currentMonth = new Date().getMonth(); 
 
-    // Kuukausien nimet
+    // Month names
     const months = [
         'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
         'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
@@ -25,10 +26,10 @@ export default function PlayerCard({ playerId, playerName, isModalVisible, setMo
                     const scores = snapshot.val();
                     const sortedScores = Object.values(scores)
                         .map(score => ({
-                            points: score.points, // Pisteet
-                            date: score.date,     // Päivämäärä
-                            duration: score.duration, // Duration
-                            time: score.time,     // Aika
+                            points: score.points, 
+                            date: score.date,     
+                            duration: score.duration, 
+                            time: score.time,     
                         }))
                         .sort((a, b) => b.points - a.points) // Järjestetään pistemäärän mukaan
                         .slice(0, 5); // Haetaan top 5
@@ -128,6 +129,7 @@ export default function PlayerCard({ playerId, playerName, isModalVisible, setMo
     };
 
     const getTrophyForMonth = (monthIndex) => {
+        
         const rank = monthlyRanks[monthIndex];
         if (rank === '--') return <Text style={styles.emptySlotText}>--</Text>; // Jos ei tulosta kuukaudelta
         if (rank === 1) return <FontAwesome5 name="trophy" size={30} color="gold" />;
@@ -164,7 +166,7 @@ export default function PlayerCard({ playerId, playerName, isModalVisible, setMo
                             </View>
                             <View style={styles.playerNameContainer}>
                                 <Text style={styles.playerCardName}>{playerName}</Text>
-                                
+
                             </View>
                         </View>
 
@@ -190,7 +192,13 @@ export default function PlayerCard({ playerId, playerName, isModalVisible, setMo
                             <Text style={styles.playerCardTrophyCaseTitle}>TROPHIES 2024</Text>
                             <View style={styles.playerCardMonthsContainer}>
                                 {months.map((month, index) => (
-                                    <View key={index} style={styles.playerCardMonth}>
+                                    <View
+                                        key={index}
+                                        style={[
+                                            styles.playerCardMonth,
+                                            index === currentMonth ? styles.playerCardOngoingMonth : null,
+                                        ]}
+                                    >
                                         <Text style={styles.playerCardMonthText}>{month}</Text>
                                         {getTrophyForMonth(index)}
                                     </View>

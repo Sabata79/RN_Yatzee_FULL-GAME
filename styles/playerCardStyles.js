@@ -42,7 +42,7 @@ export default styles = StyleSheet.create({
     playerCardModalContainer: {
         width: '80%',
         padding: 20,
-        backgroundColor: '#fff',
+        backgroundColor: 'rgba(240, 190, 154, 0.98)',
         borderRadius: 10,
         alignItems: 'center',
     },
@@ -89,18 +89,19 @@ export default styles = StyleSheet.create({
         fontWeight: 'normal',
         color: '#000',
         display: 'flex',
-        flexDirection: 'row', // Tekstit ovat samalla rivillä
-        justifyContent: 'flex-start', // Tekstit vasemmalle
+        flexDirection: 'row',
+        justifyContent: 'flex-start',
         width: '100%',
+        marginLeft: 15,
     },
 
     playerCardScoreDate: {
         fontSize: 10,
         color: '#777',
-        textAlign: 'right', // Asettaminen oikealle
-        flex: 1, // Tämä antaa tilaa, että päivämäärä menee oikealle puolelle
+        textAlign: 'right', 
+        flex: 1, 
         paddingTop: 5,
-        marginRight: 10,
+        marginRight: 15,
     },
 
     playerCardTrophyCase: {
@@ -131,6 +132,13 @@ export default styles = StyleSheet.create({
         borderRadius: 5,
         position: 'relative',
         flexDirection: 'column',
+        borderColor: '#000',
+        borderWidth: 1,
+    },
+
+    playerCardOngoingMonth: {
+        borderColor: 'darkorange',
+        borderWidth: 3,
     },
 
     playerCardMonthText: {

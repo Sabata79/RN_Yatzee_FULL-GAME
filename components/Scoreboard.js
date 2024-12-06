@@ -8,14 +8,15 @@ import { NBR_OF_SCOREBOARD_ROWS } from '../constants/Game';
 import { database } from './Firebase';
 import { ref, onValue } from 'firebase/database';
 import * as SecureStore from 'expo-secure-store';
-import PlayerCard from './PlayerCard'; // Import PlayerCard modal
+import PlayerCard from './PlayerCard';
 
 export default function Scoreboard({ navigation }) {
   const [scores, setScores] = useState([]);
-  const [scoreType, setScoreType] = useState('allTime'); // Default is 'allTime'
+  const [scoreType, setScoreType] = useState('allTime'); 
   const [userId, setUserId] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
-  const [selectedPlayer, setSelectedPlayer] = useState(null); // Tila pelaajalle, jonka tiedot näytetään modaaliin
+  const [selectedPlayer, setSelectedPlayer] = useState(null); 
+  const [infoModalVisible, setInfoModalVisible] = useState(false); 
 
   useEffect(() => {
     SecureStore.getItemAsync('user_id').then((storedUserId) => {
@@ -42,7 +43,6 @@ export default function Scoreboard({ navigation }) {
           if (player.scores) {
             let scoresToUse = [];
             if (scoreType === 'monthly') {
-              // Suodatin kuukauden mukaan
               scoresToUse = Object.values(player.scores).filter(score => {
                 const dateParts = score.date.split('.');
                 if (dateParts.length === 3) {
@@ -135,6 +135,41 @@ export default function Scoreboard({ navigation }) {
             </DataTable>
           )}
         </ScrollView>
+
+        {/* Info Button */}
+        <TouchableOpacity
+          style={styles.infoButton}
+          onPress={() => setInfoModalVisible(true)}>
+          <FontAwesome5 name="info-circle" size={40} color="white" />
+        </TouchableOpacity>
+
+        {/* Info Modal */}
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={infoModalVisible}
+          onRequestClose={() => setInfoModalVisible(false)}>
+          <View style={styles.modalCenteredView}>
+            <View style={styles.modalView}>
+              <TouchableOpacity
+                style={styles.modalCloseButton}
+                onPress={() => setInfoModalVisible(false)}>
+                <Text style={styles.modalCloseButtonText}>X</Text>
+              </TouchableOpacity>
+
+              <Text style={styles.modalText}>How Scores Are Compared</Text>
+              <Text style={styles.modalSubText}>
+                1. **Points**: Higher points are ranked first.
+              </Text>
+              <Text style={styles.modalSubText}>
+                2. **Duration**: If points are equal, the score with the shorter duration comes first.
+              </Text>
+              <Text style={styles.modalSubText}>
+                3. **Date/Time**: If both points and duration are equal, the score that was achieved earlier is ranked higher.
+              </Text>
+            </View>
+          </View>
+        </Modal>
       </View>
 
       {/* PlayerCard modal for displaying selected player's details */}
@@ -142,8 +177,7 @@ export default function Scoreboard({ navigation }) {
         animationType="slide"
         transparent={true}
         visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
-      >
+        onRequestClose={() => setModalVisible(false)}>
         {selectedPlayer && (
           <PlayerCard
             playerId={selectedPlayer.playerId}
