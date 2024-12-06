@@ -12,10 +12,11 @@ export default styles = StyleSheet.create({
     playerInfoContainer: {
         flexDirection: 'row',
         alignItems: 'center',
+        width: '100%',
         marginBottom: 5,
     },
     playerNameContainer: {
-        marginLeft: 0,
+        marginLeft: 10,
     },
 
     playerCardName: {
@@ -65,21 +66,41 @@ export default styles = StyleSheet.create({
 
     scoreRow: {
         width: '100%',
-        textAlign: 'center',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        
     },
 
     playerCardScoresContainer: {
+        marginTop: 10,
         marginBottom: 5,
     },
 
     playerCardScoresTitle: {
         fontSize: 18,
         marginBottom: 10,
+        textAlign: 'center',
+        fontWeight: 'bold',
     },
 
     playerCardScoreItem: {
-        fontSize: 16,
-        marginBottom: 1,
+        fontSize: 14,
+        fontWeight: 'normal',
+        color: '#000',
+        display: 'flex',
+        flexDirection: 'row', // Tekstit ovat samalla rivillä
+        justifyContent: 'flex-start', // Tekstit vasemmalle
+        width: '100%',
+    },
+
+    playerCardScoreDate: {
+        fontSize: 10,
+        color: '#777',
+        textAlign: 'right', // Asettaminen oikealle
+        flex: 1, // Tämä antaa tilaa, että päivämäärä menee oikealle puolelle
+        paddingTop: 5,
+        marginRight: 10,
     },
 
     playerCardTrophyCase: {

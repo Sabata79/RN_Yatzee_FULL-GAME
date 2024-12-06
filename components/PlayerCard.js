@@ -133,7 +133,7 @@ export default function PlayerCard({ playerId, playerName, isModalVisible, setMo
         if (rank === 1) return <FontAwesome5 name="trophy" size={30} color="gold" />;
         if (rank === 2) return <FontAwesome5 name="trophy" size={25} color="silver" />;
         if (rank === 3) return <FontAwesome5 name="trophy" size={20} color="brown" />;
-         return <Text style={[styles.playerCardMonthText, { fontWeight: 'bold', marginTop: 30, fontSize: 20 }]}>{rank}.</Text>; // Muut sijoitukset, kuten 4, 5, 6 jne.
+        return <Text style={[styles.playerCardMonthText, { fontWeight: 'bold', marginTop: 30, fontSize: 20 }]}>{rank}.</Text>; // Muut sijoitukset, kuten 4, 5, 6 jne.
     };
 
     return (
@@ -164,18 +164,23 @@ export default function PlayerCard({ playerId, playerName, isModalVisible, setMo
                             </View>
                             <View style={styles.playerNameContainer}>
                                 <Text style={styles.playerCardName}>{playerName}</Text>
-                                <Text style={styles.playerCardPlayerID}>{`ID: ${playerId}`}</Text>
+                                
                             </View>
                         </View>
 
                         {/* TOP 5 tulokset */}
                         <ScrollView style={styles.playerCardScoresContainer}>
-                            <Text style={styles.playerCardScoresTitle}>Your Top 5 Scores</Text>
+                            <Text style={styles.playerCardScoresTitle}>YOUR TOP 5 SCORES</Text>
                             {getTopScoresWithEmptySlots().map((score, index) => (
                                 <View key={index} style={styles.scoreRow}>
-                                    <Text style={styles.playerCardScoreItem}>
-                                        {index + 1}. {score.points} points in {score.duration} sec
-                                    </Text>
+                                    <View style={styles.scoreTextContainer}>
+                                        <Text style={styles.playerCardScoreItem}>
+                                            {index + 1}. {score.points} points in {score.duration} sec
+                                        </Text>
+                                    </View>
+                                    <View style={styles.dateContainer}>
+                                        <Text style={styles.playerCardScoreDate}>{score.date}</Text>
+                                    </View>
                                 </View>
                             ))}
                         </ScrollView>
