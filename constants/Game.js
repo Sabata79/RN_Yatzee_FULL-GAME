@@ -11,6 +11,9 @@ export const FULLHOUSE_PONITS = 25;
 export const SMALL_STRAIGHT_POINTS = 30;
 export const LARGE_STRAIGHT_POINTS = 40;
 
+// Data handling
+export const TOPSCORELIMIT = 20;
+
 //  Base description for the rules
 export const rulesTextContent = `
       Score as many points as possible

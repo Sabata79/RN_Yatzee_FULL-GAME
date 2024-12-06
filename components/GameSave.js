@@ -1,6 +1,7 @@
 import { useGame } from './GameContext';
 import { database } from './Firebase';
 import { ref, set, get, push } from 'firebase/database';
+import { TOPSCORELIMIT } from '../constants/Game';
 
 const GameSave = ({ totalPoints, navigation }) => {
   const { playerId, elapsedTime, saveGame } = useGame();
@@ -36,14 +37,14 @@ const GameSave = ({ totalPoints, navigation }) => {
         updatedScores.push(playerPoints);
         updatedScores.sort((a, b) => b.points - a.points); // Järjestetään pisteiden mukaan
 
-        const topFiveScores = updatedScores.slice(0, 5);
+        const topScoresLimit = TOPSCORELIMIT;
+        const topScores = updatedScores.slice(0, topScoresLimit);
         const scoresRef = ref(database, `players/${playerId}/scores`);
-        await set(scoresRef, topFiveScores.reduce((acc, score) => {
+        await set(scoresRef, topScores.reduce((acc, score) => {
           acc[score.key] = score;
           return acc;
         }, {}));
 
-        // Ei enää kuukauden tallennusta tai trophies
         saveGame();
         navigation.navigate('Scoreboard');
       } else {
