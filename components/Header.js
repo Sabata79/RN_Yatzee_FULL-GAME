@@ -18,7 +18,7 @@ export default function Header({ isUserRecognized, name }) {
         <Pressable
           style={({ pressed }) => [
             styles.userButton,
-            pressed && styles.buttonPressed,
+            pressed && styles.userButtonPressed,
             { marginLeft: 'auto', top: -5 },
           ]}
           onPress={() => setModalVisible(true)} // Avaa PlayerCard modaalin
