@@ -6,29 +6,24 @@ export default styles = StyleSheet.create({
         flex: 1,
         alignSelf: 'stretch',
     },
-  background: {
-    flex: 1, 
-    justifyContent: 'flex-start', 
-  },
+    background: {
+        flex: 1,
+        justifyContent: 'flex-start',
+        width: '100%',
+    },
     safeAreaView: {
-        flex: 1,  
-        },
+        flex: 1,
+    },
     overlay: {
         flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.6)', // Aseta läpinäkyväksi
-    },
-    homeContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        color: 'black',
+        backgroundColor: 'rgba(0, 0, 0, 0.6)',
     },
     header: {
         marginTop: Constants.statusBarHeight + 0,
         flexDirection: 'row',
         justifyContent: 'flex-start',
         alignItems: 'center',
-        position: 'relative', 
+        position: 'relative',
         top: 0,
         left: 0,
         right: 0,
@@ -164,6 +159,42 @@ export default styles = StyleSheet.create({
         shadowOpacity: 0,
         shadowRadius: 0,
         elevation: 0,
+    },
+    homeButtonContainer: {
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: '80%',
+        marginTop: 20,
+        marginBottom: 20,
+    },
+    rowButtons: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        width: '100%',
+        marginBottom: 10,
+    },
+    fullWidthButton: {
+        marginTop: 5,
+        flexDirection: 'row',
+        paddingLeft: 10,
+        paddingRight: 10,
+        backgroundColor: '#ee8d1ef5',
+        borderWidth: 3,
+        borderColor: 'orange',
+        width: '96%',
+        height: 50,
+        borderRadius: 5,
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        shadowColor: '#000000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 10,
     },
     buttonContainer: {
         flexDirection: 'row',
@@ -466,7 +497,6 @@ export default styles = StyleSheet.create({
         color: '#ccc9c9',
     },
     rulesContainer: {
-        height: 1750,
         flexGrow: 1,
         justifyContent: 'center',
         alignItems: 'center',
@@ -481,10 +511,12 @@ export default styles = StyleSheet.create({
     },
     rulesText: {
         fontSize: 16,
-        paddingRight: 10,
+        top: -60,
+        width: '90%',
         color: '#ccc9c9',
         textAlign: 'center',
         fontFamily: 'AntonRegular',
+        alignSelf: 'center',
     },
     rulesCombination: {
         marginLeft: 20,
@@ -504,6 +536,12 @@ export default styles = StyleSheet.create({
         marginLeft: 10,
         marginRight: 10,
         fontFamily: 'AntonRegular',
+    },
+    smallText: {
+    fontSize: 10,
+    marginLeft: 10,
+    color: 'white',
+    width: 60,
     },
     lockedTextColor: {
         color: 'black',
@@ -737,7 +775,7 @@ export default styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'center',
         marginTop: 20,
-        marginBottom: 10,  
+        marginBottom: 10,
     },
     tabText: {
         fontSize: 16,
@@ -747,7 +785,7 @@ export default styles = StyleSheet.create({
     },
     activeTab: {
         borderBottomWidth: 2,
-        borderBottomColor: 'gold', 
+        borderBottomColor: 'gold',
         padding: 10,
     },
     inactiveTab: {
@@ -755,7 +793,7 @@ export default styles = StyleSheet.create({
     },
     scoresHeaderContainer: {
         alignItems: 'center',
-        marginTop: 20,  
+        marginTop: 20,
     },
     scoresHeaderText: {
         fontSize: 24,
