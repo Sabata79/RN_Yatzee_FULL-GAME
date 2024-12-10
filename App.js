@@ -66,7 +66,7 @@ export default function App() {
                 tabBarActiveTintColor: '#ffffff',
                 tabBarInactiveTintColor: '#22201e',
                 tabBarLabelStyle: {
-                  fontSize: 12,
+                  fontSize: 10,
                   fontFamily: 'AntonRegular',
                 },
                 tabBarIndicatorStyle: { height: 0 },
