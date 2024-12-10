@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native';
 import Scoreboard from './components/Scoreboard';
 import Gameboard from './components/Gameboard';
 import About from './components/AboutMe';
+import Rules from './components/Rules';
 import Home from './components/Home';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -27,22 +28,22 @@ export default function App() {
     AntonRegular: require('./assets/fonts/Anton-Regular.ttf'),
   });
 
-  useEffect(() => {
-    const checkForUpdates = async () => {
-      try {
-        const update = await Updates.checkForUpdateAsync();
-        if (update.isAvailable) {
-          await Updates.fetchUpdateAsync();
-          alert('Update available. Reloading...');
-          Updates.reloadAsync(); 
-        }
-      } catch (e) {
-        console.error('Update failure: ', e);
-      }
-    };
+  // useEffect(() => {
+  //   const checkForUpdates = async () => {
+  //     try {
+  //       const update = await Updates.checkForUpdateAsync();
+  //       if (update.isAvailable) {
+  //         await Updates.fetchUpdateAsync();
+  //         alert('Update available. Reloading...');
+  //         Updates.reloadAsync(); 
+  //       }
+  //     } catch (e) {
+  //       console.error('Update failure: ', e);
+  //     }
+  //   };
 
-    checkForUpdates();
-  }, []);
+  //   checkForUpdates();
+  // }, []);
 
   if (!loaded) {
     return null;
@@ -100,6 +101,16 @@ export default function App() {
                         color={focused ? '#ffffff' : 'black'}
                       />
                     );
+                  } else if (route.name === 'Rules') {
+                    iconName = 'book';
+                    return (
+                      <FontAwesome5
+                        name={iconName}
+                        size={24}
+                        color={focused ? '#ffffff' : 'black'}
+                        style={{ marginLeft: 4 }}
+                      />
+                    );
                   } else if (route.name === 'About Me') {
                     iconName = 'info';
                     return (
@@ -132,6 +143,7 @@ export default function App() {
                 playerId={playerId}
               />
               <Tab.Screen name="Scoreboard" component={Scoreboard} />
+              <Tab.Screen name="Rules" component={Rules} />
               <Tab.Screen name="About Me" component={About} />
             </Tab.Navigator>
             <Footer />
