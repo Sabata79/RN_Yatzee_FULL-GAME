@@ -4,7 +4,7 @@ import { DataTable } from 'react-native-paper';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import styles from '../styles/styles';
-import { NBR_OF_SCOREBOARD_ROWS } from '../constants/Game';
+import { NBR_OF_SCOREBOARD_ROWS, SCORE_COMPARSION_TEXT } from '../constants/Game';
 import { database } from './Firebase';
 import { ref, onValue } from 'firebase/database';
 import * as SecureStore from 'expo-secure-store';
@@ -176,17 +176,10 @@ export default function Scoreboard({ navigation }) {
                 onPress={() => setInfoModalVisible(false)}>
                 <Text style={styles.modalCloseButtonText}>X</Text>
               </TouchableOpacity>
-
-              <Text style={styles.modalText}>How Scores Are Compared</Text>
-              <Text style={styles.modalSubText}>
-                1. **Points**: Higher points are ranked first.
-              </Text>
-              <Text style={styles.modalSubText}>
-                2. **Duration**: If points are equal, the score with the shorter duration comes first.
-              </Text>
-              <Text style={styles.modalSubText}>
-                3. **Date/Time**: If both points and duration are equal, the score that was achieved earlier is ranked higher.
-              </Text>
+            <Text style={styles.modalText}>{SCORE_COMPARSION_TEXT.title}</Text>
+            <Text style={styles.modalSubText}>{SCORE_COMPARSION_TEXT.points}</Text>
+            <Text style={styles.modalSubText}>{SCORE_COMPARSION_TEXT.duration}</Text>
+            <Text style={styles.modalSubText}>{SCORE_COMPARSION_TEXT.dateTime}</Text>
             </View>
           </View>
         </Modal>
