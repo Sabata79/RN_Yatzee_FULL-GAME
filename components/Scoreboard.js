@@ -124,25 +124,34 @@ export default function Scoreboard({ navigation }) {
                 <DataTable.Title style={styles.cell}><Text style={styles.scoreboardHeader}>Points</Text></DataTable.Title>
               </DataTable.Header>
 
-              {scores.slice(0, NBR_OF_SCOREBOARD_ROWS).map((score, index) => (
-                <DataTable.Row key={score.playerId} onPress={() => handlePlayerCard(score.playerId, score.name, score.scores)}>
-                  <DataTable.Cell style={styles.cell}>
-                    {index === 0 && <FontAwesome5 name="medal" size={30} color="gold" />}
-                    {index === 1 && <FontAwesome5 name="medal" size={25} color="silver" />}
-                    {index === 2 && <FontAwesome5 name="medal" size={20} color="brown" />}
-                    {index > 2 && <Text style={styles.scoreboardText}>{index + 1}.</Text>}
-                  </DataTable.Cell>
-                  <DataTable.Cell style={styles.cell}>
-                    <Text style={styles.scoreboardText}>{score.name}</Text>
-                  </DataTable.Cell>
-                  <DataTable.Cell style={styles.cell}>
-                    <Text style={styles.scoreboardText}>{score.duration}s</Text>
-                  </DataTable.Cell>
-                  <DataTable.Cell style={styles.cell}>
-                    <Text style={[styles.scoreboardText, { fontSize: 14 }]}>{score.points}</Text>
-                  </DataTable.Cell>
-                </DataTable.Row>
-              ))}
+              {scores.slice(0, NBR_OF_SCOREBOARD_ROWS).map((score, index) => {
+                // Check if this is the logged-in user
+                const isCurrentUser = score.playerId === userId;
+
+                return (
+                  <DataTable.Row 
+                    key={score.playerId} 
+                    onPress={() => handlePlayerCard(score.playerId, score.name, score.scores)}
+                    style={isCurrentUser ? { backgroundColor: '#d3bd86' } : {}} 
+                  >
+                    <DataTable.Cell style={styles.cell}>
+                      {index === 0 && <FontAwesome5 name="medal" size={30} color="gold" />}
+                      {index === 1 && <FontAwesome5 name="medal" size={25} color="silver" />}
+                      {index === 2 && <FontAwesome5 name="medal" size={20} color="brown" />}
+                      {index > 2 && <Text style={styles.scoreboardText}>{index + 1}.</Text>}
+                    </DataTable.Cell>
+                    <DataTable.Cell style={styles.cell}>
+                      <Text style={styles.scoreboardText}>{score.name}</Text>
+                    </DataTable.Cell>
+                    <DataTable.Cell style={styles.cell}>
+                      <Text style={styles.scoreboardText}>{score.duration}s</Text>
+                    </DataTable.Cell>
+                    <DataTable.Cell style={styles.cell}>
+                      <Text style={[styles.scoreboardText, { fontSize: 14, fontWeight: 'bold' }]}>{score.points}</Text>
+                    </DataTable.Cell>
+                  </DataTable.Row>
+                );
+              })}
             </DataTable>
           )}
         </ScrollView>
