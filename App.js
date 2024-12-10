@@ -1,3 +1,4 @@
+import * as Updates from 'expo-updates';
 import React, { useState, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native';
@@ -22,11 +23,27 @@ export default function App() {
 
   const Tab = createMaterialTopTabNavigator();
 
-  useEffect(() => { }, [isUserRecognized, name, playerId]);
-
   const [loaded] = useFonts({
     AntonRegular: require('./assets/fonts/Anton-Regular.ttf'),
   });
+
+  useEffect(() => {
+    const checkForUpdates = async () => {
+      try {
+        const update = await Updates.checkForUpdateAsync();
+        if (update.isAvailable) {
+          await Updates.fetchUpdateAsync();
+          alert('Update available. Reloading...');
+          Updates.reloadAsync(); 
+        }
+      } catch (e) {
+        console.error('Update failure: ', e);
+      }
+    };
+
+    checkForUpdates();
+  }, []);
+
   if (!loaded) {
     return null;
   }
@@ -95,19 +112,17 @@ export default function App() {
                     );
                   }
                 },
-              })}
-            >
+              })}>
               <Tab.Screen
                 name="Home"
                 options={{
                   tabBarStyle: { display: 'none' },
-                }}
-              >
+                }}>
                 {() => (
                   <Home
                     setIsUserRecognized={setIsUserRecognized}
                     setName={setName}
-                    setPlayerId={setPlayerId} // Varmista, että tämä menee oikein
+                    setPlayerId={setPlayerId}
                   />
                 )}
               </Tab.Screen>
@@ -116,14 +131,8 @@ export default function App() {
                 component={Gameboard}
                 playerId={playerId}
               />
-              <Tab.Screen
-                name="Scoreboard"
-                component={Scoreboard}
-              />
-              <Tab.Screen
-                name="About Me"
-                component={About}
-              />
+              <Tab.Screen name="Scoreboard" component={Scoreboard} />
+              <Tab.Screen name="About Me" component={About} />
             </Tab.Navigator>
             <Footer />
           </NavigationContainer>
