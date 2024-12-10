@@ -60,7 +60,10 @@ export default function Scoreboard({ navigation }) {
             if (scoresToUse.length > 0) {
               let bestScore = null;
               scoresToUse.forEach(score => {
-                if (!bestScore || score.points > bestScore.points) {
+                if (!bestScore || 
+                    score.points > bestScore.points || 
+                    (score.points === bestScore.points && score.duration < bestScore.duration) || 
+                    (score.points === bestScore.points && score.duration === bestScore.duration && new Date(score.date) < new Date(bestScore.date))) {
                   bestScore = score;
                 }
               });
@@ -117,6 +120,7 @@ export default function Scoreboard({ navigation }) {
               <DataTable.Header>
                 <DataTable.Title style={styles.cell}><Text style={styles.scoreboardHeader}>Rank #</Text></DataTable.Title>
                 <DataTable.Title style={styles.cell}><Text style={styles.scoreboardHeader}>Name</Text></DataTable.Title>
+                <DataTable.Title style={styles.cell}><Text style={styles.scoreboardHeader}>Duration</Text></DataTable.Title>
                 <DataTable.Title style={styles.cell}><Text style={styles.scoreboardHeader}>Points</Text></DataTable.Title>
               </DataTable.Header>
 
@@ -126,10 +130,17 @@ export default function Scoreboard({ navigation }) {
                     {index === 0 && <FontAwesome5 name="medal" size={30} color="gold" />}
                     {index === 1 && <FontAwesome5 name="medal" size={25} color="silver" />}
                     {index === 2 && <FontAwesome5 name="medal" size={20} color="brown" />}
-                    {index > 2 && <Text style={styles.scoreboardText}>{index + 1}</Text>}
+                    {index > 2 && <Text style={styles.scoreboardText}>{index + 1}.</Text>}
                   </DataTable.Cell>
-                  <DataTable.Cell style={styles.cell}><Text style={styles.scoreboardText}>{score.name}</Text></DataTable.Cell>
-                  <DataTable.Cell style={styles.cell}><Text style={styles.scoreboardText}>{score.points}</Text></DataTable.Cell>
+                  <DataTable.Cell style={styles.cell}>
+                    <Text style={styles.scoreboardText}>{score.name}</Text>
+                  </DataTable.Cell>
+                  <DataTable.Cell style={styles.cell}>
+                    <Text style={styles.scoreboardText}>{score.duration}s</Text>
+                  </DataTable.Cell>
+                  <DataTable.Cell style={styles.cell}>
+                    <Text style={[styles.scoreboardText, { fontSize: 14 }]}>{score.points}</Text>
+                  </DataTable.Cell>
                 </DataTable.Row>
               ))}
             </DataTable>
