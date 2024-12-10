@@ -12,7 +12,7 @@ export const SMALL_STRAIGHT_POINTS = 30;
 export const LARGE_STRAIGHT_POINTS = 40;
 
 // Data handling
-export const TOPSCORELIMIT = 50;
+export const TOPSCORELIMIT = 3000;
 
 //  Base description for the rules
 export const rulesTextContent = `
