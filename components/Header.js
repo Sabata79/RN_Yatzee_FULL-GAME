@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
 import { View, Text, Pressable } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
-import { useGame } from './GameContext'; // Tuodaan GameContext
 import PlayerCard from './PlayerCard'; 
-import styles from '../styles/styles'; // Tuodaan tyylit
+import styles from '../styles/styles'; 
 
-export default function Header({ isUserRecognized, name }) {
-  const { playerId } = useGame(); // Haetaan playerId GameContextista
-  const [isModalVisible, setModalVisible] = useState(false); // Modalin näkyvyyden hallinta
+export default function Header({ isUserRecognized, name, playerId }) {
+  const [isModalVisible, setModalVisible] = useState(false);
+
+  const selectedPlayer = {
+    playerId: playerId,
+    playerName: name,
+  };
 
   return (
     <View style={styles.header}>
@@ -21,7 +24,9 @@ export default function Header({ isUserRecognized, name }) {
             pressed && styles.userButtonPressed,
             { marginLeft: 'auto', top: -5 },
           ]}
-          onPress={() => setModalVisible(true)} // Avaa PlayerCard modaalin
+          onPress={() => {
+            setModalVisible(true);
+          }} 
         >
           <Text style={styles.userName}>{name}</Text>
           <FontAwesome5
@@ -33,13 +38,12 @@ export default function Header({ isUserRecognized, name }) {
         </Pressable>
       )}
 
-      {/* Näytetään pelaajakortti modaalina */}
-      {playerId && name && (
+      {isModalVisible && selectedPlayer && (
         <PlayerCard
-          playerId={playerId}
-          playerName={name}
-          isModalVisible={isModalVisible} // Välitetään modalin näkyvyys
-          setModalVisible={setModalVisible} // Asetetaan modalin näkyvyys
+          playerId={selectedPlayer.playerId}
+          playerName={selectedPlayer.playerName}
+          isModalVisible={isModalVisible} 
+          setModalVisible={setModalVisible} 
         />
       )}
     </View>
