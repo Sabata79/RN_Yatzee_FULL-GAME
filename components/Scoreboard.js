@@ -4,19 +4,21 @@ import { DataTable } from 'react-native-paper';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import styles from '../styles/styles';
-import { NBR_OF_SCOREBOARD_ROWS, SCORE_COMPARSION_TEXT } from '../constants/Game';
+import { NBR_OF_SCOREBOARD_ROWS } from '../constants/Game';
 import { database } from './Firebase';
 import { ref, onValue } from 'firebase/database';
 import * as SecureStore from 'expo-secure-store';
 import PlayerCard from './PlayerCard';
+import { useGame } from '../components/GameContext';
 
 export default function Scoreboard({ navigation }) {
   const [scores, setScores] = useState([]);
-  const [scoreType, setScoreType] = useState('allTime'); 
+  const [scoreType, setScoreType] = useState('allTime');
   const [userId, setUserId] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
-  const [selectedPlayer, setSelectedPlayer] = useState(null); 
-  const [infoModalVisible, setInfoModalVisible] = useState(false); 
+  const [selectedPlayer, setSelectedPlayer] = useState(null);
+
+  const { setViewingPlayerIdContext, setViewingPlayerNameContext } = useGame(); 
 
   useEffect(() => {
     SecureStore.getItemAsync('user_id').then((storedUserId) => {
@@ -60,9 +62,9 @@ export default function Scoreboard({ navigation }) {
             if (scoresToUse.length > 0) {
               let bestScore = null;
               scoresToUse.forEach(score => {
-                if (!bestScore || 
-                    score.points > bestScore.points || 
-                    (score.points === bestScore.points && score.duration < bestScore.duration) || 
+                if (!bestScore ||
+                    score.points > bestScore.points ||
+                    (score.points === bestScore.points && score.duration < bestScore.duration) ||
                     (score.points === bestScore.points && score.duration === bestScore.duration && new Date(score.date) < new Date(bestScore.date))) {
                   bestScore = score;
                 }
@@ -89,6 +91,15 @@ export default function Scoreboard({ navigation }) {
   const handlePlayerCard = (playerId, playerName, playerScores) => {
     setSelectedPlayer({ playerId, playerName, playerScores });
     setModalVisible(true);
+    setViewingPlayerIdContext(playerId);
+    setViewingPlayerNameContext(playerName);
+  };
+
+  const closeModal = () => {
+    setModalVisible(false);
+    setSelectedPlayer(null);
+    setViewingPlayerIdContext(''); 
+    setViewingPlayerNameContext('');  
   };
 
   return (
@@ -102,7 +113,7 @@ export default function Scoreboard({ navigation }) {
           <View style={styles.tabContainer}>
             <TouchableOpacity
               style={scoreType === 'allTime' ? styles.activeTab : styles.inactiveTab}
-              onPress={() => setScoreType('allTime')}>
+              onPress={() => setScoreType('allTime')} >
               <Text style={styles.tabText}>All Time</Text>
             </TouchableOpacity>
 
@@ -125,15 +136,13 @@ export default function Scoreboard({ navigation }) {
               </DataTable.Header>
 
               {scores.slice(0, NBR_OF_SCOREBOARD_ROWS).map((score, index) => {
-                // Check if this is the logged-in user
                 const isCurrentUser = score.playerId === userId;
 
                 return (
-                  <DataTable.Row 
-                    key={score.playerId} 
+                  <DataTable.Row
+                    key={score.playerId}
                     onPress={() => handlePlayerCard(score.playerId, score.name, score.scores)}
-                    style={isCurrentUser ? { backgroundColor: '#d3bd86' } : {}} 
-                  >
+                    style={isCurrentUser ? { backgroundColor: '#d3bd86' } : {}} >
                     <DataTable.Cell style={styles.cell}>
                       {index === 0 && <FontAwesome5 name="medal" size={30} color="gold" />}
                       {index === 1 && <FontAwesome5 name="medal" size={25} color="silver" />}
@@ -155,34 +164,6 @@ export default function Scoreboard({ navigation }) {
             </DataTable>
           )}
         </ScrollView>
-
-        {/* Info Button */}
-        <TouchableOpacity
-          style={styles.infoButton}
-          onPress={() => setInfoModalVisible(true)}>
-          <FontAwesome5 name="info-circle" size={40} color="white" />
-        </TouchableOpacity>
-
-        {/* Info Modal */}
-        <Modal
-          animationType="slide"
-          transparent={true}
-          visible={infoModalVisible}
-          onRequestClose={() => setInfoModalVisible(false)}>
-          <View style={styles.modalCenteredView}>
-            <View style={styles.modalView}>
-              <TouchableOpacity
-                style={styles.modalCloseButton}
-                onPress={() => setInfoModalVisible(false)}>
-                <Text style={styles.modalCloseButtonText}>X</Text>
-              </TouchableOpacity>
-            <Text style={styles.modalText}>{SCORE_COMPARSION_TEXT.title}</Text>
-            <Text style={styles.modalSubText}>{SCORE_COMPARSION_TEXT.points}</Text>
-            <Text style={styles.modalSubText}>{SCORE_COMPARSION_TEXT.duration}</Text>
-            <Text style={styles.modalSubText}>{SCORE_COMPARSION_TEXT.dateTime}</Text>
-            </View>
-          </View>
-        </Modal>
       </View>
 
       {/* PlayerCard modal for displaying selected player's details */}
@@ -190,14 +171,14 @@ export default function Scoreboard({ navigation }) {
         animationType="slide"
         transparent={true}
         visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}>
+        onRequestClose={closeModal}>
         {selectedPlayer && (
           <PlayerCard
             playerId={selectedPlayer.playerId}
             playerName={selectedPlayer.playerName}
             playerScores={selectedPlayer.playerScores}
             isModalVisible={modalVisible}
-            setModalVisible={setModalVisible}
+            setModalVisible={closeModal}
           />
         )}
       </Modal>
