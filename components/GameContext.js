@@ -1,50 +1,89 @@
 import { set } from 'firebase/database';
 import React, { createContext, useState, useContext } from 'react';
 
-// Luo GameContext
 const GameContext = createContext();
 
 export const useGame = () => {
-  
-  return useContext(GameContext); 
+
+  return useContext(GameContext);
 };
 
 export const GameProvider = ({ children }) => {
   const [playerId, setPlayerId] = useState('');
+  const [playerName, setPlayerName] = useState('');
+  const [activePlayerId, setActivePlayerId] = useState('');
+  const [playerScores, setPlayerScores] = useState([]);
   const [gameStarted, setGameStarted] = useState(false);
   const [gameEnded, setGameEnded] = useState(false);
   const [totalPoints, setTotalPoints] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
-  const [isGameSaved, setIsGameSaved] = useState(false); 
+  const [isGameSaved, setIsGameSaved] = useState(false);
+  const [viewingPlayerId, setViewingPlayerId] = useState(''); 
+  const [viewingPlayerName, setViewingPlayerName] = useState('');
 
-  const setPlayerIdContext = (id) => {
-    setPlayerId(id); 
+    const setActivePlayer = (id, name) => {
+    setActivePlayerId(id);
+    setPlayerName(name);
   };
 
-    const setElapsedTimeContext = (time) => {
-    setElapsedTime(time); 
+  const setPlayerIdContext = (id) => {
+    setPlayerId(id);
+  };
+
+  const setElapsedTimeContext = (time) => {
+    setElapsedTime(time);
+  };
+
+  const setPlayerScoresContext = (scores) => {
+    setPlayerScores(scores); 
+  };
+
+  const setPlayerNameContext = (name) => {
+    setPlayerName(name); 
+  };
+
+  const setViewingPlayerIdContext = (id) => {
+    setViewingPlayerId(id);
+  };
+
+  const setViewingPlayerNameContext = (name) => {
+    setViewingPlayerName(name);
+  };
+
+  const resetViewingPlayer = () => {
+    setViewingPlayerId(null);
+    setViewingPlayerName(null);
   };
 
   const startGame = () => {
     setGameStarted(true);
-    setGameEnded(false); 
-    setElapsedTime(0); 
+    setGameEnded(false);
+    setElapsedTime(0);
   };
 
   const endGame = () => {
-    setGameEnded(true); 
-    setGameStarted(false); 
-    setElapsedTimeContext(elapsedTime); 
+    setGameEnded(true);
+    setGameStarted(false);
+    setElapsedTimeContext(elapsedTime);
   };
 
   const saveGame = () => {
-    setIsGameSaved(true); 
+    setIsGameSaved(true);
   };
 
   return (
     <GameContext.Provider value={{
       playerId,
+      playerName,
+      activePlayerId,
+      viewingPlayerId,
+      viewingPlayerName,
+      playerScores,
       setPlayerIdContext,
+      setPlayerScoresContext,
+      setPlayerNameContext,
+      setViewingPlayerIdContext,
+      setViewingPlayerNameContext,
       gameStarted,
       gameEnded,
       startGame,
@@ -56,6 +95,7 @@ export const GameProvider = ({ children }) => {
       saveGame,
       isGameSaved,
       setIsGameSaved,
+      resetViewingPlayer,
     }}>
       {children}
     </GameContext.Provider>
