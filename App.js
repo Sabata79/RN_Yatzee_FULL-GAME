@@ -21,30 +21,42 @@ export default function App() {
   const [isUserRecognized, setIsUserRecognized] = useState(false);
   const [name, setName] = useState('');
   const [playerId, setPlayerId] = useState('');
+  const [updateAvailable, setUpdateAvailable] = useState(false);
 
   const Tab = createMaterialTopTabNavigator();
 
+  // Update check if not in development environment
+  useEffect(() => {
+    
+    if (!__DEV__) {
+      const checkForUpdates = async () => {
+        try {
+          const update = await Updates.checkForUpdateAsync();
+          if (update.isAvailable) {
+            await Updates.fetchUpdateAsync();
+            setUpdateAvailable(true); 
+          }
+        } catch (e) {
+          console.error('Update failure: ', e);
+        }
+      };
+      checkForUpdates();
+    }
+  }, []);
+
+  // Lataa fontit, kun päivitys on tarkistettu
   const [loaded] = useFonts({
     AntonRegular: require('./assets/fonts/Anton-Regular.ttf'),
   });
 
-  // useEffect(() => {
-  //   const checkForUpdates = async () => {
-  //     try {
-  //       const update = await Updates.checkForUpdateAsync();
-  //       if (update.isAvailable) {
-  //         await Updates.fetchUpdateAsync();
-  //         alert('Update available. Reloading...');
-  //         Updates.reloadAsync(); 
-  //       }
-  //     } catch (e) {
-  //       console.error('Update failure: ', e);
-  //     }
-  //   };
+  useEffect(() => {
+    if (updateAvailable) {
+      alert('Update available. Reloading...');
+      Updates.reloadAsync(); // Lataa sovellus uudelleen päivityksen jälkeen
+    }
+  }, [updateAvailable]);
 
-  //   checkForUpdates();
-  // }, []);
-
+  // Jos fontit eivät ole ladattu, palauta null
   if (!loaded) {
     return null;
   }
