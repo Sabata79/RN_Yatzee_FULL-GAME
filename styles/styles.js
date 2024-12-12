@@ -309,7 +309,7 @@ export default styles = StyleSheet.create({
         flex: 6,
     },
     loadingContainer: {
-        marginTop: 20,
+        marginTop: 30,
     },
     icon: {
         justifyContent: 'center',

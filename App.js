@@ -72,13 +72,13 @@ export default function App() {
               screenOptions={({ route }) => ({
                 headerShown: false,
                 tabBarStyle: {
-                  height: 70,
+                  height: 75,
                   backgroundColor: 'darkorange',
                 },
                 tabBarActiveTintColor: '#ffffff',
                 tabBarInactiveTintColor: '#22201e',
                 tabBarLabelStyle: {
-                  fontSize: 10,
+                  fontSize: 9,
                   fontFamily: 'AntonRegular',
                 },
                 tabBarIndicatorStyle: { height: 0 },
@@ -120,7 +120,7 @@ export default function App() {
                         name={iconName}
                         size={24}
                         color={focused ? '#ffffff' : 'black'}
-                        style={{ marginLeft: 4 }}
+                        style={{ marginLeft: 0 }}
                       />
                     );
                   } else if (route.name === 'About Me') {
