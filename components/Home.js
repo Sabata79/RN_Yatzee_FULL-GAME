@@ -7,7 +7,8 @@ import * as SecureStore from 'expo-secure-store';
 import { database } from '../components/Firebase';
 import { ref, onValue, set, get } from 'firebase/database';
 import uuid from 'react-native-uuid';
-import { useNavigation } from '@react-navigation/native';  // Tuotu navigation
+import { useNavigation } from '@react-navigation/native';  
+import { useGame } from '../components/GameContext';
 
 export default function Home({ setIsUserRecognized, setName, setPlayerId }) {
   const [localName, setLocalName] = useState('');
@@ -15,7 +16,17 @@ export default function Home({ setIsUserRecognized, setName, setPlayerId }) {
   const [loading, setLoading] = useState(true);
   const [isUserRecognized, setUserRecognized] = useState(false);
   const inputRef = useRef(null);
-  const navigation = useNavigation(); // Käytetään useNavigation hookia
+  const navigation = useNavigation();
+
+  const { setPlayerIdContext, setPlayerNameContext } = useGame();
+
+  
+  useEffect(() => {
+    if (localName && playerId) {
+      setPlayerIdContext(playerId);
+      setPlayerNameContext(localName);
+    }
+  }, [localName, playerId]);
 
   useEffect(() => {
     getOrCreateUserId().then((userId) => {
@@ -71,15 +82,19 @@ export default function Home({ setIsUserRecognized, setName, setPlayerId }) {
     } else if (localName.length < 3 || localName.length > 10) {
       Alert.alert('Name is too short', 'Please enter a name with at least 3 characters and maximum 10 characters.');
     } else {
-      setUserRecognized(true);  
-      setIsUserRecognized(true);  
+      setUserRecognized(true);
+      setIsUserRecognized(true);
 
       if (!playerId) {
         const newPlayerId = uuid.v4();
-        setLocalPlayerId(newPlayerId);
+        setLocalPlayerId(newPlayerId); 
         setPlayerId(newPlayerId);
+        setPlayerIdContext(newPlayerId); 
+        setPlayerNameContext(localName); 
         saveNewPlayer(localName, newPlayerId);
       } else {
+        setPlayerIdContext(playerId);
+        setPlayerNameContext(localName);
         saveNewPlayer(localName, playerId);
       }
     }
@@ -90,8 +105,8 @@ export default function Home({ setIsUserRecognized, setName, setPlayerId }) {
   };
 
   const handleChangeName = () => {
-    setLocalName(''); 
-    setUserRecognized(false); 
+    setLocalName('');
+    setUserRecognized(false);
     setIsUserRecognized(false);
   };
 
@@ -147,9 +162,9 @@ export default function Home({ setIsUserRecognized, setName, setPlayerId }) {
                     style={({ pressed }) => [
                       styles.button,
                       pressed && styles.buttonPressed,
-                      styles.fullWidthButton, 
+                      styles.fullWidthButton,
                     ]}
-                    onPress={() => navigation.navigate('Rules')} 
+                    onPress={() => navigation.navigate('Rules')}
                   >
                     <Text style={styles.buttonText}>Rules</Text>
                     <FontAwesome5 name="book" size={30} color="black" />
