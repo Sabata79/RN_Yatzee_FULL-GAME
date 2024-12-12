@@ -1,129 +1,133 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Modal, Pressable, ScrollView, Image } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
+import { useGame } from '../components/GameContext';  
+import styles from '../styles/playerCardStyles';  
 import { database } from './Firebase';
 import { ref, onValue } from 'firebase/database';
-import styles from '../styles/playerCardStyles';
 
-export default function PlayerCard({ playerId, playerName, isModalVisible, setModalVisible }) {
+export default function PlayerCard({ isModalVisible, setModalVisible }) {
+    const { playerId, playerName, viewingPlayerId, viewingPlayerName, resetViewingPlayer } = useGame();  
+
     const [topScores, setTopScores] = useState([]);
     const [avatarUrl, setAvatarUrl] = useState('');
-    const [monthlyRanks, setMonthlyRanks] = useState(Array(12).fill(null)); 
-    const currentMonth = new Date().getMonth(); 
+    const [monthlyRanks, setMonthlyRanks] = useState(Array(12).fill(null));
+    const currentMonth = new Date().getMonth();
 
-    // Month names
-    const months = [
-        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-    ];
+    // Use the viewingPlayerId if it exists, otherwise use playerId
+    const idToUse = viewingPlayerId || playerId;
+    const nameToUse = viewingPlayerName || playerName;
 
-    // Get top 5 scores for the user
+    useEffect(() => {
+        if (isModalVisible && idToUse) {
+            console.log('Selected Player ID in PlayerCard:', idToUse);
+            fetchTopScores();
+            fetchMonthlyRanks();
+        }
+    }, [isModalVisible, idToUse]);
+
+    useEffect(() => {
+        // Reset viewing player when modal is closed
+        if (!isModalVisible) {
+            resetViewingPlayer();
+        }
+    }, [isModalVisible, resetViewingPlayer]);
+
     const fetchTopScores = () => {
-        if (playerId) {
-            const playerRef = ref(database, `players/${playerId}/scores`);
+        if (idToUse) {
+            const playerRef = ref(database, `players/${idToUse}/scores`);
             onValue(playerRef, (snapshot) => {
                 if (snapshot.exists()) {
                     const scores = snapshot.val();
                     const sortedScores = Object.values(scores)
                         .map(score => ({
-                            points: score.points, 
-                            date: score.date,     
-                            duration: score.duration, 
-                            time: score.time,     
+                            points: score.points,
+                            date: score.date,
+                            duration: score.duration,
+                            time: score.time,
                         }))
-                        .sort((a, b) => b.points - a.points) 
-                        .slice(0, 5); 
-                    setTopScores(sortedScores);
+                        .sort((a, b) => b.points - a.points)  // Sort scores by points
+                        .slice(0, 5); // Slice to get only top 5
+                    setTopScores(sortedScores);  // Update topScores state
                 } else {
-                    setTopScores([]);
+                    setTopScores([]);  // If no scores exist
                 }
             });
         }
     };
 
-    // Get monthly ranks based on scores
     const fetchMonthlyRanks = () => {
-        if (playerId) {
+        const monthlyScores = Array(12).fill([]);
 
-            const playerRef = ref(database, `players`);
-            onValue(playerRef, (snapshot) => {
-                if (snapshot.exists()) {
-                    const playersData = snapshot.val(); 
-                    const currentYear = new Date().getFullYear();
-                    const currentMonth = new Date().getMonth(); 
-                    const monthlyScores = Array(12).fill([]); 
+        const playerRef = ref(database, `players`);
+        onValue(playerRef, (snapshot) => {
+            if (snapshot.exists()) {
+                const playersData = snapshot.val();
+                const currentYear = new Date().getFullYear();
+                const currentMonth = new Date().getMonth(); 
 
-                    Object.keys(playersData).forEach(playerId => {
-                        const playerScores = playersData[playerId].scores || {}; 
+                // Loop through all players and their scores
+                Object.keys(playersData).forEach(playerId => {
+                    const playerScores = playersData[playerId].scores || {};
 
-                        Object.values(playerScores).forEach(score => {
-                            const scoreDate = new Date(score.date.split('.').reverse().join('-')); // "4.12.2024" -> "2024-12-04"
+                    Object.values(playerScores).forEach(score => {
+                        const scoreDate = new Date(score.date.split('.').reverse().join('-')); // "4.12.2024" -> "2024-12-04"
 
-                            if (scoreDate.getFullYear() === currentYear) {
-                                const monthIndex = scoreDate.getMonth();                
-                                const existingMonthScores = monthlyScores[monthIndex];
-                                const playerBestScore = existingMonthScores.find(score => score.playerId === playerId);
+                        if (scoreDate.getFullYear() === currentYear) {
+                            const monthIndex = scoreDate.getMonth();  // Month index 0-11
+                            const existingMonthScores = monthlyScores[monthIndex];
+                            const playerBestScore = existingMonthScores.find(score => score.playerId === playerId);
 
-                                if (!playerBestScore || playerBestScore.points < score.points) {
-
-                                    monthlyScores[monthIndex] = existingMonthScores.filter(score => score.playerId !== playerId);
-                                    monthlyScores[monthIndex].push({
-                                        playerId,
-                                        points: score.points,
-                                        time: score.time,
-                                    });
-                                }
+                            if (!playerBestScore || playerBestScore.points < score.points) {
+                                monthlyScores[monthIndex] = existingMonthScores.filter(score => score.playerId !== playerId);
+                                monthlyScores[monthIndex].push({
+                                    playerId,
+                                    points: score.points,
+                                    time: score.time,
+                                });
                             }
-                        });
-                    });
-
-                    const monthRanks = monthlyScores.map((monthScores, index) => {
-                        if (monthScores.length === 0) {
-                            console.log(`Kuukausi ${months[index]} ei ole tuloksia`);
-                            return '--'; 
                         }
-
-                        monthScores.sort((a, b) => b.points - a.points); 
-                        const rank = monthScores.findIndex(score => score.playerId === playerId) + 1;
-
-                        console.log(`Kuukauden ${months[index]} sijoitus pelaajalle ${playerId}:`, rank);
-
-                        return rank === 0 ? '--' : rank; 
                     });
+                });
 
-                    setMonthlyRanks(monthRanks); 
-                } else {
-                    setMonthlyRanks(Array(12).fill('--'));
-                }
-            });
-        } 
+                // Count ranks for each month
+                const monthRanks = monthlyScores.map((monthScores, index) => {
+                    if (monthScores.length === 0) {
+                        return '--';
+                    }
+
+
+                    monthScores.sort((a, b) => b.points - a.points);
+                    const rank = monthScores.findIndex(score => score.playerId === idToUse) + 1;
+
+                    return rank === 0 ? '--' : rank;
+                });
+
+                setMonthlyRanks(monthRanks);
+            } else {
+                setMonthlyRanks(Array(12).fill('--'));
+            }
+        });
     };
 
-    useEffect(() => {
-        if (isModalVisible && playerId) {
-            fetchTopScores();
-            fetchMonthlyRanks();
-        }
-    }, [isModalVisible, playerId]);
-
-    const getTopScoresWithEmptySlots = () => {
-        const emptyScores = Array(5 - topScores.length).fill({ points: '', date: '', duration: '' });
-        return [...topScores, ...emptyScores].slice(0, 5); 
-    };
-
+    // Trophy visualizations
     const getTrophyForMonth = (monthIndex) => {
-        
         const rank = monthlyRanks[monthIndex];
-        if (rank === '--') return <Text style={styles.emptySlotText}>--</Text>; 
+        if (rank === '--') return <Text style={styles.emptySlotText}>--</Text>;
         if (rank === 1) return <FontAwesome5 name="trophy" size={30} color="gold" />;
         if (rank === 2) return <FontAwesome5 name="trophy" size={25} color="silver" />;
         if (rank === 3) return <FontAwesome5 name="trophy" size={20} color="brown" />;
-        return <Text style={[styles.playerCardMonthText, { fontWeight: 'bold', marginTop: 30, fontSize: 20 }]}>{rank}.</Text>; 
+        return <Text style={[styles.playerCardMonthText, { fontWeight: 'bold', marginTop: 30, fontSize: 20 }]}>{rank}.</Text>;
+    };
+
+    const getTopScoresWithEmptySlots = () => {
+        const emptyScores = Array(5 - topScores.length).fill({ points: '', date: '', duration: '' });
+        return [...topScores, ...emptyScores].slice(0, 5);
     };
 
     return (
         <View style={styles.playerCardContainer}>
-            {/* PlayerCardModal */}
+            {/* PlayerCard Modal */}
             <Modal
                 animationType="slide"
                 transparent={true}
@@ -138,6 +142,8 @@ export default function PlayerCard({ playerId, playerName, isModalVisible, setMo
                         >
                             <Text style={styles.playerCardCloseText}>X</Text>
                         </Pressable>
+
+                        {/* Player name and Avatar */}
                         <View style={styles.playerInfoContainer}>
                             <View style={styles.avatarContainer}>
                                 <Image
@@ -146,12 +152,11 @@ export default function PlayerCard({ playerId, playerName, isModalVisible, setMo
                                 />
                             </View>
                             <View style={styles.playerNameContainer}>
-                                <Text style={styles.playerCardName}>{playerName}</Text>
-
+                                <Text style={styles.playerCardName}>{nameToUse}</Text>
                             </View>
                         </View>
 
-                        {/* TOP 5  */}
+                        {/* TOP 5 */}
                         <ScrollView style={styles.playerCardScoresContainer}>
                             <Text style={styles.playerCardScoresTitle}>YOUR TOP 5 SCORES</Text>
                             {getTopScoresWithEmptySlots().map((score, index) => (
@@ -168,19 +173,16 @@ export default function PlayerCard({ playerId, playerName, isModalVisible, setMo
                             ))}
                         </ScrollView>
 
-                        {/* Trophy cabinet */}
+                        {/* Throphy cabinet */}
                         <View style={styles.playerCardTrophyCase}>
                             <Text style={styles.playerCardTrophyCaseTitle}>TROPHIES 2024</Text>
                             <View style={styles.playerCardMonthsContainer}>
-                                {months.map((month, index) => (
+                                {Array(12).fill(null).map((_, index) => (
                                     <View
                                         key={index}
-                                        style={[
-                                            styles.playerCardMonth,
-                                            index === currentMonth ? styles.playerCardOngoingMonth : null,
-                                        ]}
+                                        style={[styles.playerCardMonth, index === currentMonth ? styles.playerCardOngoingMonth : null]}
                                     >
-                                        <Text style={styles.playerCardMonthText}>{month}</Text>
+                                        <Text style={styles.playerCardMonthText}>{index + 1}</Text>
                                         {getTrophyForMonth(index)}
                                     </View>
                                 ))}
@@ -191,4 +193,4 @@ export default function PlayerCard({ playerId, playerName, isModalVisible, setMo
             </Modal>
         </View>
     );
-}
+}  
