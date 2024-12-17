@@ -61,6 +61,20 @@ export default function Home({ setIsUserRecognized, setName, setPlayerId }) {
     });
   };
 
+    const checkIfNameExists = async (name) => {
+    const playersRef = ref(database, 'players');
+    const snapshot = await get(playersRef);
+    if (snapshot.exists()) {
+      const playersData = snapshot.val();
+      for (let playerId in playersData) {
+        if (playersData[playerId].name === name) {
+          return true;  // Name already exists
+        }
+      }
+    }
+    return false;  // Name is available
+  };
+
   const saveNewPlayer = async (name, userId) => {
     const playerRef = ref(database, `players/${userId}`);
     const snapshot = await get(playerRef);
@@ -76,29 +90,34 @@ export default function Home({ setIsUserRecognized, setName, setPlayerId }) {
     setPlayerId(userId);
   };
 
-  const handlePress = () => {
+  const handlePress = async () => {
     if (localName.trim() === '') {
       Alert.alert('Name is required', 'Please enter your name.');
     } else if (localName.length < 3 || localName.length > 10) {
       Alert.alert('Name is too short', 'Please enter a name with at least 3 characters and maximum 10 characters.');
     } else {
-      setUserRecognized(true);
-      setIsUserRecognized(true);
-
-      if (!playerId) {
-        const newPlayerId = uuid.v4();
-        setLocalPlayerId(newPlayerId); 
-        setPlayerId(newPlayerId);
-        setPlayerIdContext(newPlayerId); 
-        setPlayerNameContext(localName); 
-        saveNewPlayer(localName, newPlayerId);
+      const nameExists = await checkIfNameExists(localName);
+      if (nameExists) {
+        Alert.alert('Name already in use', 'That nickname is already in use. Please choose another.');
       } else {
-        setPlayerIdContext(playerId);
-        setPlayerNameContext(localName);
-        saveNewPlayer(localName, playerId);
+        setUserRecognized(true);
+        setIsUserRecognized(true);
+
+        if (!playerId) {
+          const newPlayerId = uuid.v4();
+          setLocalPlayerId(newPlayerId); 
+          setPlayerId(newPlayerId);
+          setPlayerIdContext(newPlayerId); 
+          setPlayerNameContext(localName); 
+          saveNewPlayer(localName, newPlayerId);
+        } else {
+          setPlayerIdContext(playerId);
+          setPlayerNameContext(localName);
+          saveNewPlayer(localName, playerId);
+        }
       }
     }
-  };
+  }
 
   const handlePlay = () => {
     navigation.navigate('Gameboard');
