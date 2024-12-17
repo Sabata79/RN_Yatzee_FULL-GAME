@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { View, Text, TextInput, Pressable, Alert, ImageBackground, ActivityIndicator } from "react-native";
+import { View, Text, TextInput, Pressable, Alert, ImageBackground, ActivityIndicator,Image } from "react-native";
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { FontAwesome5 } from '@expo/vector-icons';
 import styles from '../styles/styles';
@@ -143,6 +143,9 @@ export default function Home({ setIsUserRecognized, setName, setPlayerId }) {
               <View style={styles.rulesContainer}>
                 <Text style={styles.rulesText}>Hi, Stranger! Can you tell your nickname?</Text>
                 <Text style={styles.rulesAuxillaryText}>( Nickname must be 3-10 characters long. )</Text>
+                <Image source={require('../assets/register.png')} 
+                        style={styles.registerImage} 
+                />
                 <TextInput
                   ref={inputRef}
                   style={styles.input}
@@ -162,6 +165,9 @@ export default function Home({ setIsUserRecognized, setName, setPlayerId }) {
             ) : (
               <View style={styles.rulesContainer}>
                 <Text style={styles.rulesText}>Hello, {localName}!</Text>
+                  <Image source={require('../assets/hiThere.png')} 
+                  style={styles.hiThereImage} 
+                />
                 <View style={styles.homeButtonContainer}>
                   <View style={styles.rowButtons}>
                     <Pressable
