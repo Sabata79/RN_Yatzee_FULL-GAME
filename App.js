@@ -135,6 +135,7 @@ export default function App() {
                     );
                   }
                 },
+                swipeEnabled: isUserRecognized,
               })}>
               <Tab.Screen
                 name="Home"
