@@ -258,7 +258,7 @@ export default styles = StyleSheet.create({
         borderWidth: 3,
         borderColor: 'black',
         width: '40%',
-        height: '90%',
+        height: '100%',
         borderRadius: 5,
         justifyContent: 'space-between',
         alignItems: 'center',
@@ -278,7 +278,7 @@ export default styles = StyleSheet.create({
         paddingRight: 10,
         backgroundColor: 'orange',
         width: '40%',
-        height: '90%',
+        height: '100%',
         borderRadius: 5,
         justifyContent: 'space-between',
         alignItems: 'center',
@@ -561,12 +561,12 @@ export default styles = StyleSheet.create({
     scoreboardContainer: {
         alignSelf: 'center',
         borderRadius: 5,
-        backgroundColor: '#575555',
+        backgroundColor: '#827f7f',
         width: '95%',
         textAlign: 'center',
         justifyContent: 'center',
         borderColor: '#393838',
-        opacity: 0.90,
+        opacity: 0.96,
         borderWidth: 2,
         shadowColor: '#000000',
         shadowOffset: {
@@ -590,7 +590,7 @@ export default styles = StyleSheet.create({
     },
 
     scoreboardText: {
-        fontSize: 12,
+        fontSize: 14,
         textAlign: 'center',
         fontFamily: 'Roboto',
         fontWeight: '800',
@@ -815,7 +815,8 @@ export default styles = StyleSheet.create({
     registerImage: {
         width: width * 0.9,
         height: height * 0.36,
-        marginBottom: -10,
+        marginBottom: -20,
+        marginTop: -20,
     },
     hiThereImage: {
         width: width * 1, 

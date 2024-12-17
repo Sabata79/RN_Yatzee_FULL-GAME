@@ -156,7 +156,7 @@ export default function Scoreboard({ navigation }) {
                       <Text style={styles.scoreboardText}>{score.duration}s</Text>
                     </DataTable.Cell>
                     <DataTable.Cell style={styles.cell}>
-                      <Text style={[styles.scoreboardText, { fontSize: 14, fontWeight: 'bold' }]}>{score.points}</Text>
+                      <Text style={[styles.scoreboardText, { fontSize: 16 }]}>{score.points}</Text>
                     </DataTable.Cell>
                   </DataTable.Row>
                 );
