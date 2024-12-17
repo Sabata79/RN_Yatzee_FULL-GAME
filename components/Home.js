@@ -68,11 +68,11 @@ export default function Home({ setIsUserRecognized, setName, setPlayerId }) {
       const playersData = snapshot.val();
       for (let playerId in playersData) {
         if (playersData[playerId].name === name) {
-          return true;  // Name already exists
+          return true;
         }
       }
     }
-    return false;  // Name is available
+    return false;
   };
 
   const saveNewPlayer = async (name, userId) => {
@@ -94,7 +94,7 @@ export default function Home({ setIsUserRecognized, setName, setPlayerId }) {
     if (localName.trim() === '') {
       Alert.alert('Name is required', 'Please enter your name.');
     } else if (localName.length < 3 || localName.length > 10) {
-      Alert.alert('Name is too short', 'Please enter a name with at least 3 characters and maximum 10 characters.');
+      Alert.alert('Name is too short', 'Please enter a nickname with at least 3 characters and maximum 10 characters.');
     } else {
       const nameExists = await checkIfNameExists(localName);
       if (nameExists) {
@@ -141,11 +141,12 @@ export default function Home({ setIsUserRecognized, setName, setPlayerId }) {
           <View style={styles.rulesContainer}>
             {!isUserRecognized ? (
               <View style={styles.rulesContainer}>
-                <Text style={styles.rulesText}>Hi, Stranger! Can you tell your name?</Text>
+                <Text style={styles.rulesText}>Hi, Stranger! Can you tell your nickname?</Text>
+                <Text style={styles.rulesAuxillaryText}>( Nickname must be 3-10 characters long. )</Text>
                 <TextInput
                   ref={inputRef}
                   style={styles.input}
-                  placeholder="Enter your name"
+                  placeholder="Enter your nickname"
                   placeholderTextColor={'white'}
                   value={localName}
                   onChangeText={(val) => setLocalName(val)}
