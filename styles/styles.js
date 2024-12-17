@@ -1,7 +1,7 @@
 import Constants from 'expo-constants';
 import { Dimensions, StyleSheet } from 'react-native';
 
-const {width, height} = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 export default styles = StyleSheet.create({
 
@@ -550,10 +550,10 @@ export default styles = StyleSheet.create({
         fontFamily: 'AntonRegular',
     },
     smallText: {
-    fontSize: 10,
-    marginLeft: 10,
-    color: 'white',
-    width: 60,
+        fontSize: 10,
+        marginLeft: 10,
+        color: 'white',
+        width: 60,
     },
     lockedTextColor: {
         color: 'black',
@@ -812,15 +812,15 @@ export default styles = StyleSheet.create({
         fontWeight: 'bold',
         color: 'white',
     },
-registerImage: {
-    width: width * 0.9,  // 60% näytön leveydestä
-    height: height * 0.36,  // 30% näytön korkeudesta
-    marginBottom: -10,
-},
-hiThereImage: {
-    width: width * 1, // 80% näytön leveydestä
-    height: height * 0.5, // 50% näytön korkeudesta
-    marginBottom: -120,
-    marginTop: -50,
-},
+    registerImage: {
+        width: width * 0.9,
+        height: height * 0.36,
+        marginBottom: -10,
+    },
+    hiThereImage: {
+        width: width * 1, 
+        height: height * 0.5, 
+        marginBottom: -120,
+        marginTop: -50,
+    },
 });
