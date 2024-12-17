@@ -164,7 +164,7 @@ export default function Home({ setIsUserRecognized, setName, setPlayerId }) {
               </View>
             ) : (
               <View style={styles.rulesContainer}>
-                <Text style={styles.rulesText}>Hello, {localName}!</Text>
+                <Text style={styles.rulesText}>Hi {localName} , let's roll the dice! </Text>
                   <Image source={require('../assets/hiThere.png')} 
                   style={styles.hiThereImage} 
                 />
