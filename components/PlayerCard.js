@@ -13,6 +13,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     const [avatarUrl, setAvatarUrl] = useState('');
     const [monthlyRanks, setMonthlyRanks] = useState(Array(12).fill(null));
     const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
 
     const monthNames = [
         "Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -179,7 +180,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
 
                         {/* Throphy cabinet */}
                         <View style={styles.playerCardTrophyCase}>
-                            <Text style={styles.playerCardTrophyCaseTitle}>TROPHIES 2024</Text>
+                            <Text style={styles.playerCardTrophyCaseTitle}>TROPHIES {currentYear}</Text>
                             <View style={styles.playerCardMonthsContainer}>
                                 {Array(12).fill(null).map((_, index) => (
                                     <View
