@@ -173,6 +173,8 @@ export default styles = StyleSheet.create({
         color: 'black',
         fontSize: 22,
         fontWeight: 'bold',
+        zIndex: 10,
+        padding: 5,
     },
 
 });
