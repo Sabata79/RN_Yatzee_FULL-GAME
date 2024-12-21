@@ -813,7 +813,6 @@ export default function Gameboard({ route, navigation }) {
                 <Pressable
                     onPress={() => {
                         if (!gameStarted && rounds === MAX_SPOTS) {
-                            console.log('Start game button clicked from layer');
                             handleStartGame();
                         }
                     }}
