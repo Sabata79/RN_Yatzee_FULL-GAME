@@ -46,22 +46,99 @@ export default styles = StyleSheet.create({
         borderRadius: 10,
         alignItems: 'center',
     },
-
+    
+// Avatar Styles
     avatarContainer: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
+        width: 100,
+        height: 100,
+        borderRadius: 50,
         overflow: 'hidden',
-        marginBottom: 5,
-        borderWidth: 2,
-        borderColor: '#000',
-        marginRight: 10,
+        marginBottom: 0,
+        borderWidth: 1,
+        padding: 1,
+        borderColor: '#00000063',
+        marginRight: 5,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#000000',
+    },
+    avatarModalBackground: {
+        flex: 1,
+        marginTop: '10%',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.7)', 
+    },
+
+    avatarModalContainer: {
+        width: '80%',
+        height: '90%',
+        backgroundColor: '#141414', 
+        borderRadius: 10,
+        padding: 10,
+        alignItems: 'center',
+    },
+
+    avatarSelectionWrapper: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'space-around',
+        width: '100%',
     },
 
     avatar: {
-        width: '100%',
-        height: '100%',
+        width: 95,
+        height: 95,
+        borderRadius: 50,
+        margin: 5,
         resizeMode: 'cover',
+    },
+
+    editAvatarButton: {
+        position: 'absolute',
+        left: 80,
+        bottom: 0,
+        borderWidth: 1,
+        backgroundColor: '#ff0000ff',
+        borderRadius: 20,
+        padding: 5,
+    },
+    avatarSelectText: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 20,
+        textAlign: 'center',
+        color: '#fff',
+    },
+
+    avatarModalImageContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        width: '100%',
+        marginBottom: 50,
+        borderColor: '#fff', 
+        borderWidth: 2,
+    },
+
+    avatarModalImage: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        padding: 2,
+        margin: 5,
+        resizeMode: 'cover'
+    },
+    closeAvatarModalButton: {
+        position: 'absolute',
+        right: 10,
+        top: 10,
+        color: '#fff',
+        fontSize: 22,
+    },
+    closeAvatarModalText: {
+        color: '#fff',
+        fontSize: 22,
+        fontWeight: 'bold',
+        padding: 5,
     },
 
     scoreRow: {
@@ -69,7 +146,7 @@ export default styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        
+
     },
 
     playerCardScoresContainer: {
@@ -98,8 +175,8 @@ export default styles = StyleSheet.create({
     playerCardScoreDate: {
         fontSize: 10,
         color: '#777',
-        textAlign: 'right', 
-        flex: 1, 
+        textAlign: 'right',
+        flex: 1,
         paddingTop: 5,
         marginRight: 15,
     },
