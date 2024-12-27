@@ -166,9 +166,9 @@ useEffect(() => {
     const getTrophyForMonth = (monthIndex) => {
         const rank = monthlyRanks[monthIndex];
         if (rank === '--') return <Text style={styles.emptySlotText}>--</Text>;
-        if (rank === 1) return <FontAwesome5 name="trophy" size={30} color="gold" />;
-        if (rank === 2) return <FontAwesome5 name="trophy" size={25} color="silver" />;
-        if (rank === 3) return <FontAwesome5 name="trophy" size={20} color="brown" />;
+        if (rank === 1) return <Image source={require('../assets/trophies/goldTrophy.jpeg')} style={styles.playerCardTrophyImage} />;
+        if (rank === 2) return <Image source={require('../assets/trophies/silverTrophy.jpeg')} style={styles.playerCardTrophyImage} />;
+        if (rank === 3) return <Image source={require('../assets/trophies/bronzeTrophy.jpeg')} style={styles.playerCardTrophyImage} />;
         return <Text style={[styles.playerCardMonthText, { fontWeight: 'bold', marginTop: 30, fontSize: 20 }]}>{rank}.</Text>;
     };
 

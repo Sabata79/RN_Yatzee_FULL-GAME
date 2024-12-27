@@ -46,6 +46,11 @@ export default styles = StyleSheet.create({
         borderRadius: 10,
         alignItems: 'center',
     },
+    playerCardTrophyImage: {
+        width: '100%',
+        height: '100%',
+        resizeMode: 'cover',
+    },
     
 // Avatar Styles
     avatarContainer: {
@@ -220,12 +225,13 @@ export default styles = StyleSheet.create({
 
     playerCardMonthText: {
         fontSize: 16,
-        fontWeight: 'normal',
+        fontWeight: 'bold',
         textAlign: 'center',
         color: '#000000',
-        top: 0,
+        top: -5,
         marginBottom: 10,
         position: 'absolute',
+        zIndex: 2,
     },
 
     emptySlotText: {
