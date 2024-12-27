@@ -228,7 +228,7 @@ export default styles = StyleSheet.create({
         fontWeight: 'bold',
         textAlign: 'center',
         color: '#000000',
-        top: -5,
+        top: -2,
         marginBottom: 10,
         position: 'absolute',
         zIndex: 2,
