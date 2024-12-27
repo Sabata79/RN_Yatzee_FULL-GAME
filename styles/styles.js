@@ -561,7 +561,7 @@ export default styles = StyleSheet.create({
     scoreboardContainer: {
         alignSelf: 'center',
         borderRadius: 5,
-        backgroundColor: '#827f7f',
+        backgroundColor: '#b4aeaec4',
         width: '95%',
         textAlign: 'center',
         justifyContent: 'center',
@@ -578,15 +578,31 @@ export default styles = StyleSheet.create({
         elevation: 10,
     },
     cell: {
+        flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
+        height: 65,
+        padding: 0,
+        margin: 0,
     },
-    scoreboardHeader: {
-        fontSize: 14,
-        textAlign: 'center',
-        fontFamily: 'AntonRegular',
-        color: 'black',
-        paddingVertical: 5,
+
+    medalCell: {
+        justifyContent: 'center',
+        height: 60,
+        position: 'relative',
+    },
+
+    imageWrapper: {
+        justifyContent: 'flex-start',
+        alignItems: 'center',
+        height: '100%',
+        width: '100%',
+    },
+
+    medal: {
+        height: 55,
+        width: 55,
+        resizeMode: 'cover',
     },
 
     scoreboardText: {
@@ -596,7 +612,16 @@ export default styles = StyleSheet.create({
         fontWeight: '800',
         color: '#050404',
         paddingVertical: 5,
+        lineHeight: 60,
     },
+    scoreboardHeader: {
+        fontSize: 14,
+        textAlign: 'center',
+        fontFamily: 'AntonRegular',
+        color: 'black',
+        paddingVertical: 5,
+    },
+
     //Modal
     modalCenteredView: {
         flexGrow: 1,
@@ -819,8 +844,8 @@ export default styles = StyleSheet.create({
         marginTop: -20,
     },
     hiThereImage: {
-        width: width * 1, 
-        height: height * 0.5, 
+        width: width * 1,
+        height: height * 0.5,
         marginBottom: -120,
         marginTop: -50,
     },

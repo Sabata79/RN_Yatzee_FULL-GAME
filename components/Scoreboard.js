@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, ImageBackground, TouchableOpacity, Modal } from 'react-native';
+import { View, Text, ScrollView, ImageBackground, TouchableOpacity, Modal, Image } from 'react-native';
 import { DataTable } from 'react-native-paper';
-import { FontAwesome5 } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import styles from '../styles/styles';
 import { NBR_OF_SCOREBOARD_ROWS } from '../constants/Game';
@@ -18,7 +17,7 @@ export default function Scoreboard({ navigation }) {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState(null);
 
-  const { setViewingPlayerIdContext, setViewingPlayerNameContext } = useGame(); 
+  const { setViewingPlayerIdContext, setViewingPlayerNameContext } = useGame();
 
   useEffect(() => {
     SecureStore.getItemAsync('user_id').then((storedUserId) => {
@@ -63,9 +62,9 @@ export default function Scoreboard({ navigation }) {
               let bestScore = null;
               scoresToUse.forEach(score => {
                 if (!bestScore ||
-                    score.points > bestScore.points ||
-                    (score.points === bestScore.points && score.duration < bestScore.duration) ||
-                    (score.points === bestScore.points && score.duration === bestScore.duration && new Date(score.date) < new Date(bestScore.date))) {
+                  score.points > bestScore.points ||
+                  (score.points === bestScore.points && score.duration < bestScore.duration) ||
+                  (score.points === bestScore.points && score.duration === bestScore.duration && new Date(score.date) < new Date(bestScore.date))) {
                   bestScore = score;
                 }
               });
@@ -98,8 +97,8 @@ export default function Scoreboard({ navigation }) {
   const closeModal = () => {
     setModalVisible(false);
     setSelectedPlayer(null);
-    setViewingPlayerIdContext(''); 
-    setViewingPlayerNameContext('');  
+    setViewingPlayerIdContext('');
+    setViewingPlayerNameContext('');
   };
 
   return (
@@ -142,13 +141,27 @@ export default function Scoreboard({ navigation }) {
                   <DataTable.Row
                     key={score.playerId}
                     onPress={() => handlePlayerCard(score.playerId, score.name, score.scores)}
-                    style={isCurrentUser ? { backgroundColor: '#d3bd86' } : {}} >
-                    <DataTable.Cell style={styles.cell}>
-                      {index === 0 && <FontAwesome5 name="medal" size={30} color="gold" />}
-                      {index === 1 && <FontAwesome5 name="medal" size={25} color="silver" />}
-                      {index === 2 && <FontAwesome5 name="medal" size={20} color="brown" />}
+                    style={isCurrentUser ? { backgroundColor: '#d3bd86' } : {}}
+                  >
+                    <DataTable.Cell style={styles.medalCell}>
+                      {index === 0 && (
+                        <View style={styles.imageWrapper}>
+                          <Image source={require('../assets/medals/firstMedal.png')} style={styles.medal} />
+                        </View>
+                      )}
+                      {index === 1 && (
+                        <View style={styles.imageWrapper}>
+                          <Image source={require('../assets/medals/silverMedal.png')} style={[styles.medal , {height: 40 , width: 40}]} />
+                        </View>
+                      )}
+                      {index === 2 && (
+                        <View style={styles.imageWrapper}>
+                          <Image source={require('../assets/medals/bronzeMedal.png')} style={[styles.medal , {height: 35 , width: 35}]} />
+                        </View>
+                      )}
                       {index > 2 && <Text style={styles.scoreboardText}>{index + 1}.</Text>}
                     </DataTable.Cell>
+
                     <DataTable.Cell style={styles.cell}>
                       <Text style={styles.scoreboardText}>{score.name}</Text>
                     </DataTable.Cell>
