@@ -5,7 +5,6 @@ import { useGame } from '../components/GameContext';
 import styles from '../styles/playerCardStyles';
 import { database } from './Firebase';
 import { ref, onValue, update } from 'firebase/database';
-import { DataTable } from 'react-native-paper';
 
 export default function PlayerCard({ isModalVisible, setModalVisible }) {
     const { playerId, playerName, viewingPlayerId, viewingPlayerName, resetViewingPlayer } = useGame();
