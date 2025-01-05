@@ -46,10 +46,27 @@ export default styles = StyleSheet.create({
         borderRadius: 10,
         alignItems: 'center',
     },
+    trophyContainer: {
+        position: 'relative',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: "100%", 
+        width: "100%", 
+    },
     playerCardTrophyImage: {
-        width: '100%',
-        height: '100%',
+        width: '100%',  
+        height: '100%', 
         resizeMode: 'cover',
+    },
+    trophyText: {
+        position: 'absolute',
+        bottom: 0, 
+        left: 0,
+        right: 0,
+        textAlign: 'center', 
+        color: '#ffffffff',
+        fontSize: 9,
+        fontWeight: 'bold',
     },
     
 // Avatar Styles
@@ -205,11 +222,11 @@ export default styles = StyleSheet.create({
     },
 
     playerCardMonth: {
-        width: '23%',
-        height: 80,
+        width: '24%',
+        height: 85,
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: 10,
+        marginBottom: 5,
         backgroundColor: '#f3f3f3',
         borderRadius: 5,
         position: 'relative',
@@ -228,7 +245,7 @@ export default styles = StyleSheet.create({
         fontWeight: 'bold',
         textAlign: 'center',
         color: '#000000',
-        top: -2,
+        top: -4,
         marginBottom: 10,
         position: 'absolute',
         zIndex: 2,

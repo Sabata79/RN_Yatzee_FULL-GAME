@@ -5,6 +5,7 @@ import { useGame } from '../components/GameContext';
 import styles from '../styles/playerCardStyles';
 import { database } from './Firebase';
 import { ref, onValue, update } from 'firebase/database';
+import { DataTable } from 'react-native-paper';
 
 export default function PlayerCard({ isModalVisible, setModalVisible }) {
     const { playerId, playerName, viewingPlayerId, viewingPlayerName, resetViewingPlayer } = useGame();
@@ -71,20 +72,20 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
         }
     }, [isModalVisible, resetViewingPlayer]);
 
-useEffect(() => {
-    const playerRef = ref(database, `players/${idToUse}/avatar`);
-    onValue(playerRef, (snapshot) => {
-        const avatarPath = snapshot.val();
-        if (avatarPath) {
-            setAvatarUrl(avatarPath);
-        } else {
-            setAvatarUrl('');
-        }
-    });
-}, [idToUse]);
+    useEffect(() => {
+        const playerRef = ref(database, `players/${idToUse}/avatar`);
+        onValue(playerRef, (snapshot) => {
+            const avatarPath = snapshot.val();
+            if (avatarPath) {
+                setAvatarUrl(avatarPath);
+            } else {
+                setAvatarUrl('');
+            }
+        });
+    }, [idToUse]);
 
     const getAvatarImage = (avatarPath) => {
-        const avatar = avatars.find(av => av.path === avatarPath); 
+        const avatar = avatars.find(av => av.path === avatarPath);
         return avatar ? avatar.display : require('../assets/whiteDices.png');
     };
 
@@ -165,10 +166,26 @@ useEffect(() => {
     // Trophy visualizations
     const getTrophyForMonth = (monthIndex) => {
         const rank = monthlyRanks[monthIndex];
+
         if (rank === '--') return <Text style={styles.emptySlotText}>--</Text>;
-        if (rank === 1) return <Image source={require('../assets/trophies/goldTrophy.jpeg')} style={styles.playerCardTrophyImage} />;
-        if (rank === 2) return <Image source={require('../assets/trophies/silverTrophy.jpeg')} style={styles.playerCardTrophyImage} />;
-        if (rank === 3) return <Image source={require('../assets/trophies/bronzeTrophy.jpeg')} style={styles.playerCardTrophyImage} />;
+        if (rank === 1) return (
+            <View style={styles.trophyContainer}>
+                <Image source={require('../assets/trophies/goldTrophy.jpeg')} style={styles.playerCardTrophyImage} />
+                <Text style={styles.trophyText}>GOLD</Text>
+            </View>
+        );
+        if (rank === 2) return (
+            <View style={styles.trophyContainer}>
+                <Image source={require('../assets/trophies/silverTrophy.jpeg')} style={styles.playerCardTrophyImage} />
+                <Text style={styles.trophyText}>SILVER</Text>
+            </View>
+        );
+        if (rank === 3) return (
+            <View style={styles.trophyContainer}>
+                <Image source={require('../assets/trophies/bronzeTrophy.jpeg')} style={styles.playerCardTrophyImage} />
+                <Text style={styles.trophyText}>BRONZE</Text>
+            </View>
+        );
         return <Text style={[styles.playerCardMonthText, { fontWeight: 'bold', marginTop: 30, fontSize: 20 }]}>{rank}.</Text>;
     };
 
