@@ -36,6 +36,7 @@ export default function Scoreboard({ navigation }) {
       const tmpScores = [];
       const currentMonth = new Date().getMonth();
       const currentYear = new Date().getFullYear();
+      const currentWeek = getWeekNumber(new Date());
 
       if (playersData) {
         Object.keys(playersData).forEach(playerId => {
@@ -44,6 +45,7 @@ export default function Scoreboard({ navigation }) {
           if (player.scores) {
             let scoresToUse = [];
             if (scoreType === 'monthly') {
+              // Filter by month
               scoresToUse = Object.values(player.scores).filter(score => {
                 const dateParts = score.date.split('.');
                 if (dateParts.length === 3) {
@@ -56,6 +58,21 @@ export default function Scoreboard({ navigation }) {
               });
             } else if (scoreType === 'allTime') {
               scoresToUse = Object.values(player.scores);
+            } else if (scoreType === 'weekly') {
+              // Filter by week
+              scoresToUse = Object.values(player.scores).filter(score => {
+                const dateParts = score.date.split('.');
+                if (dateParts.length === 3) {
+                  const formattedDate = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
+                  const scoreDate = new Date(formattedDate);
+                  if (isNaN(scoreDate)) {
+                    console.error('Virheellinen päivämäärä:', score.date);
+                    return false; // Invalid date
+                  }
+                  return getWeekNumber(scoreDate) === currentWeek; // Get week number of the year
+                }
+                return false;
+              });
             }
 
             if (scoresToUse.length > 0) {
@@ -86,6 +103,18 @@ export default function Scoreboard({ navigation }) {
       }
     });
   };
+
+  // Function to get the week number of the year (ISO 8601)
+  function getWeekNumber(date) {
+    const tempDate = new Date(date.getTime());
+    tempDate.setHours(0, 0, 0, 0);
+    tempDate.setDate(tempDate.getDate() + 3 - (tempDate.getDay() + 6) % 7);
+    const firstThursday = tempDate.getTime();
+    tempDate.setMonth(0);
+    tempDate.setDate(1);
+    const weekNumber = Math.ceil(((firstThursday - tempDate) / 86400000 + 1) / 7);
+    return weekNumber;
+  }
 
   const handlePlayerCard = (playerId, playerName, playerScores) => {
     setSelectedPlayer({ playerId, playerName, playerScores });
@@ -121,6 +150,12 @@ export default function Scoreboard({ navigation }) {
               onPress={() => setScoreType('monthly')}>
               <Text style={styles.tabText}>Monthly</Text>
             </TouchableOpacity>
+
+            <TouchableOpacity
+              style={scoreType === 'weekly' ? styles.activeTab : styles.inactiveTab}
+              onPress={() => setScoreType('weekly')}>
+              <Text style={styles.tabText}>Weekly</Text>
+            </TouchableOpacity>
           </View>
 
           {scores.length === 0 ? (
@@ -151,12 +186,12 @@ export default function Scoreboard({ navigation }) {
                       )}
                       {index === 1 && (
                         <View style={styles.imageWrapper}>
-                          <Image source={require('../assets/medals/silverMedal.png')} style={[styles.medal , {height: 40 , width: 40}]} />
+                          <Image source={require('../assets/medals/silverMedal.png')} style={[styles.medal, { height: 40, width: 40 }]} />
                         </View>
                       )}
                       {index === 2 && (
                         <View style={styles.imageWrapper}>
-                          <Image source={require('../assets/medals/bronzeMedal.png')} style={[styles.medal , {height: 35 , width: 35}]} />
+                          <Image source={require('../assets/medals/bronzeMedal.png')} style={[styles.medal, { height: 35, width: 35 }]} />
                         </View>
                       )}
                       {index > 2 && <Text style={styles.scoreboardText}>{index + 1}.</Text>}
