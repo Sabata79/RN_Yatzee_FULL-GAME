@@ -218,6 +218,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
             >
                 <View style={styles.playerCardModalBackground}>
                     <View style={styles.playerCardModalContainer}>
+                     <Image source={require('../assets/playercardBackground.jpeg')} style={styles.avatarModalBackgroundImage} />
                         <Pressable
                             style={styles.playerCardCloseButton}
                             onPress={() => setModalVisible(false)}

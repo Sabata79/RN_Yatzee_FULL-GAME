@@ -37,39 +37,56 @@ export default styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        position: 'absolute',
+        width: '100%',
+        height: '100%',
     },
 
     playerCardModalContainer: {
         width: '80%',
-        padding: 20,
-        backgroundColor: 'rgba(240, 190, 154, 0.98)',
+        height: '75%',
+        padding: 10,
         borderRadius: 10,
         alignItems: 'center',
+        position: 'relative',
+        overflow: 'hidden',
+    },
+    avatarModalBackgroundImage: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        width: '108%',
+        height: '105%',
+        borderRadius: 10,
+        opacity: 0.95,
+        resizeMode: 'cover',
     },
     trophyContainer: {
         position: 'relative',
         justifyContent: 'center',
         alignItems: 'center',
-        height: "100%", 
-        width: "100%", 
+        height: "100%",
+        width: "100%",
     },
     playerCardTrophyImage: {
-        width: '100%',  
-        height: '100%', 
+        width: '100%',
+        height: '100%',
         resizeMode: 'cover',
     },
     trophyText: {
         position: 'absolute',
-        bottom: 0, 
+        bottom: 0,
         left: 0,
         right: 0,
-        textAlign: 'center', 
+        textAlign: 'center',
         color: '#ffffffff',
         fontSize: 9,
         fontWeight: 'bold',
     },
-    
-// Avatar Styles
+
+    // Avatar Styles
     avatarContainer: {
         width: 100,
         height: 100,
@@ -94,7 +111,7 @@ export default styles = StyleSheet.create({
     avatarModalContainer: {
         width: '80%',
         height: '90%',
-        backgroundColor: '#141414', 
+        backgroundColor: '#141414',
         borderRadius: 10,
         padding: 10,
         alignItems: 'center',
@@ -139,7 +156,7 @@ export default styles = StyleSheet.create({
         justifyContent: 'space-around',
         width: '100%',
         marginBottom: 50,
-        borderColor: '#fff', 
+        borderColor: '#fff',
         borderWidth: 2,
     },
 
@@ -187,7 +204,7 @@ export default styles = StyleSheet.create({
 
     playerCardScoreItem: {
         fontSize: 14,
-        fontWeight: 'normal',
+        fontWeight: 'bold',
         color: '#000',
         display: 'flex',
         flexDirection: 'row',
@@ -197,8 +214,9 @@ export default styles = StyleSheet.create({
     },
 
     playerCardScoreDate: {
-        fontSize: 10,
-        color: '#777',
+        fontSize: 11,
+        fontWeight: 'bold',
+        color: '#000000',
         textAlign: 'right',
         flex: 1,
         paddingTop: 5,
