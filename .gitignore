@@ -44,3 +44,6 @@ eas.config.js
 
 # extras
 profile.jpg
+
+# Ingnore assets folder and its content
+assets/
