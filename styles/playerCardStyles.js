@@ -86,9 +86,9 @@ export default styles = StyleSheet.create({
     },
     avatarModalBackground: {
         flex: 1,
-        marginTop: '10%',
+        marginTop: '15%',
         alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.7)', 
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
     },
 
     avatarModalContainer: {
@@ -98,6 +98,8 @@ export default styles = StyleSheet.create({
         borderRadius: 10,
         padding: 10,
         alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#fff',
     },
 
     avatarSelectionWrapper: {
@@ -108,8 +110,8 @@ export default styles = StyleSheet.create({
     },
 
     avatar: {
-        width: 95,
-        height: 95,
+        width: "100%",
+        height: "100%",
         borderRadius: 50,
         margin: 5,
         resizeMode: 'cover',
@@ -142,17 +144,17 @@ export default styles = StyleSheet.create({
     },
 
     avatarModalImage: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
+        width: 90,
+        height: 90,
+        borderRadius: 45,
         padding: 2,
         margin: 5,
-        resizeMode: 'cover'
+        resizeMode: 'contain',
     },
     closeAvatarModalButton: {
         position: 'absolute',
         right: 10,
-        top: 10,
+        top: 2,
         color: '#fff',
         fontSize: 22,
     },
