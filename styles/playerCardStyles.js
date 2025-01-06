@@ -1,14 +1,17 @@
 import { StyleSheet } from 'react-native';
+import { Dimensions } from 'react-native';
+
+const windowWidth = Dimensions.get('window').width;
+const avatarsPerRow = windowWidth > 500 ? 3 : 2;
+const avatarSize = (windowWidth / avatarsPerRow) - 120;
 
 export default styles = StyleSheet.create({
 
     // PlayerCard Styles
-
     playerCardContainer: {
         marginTop: 20,
         alignItems: 'flex-start',
     },
-
     playerInfoContainer: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -18,20 +21,17 @@ export default styles = StyleSheet.create({
     playerNameContainer: {
         marginLeft: 10,
     },
-
     playerCardName: {
         fontSize: 24,
         fontWeight: 'bold',
         marginBottom: 5,
     },
-
     playerCardPlayerID: {
         fontSize: 8,
         color: '#888',
         textAlign: 'center',
         marginTop: 5,
     },
-
     playerCardModalBackground: {
         flex: 1,
         justifyContent: 'center',
@@ -41,10 +41,9 @@ export default styles = StyleSheet.create({
         width: '100%',
         height: '100%',
     },
-
     playerCardModalContainer: {
         width: '80%',
-        height: '75%',
+        marginTop: '10%',
         padding: 10,
         borderRadius: 10,
         alignItems: 'center',
@@ -85,7 +84,6 @@ export default styles = StyleSheet.create({
         fontSize: 9,
         fontWeight: 'bold',
     },
-
     // Avatar Styles
     avatarContainer: {
         width: 100,
@@ -107,7 +105,6 @@ export default styles = StyleSheet.create({
         alignItems: 'center',
         backgroundColor: 'rgba(0, 0, 0, 0.7)',
     },
-
     avatarModalContainer: {
         width: '80%',
         height: '90%',
@@ -118,14 +115,12 @@ export default styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#fff',
     },
-
     avatarSelectionWrapper: {
         flexDirection: 'row',
         flexWrap: 'wrap',
         justifyContent: 'space-around',
         width: '100%',
     },
-
     avatar: {
         width: "100%",
         height: "100%",
@@ -133,7 +128,6 @@ export default styles = StyleSheet.create({
         margin: 5,
         resizeMode: 'cover',
     },
-
     editAvatarButton: {
         position: 'absolute',
         left: 80,
@@ -150,7 +144,6 @@ export default styles = StyleSheet.create({
         textAlign: 'center',
         color: '#fff',
     },
-
     avatarModalImageContainer: {
         flexDirection: 'row',
         justifyContent: 'space-around',
@@ -158,12 +151,12 @@ export default styles = StyleSheet.create({
         marginBottom: 50,
         borderColor: '#fff',
         borderWidth: 2,
+        flexWrap: 'wrap',
     },
-
     avatarModalImage: {
-        width: 90,
-        height: 90,
-        borderRadius: 45,
+        width: avatarSize,
+        height: avatarSize,
+        borderRadius: avatarSize / 2,
         padding: 2,
         margin: 5,
         resizeMode: 'contain',
@@ -181,7 +174,6 @@ export default styles = StyleSheet.create({
         fontWeight: 'bold',
         padding: 5,
     },
-
     scoreRow: {
         width: '100%',
         flexDirection: 'row',
@@ -189,19 +181,16 @@ export default styles = StyleSheet.create({
         alignItems: 'center',
 
     },
-
     playerCardScoresContainer: {
         marginTop: 10,
         marginBottom: 5,
     },
-
     playerCardScoresTitle: {
         fontSize: 18,
         marginBottom: 10,
         textAlign: 'center',
         fontWeight: 'bold',
     },
-
     playerCardScoreItem: {
         fontSize: 14,
         fontWeight: 'bold',
@@ -212,7 +201,6 @@ export default styles = StyleSheet.create({
         width: '100%',
         marginLeft: 15,
     },
-
     playerCardScoreDate: {
         fontSize: 11,
         fontWeight: 'bold',
@@ -222,25 +210,21 @@ export default styles = StyleSheet.create({
         paddingTop: 5,
         marginRight: 15,
     },
-
     playerCardTrophyCase: {
         width: '100%',
         alignItems: 'center',
     },
-
     playerCardTrophyCaseTitle: {
         fontSize: 20,
         fontWeight: 'bold',
         marginBottom: 10,
     },
-
     playerCardMonthsContainer: {
         flexDirection: 'row',
         flexWrap: 'wrap',
         justifyContent: 'space-between',
         width: '90%',
     },
-
     playerCardMonth: {
         width: '24%',
         height: 85,
@@ -254,12 +238,10 @@ export default styles = StyleSheet.create({
         borderColor: '#000',
         borderWidth: 1,
     },
-
     playerCardOngoingMonth: {
         borderColor: 'darkorange',
         borderWidth: 3,
     },
-
     playerCardMonthText: {
         fontSize: 16,
         fontWeight: 'bold',
@@ -270,14 +252,12 @@ export default styles = StyleSheet.create({
         position: 'absolute',
         zIndex: 2,
     },
-
     emptySlotText: {
         fontSize: 14,
         paddingTop: 10,
         color: 'black',
         textAlign: 'center',
     },
-
     playerCardCloseButton: {
         position: 'absolute',
         right: 21,
@@ -288,7 +268,6 @@ export default styles = StyleSheet.create({
         margin: 10,
         zIndex: 3,
     },
-
     playerCardCloseText: {
         color: 'black',
         fontSize: 22,
@@ -296,5 +275,4 @@ export default styles = StyleSheet.create({
         zIndex: 10,
         padding: 5,
     },
-
 });
