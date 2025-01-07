@@ -1,7 +1,7 @@
 import * as Updates from 'expo-updates';
 import React, { useState, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { SafeAreaView } from 'react-native';
+import { SafeAreaView, Modal, View, Text, Pressable } from 'react-native';
 import Scoreboard from './components/Scoreboard';
 import Gameboard from './components/Gameboard';
 import About from './components/AboutMe';
@@ -10,31 +10,33 @@ import Home from './components/Home';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import styles from './styles/styles';
+import updateModalStyles from './styles/updateModalStyles';
 import { NavigationContainer } from '@react-navigation/native';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
 import { GameProvider } from './components/GameContext';
+import { updateMessage } from './constants/updateMessage';
 
 export default function App() {
   const [isUserRecognized, setIsUserRecognized] = useState(false);
   const [name, setName] = useState('');
   const [playerId, setPlayerId] = useState('');
   const [updateAvailable, setUpdateAvailable] = useState(false);
+  const [updateModalVisible, setUpdateModalVisible] = useState(true);
 
   const Tab = createMaterialTopTabNavigator();
 
-  // Update check if not in development environment
   useEffect(() => {
-    
     if (!__DEV__) {
       const checkForUpdates = async () => {
         try {
           const update = await Updates.checkForUpdateAsync();
           if (update.isAvailable) {
             await Updates.fetchUpdateAsync();
-            setUpdateAvailable(true); 
+            setUpdateAvailable(true);
+            setUpdateModalVisible(true);
           }
         } catch (e) {
           console.error('Update failure: ', e);
@@ -44,27 +46,58 @@ export default function App() {
     }
   }, []);
 
-  // Lataa fontit, kun päivitys on tarkistettu
   const [loaded] = useFonts({
     AntonRegular: require('./assets/fonts/Anton-Regular.ttf'),
   });
 
-  useEffect(() => {
-    if (updateAvailable) {
-      alert('Update available. Reloading...');
-      Updates.reloadAsync(); // Lataa sovellus uudelleen päivityksen jälkeen
-    }
-  }, [updateAvailable]);
-
-  // Jos fontit eivät ole ladattu, palauta null
   if (!loaded) {
     return null;
   }
+
+  const handleUpdate = async () => {
+    setUpdateModalVisible(false);
+    await Updates.reloadAsync();
+  };
 
   return (
     <SafeAreaProvider>
       <GameProvider>
         <SafeAreaView style={styles.container}>
+          {/* Update Modal */}
+          <Modal
+            visible={updateModalVisible}
+            transparent={true}
+            animationType="fade"
+            onRequestClose={() => setUpdateModalVisible(false)}
+          >
+            <View style={updateModalStyles.updateModalOverlay}>
+              <View style={updateModalStyles.updateModalContent}>
+                <Text style={updateModalStyles.updateModalTitle}>
+                  New Update Available
+                </Text>
+                <Text style={updateModalStyles.updateModalMessage}>
+                  {updateMessage}
+                </Text>
+                <Pressable
+                  style={updateModalStyles.updateModalUpdateButton}
+                  onPress={handleUpdate}
+                >
+                  <Text style={updateModalStyles.updateModalUpdateButtonText}>
+                    Update
+                  </Text>
+                </Pressable>
+                <Pressable
+                  style={updateModalStyles.updateModalCancelButton}
+                  onPress={() => setUpdateModalVisible(false)}
+                >
+                  <Text style={updateModalStyles.updateModalCancelButtonText}>
+                    Cancel
+                  </Text>
+                </Pressable>
+              </View>
+            </View>
+          </Modal>
+
           <Header isUserRecognized={isUserRecognized} name={name} playerId={playerId} />
           <NavigationContainer>
             <Tab.Navigator
@@ -84,7 +117,6 @@ export default function App() {
                 tabBarIndicatorStyle: { height: 0 },
                 tabBarIcon: ({ focused }) => {
                   let iconName;
-
                   if (route.name === 'Home') {
                     iconName = 'home';
                     return (
@@ -101,7 +133,6 @@ export default function App() {
                         name={iconName}
                         size={24}
                         color={focused ? '#ffffff' : 'black'}
-                        style={{ marginLeft: -5 }}
                       />
                     );
                   } else if (route.name === 'Scoreboard') {
@@ -120,7 +151,6 @@ export default function App() {
                         name={iconName}
                         size={24}
                         color={focused ? '#ffffff' : 'black'}
-                        style={{ marginLeft: 0 }}
                       />
                     );
                   } else if (route.name === 'About Me') {
@@ -130,18 +160,19 @@ export default function App() {
                         name={iconName}
                         size={24}
                         color={focused ? '#ffffff' : 'black'}
-                        style={{ marginLeft: 4 }}
                       />
                     );
                   }
                 },
                 swipeEnabled: isUserRecognized,
-              })}>
+              })}
+            >
               <Tab.Screen
                 name="Home"
                 options={{
                   tabBarStyle: { display: 'none' },
-                }}>
+                }}
+              >
                 {() => (
                   <Home
                     setIsUserRecognized={setIsUserRecognized}
