@@ -5,14 +5,13 @@ import { useGame } from '../components/GameContext';
 import styles from '../styles/playerCardStyles';
 import { database } from './Firebase';
 import { ref, onValue, update } from 'firebase/database';
-import { avatars } from '../constants/AvatarPaths'
+import { avatars } from '../constants/AvatarPaths';
 
 export default function PlayerCard({ isModalVisible, setModalVisible }) {
     const { playerId, playerName, viewingPlayerId, viewingPlayerName, resetViewingPlayer, avatarUrl, setAvatarUrl } = useGame();
 
-    const [topScores, setTopScores] = useState([]);
+    const [viewingPlayerAvatar, setViewingPlayerAvatar] = useState('');
     const [avatarSelected, setAvatarSelected] = useState(null);
-    // const [avatarUrl, setAvatarUrl] = useState('');
     const [monthlyRanks, setMonthlyRanks] = useState(Array(12).fill(null));
     const [isAvatarModalVisible, setIsAvatarModalVisible] = useState(false);
 
@@ -24,10 +23,13 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
         "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
     ];
 
+    const idToUse = viewingPlayerId || playerId;
+    const nameToUse = viewingPlayerName || playerName;
+
     const handleAvatarSelect = (avatar) => {
         const avatarPath = avatar.path;
         setAvatarSelected(avatarPath);
-        setAvatarUrl(avatarPath);
+        setAvatarUrl(avatarPath); 
         saveAvatarToDatabase(avatarPath);
         setIsAvatarModalVisible(false);
     };
@@ -49,15 +51,23 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
         }
     };
 
-    const idToUse = viewingPlayerId || playerId;
-    const nameToUse = viewingPlayerName || playerName;
-
     useEffect(() => {
         if (isModalVisible && idToUse) {
             fetchTopScores();
             fetchMonthlyRanks();
+
+            // Haetaan avatar Firebase-palvelusta
+            const playerRef = ref(database, `players/${idToUse}/avatar`);
+            onValue(playerRef, (snapshot) => {
+                const avatarPath = snapshot.val();
+                if (idToUse === playerId) {
+                    setAvatarUrl(avatarPath || ''); 
+                } else {
+                    setViewingPlayerAvatar(avatarPath || '');
+                }
+            });
         }
-    }, [isModalVisible, idToUse]);
+    }, [isModalVisible, idToUse, playerId, setAvatarUrl]);
 
     useEffect(() => {
         if (!isModalVisible) {
@@ -65,21 +75,13 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
         }
     }, [isModalVisible, resetViewingPlayer]);
 
-    useEffect(() => {
-        const playerRef = ref(database, `players/${idToUse}/avatar`);
-        onValue(playerRef, (snapshot) => {
-            const avatarPath = snapshot.val();
-            if (avatarPath) {
-                setAvatarUrl(avatarPath);
-            } else {
-                setAvatarUrl('');
-            }
-        });
-    }, [idToUse, playerId, setAvatarUrl]);
-
     const getAvatarImage = (avatarPath) => {
         const avatar = avatars.find(av => av.path === avatarPath);
         return avatar ? avatar.display : require('../assets/whiteDices.png');
+    };
+
+    const getAvatarToDisplay = () => {
+        return idToUse === playerId ? avatarUrl : viewingPlayerAvatar;
     };
 
     const fetchTopScores = () => {
@@ -113,13 +115,12 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
             if (snapshot.exists()) {
                 const playersData = snapshot.val();
                 const currentYear = new Date().getFullYear();
-                const currentMonth = new Date().getMonth();
 
                 Object.keys(playersData).forEach(playerId => {
                     const playerScores = playersData[playerId].scores || {};
 
                     Object.values(playerScores).forEach(score => {
-                        const scoreDate = new Date(score.date.split('.').reverse().join('-')); // "4.12.2024" -> "2024-12-04"
+                        const scoreDate = new Date(score.date.split('.').reverse().join('-'));
 
                         if (scoreDate.getFullYear() === currentYear) {
                             const monthIndex = scoreDate.getMonth();
@@ -138,11 +139,10 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
                     });
                 });
 
-                const monthRanks = monthlyScores.map((monthScores, index) => {
+                const monthRanks = monthlyScores.map((monthScores) => {
                     if (monthScores.length === 0) {
                         return '--';
                     }
-
                     monthScores.sort((a, b) => b.points - a.points);
                     const rank = monthScores.findIndex(score => score.playerId === idToUse) + 1;
 
@@ -156,7 +156,6 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
         });
     };
 
-    // Trophy visualizations
     const getTrophyForMonth = (monthIndex) => {
         const rank = monthlyRanks[monthIndex];
 
@@ -189,7 +188,6 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
 
     return (
         <View style={styles.playerCardContainer}>
-            {/* PlayerCard Modal */}
             <Modal
                 animationType="slide"
                 transparent={true}
@@ -198,7 +196,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
             >
                 <View style={styles.playerCardModalBackground}>
                     <View style={styles.playerCardModalContainer}>
-                     <Image source={require('../assets/playercardBackground.jpeg')} style={styles.avatarModalBackgroundImage} />
+                        <Image source={require('../assets/playercardBackground.jpeg')} style={styles.avatarModalBackgroundImage} />
                         <Pressable
                             style={styles.playerCardCloseButton}
                             onPress={() => setModalVisible(false)}
@@ -215,13 +213,14 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
                             <View style={styles.avatarModalBackground}>
                                 <View style={styles.avatarModalContainer}>
                                     <Text style={styles.avatarSelectText}>Choose your Avatar:</Text>
-                                    <Pressable style={styles.closeAvatarModalButton} onPress={() => setIsAvatarModalVisible(false)}>
+                                    <Pressable style={styles.closeAvatarModalButton} onPress={() =>
+                                        setIsAvatarModalVisible(false)}>
                                         <Text style={styles.closeAvatarModalText}>X</Text>
                                     </Pressable>
                                     <View style={styles.avatarSelectionWrapper}>
-                                        {avatars.map((avatars, index) => (
-                                            <Pressable key={index} onPress={() => handleAvatarSelect(avatars)}>
-                                                <Image style={styles.avatarModalImage} source={avatars.display} />
+                                        {avatars.map((avatar, index) => (
+                                            <Pressable key={index} onPress={() => handleAvatarSelect(avatar)}>
+                                                <Image style={styles.avatarModalImage} source={avatar.display} />
                                             </Pressable>
                                         ))}
                                     </View>
@@ -229,16 +228,13 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
                             </View>
                         </Modal>
 
-                        {/* Player name and Avatar */}
                         <View style={styles.playerInfoContainer}>
                             <View style={styles.avatarContainer}>
                                 <Image
                                     style={styles.avatar}
-                                    source={avatarUrl ? getAvatarImage(avatarUrl) : require('../assets/whiteDices.png')}
+                                    source={getAvatarImage(getAvatarToDisplay())}
                                 />
                             </View>
-
-                            {/* Avatar button */}
                             {idToUse === playerId && (
                                 <Pressable
                                     style={styles.editAvatarButton}
@@ -247,13 +243,11 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
                                     <FontAwesome5 name="edit" size={20} color="white" />
                                 </Pressable>
                             )}
-
                             <View style={styles.playerNameContainer}>
                                 <Text style={styles.playerCardName}>{nameToUse}</Text>
                             </View>
                         </View>
 
-                        {/* TOP 5 */}
                         <ScrollView style={styles.playerCardScoresContainer}>
                             <Text style={styles.playerCardScoresTitle}>YOUR TOP 5 SCORES</Text>
                             {getTopScoresWithEmptySlots().map((score, index) => (
@@ -270,7 +264,6 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
                             ))}
                         </ScrollView>
 
-                        {/* Throphy Cabinet */}
                         <View style={styles.playerCardTrophyCase}>
                             <Text style={styles.playerCardTrophyCaseTitle}>TROPHIES {currentYear}</Text>
                             <View style={styles.playerCardMonthsContainer}>
