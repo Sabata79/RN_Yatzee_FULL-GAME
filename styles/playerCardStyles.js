@@ -26,12 +26,6 @@ export default styles = StyleSheet.create({
         fontWeight: 'bold',
         marginBottom: 5,
     },
-    playerCardPlayerID: {
-        fontSize: 8,
-        color: '#888',
-        textAlign: 'center',
-        marginTop: 5,
-    },
     playerCardModalBackground: {
         flex: 1,
         justifyContent: 'center',
@@ -237,10 +231,11 @@ export default styles = StyleSheet.create({
         flexDirection: 'column',
         borderColor: '#000',
         borderWidth: 1,
+        opacity: 0.75,
     },
     playerCardOngoingMonth: {
-        borderColor: 'darkorange',
-        borderWidth: 3,
+        borderColor: 'green',
+        borderWidth: 4,
     },
     playerCardMonthText: {
         fontSize: 16,
