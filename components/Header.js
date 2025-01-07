@@ -1,11 +1,16 @@
 import React, { useState } from 'react';
-import { View, Text, Pressable } from 'react-native';
+import { View, Text, Pressable, Image } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import PlayerCard from './PlayerCard'; 
-import styles from '../styles/styles'; 
+import styles from '../styles/styles';
+import { useGame } from './GameContext';
+import { avatars } from '../constants/AvatarPaths';
 
 export default function Header({ isUserRecognized, name, playerId }) {
   const [isModalVisible, setModalVisible] = useState(false);
+  const { avatarUrl } = useGame();
+
+  const userAvatar = avatars.find((avatar) => avatar.path === avatarUrl)?.display;
 
   const selectedPlayer = {
     playerId: playerId,
@@ -21,14 +26,19 @@ export default function Header({ isUserRecognized, name, playerId }) {
       {isUserRecognized && name && (
         <Pressable
           style={({ pressed }) => [
-            styles.userButton,
-            pressed && styles.userButtonPressed,
+            styles.userHeaderButton,
+            pressed && styles.userHeaderButtonPressed,
             { marginLeft: 'auto', top: -5 },
           ]}
           onPress={() => setModalVisible(true)} 
         >
           <Text style={styles.userName}>{name}</Text>
-          <FontAwesome5 name="user" size={22} color="black" style={{ marginLeft: 5 }} />
+
+          {userAvatar ? (
+            <Image source={userAvatar} style={styles.headerAvatarImage} />
+          ) : (
+            <FontAwesome5 name="user" size={22} color="white" style={{ marginLeft: 5 }} />
+          )}
         </Pressable>
       )}
 

@@ -1,4 +1,4 @@
-import { set } from 'firebase/database';
+// Purpose: Context for the game state and player data.
 import React, { createContext, useState, useContext } from 'react';
 
 const GameContext = createContext();
@@ -20,8 +20,9 @@ export const GameProvider = ({ children }) => {
   const [isGameSaved, setIsGameSaved] = useState(false);
   const [viewingPlayerId, setViewingPlayerId] = useState(''); 
   const [viewingPlayerName, setViewingPlayerName] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState('');
 
-    const setActivePlayer = (id, name) => {
+  const setActivePlayer = (id, name) => {
     setActivePlayerId(id);
     setPlayerName(name);
   };
@@ -76,10 +77,12 @@ export const GameProvider = ({ children }) => {
       playerId,
       playerName,
       activePlayerId,
+      avatarUrl,
       viewingPlayerId,
       viewingPlayerName,
       playerScores,
       setPlayerIdContext,
+      setAvatarUrl,
       setPlayerScoresContext,
       setPlayerNameContext,
       setViewingPlayerIdContext,

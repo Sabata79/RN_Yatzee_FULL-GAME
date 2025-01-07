@@ -5,13 +5,14 @@ import { useGame } from '../components/GameContext';
 import styles from '../styles/playerCardStyles';
 import { database } from './Firebase';
 import { ref, onValue, update } from 'firebase/database';
+import { avatars } from '../constants/AvatarPaths'
 
 export default function PlayerCard({ isModalVisible, setModalVisible }) {
-    const { playerId, playerName, viewingPlayerId, viewingPlayerName, resetViewingPlayer } = useGame();
+    const { playerId, playerName, viewingPlayerId, viewingPlayerName, resetViewingPlayer, avatarUrl, setAvatarUrl } = useGame();
 
     const [topScores, setTopScores] = useState([]);
     const [avatarSelected, setAvatarSelected] = useState(null);
-    const [avatarUrl, setAvatarUrl] = useState('');
+    // const [avatarUrl, setAvatarUrl] = useState('');
     const [monthlyRanks, setMonthlyRanks] = useState(Array(12).fill(null));
     const [isAvatarModalVisible, setIsAvatarModalVisible] = useState(false);
 
@@ -23,31 +24,10 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
         "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
     ];
 
-    // Avatars paths and configurations
-    const avatars = [
-        { path: '../assets/avatars/testAvatar.jpeg', display: require('../assets/avatars/testAvatar.jpeg') },
-        { path: '../assets/avatars/testAvatar2.jpeg', display: require('../assets/avatars/testAvatar2.jpeg') },
-        { path: '../assets/avatars/testAvatar3.jpeg', display: require('../assets/avatars/testAvatar3.jpeg') },
-        { path: '../assets/avatars/testAvatar4.jpeg', display: require('../assets/avatars/testAvatar4.jpeg') },
-        { path: '../assets/avatars/testAvatar5.jpeg', display: require('../assets/avatars/testAvatar5.jpeg') },
-        { path: '../assets/avatars/testAvatar6.jpeg', display: require('../assets/avatars/testAvatar6.jpeg') },
-        { path: '../assets/avatars/testAvatar7.jpeg', display: require('../assets/avatars/testAvatar7.jpeg') },
-        { path: '../assets/avatars/testAvatar8.jpeg', display: require('../assets/avatars/testAvatar8.jpeg') },
-        { path: '../assets/avatars/testAvatar9.jpeg', display: require('../assets/avatars/testAvatar9.jpeg') },
-        { path: '../assets/avatars/testAvatar10.jpeg', display: require('../assets/avatars/testAvatar10.jpeg') },
-        { path: '../assets/avatars/testAvatar11.jpeg', display: require('../assets/avatars/testAvatar11.jpeg') },
-        { path: '../assets/avatars/testAvatar12.jpeg', display: require('../assets/avatars/testAvatar12.jpeg') },
-        { path: '../assets/avatars/testAvatar13.jpeg', display: require('../assets/avatars/testAvatar13.jpeg')},
-        { path: '../assets/avatars/testAvatar14.jpeg', display: require('../assets/avatars/testAvatar14.jpeg') },
-        { path: '../assets/avatars/testAvatar15.jpeg', display: require('../assets/avatars/testAvatar15.jpeg') },
-        { path: '../assets/avatars/testAvatar16.jpeg', display: require('../assets/avatars/testAvatar16.jpeg') },
-        { path: '../assets/avatars/testAvatar17.jpeg', display: require('../assets/avatars/testAvatar17.jpeg') },
-        { path: '../assets/avatars/testAvatar18.jpeg', display: require('../assets/avatars/testAvatar18.jpeg') },
-    ];
-
     const handleAvatarSelect = (avatar) => {
         const avatarPath = avatar.path;
         setAvatarSelected(avatarPath);
+        setAvatarUrl(avatarPath);
         saveAvatarToDatabase(avatarPath);
         setIsAvatarModalVisible(false);
     };
@@ -59,7 +39,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
                 avatar: avatarPath,
             })
                 .then(() => {
-                    console.log('Avatar Path saved to Firebase!');
+                    setAvatarUrl(avatarPath);
                 })
                 .catch((error) => {
                     console.error('Error saving avatar to Firebase:', error);
@@ -95,7 +75,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
                 setAvatarUrl('');
             }
         });
-    }, [idToUse]);
+    }, [idToUse, playerId, setAvatarUrl]);
 
     const getAvatarImage = (avatarPath) => {
         const avatar = avatars.find(av => av.path === avatarPath);
@@ -258,7 +238,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
                                 />
                             </View>
 
-                            {/* Avatarin muokkausnappi */}
+                            {/* Avatar button */}
                             {idToUse === playerId && (
                                 <Pressable
                                     style={styles.editAvatarButton}

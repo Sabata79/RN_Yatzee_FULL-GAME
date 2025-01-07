@@ -1,4 +1,5 @@
 import Constants from 'expo-constants';
+import { use } from 'react';
 import { Dimensions, StyleSheet } from 'react-native';
 
 const { width, height } = Dimensions.get('window');
@@ -49,7 +50,7 @@ export default styles = StyleSheet.create({
     userName: {
         fontSize: 12,
         fontWeight: 'bold',
-        color: 'black',
+        color: 'white',
         marginRight: 2,
     },
     footer: {
@@ -290,6 +291,44 @@ export default styles = StyleSheet.create({
         shadowOpacity: 0.0,
         shadowRadius: 0,
         elevation: 0,
+    },
+    userHeaderButton: {
+        margin: 10,
+        flexDirection: 'row',
+        paddingLeft: 10,
+        paddingRight: 10,
+        backgroundColor: 'transparent',
+        width: '40%',
+        height: '100%',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        shadowColor: '#000000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 10,
+    },
+    userHeaderButtonPressed: {
+        margin: 10,
+        flexDirection: 'row',
+        paddingLeft: 10,
+        paddingRight: 10,
+        backgroundColor: 'darkorange',
+        width: '40%',
+        height: '100%',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        shadowColor: '#000000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 10,
     },
     buttonText: {
         color: 'black',
@@ -836,6 +875,15 @@ export default styles = StyleSheet.create({
         fontSize: 24,
         fontWeight: 'bold',
         color: 'white',
+    },
+        headerAvatarImage: {
+        width: 60,
+        height: 60,
+        borderRadius: 30,
+        zIndex: 100,
+        position: 'absolute',
+        top: 6,
+        right: 4,
     },
     registerImage: {
         width: width * 0.9,
