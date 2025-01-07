@@ -49,6 +49,7 @@ export default styles = StyleSheet.create({
     },
     userName: {
         fontSize: 12,
+        marginTop: 5,
         fontWeight: 'bold',
         color: 'white',
         marginRight: 2,
