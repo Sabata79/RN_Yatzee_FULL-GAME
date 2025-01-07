@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, Pressable, Image } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import PlayerCard from './PlayerCard'; 
@@ -16,6 +16,14 @@ export default function Header({ isUserRecognized, name, playerId }) {
     playerId: playerId,
     playerName: name,
   };
+
+  useEffect(() => {
+    if (avatarUrl) {
+      console.log("Avatar URL is set:", avatarUrl);
+    } else {
+      console.log("No Avatar URL found.");
+    }
+  }, [avatarUrl]);
 
   return (
     <View style={styles.header}>
