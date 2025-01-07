@@ -1,10 +1,11 @@
 // Purpose: Context for the game state and player data.
-import React, { createContext, useState, useContext } from 'react';
+import React, { createContext, useState, useContext, useEffect } from 'react';
+import { ref, onValue } from 'firebase/database';
+import { database } from './Firebase';
 
 const GameContext = createContext();
 
 export const useGame = () => {
-
   return useContext(GameContext);
 };
 
@@ -21,6 +22,24 @@ export const GameProvider = ({ children }) => {
   const [viewingPlayerId, setViewingPlayerId] = useState(''); 
   const [viewingPlayerName, setViewingPlayerName] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
+  const [isAvatarLoaded, setIsAvatarLoaded] = useState(false); 
+
+// Avatar URL check in background
+  useEffect(() => {
+    if (playerId) {
+      const playerRef = ref(database, `players/${playerId}/avatar`);
+      onValue(playerRef, (snapshot) => {
+        const avatarPath = snapshot.val();
+        if (avatarPath) {
+          setAvatarUrl(avatarPath);
+          setIsAvatarLoaded(true); 
+        } else {
+          setAvatarUrl(null);
+          setIsAvatarLoaded(true);
+        }
+      });
+    }
+  }, [playerId]);
 
   const setActivePlayer = (id, name) => {
     setActivePlayerId(id);
