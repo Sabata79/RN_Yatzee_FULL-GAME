@@ -14,6 +14,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     const [avatarSelected, setAvatarSelected] = useState(null);
     const [monthlyRanks, setMonthlyRanks] = useState(Array(12).fill(null));
     const [isAvatarModalVisible, setIsAvatarModalVisible] = useState(false);
+    const [topScores, setTopScores] = useState([]);
 
     const currentMonth = new Date().getMonth();
     const currentYear = new Date().getFullYear();

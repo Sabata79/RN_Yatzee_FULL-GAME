@@ -7,8 +7,7 @@
 
 export const updateMessage =
 `
--Avatars for user profiles.
--Weekly scoreboard.
+-Avatar Fix!.
 -Minor bug fixes and improvements.
 ..ja lopuilla lakritsaa :)
 `;
