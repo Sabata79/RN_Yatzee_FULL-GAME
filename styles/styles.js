@@ -485,9 +485,10 @@ export default styles = StyleSheet.create({
         bottom: 0,
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
         zIndex: 999,
-        justifyContent: 'center',
+        justifyContent: 'flex-start', 
         alignItems: 'center',
         display: 'flex',
+        paddingTop: 200, 
     },
     centeredText: {
         color: 'white',
@@ -876,7 +877,7 @@ export default styles = StyleSheet.create({
         fontWeight: 'bold',
         color: 'white',
     },
-        headerAvatarImage: {
+    headerAvatarImage: {
         width: 60,
         height: 60,
         borderRadius: 30,

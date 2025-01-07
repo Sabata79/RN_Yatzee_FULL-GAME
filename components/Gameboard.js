@@ -819,7 +819,7 @@ export default function Gameboard({ route, navigation }) {
                     style={styles.filterLayer}
                 >
                     <GlowingText style={styles.centeredText}>
-                        Start Game
+                        START GAME
                     </GlowingText>
                 </Pressable>
             )}
