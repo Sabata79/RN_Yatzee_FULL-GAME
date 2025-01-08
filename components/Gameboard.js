@@ -204,6 +204,13 @@ export default function Gameboard({ route, navigation }) {
 
                     const updatedCategories = scoringCategories.map(category => {
                         if (category.index === selectedField) {
+                            if (category.name === 'yatzy') {
+                                return {
+                                    ...category,
+                                    points: category.points === 0 ? points : category.points + points,
+                                    locked: true,
+                                };
+                            }
                             return {
                                 ...category,
                                 points: points,
@@ -290,10 +297,29 @@ export default function Gameboard({ route, navigation }) {
                 return sum;
             }
             if (rolledDices.filter(item => item === dice).length === 5) {
-                return 50; // Adds 50 points
+                return 50;
             }
             return sum;
         }, 0);
+    }
+
+    function checkAndUnlockYatzy(rolledDices) {
+        const yatzyScore = calculateYatzy(rolledDices);
+
+        setScoringCategories(prevCategories =>
+            prevCategories.map(category => {
+                if (category.name === 'yatzy') {
+                    if (yatzyScore === 50) {
+                        console.log('Yatzy achieved, unlocking the field temporarily.');
+                        return { ...category, locked: false, yatzyAchieved: true };
+                    } else if (!category.locked && category.yatzyAchieved) {
+                        console.log('Yatzy not achieved, locking the field.');
+                        return { ...category, locked: true };
+                    }
+                }
+                return category;
+            })
+        );
     }
     // Fullhouse
     function calculateFullHouse(rolledDices) {
@@ -591,7 +617,10 @@ export default function Gameboard({ route, navigation }) {
                 <Pressable onPress={() => handlePressField(index)} disabled={isLocked('yatzy')}>
                     <View style={[styles.item, isSelected ? styles.selectScorePressed : fieldStyle]}>
                         <Text style={styles.inputIndexShown}>
-                            {isLocked('yatzy') ? currentCategory.points : currentCategory.calculateScore(rolledDices)}
+                            {isLocked('yatzy')
+                                ? currentCategory.points
+                                : currentCategory.points + currentCategory.calculateScore(rolledDices)
+                            }
                         </Text>
                     </View>
                 </Pressable>
@@ -658,13 +687,14 @@ export default function Gameboard({ route, navigation }) {
                 setTimeout(() => {
                     for (let i = 0; i < NBR_OF_DICES; i++) {
                         if (!selectedDices[i]) {
-                            let randomNumber = Math.floor(Math.random() * 6) + 1;
+                            let randomNumber = Math.floor(Math.random() * 2) + 1;
                             board[i] = 'dice-' + randomNumber;
                             rolledDices[i] = randomNumber;
                         }
                     }
                     setNbrOfThrowsLeft(nbrOfThrowsLeft - 1);
                     setIsRolling(false);
+                    checkAndUnlockYatzy(rolledDices);
                 }, 500);
             } else {
                 setStatus('No throws left');
@@ -788,7 +818,13 @@ export default function Gameboard({ route, navigation }) {
                                     handleSetPoints();
                                     setNbrOfThrowsLeft(NBR_OF_THROWS);
                                     resetDiceSelection();
-                                    setRounds(rounds - 1);
+                                    const selectedCategory = scoringCategories.find(category => category.index === selectedField);
+                                    if (!selectedCategory || selectedCategory.name !== 'yatzy' || selectedCategory.points === 0) {
+                                        console.log('Decreasing rounds. Current rounds:', rounds);
+                                        setRounds(prevRounds => prevRounds - 1);
+                                    } else {
+                                        console.log('Rounds not decreased. Current rounds:', rounds);
+                                    }
                                 }}
                             >
                                 <Text style={styles.buttonText}>Set Points</Text>
@@ -806,9 +842,9 @@ export default function Gameboard({ route, navigation }) {
         setStatus("Throw the dices");
         console.log("Game starting...");
     };
-     // Remove ImageBackground
+    // Remove ImageBackground
     return (
-        <ImageBackground source={require('../assets/diceBackground.jpg')} style={styles.background}> 
+        <ImageBackground source={require('../assets/diceBackground.jpg')} style={styles.background}>
             {isLayerVisible && (
                 <Pressable
                     onPress={() => {
