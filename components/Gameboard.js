@@ -303,24 +303,30 @@ export default function Gameboard({ route, navigation }) {
         }, 0);
     }
 
-    function checkAndUnlockYatzy(rolledDices) {
-        const yatzyScore = calculateYatzy(rolledDices);
+function checkAndUnlockYatzy(rolledDices) {
+    const yatzyScore = calculateYatzy(rolledDices);
 
-        setScoringCategories(prevCategories =>
-            prevCategories.map(category => {
-                if (category.name === 'yatzy') {
-                    if (yatzyScore === 50) {
-                        console.log('Yatzy achieved, unlocking the field temporarily.');
-                        return { ...category, locked: false, yatzyAchieved: true };
-                    } else if (!category.locked && category.yatzyAchieved) {
-                        console.log('Yatzy not achieved, locking the field.');
-                        return { ...category, locked: true };
-                    }
+    setScoringCategories(prevCategories =>
+        prevCategories.map(category => {
+            if (category.name === 'yatzy') {
+                // Do not lock the field if it has never been scored
+                if (category.locked && category.points === 0 && !category.yatzyAchieved) {
+                    console.log('Yatzy field is locked with 0 points initially, keeping it locked.');
+                    return category;
                 }
-                return category;
-            })
-        );
-    }
+                if (yatzyScore === 50) {
+                    console.log('Yatzy achieved, unlocking the field temporarily.');
+                    return { ...category, locked: false, yatzyAchieved: true }; 
+                } else if (category.yatzyAchieved) {
+                    console.log('Yatzy not achieved, locking the field after first Yatzy.');
+                    return { ...category, locked: true };
+                }
+            }
+            return category;
+        })
+    );
+}
+
     // Fullhouse
     function calculateFullHouse(rolledDices) {
         const counts = {};
