@@ -6,8 +6,10 @@
 // Button {Cancel}
 
 export const updateMessage =
-`
--Avatar Fix!.
--Minor bug fixes and improvements.
-..ja lopuilla lakritsaa :)
+`-YATZY CAN BE STACKED MULTIPLE TIMES,
+no ceiling on the score.
+
+-YATZYN voi saada monta kertaa,
+ei kattoa pisteissä.
+
 `;
