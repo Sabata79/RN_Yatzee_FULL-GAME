@@ -6,7 +6,7 @@ export default Footer = () => {
     return (
         <View style={styles.footer}>
             <Text style={styles.author}>
-                © 2024 Sasa Mora Roca
+                © 2025 SMR
             </Text>
         </View>
     )
