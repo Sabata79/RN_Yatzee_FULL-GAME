@@ -165,6 +165,7 @@ export default function Gameboard({ route, navigation }) {
                 ...category,
                 points: 0,
                 locked: false,
+                yatzyAchieved: false,
             };
         });
         setScoringCategories(resetCategories);
