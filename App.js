@@ -111,7 +111,7 @@ export default function App() {
                   backgroundColor: 'black',
                 },
                 tabBarActiveTintColor: '#ffffff',
-                tabBarInactiveTintColor: '#553f28',
+                tabBarInactiveTintColor: '#785835',
                 tabBarLabelStyle: {
                   marginTop: 15,
                   fontSize: 10, 
