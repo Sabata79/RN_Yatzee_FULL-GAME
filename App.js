@@ -1,7 +1,7 @@
 import * as Updates from 'expo-updates';
 import React, { useState, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { SafeAreaView, Modal, View, Text, Pressable } from 'react-native';
+import { SafeAreaView, Modal, View, Text, Pressable, Image } from 'react-native';
 import Scoreboard from './components/Scoreboard';
 import Gameboard from './components/Gameboard';
 import About from './components/AboutMe';
@@ -18,6 +18,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
 import { GameProvider } from './components/GameContext';
 import { updateMessage } from './constants/updateMessage';
+import { navigationImages } from './constants/NavigationImagePaths';
 
 export default function App() {
   const [isUserRecognized, setIsUserRecognized] = useState(false);
@@ -104,62 +105,82 @@ export default function App() {
               tabBarPosition="bottom"
               screenOptions={({ route }) => ({
                 headerShown: false,
+                tabBarShowLabel: route.name !== 'Home',
                 tabBarStyle: {
-                  height: 75,
-                  backgroundColor: 'darkorange',
+                  height: 80,
+                  backgroundColor: 'black',
                 },
                 tabBarActiveTintColor: '#ffffff',
-                tabBarInactiveTintColor: '#22201e',
+                tabBarInactiveTintColor: '#553f28',
                 tabBarLabelStyle: {
-                  fontSize: 9,
+                  marginTop: 15,
+                  fontSize: 10, 
                   fontFamily: 'AntonRegular',
                 },
                 tabBarIndicatorStyle: { height: 0 },
                 tabBarIcon: ({ focused }) => {
-                  let iconName;
                   if (route.name === 'Home') {
-                    iconName = 'home';
                     return (
-                      <MaterialCommunityIcons
-                        name={iconName}
-                        size={24}
-                        color={focused ? '#ffffff' : 'black'}
+                      <Image
+                        source={navigationImages[0].display}
+                        style={{
+                          width: 55,
+                          height: 55,
+                          top: -12,
+                          left: -10,
+                        }}
                       />
                     );
                   } else if (route.name === 'Gameboard') {
-                    iconName = 'dice';
                     return (
-                      <FontAwesome5
-                        name={iconName}
-                        size={24}
-                        color={focused ? '#ffffff' : 'black'}
+                      <Image
+                        source={navigationImages[1].display}
+                        style={{
+                          width: 40,
+                          height: 40,
+                          top: -5,
+                          left: -8,
+                          opacity: focused ? 1 : 0.2,
+                        }}
                       />
                     );
                   } else if (route.name === 'Scoreboard') {
-                    iconName = 'list';
                     return (
-                      <FontAwesome5
-                        name={iconName}
-                        size={24}
-                        color={focused ? '#ffffff' : 'black'}
+                      <Image
+                        source={navigationImages[2].display}
+                        style={{
+                          width: 40,
+                          height: 40,
+                          top: -5,
+                          left: -10,
+                          opacity: focused ? 1 : 0.2,
+                        }}
                       />
                     );
                   } else if (route.name === 'Rules') {
-                    iconName = 'book';
                     return (
-                      <FontAwesome5
-                        name={iconName}
-                        size={24}
-                        color={focused ? '#ffffff' : 'black'}
+                      <Image
+                        source={navigationImages[3].display}
+                        style={{
+                          width: 40,
+                          height: 40,
+                          top: -5,
+                          left: -10,
+                          opacity: focused ? 1 : 0.2,
+                        }}
                       />
                     );
                   } else if (route.name === 'About Me') {
-                    iconName = 'info';
                     return (
-                      <FontAwesome5
-                        name={iconName}
-                        size={24}
-                        color={focused ? '#ffffff' : 'black'}
+                      <Image
+                        source={navigationImages[4].display}
+                        style={{
+                          width: 45,
+                          height: 45,
+                          top: -5,
+                          left: -10,
+                          opacity: focused ? 1 : 0.2,
+                        }}
                       />
                     );
                   }
