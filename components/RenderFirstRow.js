@@ -12,7 +12,7 @@ const RenderFirstRow = () => {
   });
 
   const [hasStarted, setHasStarted] = useState(false);
-  const [glowAnim] = useState(new Animated.Value(1)); // Glow animaation arvo (1 = normaali kirkkaus)
+  const [glowAnim] = useState(new Animated.Value(1)); 
 
   useEffect(() => {
     if (gameStarted && !hasStarted) {
@@ -36,12 +36,12 @@ const RenderFirstRow = () => {
     Animated.loop(
       Animated.sequence([
         Animated.timing(glowAnim, {
-          toValue: 1.5, // Kasvatetaan kirkastusta
-          duration: 500, // Koko animaation kesto
+          toValue: 1.5, 
+          duration: 500, 
           useNativeDriver: true,
         }),
         Animated.timing(glowAnim, {
-          toValue: 1, // Palautetaan alkuperäiseen kirkastukseen
+          toValue: 1, 
           duration: 500,
           useNativeDriver: true,
         }),
@@ -65,7 +65,7 @@ const RenderFirstRow = () => {
           <MaterialCommunityIcons
             name="timer"
             size={22}
-            color="#ccc9c9"
+            color="#ffffff"
             style={{ marginRight: 5, marginTop: 3 }}
           />
           <Animated.Text style={[styles.firstRowCategoryText,{ width: 60, textAlign: 'center' },{ transform: [{ scale: glowAnim }] }]}>
