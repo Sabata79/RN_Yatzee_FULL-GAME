@@ -62,7 +62,6 @@ export default styles = StyleSheet.create({
     },
     input: {
         padding: 10,
-        // margin: 10,
         width: 200,
         justifyContent: 'center',
         textAlign: 'center',
@@ -83,6 +82,7 @@ export default styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         marginTop: 3,
+        left: -10,
         shadowColor: '#000000',
         shadowOffset: {
             width: 0,
@@ -102,7 +102,7 @@ export default styles = StyleSheet.create({
     firstRowCategoryText: {
         fontFamily: 'AntonRegular',
         fontSize: 16,
-        color: '#ccc9c9',
+        color: '#ffffff',
         marginVertical: 0,
     },
     firstRow: {
@@ -427,8 +427,8 @@ export default styles = StyleSheet.create({
     sectionContainer: {
         width: 70,
         height: 70,
-        marginTop: 45,
-        marginLeft: 10,
+        marginTop: 50,
+        marginLeft: 30,
         justifyContent: 'center',
         alignItems: 'center',
         padding: 10,
