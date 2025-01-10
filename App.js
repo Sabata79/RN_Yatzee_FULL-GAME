@@ -109,13 +109,20 @@ export default function App() {
                 tabBarStyle: {
                   height: 80,
                   backgroundColor: 'black',
+                  borderTopWidth: 0,
+                  elevation: 0,
+                  shadowOpacity: 0,
                 },
                 tabBarActiveTintColor: '#ffffff',
                 tabBarInactiveTintColor: '#785835',
                 tabBarLabelStyle: {
                   marginTop: 15,
-                  fontSize: 10, 
+                  fontSize: 10,
                   fontFamily: 'AntonRegular',
+                },
+                tabBarContentContainerStyle: {
+                  paddingBottom: 0,
+                  marginBottom: 0,
                 },
                 tabBarIndicatorStyle: { height: 0 },
                 tabBarIcon: ({ focused }) => {
@@ -140,7 +147,7 @@ export default function App() {
                           height: 40,
                           top: -5,
                           left: -8,
-                          opacity: focused ? 1 : 0.2,
+                          opacity: focused ? 1 : 0.5,
                         }}
                       />
                     );
@@ -153,7 +160,7 @@ export default function App() {
                           height: 40,
                           top: -5,
                           left: -10,
-                          opacity: focused ? 1 : 0.2,
+                          opacity: focused ? 1 : 0.5,
                         }}
                       />
                     );
@@ -166,7 +173,7 @@ export default function App() {
                           height: 40,
                           top: -5,
                           left: -10,
-                          opacity: focused ? 1 : 0.2,
+                          opacity: focused ? 1 : 0.5,
                         }}
                       />
                     );
@@ -179,7 +186,7 @@ export default function App() {
                           height: 45,
                           top: -5,
                           left: -10,
-                          opacity: focused ? 1 : 0.2,
+                          opacity: focused ? 1 : 0.5,
                         }}
                       />
                     );
