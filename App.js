@@ -115,7 +115,7 @@ export default function App() {
                 tabBarInactiveTintColor: '#785835',
                 tabBarLabelStyle: {
                   marginTop: 15,
-                  fontSize: 10,
+                  fontSize: 9,
                   fontFamily: 'AntonRegular',
                 },
                 tabBarContentContainerStyle: {

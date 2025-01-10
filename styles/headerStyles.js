@@ -14,8 +14,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 24,
-    marginLeft: 10,
-    marginRight: 5,
+    marginLeft: 5,
     fontFamily: 'AntonRegular',
     color: '#ccc9c9',
   },
