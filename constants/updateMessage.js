@@ -6,9 +6,14 @@
 // Button {Cancel}
 
 export const updateMessage =
-`-YATZY CAN BE STACKED MULTIPLE TIMES,
+`
+-NEW Bottom Navigation Bar
+-NEW Token System for UI testing
+-YATZY CAN BE STACKED MULTIPLE TIMES,
 no ceiling on the score.
 
+-UUSI Alapalkki
+-UUSI Token Järjestelmä visuaaliseen testaukseen
 -YATZYN voi saada monta kertaa,
 ei kattoa pisteissä.
 
