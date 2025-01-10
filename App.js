@@ -124,7 +124,7 @@ export default function App() {
                   paddingBottom: 0,
                   marginBottom: 0,
                 },
-                tabBarIndicatorStyle: { height: 0 },
+                tabBarIndicatorStyle: { height: 0 ,backgroundColor: 'transparent',},
                 tabBarIcon: ({ focused }) => {
                   if (route.name === 'Home') {
                     return (
@@ -218,7 +218,6 @@ export default function App() {
               <Tab.Screen name="Rules" component={Rules} />
               <Tab.Screen name="About Me" component={About} />
             </Tab.Navigator>
-            <Footer />
           </NavigationContainer>
           <StatusBar style="light" backgroundColor="black" />
         </SafeAreaView>

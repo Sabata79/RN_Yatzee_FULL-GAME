@@ -36,7 +36,8 @@ export default styles = StyleSheet.create({
         right: 10,
     },
     footer: {
-        backgroundColor: 'rgba(0, 0, 0, 0.95)',
+        width: '100%',
+        backgroundColor: 'transparent',
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',

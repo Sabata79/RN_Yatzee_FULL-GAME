@@ -26,6 +26,9 @@ export default function AboutMe() {
       <Text style={styles.aboutFeatureText}>
         {aboutFeatures}
       </Text>
+      <View style={styles.footer}>
+        <Text style={styles.author}>© 2025 Sasa Mora Roca</Text>
+      </View>
     </ScrollView>
   </View>
   </ImageBackground>
