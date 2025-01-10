@@ -10,6 +10,7 @@ export const YATZY_POINTS = 50;
 export const FULLHOUSE_PONITS = 25;
 export const SMALL_STRAIGHT_POINTS = 30;
 export const LARGE_STRAIGHT_POINTS = 40;
+export const MAX_TOKENS = 5;
 
 // Data handling
 export const TOPSCORELIMIT = 3000;
