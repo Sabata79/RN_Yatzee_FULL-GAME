@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, Button, Alert } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { ProgressBar } from 'react-native-paper';
-import styles from '../styles/EnergyTokenStyles';
+import styles from '../styles/energyTokenStyles';
 import { MAX_TOKENS } from '../constants/Game';
 
 const EnergyTokenSystem = ({ onPlay }) => {
