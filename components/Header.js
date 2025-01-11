@@ -55,7 +55,7 @@ export default function Header({ isUserRecognized, name, playerId }) {
             {userAvatar ? (
               <Image source={userAvatar} style={headerStyles.headerAvatarImage} />
             ) : (
-              <FontAwesome5 name="user" size={22} color="white" style={{ marginLeft: 5 }} />
+              <FontAwesome5 name="user" size={22} color="white" style={{ position: 'absolute' ,right: 15, top: 15 }} />
             )}
           </Pressable>
         </View>
