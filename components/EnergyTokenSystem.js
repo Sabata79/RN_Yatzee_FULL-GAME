@@ -108,7 +108,6 @@ const EnergyTokenSystem = ({ onPlay }) => {
           {tokens}/{MAX_TOKENS}
         </Text>
       </View>
-      <Text style={[styles.tokenText, { top: 30, left: -50 }]}>Video Tokens Used: {videoTokens}/{VIDEO_TOKEN_LIMIT}</Text>
 
       {/* Modal for No Energy */}
       <Modal
