@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { View, Text, TextInput, Pressable, Alert, ImageBackground, ActivityIndicator,Image } from "react-native";
+import { View, Text, TextInput, Pressable, Alert, ImageBackground, ActivityIndicator, Image, Animated } from "react-native";
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { FontAwesome5 } from '@expo/vector-icons';
 import styles from '../styles/styles';
@@ -17,10 +17,10 @@ export default function Home({ setIsUserRecognized, setName, setPlayerId }) {
   const [isUserRecognized, setUserRecognized] = useState(false);
   const inputRef = useRef(null);
   const navigation = useNavigation();
+  const fadeAnim = useRef(new Animated.Value(0)).current; // Animaation alustus
 
   const { setPlayerIdContext, setPlayerNameContext } = useGame();
 
-  
   useEffect(() => {
     if (localName && playerId) {
       setPlayerIdContext(playerId);
@@ -61,7 +61,17 @@ export default function Home({ setIsUserRecognized, setName, setPlayerId }) {
     });
   };
 
-    const checkIfNameExists = async (name) => {
+  useEffect(() => {
+    if (!loading) {
+      Animated.timing(fadeAnim, {
+        toValue: 1, 
+        duration: 1000, 
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [loading]);
+
+  const checkIfNameExists = async (name) => {
     const playersRef = ref(database, 'players');
     const snapshot = await get(playersRef);
     if (snapshot.exists()) {
@@ -117,7 +127,7 @@ export default function Home({ setIsUserRecognized, setName, setPlayerId }) {
         }
       }
     }
-  }
+  };
 
   const handlePlay = () => {
     navigation.navigate('Gameboard');
@@ -134,11 +144,14 @@ export default function Home({ setIsUserRecognized, setName, setPlayerId }) {
       <View style={styles.overlay}>
         {loading ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#ffffff" />
-            <Text style={styles.rulesText}>Checking player data...</Text>
+            <ActivityIndicator 
+              size={'80%'}
+              color="#00ff00"
+              animating={true} />
+            <Text style={[styles.rulesText, { color: '#62a346' }]}>Checking player data...</Text>
           </View>
         ) : (
-          <View style={styles.rulesContainer}>
+          <Animated.View style={[styles.rulesContainer, { opacity: fadeAnim }]}>
             {!isUserRecognized ? (
               <View style={styles.rulesContainer}>
                 <Text style={styles.rulesText}>Hi, Stranger! Can you tell your nickname?</Text>
@@ -164,8 +177,8 @@ export default function Home({ setIsUserRecognized, setName, setPlayerId }) {
               </View>
             ) : (
               <View style={styles.rulesContainer}>
-                <Text style={styles.rulesText}>Hi {localName} , let's roll the dice! </Text>
-                  <Image source={require('../assets/hiThere.png')} 
+                <Text style={styles.rulesText}>Hi {localName}, let's roll the dice!</Text>
+                <Image source={require('../assets/hiThere.png')} 
                   style={styles.hiThereImage} 
                 />
                 <View style={styles.homeButtonContainer}>
@@ -198,7 +211,7 @@ export default function Home({ setIsUserRecognized, setName, setPlayerId }) {
                 </View>
               </View>
             )}
-          </View>
+          </Animated.View>
         )}
       </View>
     </ImageBackground>
