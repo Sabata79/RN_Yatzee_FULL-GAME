@@ -22,7 +22,7 @@ export const GameProvider = ({ children }) => {
   const [viewingPlayerId, setViewingPlayerId] = useState(''); 
   const [viewingPlayerName, setViewingPlayerName] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
-  const [isAvatarLoaded, setIsAvatarLoaded] = useState(false); 
+  const [isAvatarLoaded, setIsAvatarLoaded] = useState(false);
 
 // Avatar URL check in background
   useEffect(() => {
