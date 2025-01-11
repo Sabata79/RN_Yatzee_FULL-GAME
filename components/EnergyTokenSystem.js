@@ -11,7 +11,7 @@ const EnergyTokenSystem = ({ onPlay }) => {
   const [tokens, setTokens] = useState(MAX_TOKENS);
   const [nextTokenTime, setNextTokenTime] = useState(null);
   const [videoTokens, setVideoTokens] = useState(0);
-  const [energyModalVisible, setModalVisible] = useState(true);
+  const [energyModalVisible, setModalVisible] = useState(false);
   const { gameStarted, gameEnded } = useGame();
 
   // Load saved data on mount
