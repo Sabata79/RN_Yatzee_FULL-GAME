@@ -27,3 +27,6 @@ Features:
 - User Recognition: Recognizes the player’s device, providing a personalized experience each time you play.
 `;
 
+export const aboutContact = `
+Contact:
+For feedback or suggestions, feel free to reach out via email:`;
