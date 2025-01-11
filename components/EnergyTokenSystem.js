@@ -12,7 +12,7 @@ const EnergyTokenSystem = ({ onPlay }) => {
   const [nextTokenTime, setNextTokenTime] = useState(null);
   const [videoTokens, setVideoTokens] = useState(0);
   const [energyModalVisible, setModalVisible] = useState(false);
-  const { gameStarted, gameEnded } = useGame();
+  const { gameStarted } = useGame();
 
   // Load saved data on mount
   useEffect(() => {
@@ -35,6 +35,7 @@ const EnergyTokenSystem = ({ onPlay }) => {
 
         setTokens(parseInt(savedTokens) || MAX_TOKENS);
         setNextTokenTime(savedNextTokenTime ? new Date(savedNextTokenTime) : null);
+        console.log('Loaded tokens:', savedTokens);
       } catch (e) {
         console.error('Failed to load saved data:', e);
       }
@@ -50,9 +51,7 @@ const EnergyTokenSystem = ({ onPlay }) => {
         await AsyncStorage.setItem('tokens', tokens.toString());
         await AsyncStorage.setItem('nextTokenTime', nextTokenTime ? nextTokenTime.toISOString() : '');
         await AsyncStorage.setItem('videoTokens', videoTokens.toString());
-        if (!await AsyncStorage.getItem('lastReset')) {
-          await AsyncStorage.setItem('lastReset', new Date().toISOString());
-        }
+        console.log('Saved tokens:', tokens);
       } catch (e) {
         console.error('Failed to save data:', e);
       }
@@ -66,7 +65,11 @@ const EnergyTokenSystem = ({ onPlay }) => {
     if (tokens < MAX_TOKENS) {
       const interval = setInterval(() => {
         if (nextTokenTime && new Date() >= nextTokenTime) {
-          setTokens((prev) => Math.min(prev + 1, MAX_TOKENS));
+          setTokens((prev) => {
+            const newTokens = Math.min(prev + 1, MAX_TOKENS);
+            console.log('Regenerated token:', newTokens);
+            return newTokens;
+          });
           const intervalTime = MILLISECONDS_IN_A_DAY / MAX_TOKENS;
           setNextTokenTime(new Date(Date.now() + intervalTime));
         }
@@ -78,8 +81,15 @@ const EnergyTokenSystem = ({ onPlay }) => {
 
   // Handle game start
   useEffect(() => {
-    if (gameStarted && tokens === 0) {
-      setModalVisible(true);
+    if (gameStarted) {
+      setTokens((prev) => {
+        const updatedTokens = Math.max(prev - 1, 0);
+        console.log('Tokens after game start:', updatedTokens);
+        if (updatedTokens === 0) {
+          setModalVisible(true);
+        }
+        return updatedTokens;
+      });
     }
   }, [gameStarted]);
 
@@ -91,7 +101,11 @@ const EnergyTokenSystem = ({ onPlay }) => {
     }
 
     setTimeout(() => {
-      setTokens((prev) => Math.min(prev + 1, MAX_TOKENS));
+      setTokens((prev) => {
+        const newTokens = Math.min(prev + 1, MAX_TOKENS);
+        console.log('Token added via video:', newTokens);
+        return newTokens;
+      });
       setVideoTokens((prev) => prev + 1);
       Alert.alert('Thank You', 'You earned 1 extra token!');
     }, 2000);
