@@ -4,15 +4,6 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 export default function DiceAnimation({ diceName, isSelected, onSelect, animationValue, color, isRolling }) {
 
-  // Loggaa, milloin heittäminen alkaa ja loppuu
-  useEffect(() => {
-    if (isRolling) {
-      console.log(`${diceName}: Rolling started.`);
-    } else {
-      console.log(`${diceName}: Rolling stopped.`);
-    }
-  }, [isRolling, diceName]);
-
   const rotation = animationValue.interpolate({
     inputRange: [0, 1],
     outputRange: ['0deg', '360deg'],
