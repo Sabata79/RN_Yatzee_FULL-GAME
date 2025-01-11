@@ -1,9 +1,18 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Animated, Pressable } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
-export default function DiceAnimation({ diceName, isSelected, onSelect, animationValue, color }) {
-  
+export default function DiceAnimation({ diceName, isSelected, onSelect, animationValue, color, isRolling }) {
+
+  // Loggaa, milloin heittäminen alkaa ja loppuu
+  useEffect(() => {
+    if (isRolling) {
+      console.log(`${diceName}: Rolling started.`);
+    } else {
+      console.log(`${diceName}: Rolling stopped.`);
+    }
+  }, [isRolling, diceName]);
+
   const rotation = animationValue.interpolate({
     inputRange: [0, 1],
     outputRange: ['0deg', '360deg'],
@@ -16,10 +25,11 @@ export default function DiceAnimation({ diceName, isSelected, onSelect, animatio
 
   const animatedStyle = {
     transform: [
-      { rotate: rotation }, 
-      { rotateY: rotateY }, 
+      { rotate: rotation },
+      { rotateY: rotateY },
     ],
-  };
+    opacity: isRolling ? 0.5 : 1,
+  }
 
   return (
     <Pressable onPress={onSelect}>
