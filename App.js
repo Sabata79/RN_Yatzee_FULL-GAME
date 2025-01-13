@@ -25,7 +25,7 @@ export default function App() {
   const [name, setName] = useState('');
   const [playerId, setPlayerId] = useState('');
   const [updateAvailable, setUpdateAvailable] = useState(false);
-  const [updateModalVisible, setUpdateModalVisible] = useState(true);
+  const [updateModalVisible, setUpdateModalVisible] = useState(false);
 
   const Stack = createStackNavigator();
   const Tab = createMaterialTopTabNavigator();
