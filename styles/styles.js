@@ -430,10 +430,10 @@ export default styles = StyleSheet.create({
         bottom: 0,
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
         zIndex: 999,
-        justifyContent: 'flex-start', 
+        justifyContent: 'flex-start',
         alignItems: 'center',
         display: 'flex',
-        paddingTop: 200, 
+        paddingTop: 200,
     },
     centeredText: {
         color: 'white',
@@ -575,12 +575,6 @@ export default styles = StyleSheet.create({
         alignItems: 'center',
         height: '100%',
         width: '100%',
-    },
-
-    medal: {
-        height: 55,
-        width: 55,
-        resizeMode: 'cover',
     },
 
     scoreboardText: {
@@ -834,4 +828,123 @@ export default styles = StyleSheet.create({
         marginBottom: -120,
         marginTop: -50,
     },
+ // Scoreboard
+    scoreBoardAvatar: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        marginRight: 10,
+        borderWidth: 1,
+        borderColor: 'black',
+    },
+    defaultAvatarIcon: {
+        height: 40,
+        width: 40,
+        borderRadius: 20,
+        marginRight: 10,
+        backgroundColor: 'black',
+        justifyContent: 'center',
+        alignItems: 'center',
+        display: 'flex',
+    },
+    rankHeaderCell: {
+        flex: 1.2,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    playerHeaderCell: {
+        flex: 3,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    durationHeaderCell: {
+        flex: 2,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginLeft:15,
+    },
+    pointsHeaderCell: {
+        flex: 1.5,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    rankCell: {
+        flex: 1.2,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    medal: {
+        width: 42, 
+        height: 42, 
+        marginLeft: 0, 
+        alignSelf: 'center', 
+    },
+    medalWrapper: {
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    rankText: {
+        fontSize: 16,
+        color: 'black',
+        textAlign: 'center',
+        fontWeight: 'bold',
+    },
+    playerCell: {
+        flex: 3,
+        justifyContent: 'flex-start',
+    },
+    playerWrapper: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    avatar: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        marginRight: 10,
+        marginLeft:15,  
+        borderWidth: 1,
+        borderColor: 'black',
+    },
+    defaultAvatarIcon: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: 'black',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 10,
+        marginLeft:15,
+    },
+    playerNameText: {
+        fontSize: 16,
+        color: 'black',
+        fontWeight: 'bold',
+        marginLeft: 5,
+        letterSpacing: -0.8,
+    },
+
+    durationCell: {
+        flex: 2,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    durationText: {
+        fontSize: 16,
+        color: 'black',
+        textAlign: 'center',
+        marginLeft:15,
+    },
+
+    pointsCell: {
+        flex: 1.5,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    pointsText: {
+        fontSize: 16,
+        color: 'black',
+        textAlign: 'center',
+    },
+
 });
