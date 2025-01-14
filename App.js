@@ -2,6 +2,7 @@ import * as Updates from 'expo-updates';
 import React, { useState, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView, Modal, View, Text, Pressable, Image } from 'react-native';
+import { FontAwesome5 } from '@expo/vector-icons';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
@@ -68,81 +69,67 @@ export default function App() {
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarStyle: {
-          height: 80,
-          backgroundColor: 'black',
+          height: 85, // Navigointipalkin korkeus
+          backgroundColor: 'black', // Taustaväri
+        },
+        tabBarIndicatorStyle: {
+          display: 'none', // Poistetaan aktiivinen indikaattori
+        },
+        tabBarActiveTintColor: '#ffffff',
+        tabBarInactiveTintColor: 'gray',
+        tabBarLabelStyle: {
+          marginTop: 5,
+          fontSize: 14,
+          fontFamily: 'AntonRegular',
         },
         tabBarIcon: ({ focused }) => {
-          if (route.name === 'Home') {
-            return (
-              <Image
-                source={navigationImages[0].display}
-                style={{
-                  width: 55,
-                  height: 55,
-                  top: -12,
-                  left: -10,
-                }}
-              />
-            );
-          } else if (route.name === 'Gameboard') {
-            return (
-              <Image
-                source={navigationImages[1].display}
-                style={{
-                  width: 40,
-                  height: 40,
-                  top: -5,
-                  left: -8,
-                  opacity: focused ? 1 : 0.5,
-                }}
-              />
-            );
-          } else if (route.name === 'Scoreboard') {
-            return (
-              <Image
-                source={navigationImages[2].display}
-                style={{
-                  width: 40,
-                  height: 40,
-                  top: -5,
-                  left: -10,
-                  opacity: focused ? 1 : 0.5,
-                }}
-              />
-            );
-          } else if (route.name === 'Rules') {
-            return (
-              <Image
-                source={navigationImages[3].display}
-                style={{
-                  width: 40,
-                  height: 40,
-                  top: -5,
-                  left: -10,
-                  opacity: focused ? 1 : 0.5,
-                }}
-              />
-            );
-          } else if (route.name === 'About Me') {
-            return (
-              <Image
-                source={navigationImages[4].display}
-                style={{
-                  width: 45,
-                  height: 45,
-                  top: -5,
-                  left: -10,
-                  opacity: focused ? 1 : 0.5,
-                }}
-              />
-            );
-          }
-        },
-      })}
-    >
+          const iconStyle = {
+            width: 50, 
+            height: 50, 
+            size: 28, 
+            color: focused ? '#eae6e6' : 'gray',
+          };
+
+        if (route.name === 'Home') {
+          return (
+            <View style={{ marginLeft: -5 }}> 
+              <FontAwesome5 name="home" {...iconStyle} />
+            </View>
+          );
+        } else if (route.name === 'Gameboard') {
+          return (
+            <View style={{ marginLeft: -5 }}> 
+              <FontAwesome5 name="dice" {...iconStyle} />
+            </View>
+          );
+        } else if (route.name === 'Scoreboard') {
+          return (
+            <View style={{ marginLeft: -5 }}>
+              <FontAwesome5 name="trophy" {...iconStyle} />
+            </View>
+          );
+        } else if (route.name === 'Rules') {
+          return (
+            <View style={{ marginLeft: -1 }}>
+              <FontAwesome5 name="book" {...iconStyle} />
+            </View>
+          );
+        } else if (route.name === 'About Me') {
+          return (
+            <View style={{ marginLeft: -1 }}> 
+              <FontAwesome5 name="user" {...iconStyle} />
+            </View>
+          );
+        }
+      },
+    })}
+  >
       <Tab.Screen
         name="Home"
-        options={{ tabBarStyle: { display: 'none' } }}
+        options={{
+          tabBarStyle: { display: 'none' }, 
+          tabBarButton: () => null,
+        }}
       >
         {() => (
           <Home
@@ -152,12 +139,14 @@ export default function App() {
           />
         )}
       </Tab.Screen>
-      <Tab.Screen name="Gameboard" component={Gameboard} />
-      <Tab.Screen name="Scoreboard" component={Scoreboard} />
-      <Tab.Screen name="Rules" component={Rules} />
-      <Tab.Screen name="About Me" component={About} />
+      <Tab.Screen name="Gameboard" options={{ tabBarLabel: 'Game' }} component={Gameboard} />
+      <Tab.Screen name="Scoreboard" options={{ tabBarLabel: 'Scores' }} component={Scoreboard} />
+      <Tab.Screen name="Rules" options={{ tabBarLabel: 'Help' }} component={Rules} />
+      <Tab.Screen name="About Me" options={{ tabBarLabel: 'About' }} component={About} />
     </Tab.Navigator>
   );
+
+
 
   return (
     <SafeAreaProvider>
