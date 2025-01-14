@@ -1,14 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
-import { View, Text, TextInput, Pressable, Alert, ImageBackground, ActivityIndicator, Image, Animated } from "react-native";
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { View, Text, TextInput, Pressable, Alert, ImageBackground, Image, Animated } from "react-native";
 import { FontAwesome5 } from '@expo/vector-icons';
 import styles from '../styles/styles';
-import * as SecureStore from 'expo-secure-store';
 import { database } from '../components/Firebase';
-import { ref, onValue, set, get } from 'firebase/database';
+import { ref, set, get } from 'firebase/database';
 import uuid from 'react-native-uuid';
 import { useNavigation } from '@react-navigation/native';
 import { useGame } from '../components/GameContext';
+import { navigationImages } from '../constants/NavigationImagePaths';
 
 export default function Home({ setName, setPlayerId }) {
   const [localName, setLocalName] = useState('');
@@ -125,7 +124,7 @@ export default function Home({ setName, setPlayerId }) {
             />
             <Pressable
               style={({ pressed }) => [styles.homeButton, pressed && styles.homeButtonPressed]}
-              onPress={handlePress}
+              onPressOut={handlePress}
             >
               <Text style={styles.buttonText}>OK</Text>
             </Pressable>
@@ -139,18 +138,20 @@ export default function Home({ setName, setPlayerId }) {
               styles.button, pressed && styles.buttonPressed,
               styles.fullWidthButton,
               ]}
-              onPress={handlePlay}
+              onPressOut={handlePlay}
             >
               <Text style={styles.buttonText}>PLAY</Text>
+              <FontAwesome5 name="play" size={30} color="black" style={{ marginRight: 8 }} />
             </Pressable>
             <Pressable
               style={({ pressed }) => [
               styles.button, pressed && styles.buttonPressed,
               styles.fullWidthButton,
               ]}
-              onPress={handleChangeName}
+              onPressOut={handleChangeName}
             >
               <Text style={styles.buttonText}>Change name</Text>
+              <FontAwesome5 name="user-edit" size={30} color="black" />
             </Pressable>
                   <Pressable
                     style={({ pressed }) => [
@@ -158,10 +159,10 @@ export default function Home({ setName, setPlayerId }) {
                       pressed && styles.buttonPressed,
                       styles.fullWidthButton,
                     ]}
-                    onPress={() => navigation.navigate('Rules')}
+                    onPressOut={() => navigation.navigate('Rules')}
                   >
                     <Text style={styles.buttonText}>Rules</Text>
-                    <FontAwesome5 name="book" size={30} color="black" />
+                    <FontAwesome5 name="book" size={30} color="black" style={{ marginRight: 8 }}  />
                   </Pressable>
           </View>
         )}

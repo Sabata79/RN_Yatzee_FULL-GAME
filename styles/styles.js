@@ -212,13 +212,16 @@ export default styles = StyleSheet.create({
         shadowRadius: 3.84,
         elevation: 10,
     },
+
     buttonPressed: {
         margin: 5,
         marginTop: 15,
         flexDirection: 'row',
         paddingLeft: 10,
         paddingRight: 10,
-        backgroundColor: 'orange',
+        backgroundColor: '#ff6d00',
+        borderWidth: 3,
+        borderColor: '#ff4500',
         width: '39%',
         height: 50,
         borderRadius: 5,
@@ -232,6 +235,7 @@ export default styles = StyleSheet.create({
         shadowOpacity: 0.0,
         shadowRadius: 0,
         elevation: 0,
+        transform: [{ scale: 0.95 }],
     },
     userButton: {
         margin: 5,
@@ -828,7 +832,7 @@ export default styles = StyleSheet.create({
         marginBottom: -120,
         marginTop: -50,
     },
- // Scoreboard
+    // Scoreboard
     scoreBoardAvatar: {
         width: 40,
         height: 40,
@@ -861,7 +865,7 @@ export default styles = StyleSheet.create({
         flex: 2,
         alignItems: 'center',
         justifyContent: 'center',
-        marginLeft:15,
+        marginLeft: 15,
     },
     pointsHeaderCell: {
         flex: 1.5,
@@ -874,10 +878,10 @@ export default styles = StyleSheet.create({
         justifyContent: 'center',
     },
     medal: {
-        width: 42, 
-        height: 42, 
-        marginLeft: 0, 
-        alignSelf: 'center', 
+        width: 42,
+        height: 42,
+        marginLeft: 0,
+        alignSelf: 'center',
     },
     medalWrapper: {
         alignItems: 'center',
@@ -902,7 +906,7 @@ export default styles = StyleSheet.create({
         height: 40,
         borderRadius: 20,
         marginRight: 10,
-        marginLeft:15,  
+        marginLeft: 15,
         borderWidth: 1,
         borderColor: 'black',
     },
@@ -914,7 +918,7 @@ export default styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 10,
-        marginLeft:15,
+        marginLeft: 15,
     },
     playerNameText: {
         fontSize: 16,
@@ -933,7 +937,7 @@ export default styles = StyleSheet.create({
         fontSize: 16,
         color: 'black',
         textAlign: 'center',
-        marginLeft:15,
+        marginLeft: 15,
     },
 
     pointsCell: {
