@@ -1,7 +1,7 @@
 import * as Updates from 'expo-updates';
 import React, { useState, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { SafeAreaView, Modal, View, Text, Pressable, Image } from 'react-native';
+import { SafeAreaView, Modal, View, Text, Pressable } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -17,7 +17,6 @@ import About from './components/AboutMe';
 import Rules from './components/Rules';
 import Header from './components/Header';
 import styles from './styles/styles';
-import { navigationImages } from './constants/NavigationImagePaths';
 import { updateMessage } from './constants/updateMessage';
 import updateModalStyles from './styles/updateModalStyles';
 
@@ -69,11 +68,11 @@ export default function App() {
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarStyle: {
-          height: 85, // Navigointipalkin korkeus
-          backgroundColor: 'black', // Taustaväri
+          height: 85, 
+          backgroundColor: 'black', 
         },
         tabBarIndicatorStyle: {
-          display: 'none', // Poistetaan aktiivinen indikaattori
+          display: 'none',
         },
         tabBarActiveTintColor: '#ffffff',
         tabBarInactiveTintColor: 'gray',
