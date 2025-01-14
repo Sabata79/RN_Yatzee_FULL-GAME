@@ -1,82 +1,168 @@
-import React from "react";
-import { View, Text, Pressable, ImageBackground, Image } from "react-native";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { FontAwesome5 } from "@expo/vector-icons";
-import styles from "../styles/styles";
-import { useNavigation } from "@react-navigation/native";
-import { useGame } from "../components/GameContext";
+import React, { useState, useEffect, useRef } from "react";
+import { View, Text, TextInput, Pressable, Alert, ImageBackground, ActivityIndicator, Image, Animated } from "react-native";
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { FontAwesome5 } from '@expo/vector-icons';
+import styles from '../styles/styles';
+import * as SecureStore from 'expo-secure-store';
+import { database } from '../components/Firebase';
+import { ref, onValue, set, get } from 'firebase/database';
+import uuid from 'react-native-uuid';
+import { useNavigation } from '@react-navigation/native';
+import { useGame } from '../components/GameContext';
 
-export default function Home() {
+export default function Home({ setName, setPlayerId }) {
+  const [localName, setLocalName] = useState('');
+  const [localPlayerId, setLocalPlayerId] = useState('');
+  const [loading, setLoading] = useState(true);
+  const inputRef = useRef(null);
   const navigation = useNavigation();
-  const { playerName } = useGame();
+  const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  const handlePlay = () => {
-    navigation.navigate("Gameboard");
+  const { setPlayerIdContext, setPlayerNameContext, userRecognized, setUserRecognized, playerName, playerId } = useGame();
+
+  useEffect(() => {
+    if (localName && playerId) {
+      console.log("Updating context with playerId:", playerId);
+      setPlayerIdContext(playerId);
+      setPlayerNameContext(localName);
+      setLocalPlayerId(playerId); 
+    }
+  }, [localName, playerId]);
+
+
+  useEffect(() => {
+    if (!loading) {
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 1000,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [loading]);
+
+  const checkIfNameExists = async (name) => {
+    const playersRef = ref(database, 'players');
+    const snapshot = await get(playersRef);
+    if (snapshot.exists()) {
+      const playersData = snapshot.val();
+      for (let playerId in playersData) {
+        if (playersData[playerId].name === name) {
+          return true;
+        }
+      }
+    }
+    return false;
   };
 
-  const handleRules = () => {
-    navigation.navigate("Rules");
+  const saveNewPlayer = async (name, userId) => {
+    const playerRef = ref(database, `players/${userId}`);
+    const snapshot = await get(playerRef);
+    const playerData = snapshot.val();
+
+    set(playerRef, {
+      ...playerData,
+      name: name,
+      dateJoined: playerData?.dateJoined || new Date().toLocaleDateString(),
+    });
+
+    setName(name);
+    setPlayerId(userId);
+    console.log("Saving player data:", { name, userId });
+  };
+
+  const handlePress = async () => {
+    if (localName.trim() === '') {
+      Alert.alert('Name is required', 'Please enter your name.');
+    } else if (localName.length < 3 || localName.length > 10) {
+      Alert.alert('Name is too short', 'Please enter a nickname with at least 3 characters and maximum 10 characters.');
+    } else {
+      const nameExists = await checkIfNameExists(localName);
+      if (nameExists) {
+        Alert.alert('Name already in use', 'That nickname is already in use. Please choose another.');
+      } else {
+        setUserRecognized(true);
+
+        if (!playerId) {
+          const newPlayerId = uuid.v4();
+          setLocalPlayerId(newPlayerId);
+          setPlayerId(newPlayerId);
+          setPlayerIdContext(newPlayerId);
+          setPlayerNameContext(localName);
+          saveNewPlayer(localName, newPlayerId);
+        } else {
+          setPlayerIdContext(playerId);
+          setPlayerNameContext(localName);
+          saveNewPlayer(localName, playerId);
+        }
+      }
+    }
+  };
+
+  const handlePlay = () => {
+    navigation.navigate('Gameboard');
   };
 
   const handleChangeName = () => {
-    navigation.navigate("LandingPage");
+    setLocalName('');
+    setUserRecognized(false);
   };
 
   return (
     <ImageBackground source={require("../assets/diceBackground.jpg")} style={styles.background}>
       <View style={styles.overlay}>
-        {playerName ? (
-          // Jos pelaaja on tunnistettu
-          <View style={styles.rulesContainer}>
-            <Text style={styles.rulesText}>Hi {playerName}, let's roll the dice!</Text>
-            <Image
-              source={require("../assets/hiThere.png")}
-              style={styles.hiThereImage}
-            />
-            <View style={styles.homeButtonContainer}>
-              <View style={styles.rowButtons}>
-                <Pressable
-                  style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
-                  onPress={handleChangeName}
-                >
-                  <Text style={[styles.buttonText, { fontSize: 16 }]}>Change name</Text>
-                </Pressable>
-                <Pressable
-                  style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
-                  onPress={handlePlay}
-                >
-                  <Text style={styles.buttonText}>PLAY</Text>
-                  <MaterialCommunityIcons name="play" size={30} color="black" />
-                </Pressable>
-              </View>
-              <Pressable
-                style={({ pressed }) => [
-                  styles.button,
-                  pressed && styles.buttonPressed,
-                  styles.fullWidthButton,
-                ]}
-                onPress={handleRules}
-              >
-                <Text style={styles.buttonText}>Rules</Text>
-                <FontAwesome5 name="book" size={30} color="black" />
-              </Pressable>
-            </View>
-          </View>
-        ) : (
-          // Jos pelaajaa ei ole tunnistettu
+        {!userRecognized ? (
           <View style={styles.rulesContainer}>
             <Text style={styles.rulesText}>Hi, Stranger! Can you tell your nickname?</Text>
-            <Text style={styles.rulesAuxillaryText}>( Nickname must be 3-10 characters long. )</Text>
-            <Image
-              source={require("../assets/register.png")}
-              style={styles.registerImage}
+            <Text style={styles.rulesAuxillaryText}>(Nickname must be 3-10 characters long.)</Text>
+            <Image source={require("../assets/register.png")} style={styles.registerImage} />
+            <TextInput
+              ref={inputRef}
+              style={styles.input}
+              placeholder="Enter your nickname"
+              placeholderTextColor={"white"}
+              value={localName}
+              onChangeText={setLocalName}
             />
             <Pressable
               style={({ pressed }) => [styles.homeButton, pressed && styles.homeButtonPressed]}
-              onPress={() => navigation.navigate("LandingPage")}
+              onPress={handlePress}
             >
               <Text style={styles.buttonText}>OK</Text>
             </Pressable>
+          </View>
+        ) : (
+          <View style={styles.rulesContainer}>
+            <Text style={styles.rulesText}>Hi {playerName}, let's roll the dice!</Text>
+            <Image source={require("../assets/hiThere.png")} style={styles.hiThereImage} />
+            <Pressable
+              style={({ pressed }) => [
+              styles.button, pressed && styles.buttonPressed,
+              styles.fullWidthButton,
+              ]}
+              onPress={handlePlay}
+            >
+              <Text style={styles.buttonText}>PLAY</Text>
+            </Pressable>
+            <Pressable
+              style={({ pressed }) => [
+              styles.button, pressed && styles.buttonPressed,
+              styles.fullWidthButton,
+              ]}
+              onPress={handleChangeName}
+            >
+              <Text style={styles.buttonText}>Change name</Text>
+            </Pressable>
+                  <Pressable
+                    style={({ pressed }) => [
+                      styles.button,
+                      pressed && styles.buttonPressed,
+                      styles.fullWidthButton,
+                    ]}
+                    onPress={() => navigation.navigate('Rules')}
+                  >
+                    <Text style={styles.buttonText}>Rules</Text>
+                    <FontAwesome5 name="book" size={30} color="black" />
+                  </Pressable>
           </View>
         )}
       </View>

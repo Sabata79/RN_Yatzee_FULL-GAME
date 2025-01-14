@@ -1,5 +1,5 @@
 // Purpose: Context for the game state and player data.
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, use } from 'react';
 import { ref, onValue } from 'firebase/database';
 import { database } from './Firebase';
 
@@ -19,12 +19,13 @@ export const GameProvider = ({ children }) => {
   const [totalPoints, setTotalPoints] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [isGameSaved, setIsGameSaved] = useState(false);
-  const [viewingPlayerId, setViewingPlayerId] = useState(''); 
+  const [viewingPlayerId, setViewingPlayerId] = useState('');
   const [viewingPlayerName, setViewingPlayerName] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
   const [isAvatarLoaded, setIsAvatarLoaded] = useState(false);
+  const [userRecognized, setUserRecognized] = useState(false);
 
-// Avatar URL check in background
+  // Avatar URL check in background
   useEffect(() => {
     if (playerId) {
       const playerRef = ref(database, `players/${playerId}/avatar`);
@@ -32,7 +33,7 @@ export const GameProvider = ({ children }) => {
         const avatarPath = snapshot.val();
         if (avatarPath) {
           setAvatarUrl(avatarPath);
-          setIsAvatarLoaded(true); 
+          setIsAvatarLoaded(true);
         } else {
           setAvatarUrl(null);
           setIsAvatarLoaded(true);
@@ -55,11 +56,11 @@ export const GameProvider = ({ children }) => {
   };
 
   const setPlayerScoresContext = (scores) => {
-    setPlayerScores(scores); 
+    setPlayerScores(scores);
   };
 
   const setPlayerNameContext = (name) => {
-    setPlayerName(name); 
+    setPlayerName(name);
   };
 
   const setViewingPlayerIdContext = (id) => {
@@ -94,7 +95,9 @@ export const GameProvider = ({ children }) => {
   return (
     <GameContext.Provider value={{
       playerId,
+      setPlayerId,
       playerName,
+      setPlayerName,
       activePlayerId,
       avatarUrl,
       viewingPlayerId,
@@ -118,6 +121,8 @@ export const GameProvider = ({ children }) => {
       isGameSaved,
       setIsGameSaved,
       resetViewingPlayer,
+      userRecognized,
+      setUserRecognized,
     }}>
       {children}
     </GameContext.Provider>
