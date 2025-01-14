@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { View, Text, Image, Animated } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { database } from "../components/Firebase";
-import { ref, onValue, set, get } from "firebase/database";
+import { ref, get } from "firebase/database";
 import uuid from "react-native-uuid";
 import { useGame } from "../components/GameContext";
 import { ProgressBar } from "react-native-paper";
@@ -12,9 +12,8 @@ export default function LandingPage({ navigation }) {
     const [fadeAnim] = useState(new Animated.Value(0));
     const [loadingProgress, setLoadingProgress] = useState(0);
     const [localName, setLocalName] = useState("");
-    const [playerId, setPlayerId] = useState("");
-    const [isUserRecognized, setUserRecognized] = useState(false);
-    const { setPlayerIdContext, setPlayerNameContext } = useGame();
+
+    const { setPlayerIdContext, setPlayerNameContext, setUserRecognized, setPlayerId, setPlayerName } = useGame();
 
     useEffect(() => {
         Animated.timing(fadeAnim, {
@@ -23,33 +22,48 @@ export default function LandingPage({ navigation }) {
             useNativeDriver: true,
         }).start();
 
-        getOrCreateUserId().then((userId) => {
-            setPlayerId(userId);
-            checkExistingUser(userId);
-        });
+        getOrCreateUserId()
+            .then((userId) => {
+                setPlayerId(userId); 
+                checkExistingUser(userId); 
+            })
+            .catch((error) => {
+                console.error("Error during user setup:", error);
+            });
     }, []);
 
     const getOrCreateUserId = async () => {
-        let userId = await SecureStore.getItemAsync("user_id");
-        if (!userId) {
-            userId = uuid.v4();
-            await SecureStore.setItemAsync("user_id", userId);
+        try {
+            let userId = await SecureStore.getItemAsync("user_id");
+            if (!userId) {
+                userId = uuid.v4(); 
+                await SecureStore.setItemAsync("user_id", userId); 
+            }
+            return userId;
+        } catch (error) {
+            console.error("Error in getOrCreateUserId:", error);
+            throw error; 
         }
-        return userId;
     };
+
     // Player identification
-    const checkExistingUser = (userId) => {
+    const checkExistingUser = async (userId) => {
         const playerRef = ref(database, `players/${userId}`);
-        onValue(playerRef, (snapshot) => {
+        try {
+            const snapshot = await get(playerRef);
             const playerData = snapshot.val();
             if (playerData) {
                 setLocalName(playerData.name);
                 setPlayerIdContext(userId);
                 setPlayerNameContext(playerData.name);
                 setUserRecognized(true);
+                setPlayerName(playerData.name);
+                setPlayerId(userId);
             }
             incrementProgress(100);
-        });
+        } catch (error) {
+            console.error("Error fetching player data:", error);
+        }
     };
 
     const incrementProgress = (toValue) => {
@@ -66,11 +80,7 @@ export default function LandingPage({ navigation }) {
     useEffect(() => {
         if (loadingProgress === 100) {
             setTimeout(() => {
-                if (isUserRecognized) {
-                    navigation.replace("MainApp");
-                } else {
-                    navigation.replace("Registration");
-                }
+                navigation.navigate("MainApp")
             }, 1500);
         }
     }, [loadingProgress]);
