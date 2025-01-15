@@ -1,5 +1,5 @@
 // Purpose: Context for the game state and player data.
-import React, { createContext, useState, useContext, useEffect, use } from 'react';
+import React, { createContext, useState, useContext, useEffect } from 'react';
 import { ref, onValue } from 'firebase/database';
 import { database } from './Firebase';
 

@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
   energyModalMessage: {
     fontSize: 16,
     color: '#666',
-    marginBottom: 20,
+    marginBottom: 5,
     textAlign: 'center',
     lineHeight: 22,
   },
@@ -77,6 +77,12 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 20,
     marginBottom: 10,
+  },
+  energyModalCloseButton: {
+    backgroundColor: '#f44336',
+    borderRadius: 5,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
   },
   energyModalButtonText: {
     color: 'white',

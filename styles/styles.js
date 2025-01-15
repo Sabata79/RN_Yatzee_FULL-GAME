@@ -447,7 +447,7 @@ export default styles = StyleSheet.create({
         textShadowColor: '#ff0000',
         textShadowOffset: { width: 0, height: 0 },
         textShadowRadius: 10,
-        zIndex: 1000,
+        zIndex: 999,
     },
     diceBorder: {
         width: '80%',
