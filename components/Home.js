@@ -61,6 +61,7 @@ export default function Home({ setName, setPlayerId }) {
     set(playerRef, {
       ...playerData,
       name: name,
+      level: "basic",
       dateJoined: playerData?.dateJoined || new Date().toLocaleDateString(),
     });
 
