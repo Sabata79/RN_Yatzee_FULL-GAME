@@ -25,8 +25,6 @@ const EnergyTokenSystem = () => {
         const lastReset = await AsyncStorage.getItem('lastReset');
         const now = new Date();
 
-        console.log('Loading saved data...');
-
         const resetTime = new Date(lastReset);
         if (lastReset && now - resetTime >= MILLISECONDS_IN_A_DAY) {
           await AsyncStorage.setItem('lastReset', now.toISOString());
@@ -80,7 +78,6 @@ const EnergyTokenSystem = () => {
       visibilityTime: 2000,
       position: 'top',
       onHide: () => {
-        console.log('Reward processed');
         setTokens((prev) => Math.min(prev + 1, MAX_TOKENS));
         setVideoTokens((prev) => prev + 1);
         Toast.show({
