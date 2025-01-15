@@ -6,7 +6,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import styles from '../styles/energyTokenStyles';
 import { MAX_TOKENS, VIDEO_TOKEN_LIMIT, MILLISECONDS_IN_A_DAY } from '../constants/Game';
 import Toast from 'react-native-toast-message';
-import { useGame } from '../components/GameContext';
 
 const EnergyTokenSystem = () => {
   const [tokens, setTokens] = useState(MAX_TOKENS);
