@@ -7,16 +7,18 @@ import headerStyles from '../styles/headerStyles';
 import { useGame } from './GameContext';
 import { avatars } from '../constants/AvatarPaths';
 
-export default function Header({ isUserRecognized, name, playerId }) {
+export default function Header({ isUserRecognized, name }) {
   const [isModalVisible, setModalVisible] = useState(false);
-  const { avatarUrl } = useGame();
+  const { playerId, playerName, userRecognized, avatarUrl } = useGame();
 
   const userAvatar = avatars.find((avatar) => avatar.path === avatarUrl)?.display;
 
   const selectedPlayer = {
     playerId: playerId,
-    playerName: name,
+    playerName: playerName,
   };
+
+  console.log('selectedPlayer:', selectedPlayer);
 
   const handleGamePlay = () => {
     console.log('Peli aloitettu!');
@@ -40,7 +42,7 @@ export default function Header({ isUserRecognized, name, playerId }) {
         <EnergyTokenSystem onPlay={handleGamePlay} />
       </View>
 
-      {isUserRecognized && name && (
+      {userRecognized && playerName && (
         <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: 'auto' }}>
           <Pressable
             style={({ pressed }) => [
@@ -50,12 +52,12 @@ export default function Header({ isUserRecognized, name, playerId }) {
             ]}
             onPress={() => setModalVisible(true)}
           >
-            <Text style={headerStyles.userName}>{name}</Text>
+            <Text style={headerStyles.userName}>{playerName}</Text>
 
             {userAvatar ? (
               <Image source={userAvatar} style={headerStyles.headerAvatarImage} />
             ) : (
-              <FontAwesome5 name="user" size={22} color="white" style={{ position: 'absolute' ,right: 15, top: 15 }} />
+              <FontAwesome5 name="user" size={22} color="white" style={{ position: 'absolute', right: 15, top: 15 }} />
             )}
           </Pressable>
         </View>
