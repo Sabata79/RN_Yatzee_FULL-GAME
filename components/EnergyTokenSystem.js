@@ -13,7 +13,7 @@ const EnergyTokenSystem = () => {
   const [nextTokenTime, setNextTokenTime] = useState(null);
   const [timeToNextToken, setTimeToNextToken] = useState('');
   const [videoTokens, setVideoTokens] = useState(0);
-  const [energyModalVisible, setModalVisible] = useState(true);
+  const [energyModalVisible, setModalVisible] = useState(false);
 
   // Game context
   useEffect(() => {
