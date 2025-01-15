@@ -132,6 +132,7 @@ const EnergyTokenSystem = () => {
 
   return (
     <View style={styles.energyContainer}>
+    <Toast/>
       <MaterialCommunityIcons name="flash" size={40} color="gold" style={styles.energyIcon} />
       <View style={styles.progressBarContainer}>
         <ProgressBar progress={progress} color="green" style={styles.progressBar} />
