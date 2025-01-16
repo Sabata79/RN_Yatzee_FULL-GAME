@@ -66,7 +66,7 @@ export default function App() {
     <Tab.Navigator
       tabBarPosition="bottom"
       screenOptions={({ route }) => ({
-        headerShown: false,
+        headerShown: true,
         tabBarStyle: {
           height: 85, 
           backgroundColor: 'black', 
@@ -147,55 +147,68 @@ export default function App() {
 
 
 
-  return (
-    <SafeAreaProvider>
-      <GameProvider>
-        <SafeAreaView style={styles.container}>
-          {/* Update Modal */}
-          <Modal
-            visible={updateModalVisible}
-            transparent={true}
-            animationType="fade"
-            onRequestClose={() => setUpdateModalVisible(false)}
-          >
-            <View style={updateModalStyles.updateModalOverlay}>
-              <View style={updateModalStyles.updateModalContent}>
-                <Text style={updateModalStyles.updateModalTitle}>
-                  New Update Available!
-                </Text>
-                <Text style={updateModalStyles.updateModalMessage}>
-                  {updateMessage}
-                </Text>
-                <Pressable
-                  style={updateModalStyles.updateModalUpdateButton}
-                  onPress={handleUpdate}
-                >
-                  <Text style={updateModalStyles.updateModalUpdateButtonText}>
-                    Update
-                  </Text>
-                </Pressable>
-                <Pressable
-                  style={updateModalStyles.updateModalCancelButton}
-                  onPress={() => setUpdateModalVisible(false)}
-                >
-                  <Text style={updateModalStyles.updateModalCancelButtonText}>
-                    Cancel
-                  </Text>
-                </Pressable>
-              </View>
+return (
+  <SafeAreaProvider>
+    <GameProvider>
+      <SafeAreaView style={styles.container}>
+        {/* Päivitysmodal */}
+        <Modal
+          visible={updateModalVisible}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setUpdateModalVisible(false)}
+        >
+          <View style={updateModalStyles.updateModalOverlay}>
+            <View style={updateModalStyles.updateModalContent}>
+              <Text style={updateModalStyles.updateModalTitle}>New Update Available!</Text>
+              <Text style={updateModalStyles.updateModalMessage}>
+                Update your app to enjoy the latest features.
+              </Text>
+              <Pressable
+                style={updateModalStyles.updateModalUpdateButton}
+                onPress={handleUpdate}
+              >
+                <Text style={updateModalStyles.updateModalUpdateButtonText}>Update</Text>
+              </Pressable>
+              <Pressable
+                style={updateModalStyles.updateModalCancelButton}
+                onPress={() => setUpdateModalVisible(false)}
+              >
+                <Text style={updateModalStyles.updateModalCancelButtonText}>Cancel</Text>
+              </Pressable>
             </View>
-          </Modal>
+          </View>
+        </Modal>
 
-          <Header isUserRecognized={isUserRecognized} name={name} playerId={playerId} />
-          <NavigationContainer>
-            <Stack.Navigator screenOptions={{ headerShown: false }}>
-              <Stack.Screen name="LandingPage" component={LandingPage} />
-              <Stack.Screen name="MainApp" component={TabNavigator} />
-            </Stack.Navigator>
-          </NavigationContainer>
-          <StatusBar style="light" backgroundColor="black" />
-        </SafeAreaView>
-      </GameProvider>
-    </SafeAreaProvider>
-  );
+        <NavigationContainer>
+          <Stack.Navigator
+            screenOptions={{
+              headerShown: false, // Piilota oletuksena kaikki navigaation headerit
+            }}
+          >
+            {/* LandingPage ilman Header-komponenttia */}
+            <Stack.Screen name="LandingPage" component={LandingPage} />
+
+            {/* MainApp sisältää Headerin */}
+            <Stack.Screen
+              name="MainApp"
+              component={TabNavigator}
+              options={{
+                headerShown: true, // Näytetään navigaation header
+                header: () => (
+                  <Header
+                    isUserRecognized={isUserRecognized}
+                    name={name}
+                    playerId={playerId}
+                  />
+                ),
+              }}
+            />
+          </Stack.Navigator>
+        </NavigationContainer>
+        <StatusBar style="light" backgroundColor="black" />
+      </SafeAreaView>
+    </GameProvider>
+  </SafeAreaProvider>
+);
 }

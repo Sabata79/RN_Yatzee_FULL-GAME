@@ -33,36 +33,58 @@ export default function Header({ isUserRecognized, name }) {
   }, [avatarUrl]);
 
   return (
-    <View style={headerStyles.header}>
-      <Text style={headerStyles.headerTitle}>
-        Yatzy <FontAwesome5 name="dice" size={35} color="#ccc9c9" />
-      </Text>
-
-      <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10 }}>
-        <EnergyTokenSystem onPlay={handleGamePlay} />
+    <View
+      style={[
+        headerStyles.header,
+        userRecognized ? headerStyles.recognizedUserHeader : headerStyles.unrecognizedUserHeader,
+      ]}
+    >
+      {/* Otsikko ja logo */}
+      <View
+        style={[
+          userRecognized
+            ? headerStyles.recognizedTitleContainer
+            : headerStyles.unrecognizedTitleContainer,
+        ]}
+      >
+        <Text style={headerStyles.headerTitle}>
+          Yatzy <FontAwesome5 name="dice" size={35} color="#ccc9c9" />
+        </Text>
       </View>
 
+      {/* EnergyTokenSystem näkyy vain tunnistetuille käyttäjille */}
+      {userRecognized && (
+        <View style={headerStyles.energyContainer}>
+          <EnergyTokenSystem onPlay={handleGamePlay} />
+        </View>
+      )}
+
+      {/* Käyttäjäprofiili */}
       {userRecognized && playerName && (
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: 'auto' }}>
+        <View style={headerStyles.userHeaderContainer}>
           <Pressable
             style={({ pressed }) => [
               headerStyles.userHeaderButton,
               pressed && headerStyles.userHeaderButtonPressed,
-              { marginLeft: 10, top: -5 },
             ]}
             onPress={() => setModalVisible(true)}
           >
             <Text style={headerStyles.userName}>{playerName}</Text>
-
             {userAvatar ? (
               <Image source={userAvatar} style={headerStyles.headerAvatarImage} />
             ) : (
-              <FontAwesome5 name="user" size={22} color="white" style={{ position: 'absolute', right: 15, top: 15 }} />
+              <FontAwesome5
+                name="user"
+                size={22}
+                color="white"
+                style={headerStyles.defaultUserIcon}
+              />
             )}
           </Pressable>
         </View>
       )}
 
+      {/* Pelaajakortti */}
       {isModalVisible && selectedPlayer && (
         <PlayerCard
           playerId={selectedPlayer.playerId}
