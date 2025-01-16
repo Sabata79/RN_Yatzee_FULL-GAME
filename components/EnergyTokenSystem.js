@@ -14,6 +14,8 @@ const EnergyTokenSystem = () => {
   const [timeToNextToken, setTimeToNextToken] = useState('');
   const [videoTokens, setVideoTokens] = useState(0);
 
+
+
   useEffect(() => {
     const loadSavedData = async () => {
       try {
@@ -41,6 +43,7 @@ const EnergyTokenSystem = () => {
 
     loadSavedData();
   }, []);
+
 
   useEffect(() => {
     const saveData = async () => {
@@ -78,33 +81,7 @@ const EnergyTokenSystem = () => {
     return () => clearInterval(interval);
   }, [nextTokenTime]);
 
-  useEffect(() => {
-    if (tokens < MAX_TOKENS) {
-      const interval = setInterval(() => {
-        if (nextTokenTime && new Date() >= nextTokenTime) {
-          setTokens((prev) => Math.min(prev + 1, MAX_TOKENS));
-          const intervalTime = MILLISECONDS_IN_A_DAY / MAX_TOKENS;
-          setNextTokenTime(new Date(Date.now() + intervalTime));
-        }
-      }, 1000);
-
-      return () => clearInterval(interval);
-    }
-  }, [tokens, nextTokenTime]);
-
   const handleWatchVideo = () => {
-    if (videoTokens >= VIDEO_TOKEN_LIMIT) {
-      Toast.show({
-        type: 'error',
-        text1: 'Limit Reached',
-        text2: 'You have reached the daily limit for earning tokens by watching videos.',
-        visibilityTime: 3000,
-        position: 'top',
-        topOffset: 50,
-      });
-      return;
-    }
-
     Toast.show({
       type: 'success',
       text1: 'Watching Video...',
@@ -128,65 +105,64 @@ const EnergyTokenSystem = () => {
 
   const progress = tokens / MAX_TOKENS;
 
-return (
-  <View style={styles.energyContainer}>
-    <MaterialCommunityIcons name="flash" size={40} color="gold" style={styles.energyIcon} />
-    <View style={styles.progressBarContainer}>
-      <ProgressBar progress={progress} color="green" style={styles.progressBar} />
-      <Text style={styles.tokenText}>
-        {tokens}/{MAX_TOKENS}
-      </Text>
-    </View>
-    {/* Modal for No Energy */}
-    <Modal
-      animationType="slide"
-      transparent={true}
-      visible={energyModalVisible}
-      onRequestClose={() => {
-        setModalVisible(!energyModalVisible);
-      }}
-    >
-      <View style={styles.energyModalOverlay}>
-        <View style={styles.energyModalContent}>
-          <MaterialCommunityIcons name="flash" size={50} color="gold" style={styles.energyIcon} />
-          <Text style={styles.energyModalMessage}>You are out of energy tokens!</Text>
-          
-          {/* Conditional rendering for video button */}
-          {videoTokens < VIDEO_TOKEN_LIMIT && (
-            <>
-              <Pressable
-                style={styles.energyModalButton}
-                onPress={() => {
-                  setModalVisible(false);
-                  handleWatchVideo();
-                }}
-              >
-                <Text style={styles.energyModalButtonText}>Watch Video for Energy Token</Text>
-              </Pressable>
-              <Text style={styles.energyModalFooterText}>
-                Video Tokens Used: {videoTokens}/{VIDEO_TOKEN_LIMIT}
-              </Text>
-              <Text style={[styles.energyModalMessage, { fontWeight: 'bold' }]}>Or..</Text>
-            </>
-          )}
-
-          <Text style={styles.energyModalMessage}>
-            Time to next token regeneration:
-          </Text>
-          <Text style={[styles.energyModalMessage, { fontWeight: 'bold' }]}>{timeToNextToken}</Text>
-
-          {/* Close Modal Button */}
-          <Pressable
-            style={[styles.energyModalButton, styles.energyModalCloseButton]}
-            onPress={() => setEnergyModalVisible(false)}
-          >
-            <Text style={styles.energyModalButtonText}>Close</Text>
-          </Pressable>
-        </View>
+  return (
+    <View style={styles.energyContainer}>
+      <Toast />
+      <MaterialCommunityIcons name="flash" size={40} color="gold" style={styles.energyIcon} />
+      <View style={styles.progressBarContainer}>
+        <ProgressBar progress={progress} color="green" style={styles.progressBar} />
+        <Text style={styles.tokenText}>
+          {tokens}/{MAX_TOKENS}
+        </Text>
       </View>
-    </Modal>
-  </View>
-);
+      {/* Modal for No Energy */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={energyModalVisible}
+        onRequestClose={() => {
+          setEnergyModalVisible(!energyModalVisible);
+        }}
+      >
+        <View style={styles.energyModalOverlay}>
+          <View style={styles.energyModalContent}>
+            <MaterialCommunityIcons name="flash" size={50} color="gold" style={styles.energyIcon} />
+            <Text style={styles.energyModalMessage}>You are out of energy tokens!</Text>
+
+            {videoTokens < VIDEO_TOKEN_LIMIT && (
+              <>
+                <Pressable
+                  style={styles.energyModalButton}
+                  onPress={() => {
+                    setEnergyModalVisible(false);
+                    handleWatchVideo();
+                  }}
+                >
+                  <Text style={styles.energyModalButtonText}>Watch Video for Energy Token</Text>
+                </Pressable>
+                <Text style={styles.energyModalFooterText}>
+                  Video Tokens Used: {videoTokens}/{VIDEO_TOKEN_LIMIT}
+                </Text>
+                <Text style={[styles.energyModalMessage, { fontWeight: 'bold' }]}>Or..</Text>
+              </>
+            )}
+
+            <Text style={styles.energyModalMessage}>
+              Time to next token regeneration:
+            </Text>
+            <Text style={[styles.energyModalMessage, { fontWeight: 'bold' }]}>{timeToNextToken}</Text>
+
+            <Pressable
+              style={[styles.energyModalButton, styles.energyModalCloseButton]}
+              onPress={() => setEnergyModalVisible(false)}
+            >
+              <Text style={styles.energyModalButtonText}>Close</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
+    </View>
+  );
 };
 
 export default EnergyTokenSystem;

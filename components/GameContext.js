@@ -26,7 +26,7 @@ export const GameProvider = ({ children }) => {
   const [isAvatarLoaded, setIsAvatarLoaded] = useState(false);
   const [userRecognized, setUserRecognized] = useState(false);
   const [tokens, setTokens] = useState(5);
-  const [energyModalVisible, setEnergyModalVisible] = useState(true);
+  const [energyModalVisible, setEnergyModalVisible] = useState(false);
 
   // Avatar URL check in background
   useEffect(() => {
