@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { FlatList, Text, View, Pressable, ImageBackground, Animated } from 'react-native';
+import { FlatList, Text, View, Alert, Pressable, ImageBackground, Animated } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import styles from '../styles/styles';
 import { NBR_OF_THROWS, NBR_OF_DICES, MAX_SPOTS, BONUS_POINTS, BONUS_POINTS_LIMIT } from '../constants/Game';
@@ -20,7 +20,7 @@ export default function Gameboard({ route, navigation }) {
     const [modalVisible, setModalVisible] = useState(false);
     const [modalMessage, setModalMessage] = useState('');
 
-    const { gameStarted, gameEnded, startGame, endGame, totalPoints, setTotalPoints } = useGame();
+    const { gameStarted, gameEnded, startGame, endGame, totalPoints, setTotalPoints,tokens,setTokens,setEnergyModalVisible } = useGame();
     const [elapsedTime, setElapsedTime] = useState(0);
     const { savePlayerPoints } = GameSave({ playerId, totalPoints, elapsedTime, navigation });
 
@@ -844,11 +844,16 @@ function checkAndUnlockYatzy(rolledDices) {
         );
     };
 
-    const handleStartGame = () => {
+const handleStartGame = () => {
+    if (tokens > 0) {
         setLayerVisible(false);
         setStatus("Throw the dices");
+        setTokens((prev) => prev - 1); // Vähennetään yksi token
         console.log("Game starting...");
-    };
+    } else {
+        setEnergyModalVisible(true);
+    }
+};
     // Remove ImageBackground
     return (
         <ImageBackground source={require('../assets/diceBackground.jpg')} style={styles.background}>

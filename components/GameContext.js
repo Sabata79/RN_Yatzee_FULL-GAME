@@ -2,6 +2,7 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { ref, onValue } from 'firebase/database';
 import { database } from './Firebase';
+import { MAX_TOKENS } from '../constants/Game';
 
 const GameContext = createContext();
 
@@ -24,6 +25,8 @@ export const GameProvider = ({ children }) => {
   const [avatarUrl, setAvatarUrl] = useState('');
   const [isAvatarLoaded, setIsAvatarLoaded] = useState(false);
   const [userRecognized, setUserRecognized] = useState(false);
+  const [tokens, setTokens] = useState(5);
+  const [energyModalVisible, setEnergyModalVisible] = useState(true);
 
   // Avatar URL check in background
   useEffect(() => {
@@ -123,6 +126,10 @@ export const GameProvider = ({ children }) => {
       resetViewingPlayer,
       userRecognized,
       setUserRecognized,
+      tokens,
+      setTokens,
+      energyModalVisible,
+      setEnergyModalVisible
     }}>
       {children}
     </GameContext.Provider>
