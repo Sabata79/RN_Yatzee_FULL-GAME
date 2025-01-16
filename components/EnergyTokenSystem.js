@@ -14,43 +14,51 @@ const EnergyTokenSystem = () => {
   const [timeToNextToken, setTimeToNextToken] = useState('');
   const [videoTokens, setVideoTokens] = useState(0);
 
+  // Debug-lokit
+  useEffect(() => {
+    console.log('nextTokenTime:', nextTokenTime);
+    console.log('timeToNextToken:', timeToNextToken);
+  }, [nextTokenTime, timeToNextToken]);
 
-useEffect(() => {
-  const loadSavedData = async () => {
-    try {
-      const savedTokens = parseInt(await AsyncStorage.getItem('tokens')) || MAX_TOKENS; // Käytetään MAX_TOKENS oletuksena
-      const savedNextTokenTime = await AsyncStorage.getItem('nextTokenTime');
-      const savedVideoTokens = parseInt(await AsyncStorage.getItem('videoTokens')) || 0;
-      const lastReset = await AsyncStorage.getItem('lastReset');
+  // Ladataan tallennetut tiedot
+  useEffect(() => {
+    const loadSavedData = async () => {
+      try {
+        const savedTokens = parseInt(await AsyncStorage.getItem('tokens')) || MAX_TOKENS;
+        const savedNextTokenTime = await AsyncStorage.getItem('nextTokenTime');
+        const savedVideoTokens = parseInt(await AsyncStorage.getItem('videoTokens')) || 0;
+        const lastReset = await AsyncStorage.getItem('lastReset');
 
-      const now = new Date();
-      const resetTime = new Date(lastReset);
+        const now = new Date();
+        const resetTime = new Date(lastReset);
 
-      if (lastReset && now - resetTime >= MILLISECONDS_IN_A_DAY) {
-        await AsyncStorage.setItem('lastReset', now.toISOString());
-        setVideoTokens(0);
-      } else {
-        setVideoTokens(savedVideoTokens);
+        if (lastReset && now - resetTime >= MILLISECONDS_IN_A_DAY) {
+          await AsyncStorage.setItem('lastReset', now.toISOString());
+          setVideoTokens(0);
+        } else {
+          setVideoTokens(savedVideoTokens);
+        }
+
+        if (tokens === null) {
+          setTokens(savedTokens);
+        }
+        setNextTokenTime(savedNextTokenTime ? new Date(savedNextTokenTime) : null);
+      } catch (e) {
+        console.error('Failed to load saved data:', e);
       }
+    };
 
-      if (tokens === null) {
-        setTokens(savedTokens); // Asetetaan tokens vain, jos tila on alun perin null
-      }
-      setNextTokenTime(savedNextTokenTime ? new Date(savedNextTokenTime) : null);
-    } catch (e) {
-      console.error('Failed to load saved data:', e);
-    }
-  };
+    loadSavedData();
+  }, []);
 
-  loadSavedData();
-}, []);
-
-
+  // Tallennetaan tiedot
   useEffect(() => {
     const saveData = async () => {
       try {
-        await AsyncStorage.setItem('tokens', (tokens ?? 0).toString()); // Käytetään dynaamista tokens-arvoa
-        await AsyncStorage.setItem('nextTokenTime', nextTokenTime ? nextTokenTime.toISOString() : '');
+        await AsyncStorage.setItem('tokens', (tokens ?? 0).toString());
+        if (nextTokenTime) {
+          await AsyncStorage.setItem('nextTokenTime', nextTokenTime.toISOString());
+        }
         await AsyncStorage.setItem('videoTokens', (videoTokens ?? 0).toString());
       } catch (e) {
         console.error('Failed to save data:', e);
@@ -60,18 +68,32 @@ useEffect(() => {
     saveData();
   }, [tokens, nextTokenTime, videoTokens]);
 
+  // Asetetaan regenerointiaika, jos tokeneita <= 4
+  useEffect(() => {
+    if (tokens <= 4 && !nextTokenTime) {
+      const now = new Date();
+      const nextTime = new Date(now.getTime() + 4.8 * 60 * 60 * 1000); // 5 minuutin regenerointiaika
+      setNextTokenTime(nextTime);
+      console.log('Regenerointiaika asetettu:', nextTime);
+    }
+  }, [tokens, nextTokenTime]);
+
+  // Päivitetään jäljellä oleva aika
   useEffect(() => {
     const updateRemainingTime = () => {
-      if (nextTokenTime) {
+      if (tokens <= 4 && nextTokenTime instanceof Date && !isNaN(nextTokenTime.getTime())) {
         const now = new Date();
         const diff = nextTokenTime - now;
 
         if (diff > 0) {
+          const hours = Math.floor(diff / 1000 / 60 / 60);
           const minutes = Math.floor((diff / 1000 / 60) % 60);
           const seconds = Math.floor((diff / 1000) % 60);
-          setTimeToNextToken(`${minutes} min ${seconds} sec`);
+          setTimeToNextToken(`${hours} h ${minutes} min ${seconds} sec`);
         } else {
           setTimeToNextToken('Token ready!');
+          setNextTokenTime(null); // Nollaa regenerointiaika
+          setTokens((prev) => Math.min(prev + 1, MAX_TOKENS)); // Lisää yksi token
         }
       } else {
         setTimeToNextToken('Calculating...');
@@ -80,7 +102,7 @@ useEffect(() => {
 
     const interval = setInterval(updateRemainingTime, 1000);
     return () => clearInterval(interval);
-  }, [nextTokenTime]);
+  }, [tokens, nextTokenTime]);
 
   const handleWatchVideo = () => {
     Toast.show({
@@ -104,7 +126,7 @@ useEffect(() => {
     });
   };
 
-  const progress = tokens ? tokens / (MAX_TOKENS || tokens) : 0;
+  const progress = tokens ? tokens / MAX_TOKENS : 0;
 
   return (
     <View style={styles.energyContainer}>
@@ -116,14 +138,11 @@ useEffect(() => {
           {tokens}/{MAX_TOKENS}
         </Text>
       </View>
-      {/* Modal for No Energy */}
       <Modal
         animationType="slide"
         transparent={true}
         visible={energyModalVisible}
-        onRequestClose={() => {
-          setEnergyModalVisible(!energyModalVisible);
-        }}
+        onRequestClose={() => setEnergyModalVisible(!energyModalVisible)}
       >
         <View style={styles.energyModalOverlay}>
           <View style={styles.energyModalContent}>
@@ -144,7 +163,6 @@ useEffect(() => {
                 <Text style={styles.energyModalFooterText}>
                   Video Tokens Used: {videoTokens}/{VIDEO_TOKEN_LIMIT}
                 </Text>
-                <Text style={[styles.energyModalMessage, { fontWeight: 'bold' }]}>Or..</Text>
               </>
             )}
 
