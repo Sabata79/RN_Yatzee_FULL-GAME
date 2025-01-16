@@ -1,6 +1,6 @@
 // Purpose: Context for the game state and player data.
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { ref, onValue } from 'firebase/database';
+import { ref, onValue, get, set } from 'firebase/database';
 import { database } from './Firebase';
 import { MAX_TOKENS } from '../constants/Game';
 
@@ -27,6 +27,59 @@ export const GameProvider = ({ children }) => {
   const [userRecognized, setUserRecognized] = useState(false);
   const [tokens, setTokens] = useState(null);
   const [energyModalVisible, setEnergyModalVisible] = useState(false);
+
+  console.log('Tokens:', tokens);
+
+  const fetchInitialTokens = async () => {
+    try {
+      const tokenRef = ref(database, `players/${playerId}/tokens`);
+      const snapshot = await get(tokenRef);
+
+      if (snapshot.exists()) {
+        const fetchedTokens = snapshot.val();
+        console.log('Firebase-tokens:', fetchedTokens);
+
+        // If tokens are not loaded, set them to fetched value
+        if (fetchedTokens !== tokens) {
+          setTokens(fetchedTokens);
+        }
+      } else {
+        console.log('Tokens ei löytynyt Firebase:sta. Luodaan oletusarvo.');
+        await set(tokenRef, MAX_TOKENS);
+        setTokens(MAX_TOKENS);
+      }
+    } catch (error) {
+      console.error('Virhe tokenien lataamisessa:', error);
+
+      // If tokens are not loaded, set them to max
+      if (tokens !== MAX_TOKENS) {
+        setTokens(MAX_TOKENS);
+      }
+    }
+  };
+
+  useEffect(() => {
+    const updateTokensInFirebase = async () => {
+      if (playerId && tokens !== null) {
+        try {
+          const tokenRef = ref(database, `players/${playerId}/tokens`);
+          await set(tokenRef, tokens); // Update tokens in Firebase
+          console.log(`Tokens päivitetty Firebaseen: ${tokens}`);
+        } catch (error) {
+          console.error('Virhe Firebase-tokens-päivityksessä:', error);
+        }
+      }
+    };
+
+    updateTokensInFirebase();
+  }, [tokens]);
+
+  // useEffect, which fetches the initial tokens from Firebase
+  useEffect(() => {
+    if (playerId) {
+      fetchInitialTokens();
+    }
+  }, [playerId]);
 
   // Avatar URL check in background
   useEffect(() => {

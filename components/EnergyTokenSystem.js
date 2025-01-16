@@ -15,42 +15,43 @@ const EnergyTokenSystem = () => {
   const [videoTokens, setVideoTokens] = useState(0);
 
 
+useEffect(() => {
+  const loadSavedData = async () => {
+    try {
+      const savedTokens = parseInt(await AsyncStorage.getItem('tokens')) || MAX_TOKENS; // Käytetään MAX_TOKENS oletuksena
+      const savedNextTokenTime = await AsyncStorage.getItem('nextTokenTime');
+      const savedVideoTokens = parseInt(await AsyncStorage.getItem('videoTokens')) || 0;
+      const lastReset = await AsyncStorage.getItem('lastReset');
 
-  useEffect(() => {
-    const loadSavedData = async () => {
-      try {
-        const savedTokens = await AsyncStorage.getItem('tokens');
-        const savedNextTokenTime = await AsyncStorage.getItem('nextTokenTime');
-        const savedVideoTokens = await AsyncStorage.getItem('videoTokens');
-        const lastReset = await AsyncStorage.getItem('lastReset');
+      const now = new Date();
+      const resetTime = new Date(lastReset);
 
-        const now = new Date();
-        const resetTime = new Date(lastReset);
-
-        if (lastReset && now - resetTime >= MILLISECONDS_IN_A_DAY) {
-          await AsyncStorage.setItem('lastReset', now.toISOString());
-          setVideoTokens(0);
-        } else {
-          setVideoTokens(parseInt(savedVideoTokens) || 0);
-        }
-
-        setTokens(parseInt(savedTokens) || MAX_TOKENS);
-        setNextTokenTime(savedNextTokenTime ? new Date(savedNextTokenTime) : null);
-      } catch (e) {
-        console.error('Failed to load saved data:', e);
+      if (lastReset && now - resetTime >= MILLISECONDS_IN_A_DAY) {
+        await AsyncStorage.setItem('lastReset', now.toISOString());
+        setVideoTokens(0);
+      } else {
+        setVideoTokens(savedVideoTokens);
       }
-    };
 
-    loadSavedData();
-  }, []);
+      if (tokens === null) {
+        setTokens(savedTokens); // Asetetaan tokens vain, jos tila on alun perin null
+      }
+      setNextTokenTime(savedNextTokenTime ? new Date(savedNextTokenTime) : null);
+    } catch (e) {
+      console.error('Failed to load saved data:', e);
+    }
+  };
+
+  loadSavedData();
+}, []);
 
 
   useEffect(() => {
     const saveData = async () => {
       try {
-        await AsyncStorage.setItem('tokens', tokens.toString());
+        await AsyncStorage.setItem('tokens', (tokens ?? 0).toString()); // Käytetään dynaamista tokens-arvoa
         await AsyncStorage.setItem('nextTokenTime', nextTokenTime ? nextTokenTime.toISOString() : '');
-        await AsyncStorage.setItem('videoTokens', videoTokens.toString());
+        await AsyncStorage.setItem('videoTokens', (videoTokens ?? 0).toString());
       } catch (e) {
         console.error('Failed to save data:', e);
       }
@@ -103,7 +104,7 @@ const EnergyTokenSystem = () => {
     });
   };
 
-  const progress = tokens / MAX_TOKENS;
+  const progress = tokens ? tokens / (MAX_TOKENS || tokens) : 0;
 
   return (
     <View style={styles.energyContainer}>
