@@ -9,7 +9,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useGame } from '../components/GameContext';
 import { navigationImages } from '../constants/NavigationImagePaths';
 
-export default function Home({ setName, setPlayerId }) {
+export default function Home({ setPlayerId }) {
   const [localName, setLocalName] = useState('');
   const [localPlayerId, setLocalPlayerId] = useState('');
   const [loading, setLoading] = useState(true);
@@ -17,7 +17,7 @@ export default function Home({ setName, setPlayerId }) {
   const navigation = useNavigation();
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  const { setPlayerIdContext, setPlayerNameContext, userRecognized, setUserRecognized, playerName, playerId } = useGame();
+  const { setPlayerIdContext, setPlayerNameContext, userRecognized, setUserRecognized, playerName, playerId,setPlayerName } = useGame();
 
   useEffect(() => {
     if (localName && playerId) {
@@ -65,7 +65,7 @@ export default function Home({ setName, setPlayerId }) {
       dateJoined: playerData?.dateJoined || new Date().toLocaleDateString(),
     });
 
-    setName(name);
+    setPlayerName(name);
     setPlayerId(userId);
     console.log("Saving player data:", { name, userId });
   };
