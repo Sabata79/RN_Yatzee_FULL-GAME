@@ -80,7 +80,7 @@ export default function LandingPage({ navigation }) {
     useEffect(() => {
         if (loadingProgress === 100) {
             setTimeout(() => {
-                navigation.navigate("MainApp")
+                navigation.navigate("MainApp");
             }, 1500);
         }
     }, [loadingProgress]);
