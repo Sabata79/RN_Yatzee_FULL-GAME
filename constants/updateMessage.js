@@ -7,14 +7,9 @@
 
 export const updateMessage =
 `
--NEW Bottom Navigation Bar
--NEW Token System for UI testing
--YATZY CAN BE STACKED MULTIPLE TIMES,
-no ceiling on the score.
++Energy Token System
++New Scoreboard UI
 
--UUSI Alapalkki
--UUSI Token Järjestelmä visuaaliseen testaukseen
--YATZYN voi saada monta kertaa,
-ei kattoa pisteissä.
-
++Energia systeemi
++Uusi pistetaulukko käyttöliittymä
 `;
