@@ -38,6 +38,17 @@ const styles = StyleSheet.create({
     width: '100%',
     color: 'white',
   },
+  plusMark: {
+    position: 'absolute',
+    fontFamily: 'AntonRegular',
+    left: 15,
+    top: -30,
+    fontSize: 40,
+    fontWeight: 'bold',
+    color: '#0bf012',
+    textShadowOffset: { width: 1, height: 1 },
+    zIndex: 5,
+  },
 
 // Modal
   energyModalOverlay: {

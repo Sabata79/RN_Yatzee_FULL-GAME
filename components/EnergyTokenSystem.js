@@ -128,15 +128,18 @@ const EnergyTokenSystem = () => {
 
   const progress = tokens ? tokens / MAX_TOKENS : 0;
 
-  return (
+return (
     <View style={styles.energyContainer}>
       <Toast />
       <MaterialCommunityIcons name="flash" size={40} color="gold" style={styles.energyIcon} />
       <View style={styles.progressBarContainer}>
         <ProgressBar progress={progress} color="green" style={styles.progressBar} />
-        <Text style={styles.tokenText}>
-          {tokens}/{MAX_TOKENS}
-        </Text>
+        <Pressable onPress={() => setEnergyModalVisible(true)}>
+          <Text style={styles.tokenText}>
+            {tokens}/{MAX_TOKENS}
+          </Text>
+          <Text style={styles.plusMark}>+</Text>
+        </Pressable>
       </View>
       <Modal
         animationType="slide"
@@ -147,36 +150,50 @@ const EnergyTokenSystem = () => {
         <View style={styles.energyModalOverlay}>
           <View style={styles.energyModalContent}>
             <MaterialCommunityIcons name="flash" size={50} color="gold" style={styles.energyIcon} />
-            <Text style={styles.energyModalMessage}>You are out of energy tokens!</Text>
 
-            {videoTokens < VIDEO_TOKEN_LIMIT && (
+            {/* Tarkistetaan, onko energia täynnä */}
+            {tokens === MAX_TOKENS ? (
               <>
+                <Text style={styles.energyModalMessage}>You have full energy, have fun!</Text>
                 <Pressable
-                  style={styles.energyModalButton}
-                  onPress={() => {
-                    setEnergyModalVisible(false);
-                    handleWatchVideo();
-                  }}
+                  style={[styles.energyModalButton, styles.energyModalCloseButton]}
+                  onPress={() => setEnergyModalVisible(false)}
                 >
-                  <Text style={styles.energyModalButtonText}>Watch Video for Energy Token</Text>
+                  <Text style={styles.energyModalButtonText}>Close</Text>
                 </Pressable>
-                <Text style={styles.energyModalFooterText}>
-                  Video Tokens Used: {videoTokens}/{VIDEO_TOKEN_LIMIT}
+              </>
+            ) : (
+              <>
+                <Text style={styles.energyModalMessage}>You are out of energy tokens!</Text>
+                {videoTokens < VIDEO_TOKEN_LIMIT && (
+                  <>
+                    <Pressable
+                      style={styles.energyModalButton}
+                      onPress={() => {
+                        setEnergyModalVisible(false);
+                        handleWatchVideo();
+                      }}
+                    >
+                      <Text style={styles.energyModalButtonText}>Watch Video for Energy Token</Text>
+                    </Pressable>
+                    <Text style={styles.energyModalFooterText}>
+                      Video Tokens Used: {videoTokens}/{VIDEO_TOKEN_LIMIT}
+                    </Text>
+                  </>
+                )}
+                <Text style={styles.energyModalMessage}>
+                  Time to next token regeneration:
                 </Text>
+                <Text style={[styles.energyModalMessage, { fontWeight: 'bold' }]}>{timeToNextToken}</Text>
+
+                <Pressable
+                  style={[styles.energyModalButton, styles.energyModalCloseButton]}
+                  onPress={() => setEnergyModalVisible(false)}
+                >
+                  <Text style={styles.energyModalButtonText}>Close</Text>
+                </Pressable>
               </>
             )}
-
-            <Text style={styles.energyModalMessage}>
-              Time to next token regeneration:
-            </Text>
-            <Text style={[styles.energyModalMessage, { fontWeight: 'bold' }]}>{timeToNextToken}</Text>
-
-            <Pressable
-              style={[styles.energyModalButton, styles.energyModalCloseButton]}
-              onPress={() => setEnergyModalVisible(false)}
-            >
-              <Text style={styles.energyModalButtonText}>Close</Text>
-            </Pressable>
           </View>
         </View>
       </Modal>
