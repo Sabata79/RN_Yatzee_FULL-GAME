@@ -9,47 +9,46 @@ import Toast from 'react-native-toast-message';
 import { useGame } from '../components/GameContext';
 
 const EnergyTokenSystem = () => {
-  const { tokens, setTokens, energyModalVisible, setEnergyModalVisible } = useGame();
+  
+  const { tokens, setTokens, videoTokens, setVideoTokens, energyModalVisible, setEnergyModalVisible } = useGame();
   const [nextTokenTime, setNextTokenTime] = useState(null);
   const [timeToNextToken, setTimeToNextToken] = useState('');
-  const [videoTokens, setVideoTokens] = useState(0);
 
   // Debug-lokit
-  useEffect(() => {
-    console.log('nextTokenTime:', nextTokenTime);
-    console.log('timeToNextToken:', timeToNextToken);
-  }, [nextTokenTime, timeToNextToken]);
+  // useEffect(() => {
+  //   console.log('nextTokenTime:', nextTokenTime);
+  //   console.log('timeToNextToken:', timeToNextToken);
+  // }, [nextTokenTime, timeToNextToken]);
 
   // Ladataan tallennetut tiedot
   useEffect(() => {
     const loadSavedData = async () => {
       try {
-        const savedTokens = parseInt(await AsyncStorage.getItem('tokens')) || MAX_TOKENS;
-        const savedNextTokenTime = await AsyncStorage.getItem('nextTokenTime');
+        // Haetaan tallennetut videoTokenit
         const savedVideoTokens = parseInt(await AsyncStorage.getItem('videoTokens')) || 0;
-        const lastReset = await AsyncStorage.getItem('lastReset');
+        setVideoTokens(savedVideoTokens);
 
+        // Tallennetaan muut tiedot kuten normaalisti
+        const savedTokens = parseInt(await AsyncStorage.getItem('tokens')) || 10;  // Oletusarvo 10
+        setTokens(savedTokens);
+
+        // Tarkistetaan, milloin edellinen nollaus tehtiin
+        const lastReset = await AsyncStorage.getItem('lastVideoTokenReset');
         const now = new Date();
         const resetTime = new Date(lastReset);
 
-        if (lastReset && now - resetTime >= MILLISECONDS_IN_A_DAY) {
-          await AsyncStorage.setItem('lastReset', now.toISOString());
-          setVideoTokens(0);
-        } else {
-          setVideoTokens(savedVideoTokens);
+        // Jos edellisestä nollauksesta on kulunut yli 24h, nollataan videoTokenit
+        if (lastReset && now - resetTime >= 24 * 60 * 60 * 1000) {
+          await AsyncStorage.setItem('lastVideoTokenReset', now.toISOString());
+          setVideoTokens(0); // Nollaa videoTokenit
         }
-
-        if (tokens === null) {
-          setTokens(savedTokens);
-        }
-        setNextTokenTime(savedNextTokenTime ? new Date(savedNextTokenTime) : null);
       } catch (e) {
         console.error('Failed to load saved data:', e);
       }
     };
 
     loadSavedData();
-  }, []);
+  }, [setTokens, setVideoTokens]);
 
   // Tallennetaan tiedot
   useEffect(() => {
@@ -112,7 +111,7 @@ const EnergyTokenSystem = () => {
       visibilityTime: 2000,
       position: 'top',
       onHide: () => {
-        setTokens((prev) => Math.min(prev + 1, MAX_TOKENS));
+        setTokens((prev) => Math.min(prev + 1, 10));
         setVideoTokens((prev) => prev + 1);
         Toast.show({
           type: 'success',
