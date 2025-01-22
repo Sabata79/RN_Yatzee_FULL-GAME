@@ -1,6 +1,9 @@
 import React from 'react';
-import { Animated, Pressable } from 'react-native';
+import { Animated, Pressable,Dimensions } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+
+const { width, height } = Dimensions.get('window');
+const isSmallScreen = height < 720; 
 
 export default function DiceAnimation({ diceName, isSelected, onSelect, animationValue, color, isRolling, fadeOpacity }) {
 
@@ -25,7 +28,10 @@ export default function DiceAnimation({ diceName, isSelected, onSelect, animatio
     return (
         <Pressable onPress={onSelect}>
             <Animated.View style={animatedStyle}>
-                <MaterialCommunityIcons name={diceName} size={55} color={color} />
+                <MaterialCommunityIcons 
+                name={diceName} 
+                size={isSmallScreen ? 45 : 55} 
+                color={color} />
             </Animated.View>
         </Pressable>
     );
