@@ -9,13 +9,15 @@ export default styles = StyleSheet.create({
 
     // PlayerCard Styles
     playerCardContainer: {
-        marginTop: 20,
+        marginTop: 10,
+        marginBottom: 10,
         alignItems: 'flex-start',
     },
     playerInfoContainer: {
         flexDirection: 'row',
         alignItems: 'center',
         width: '100%',
+        height: 100,
         marginBottom: 5,
     },
     playerNameContainer: {
@@ -37,7 +39,7 @@ export default styles = StyleSheet.create({
     },
     playerCardModalContainer: {
         width: '80%',
-        marginTop: '10%',
+        marginTop: '5%',
         padding: 10,
         borderRadius: 10,
         alignItems: 'center',
@@ -173,10 +175,9 @@ export default styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-
     },
     playerCardScoresContainer: {
-        marginTop: 10,
+        marginTop: 5,
         marginBottom: 5,
     },
     playerCardScoresTitle: {
@@ -221,7 +222,7 @@ export default styles = StyleSheet.create({
     },
     playerCardMonth: {
         width: '24%',
-        height: 85,
+        height: 80,
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: 5,
