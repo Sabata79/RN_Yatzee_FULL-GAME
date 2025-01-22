@@ -21,7 +21,7 @@ import { updateMessage } from './constants/updateMessage';
 import updateModalStyles from './styles/updateModalStyles';
 
 const { width, height } = Dimensions.get('window');
-const isSmallScreen = height < 600;
+const isSmallScreen = height < 720;
 
 export default function App() {
   const [isUserRecognized, setIsUserRecognized] = useState(false);
@@ -71,7 +71,7 @@ export default function App() {
       screenOptions={({ route }) => ({
         headerShown: true,
         tabBarStyle: {
-          height: isSmallScreen ? 60 : 85, 
+          height: isSmallScreen ? 55 : 85, 
           backgroundColor: 'black',
         },
         tabBarIndicatorStyle: {
@@ -80,14 +80,14 @@ export default function App() {
         tabBarActiveTintColor: '#ffffff',
         tabBarInactiveTintColor: 'gray',
         tabBarLabelStyle: {
-          height: isSmallScreen ? 20 : 30,
-          width: isSmallScreen ? 20 : 30,
+          height: isSmallScreen ? 25 : 30,
+          width: isSmallScreen ? 25 : 30,
           fontSize: isSmallScreen ? 9 : 12, 
           fontFamily: 'AntonRegular',
         },
         tabBarIcon: ({ focused }) => {
           const iconStyle = {
-            size: isSmallScreen ? 12 : 32, 
+            size: isSmallScreen ? 22 : 32, 
             color: focused ? '#eae6e6' : 'gray',
           };
 
