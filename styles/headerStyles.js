@@ -52,9 +52,9 @@ const headerStyles = StyleSheet.create({
     letterSpacing: -1,
   },
   headerAvatarImage: {
-    width: isSmallScreen ? 40 : 60, 
-    height: isSmallScreen ? 40 : 60,
-    borderRadius: isSmallScreen ? 20 : 30,
+    width: isSmallScreen ? 50 : 60, 
+    height: isSmallScreen ? 50 : 60,
+    borderRadius: isSmallScreen ? 25 : 30,
     marginLeft: 10,
     marginTop: 10,
   },
