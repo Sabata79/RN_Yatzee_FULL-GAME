@@ -4,7 +4,7 @@ import { StyleSheet, Dimensions } from 'react-native';
 import Constants from 'expo-constants';
 
 const { height, width } = Dimensions.get('window');
-const isSmallScreen = height < 600; // Tarkista pieni näyttö
+const isSmallScreen = height < 720; // Tarkista pieni näyttö
 
 const headerStyles = StyleSheet.create({
   header: {
@@ -18,7 +18,7 @@ const headerStyles = StyleSheet.create({
     overflow: 'visible',
   },
   section1: {
-    flex: 2,
+    flex: isSmallScreen ? 1.5 : 2,
     alignItems: 'flex-start',
     justifyContent: 'center',
   },
@@ -43,12 +43,12 @@ const headerStyles = StyleSheet.create({
     color: '#ccc9c9',
   },
   userName: {
-    fontSize: isSmallScreen ? 12 : width * 0.04,
+    fontSize: isSmallScreen ? 14 : width * 0.04,
     fontWeight: 'bold',
     color: 'white',
     textAlign: 'center',
     width: '100%',
-    paddingRight: 10,
+    paddingRight: isSmallScreen ? 20 : 10,
     letterSpacing: -1,
   },
   headerAvatarImage: {

@@ -3,6 +3,7 @@ import { use } from 'react';
 import { Dimensions, StyleSheet } from 'react-native';
 
 const { width, height } = Dimensions.get('window');
+const isSmallScreen = height < 720;
 
 export default styles = StyleSheet.create({
 
