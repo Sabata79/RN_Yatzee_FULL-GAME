@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { View, Text, TextInput, Pressable, Alert, ImageBackground, Image, Animated } from "react-native";
+import * as SecureStore from "expo-secure-store";
 import { FontAwesome5 } from '@expo/vector-icons';
 import styles from '../styles/styles';
 import { database } from '../components/Firebase';
@@ -64,6 +65,8 @@ export default function Home({ setPlayerId }) {
       level: "basic",
       dateJoined: playerData?.dateJoined || new Date().toLocaleDateString(),
     });
+
+    await SecureStore.setItemAsync("user_id", userId);
 
     setPlayerName(name);
     setPlayerId(userId);

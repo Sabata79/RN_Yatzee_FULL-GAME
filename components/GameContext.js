@@ -26,13 +26,10 @@ export const GameProvider = ({ children }) => {
   const [isAvatarLoaded, setIsAvatarLoaded] = useState(false);
   const [userRecognized, setUserRecognized] = useState(false);
   const [tokens, setTokens] = useState(null);
-  const [videoTokens, setVideoTokens] = useState(0); // Video tokenien tila
+  const [videoTokens, setVideoTokens] = useState(0);
   const [energyModalVisible, setEnergyModalVisible] = useState(false);
 
-  console.log('Tokens:', tokens);
-  console.log('Video Tokens:', videoTokens);
-
-  // Haetaan aloitustokeneita Firebase-tietokannasta
+  // Fetch the player's avatar from the avatars array
   const fetchInitialTokens = async () => {
     try {
       const tokenRef = ref(database, `players/${playerId}/tokens`);
@@ -61,7 +58,7 @@ export const GameProvider = ({ children }) => {
     }
   };
 
-  // Haetaan video tokenit Firebase-tietokannasta
+  // Fecth video tokens from Firebase
   const fetchVideoTokens = async () => {
     try {
       const videoTokenRef = ref(database, `players/${playerId}/videoTokens`);
@@ -74,7 +71,7 @@ export const GameProvider = ({ children }) => {
     }
   };
 
-  // Päivitetään tokenit Firebaseen
+  // Update tokens in Firebase
   const updateTokensInFirebase = async () => {
     if (playerId && tokens !== null) {
       try {
@@ -87,12 +84,12 @@ export const GameProvider = ({ children }) => {
     }
   };
 
-  // Päivitetään video tokenit Firebaseen
+  // Update video tokens in Firebase
   const updateVideoTokensInFirebase = async () => {
     if (playerId && videoTokens !== null) {
       try {
         const videoTokenRef = ref(database, `players/${playerId}/videoTokens`);
-        await set(videoTokenRef, videoTokens); // Päivitetään Firebaseen
+        await set(videoTokenRef, videoTokens);
         console.log(`Video tokens päivitetty Firebaseen: ${videoTokens}`);
       } catch (error) {
         console.error('Virhe video tokenien päivityksessä Firebaseen:', error);
@@ -100,20 +97,20 @@ export const GameProvider = ({ children }) => {
     }
   };
 
-  // Haetaan tiedot Firebaseen, kun playerId muuttuu
+  // Get player token information from Firebase
   useEffect(() => {
     if (playerId) {
       fetchInitialTokens();
-      fetchVideoTokens(); // Haetaan myös video tokenit
+      fetchVideoTokens(); 
     }
   }, [playerId]);
 
-  // Päivitetään tokenit Firebaseen, kun ne muuttuvat
+  // Update tokens in Firebase, when they change
   useEffect(() => {
     updateTokensInFirebase();
   }, [tokens]);
 
-  // Päivitetään video tokenit Firebaseen, kun ne muuttuvat
+  // Update video tokens in Firebase, when they change
   useEffect(() => {
     updateVideoTokensInFirebase();
   }, [videoTokens]);

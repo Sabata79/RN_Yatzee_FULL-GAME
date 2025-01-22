@@ -46,7 +46,7 @@ const headerStyles = StyleSheet.create({
     textAlign: 'center',
     width: '100%',
     paddingRight: 10,
-    letterSpacing: -1.5,
+    letterSpacing: -1,
   },
   headerAvatarImage: {
     width: 60,
@@ -56,9 +56,10 @@ const headerStyles = StyleSheet.create({
     marginTop: 10, 
   },
   defaultUserIcon: {
-    fontSize: 22,
+    fontSize: 26,
     color: 'white',
     marginLeft: 10,
+    marginRight: 15,
   },
 });
 

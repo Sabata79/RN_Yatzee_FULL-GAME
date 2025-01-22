@@ -1,9 +1,8 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, Image, Animated } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { database } from "../components/Firebase";
 import { ref, get } from "firebase/database";
-import uuid from "react-native-uuid";
 import { useGame } from "../components/GameContext";
 import { ProgressBar } from "react-native-paper";
 import styles from "../styles/landingPageStyles";
@@ -11,60 +10,84 @@ import styles from "../styles/landingPageStyles";
 export default function LandingPage({ navigation }) {
     const [fadeAnim] = useState(new Animated.Value(0));
     const [loadingProgress, setLoadingProgress] = useState(0);
-    const [localName, setLocalName] = useState("");
 
     const { setPlayerIdContext, setPlayerNameContext, setUserRecognized, setPlayerId, setPlayerName } = useGame();
 
-    useEffect(() => {
-        Animated.timing(fadeAnim, {
-            toValue: 1,
-            duration: 1500,
-            useNativeDriver: true,
-        }).start();
 
-        getOrCreateUserId()
-            .then((userId) => {
-                setPlayerId(userId); 
-                checkExistingUser(userId); 
-            })
-            .catch((error) => {
-                console.error("Error during user setup:", error);
-            });
-    }, []);
+    // // Poistetaan kaikki SecureStore tiedot
+    // const clearSecureStore = async () => {
+    // try {
+    //     await SecureStore.deleteItemAsync('user_id'); // Poistaa yksittäisen tiedon
+    //     console.log('SecureStore on tyhjennetty.');
+    // } catch (error) {
+    //     console.error('Virhe SecureStore tiedon poistamisessa:', error);
+    // }
+    // };
 
-    const getOrCreateUserId = async () => {
-        try {
-            let userId = await SecureStore.getItemAsync("user_id");
-            if (!userId) {
-                userId = uuid.v4(); 
-                await SecureStore.setItemAsync("user_id", userId); 
-            }
-            return userId;
-        } catch (error) {
-            console.error("Error in getOrCreateUserId:", error);
-            throw error; 
+    // clearSecureStore();
+
+const getOrCreateUserId = async () => {
+    try {
+        let userId = await SecureStore.getItemAsync("user_id");
+        if (!userId) {
+            console.log("No userId found, returning null");
+            return null;  // Ei luoda uutta ID:tä, jos ei ole olemassa
         }
-    };
+        console.log("UserId retrieved from SecureStore:", userId);
+        return userId;
+    } catch (error) {
+        console.error("Error in getOrCreateUserId:", error);
+        throw error; 
+    }
+};
+
+useEffect(() => {
+    Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 1500,
+        useNativeDriver: true,
+    }).start();
+
+    getOrCreateUserId()
+        .then((userId) => {
+            console.log("Retrieved user ID:", userId);
+            if (userId) {
+                setPlayerId(userId);
+                checkExistingUser(userId);
+            } else {
+                console.log("No user ID found, skipping user creation.");
+                // Ei luoda uutta ID:tä, vaan siirretään eteenpäin ilman tunnistautumista
+                setUserRecognized(false);
+                navigation.navigate("MainApp");  // Voit ohjata tämän mukaan
+            }
+        })
+        .catch((error) => {
+            console.error("Error during user setup:", error);
+        });
+}, []);
 
     // Player identification
-    const checkExistingUser = async (userId) => {
-        const playerRef = ref(database, `players/${userId}`);
-        try {
-            const snapshot = await get(playerRef);
-            const playerData = snapshot.val();
-            if (playerData) {
-                setLocalName(playerData.name);
-                setPlayerIdContext(userId);
-                setPlayerNameContext(playerData.name);
-                setUserRecognized(true);
-                setPlayerName(playerData.name);
-                setPlayerId(userId);
-            }
-            incrementProgress(100);
-        } catch (error) {
-            console.error("Error fetching player data:", error);
+const checkExistingUser = async (userId) => {
+    console.log("Checking user with ID:", userId); // Lisää logi
+    const playerRef = ref(database, `players/${userId}`);
+    try {
+        const snapshot = await get(playerRef);
+        const playerData = snapshot.val();
+        if (playerData) {
+            console.log("Player found:", playerData);  // Lisää logi
+            setPlayerIdContext(userId);
+            setPlayerNameContext(playerData.name);
+            setUserRecognized(true);
+            setPlayerName(playerData.name);
+            setPlayerId(userId);
+        } else {
+            console.log("No player data found for ID:", userId); // Lisää logi
         }
-    };
+        incrementProgress(100);
+    } catch (error) {
+        console.error("Error fetching player data:", error);  // Lisää virheiden käsittely
+    }
+};
 
     const incrementProgress = (toValue) => {
         let currentProgress = 0;
@@ -96,9 +119,8 @@ export default function LandingPage({ navigation }) {
                 style={styles.progressBar}
             />
             <Text style={styles.progressText}>
-                {loadingProgress < 100 ? "Loading player data..." : "Complete!"}
+                {loadingProgress < 100 ? "Checking player data..." : "Complete!"}
             </Text>
         </Animated.View>
     );
 }
-
