@@ -1,7 +1,10 @@
 // NOTICE: These styles are made whit section flex and flexDirection row. The styles are used in the Header.js component
 
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Dimensions } from 'react-native';
 import Constants from 'expo-constants';
+
+const { height, width } = Dimensions.get('window');
+const isSmallScreen = height < 600; // Tarkista pieni näyttö
 
 const headerStyles = StyleSheet.create({
   header: {
@@ -9,7 +12,7 @@ const headerStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 10,
-    height: 70,
+    height: isSmallScreen ? 50 : height * 0.1,
     backgroundColor: 'black',
     marginTop: Constants.statusBarHeight,
     overflow: 'visible',
@@ -35,12 +38,12 @@ const headerStyles = StyleSheet.create({
     justifyContent: 'center',
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: isSmallScreen ? 18 : width * 0.06, 
     fontFamily: 'AntonRegular',
     color: '#ccc9c9',
   },
   userName: {
-    fontSize: 14,
+    fontSize: isSmallScreen ? 12 : width * 0.04,
     fontWeight: 'bold',
     color: 'white',
     textAlign: 'center',
@@ -49,14 +52,14 @@ const headerStyles = StyleSheet.create({
     letterSpacing: -1,
   },
   headerAvatarImage: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: isSmallScreen ? 40 : 60, 
+    height: isSmallScreen ? 40 : 60,
+    borderRadius: isSmallScreen ? 20 : 30,
     marginLeft: 10,
-    marginTop: 10, 
+    marginTop: 10,
   },
   defaultUserIcon: {
-    fontSize: 26,
+    fontSize: isSmallScreen ? 20 : 26, 
     color: 'white',
     marginLeft: 10,
     marginRight: 15,

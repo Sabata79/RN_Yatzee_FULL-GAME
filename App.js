@@ -1,7 +1,7 @@
 import * as Updates from 'expo-updates';
 import React, { useState, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { SafeAreaView, Modal, View, Text, Pressable } from 'react-native';
+import { SafeAreaView, Modal, View, Text, Pressable, Dimensions } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -19,6 +19,9 @@ import Header from './components/Header';
 import styles from './styles/styles';
 import { updateMessage } from './constants/updateMessage';
 import updateModalStyles from './styles/updateModalStyles';
+
+const { width, height } = Dimensions.get('window');
+const isSmallScreen = height < 600;
 
 export default function App() {
   const [isUserRecognized, setIsUserRecognized] = useState(false);
@@ -68,8 +71,8 @@ export default function App() {
       screenOptions={({ route }) => ({
         headerShown: true,
         tabBarStyle: {
-          height: 85, 
-          backgroundColor: 'black', 
+          height: isSmallScreen ? 60 : 85, 
+          backgroundColor: 'black',
         },
         tabBarIndicatorStyle: {
           display: 'none',
@@ -77,56 +80,55 @@ export default function App() {
         tabBarActiveTintColor: '#ffffff',
         tabBarInactiveTintColor: 'gray',
         tabBarLabelStyle: {
-          
-          fontSize: 14,
+          height: isSmallScreen ? 20 : 30,
+          width: isSmallScreen ? 20 : 30,
+          fontSize: isSmallScreen ? 9 : 12, 
           fontFamily: 'AntonRegular',
         },
         tabBarIcon: ({ focused }) => {
           const iconStyle = {
-            width: 40, 
-            height: 40, 
-            size: 32, 
+            size: isSmallScreen ? 12 : 32, 
             color: focused ? '#eae6e6' : 'gray',
           };
 
-        if (route.name === 'Home') {
-          return (
-            <View style={{ marginLeft: -5 }}> 
-              <FontAwesome5 name="home" {...iconStyle} />
-            </View>
-          );
-        } else if (route.name === 'Gameboard') {
-          return (
-            <View style={{ marginLeft: -5 }}> 
-              <FontAwesome5 name="dice" {...iconStyle} />
-            </View>
-          );
-        } else if (route.name === 'Scoreboard') {
-          return (
-            <View style={{ marginLeft: -5 }}>
-              <FontAwesome5 name="trophy" {...iconStyle} />
-            </View>
-          );
-        } else if (route.name === 'Rules') {
-          return (
-            <View style={{ marginLeft: 3 }}>
-              <FontAwesome5 name="book" {...iconStyle} />
-            </View>
-          );
-        } else if (route.name === 'About Me') {
-          return (
-            <View style={{ marginLeft: 4 }}> 
-              <FontAwesome5 name="user" {...iconStyle} />
-            </View>
-          );
-        }
-      },
-    })}
-  >
+          if (route.name === 'Home') {
+            return (
+              <View style={{ marginLeft: -5 }}>
+                <FontAwesome5 name="home" {...iconStyle} />
+              </View>
+            );
+          } else if (route.name === 'Gameboard') {
+            return (
+              <View style={{ marginLeft: -5 }}>
+                <FontAwesome5 name="dice" {...iconStyle} />
+              </View>
+            );
+          } else if (route.name === 'Scoreboard') {
+            return (
+              <View style={{ marginLeft: -5 }}>
+                <FontAwesome5 name="trophy" {...iconStyle} />
+              </View>
+            );
+          } else if (route.name === 'Rules') {
+            return (
+              <View style={{ marginLeft: 3 }}>
+                <FontAwesome5 name="book" {...iconStyle} />
+              </View>
+            );
+          } else if (route.name === 'About Me') {
+            return (
+              <View style={{ marginLeft: 4 }}>
+                <FontAwesome5 name="user" {...iconStyle} />
+              </View>
+            );
+          }
+        },
+      })}
+    >
       <Tab.Screen
         name="Home"
         options={{
-          tabBarStyle: { display: 'none' }, 
+          tabBarStyle: { display: 'none' },
           tabBarButton: () => null,
           swipeEnabled: false,
         }}
@@ -148,64 +150,58 @@ export default function App() {
 
 
 
-return (
-  <SafeAreaProvider>
-    <GameProvider>
-      <SafeAreaView style={styles.container}>
-        <Modal
-          visible={updateModalVisible}
-          transparent={true}
-          animationType="fade"
-          onRequestClose={() => setUpdateModalVisible(false)}
-        >
-          <View style={updateModalStyles.updateModalOverlay}>
-            <View style={updateModalStyles.updateModalContent}>
-              <Text style={updateModalStyles.updateModalTitle}>New Update Available!</Text>
-              <Text style={updateModalStyles.updateModalMessage}>
-                {updateMessage}
-              </Text>
-              <Pressable
-                style={updateModalStyles.updateModalUpdateButton}
-                onPress={handleUpdate}
-              >
-                <Text style={updateModalStyles.updateModalUpdateButtonText}>Update</Text>
-              </Pressable>
-              {/* <Pressable
-                style={updateModalStyles.updateModalCancelButton}
-                onPress={() => setUpdateModalVisible(false)}
-              >
-                <Text style={updateModalStyles.updateModalCancelButtonText}>Cancel</Text>
-              </Pressable> */}
-            </View>
-          </View>
-        </Modal>
-
-        <NavigationContainer>
-          <Stack.Navigator
-            screenOptions={{
-              headerShown: false, 
-            }}
+  return (
+    <SafeAreaProvider>
+      <GameProvider>
+        <SafeAreaView style={styles.container}>
+          <Modal
+            visible={updateModalVisible}
+            transparent={true}
+            animationType="fade"
+            onRequestClose={() => setUpdateModalVisible(false)}
           >
-            <Stack.Screen name="LandingPage" component={LandingPage} />
-            <Stack.Screen
-              name="MainApp"
-              component={TabNavigator}
-              options={{
-                headerShown: true, // Näytetään navigaation header
-                header: () => (
-                  <Header
-                    isUserRecognized={isUserRecognized}
-                    name={name}
-                    playerId={playerId}
-                  />
-                ),
+            <View style={updateModalStyles.updateModalOverlay}>
+              <View style={updateModalStyles.updateModalContent}>
+                <Text style={updateModalStyles.updateModalTitle}>New Update Available!</Text>
+                <Text style={updateModalStyles.updateModalMessage}>
+                  {updateMessage}
+                </Text>
+                <Pressable
+                  style={updateModalStyles.updateModalUpdateButton}
+                  onPress={handleUpdate}
+                >
+                  <Text style={updateModalStyles.updateModalUpdateButtonText}>Update</Text>
+                </Pressable>
+              </View>
+            </View>
+          </Modal>
+
+          <NavigationContainer>
+            <Stack.Navigator
+              screenOptions={{
+                headerShown: false,
               }}
-            />
-          </Stack.Navigator>
-        </NavigationContainer>
-        <StatusBar style="light" backgroundColor="black" />
-      </SafeAreaView>
-    </GameProvider>
-  </SafeAreaProvider>
-);
+            >
+              <Stack.Screen name="LandingPage" component={LandingPage} />
+              <Stack.Screen
+                name="MainApp"
+                component={TabNavigator}
+                options={{
+                  headerShown: true, // Näytetään navigaation header
+                  header: () => (
+                    <Header
+                      isUserRecognized={isUserRecognized}
+                      name={name}
+                      playerId={playerId}
+                    />
+                  ),
+                }}
+              />
+            </Stack.Navigator>
+          </NavigationContainer>
+          <StatusBar style="light" backgroundColor="black" />
+        </SafeAreaView>
+      </GameProvider>
+    </SafeAreaProvider>
+  );
 }
