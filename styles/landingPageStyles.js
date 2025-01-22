@@ -1,7 +1,8 @@
 import { StyleSheet } from 'react-native';
 import { Dimensions } from 'react-native';
 
-const { width } = Dimensions.get("window");
+const { width,height } = Dimensions.get("window");
+const isSmallScreen = height < 720;
 
 const styles = StyleSheet.create({
   container: {
@@ -12,7 +13,7 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     alignItems: "center",
-    marginBottom: 30,
+    marginBottom: isSmallScreen ? 15: 30,
   },
   logo: {
     width: width * 1.6,
