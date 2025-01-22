@@ -1,77 +1,64 @@
+// NOTICE: These styles are made whit section flex and flexDirection row. The styles are used in the Header.js component
+
 import { StyleSheet } from 'react-native';
 import Constants from 'expo-constants';
 
 const headerStyles = StyleSheet.create({
   header: {
-    marginTop: Constants.statusBarHeight,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 10,
     height: 70,
-    zIndex: 1,
-  },
-  recognizedUserHeader: {
-    justifyContent: 'space-between',
     backgroundColor: 'black',
+    marginTop: Constants.statusBarHeight,
+    overflow: 'visible',
   },
-  unrecognizedUserHeader: {
+  section1: {
+    flex: 2,
+    alignItems: 'flex-start',
     justifyContent: 'center',
-    backgroundColor: 'black',
   },
-  recognizedTitleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-start',
+  section2: {
+    flex: 2,
+    alignItems: 'flex-start',
+    justifyContent: 'center',
   },
-  unrecognizedTitleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  section3: {
+    flex: 2,
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+  },
+  section4: {
+    flex: 1,
+    alignItems: 'flex-end',
     justifyContent: 'center',
   },
   headerTitle: {
     fontSize: 24,
-    marginLeft: 5,
     fontFamily: 'AntonRegular',
     color: '#ccc9c9',
-  },
-  energyContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  userHeaderContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginLeft: 'auto',
-  },
-  userHeaderButton: {
-    marginLeft: 10,
-    top: -5,
-  },
-  userHeaderButtonPressed: {
-    opacity: 0.7,
   },
   userName: {
     fontSize: 14,
     fontWeight: 'bold',
     color: 'white',
-    marginTop: 18,
-    marginRight: 75,
-    letterSpacing: -1.2,
+    textAlign: 'center',
+    width: '100%',
+    paddingRight: 10,
+    letterSpacing: -1.5,
   },
   headerAvatarImage: {
     width: 60,
     height: 60,
     borderRadius: 30,
-    position: 'absolute',
-    top: 0,
-    right: 5,
-    zIndex: 10,
+    marginLeft: 10,
+    marginTop: 10, 
   },
   defaultUserIcon: {
-    position: 'absolute',
-    right: 15,
-    top: 15,
+    fontSize: 22,
+    color: 'white',
+    marginLeft: 10,
   },
 });
 

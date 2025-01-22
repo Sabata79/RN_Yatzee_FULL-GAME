@@ -1,3 +1,5 @@
+// NOTICE: Styles of the component are in the file 'headerStyles.js'. Styles are made whit section flex and flexDirection row. 
+
 import React, { useState, useEffect } from 'react';
 import { View, Text, Pressable, Image } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
@@ -7,7 +9,7 @@ import headerStyles from '../styles/headerStyles';
 import { useGame } from './GameContext';
 import { avatars } from '../constants/AvatarPaths';
 
-export default function Header({ isUserRecognized, name }) {
+export default function Header() {
   const [isModalVisible, setModalVisible] = useState(false);
   const { playerId, playerName, userRecognized, avatarUrl } = useGame();
 
@@ -33,55 +35,46 @@ export default function Header({ isUserRecognized, name }) {
   }, [avatarUrl]);
 
   return (
-    <View
-      style={[
-        headerStyles.header,
-        userRecognized ? headerStyles.recognizedUserHeader : headerStyles.unrecognizedUserHeader,
-      ]}
-    >
-      {/* Otsikko ja logo */}
-      <View
-        style={[
-          userRecognized
-            ? headerStyles.recognizedTitleContainer
-            : headerStyles.unrecognizedTitleContainer,
-        ]}
-      >
+    <View style={headerStyles.header}>
+      {/* Header/Logo */}
+      <View style={headerStyles.section1}>
         <Text style={headerStyles.headerTitle}>
           Yatzy <FontAwesome5 name="dice" size={35} color="#ccc9c9" />
         </Text>
       </View>
 
-      {/* EnergyTokenSystem näkyy vain tunnistetuille käyttäjille */}
+      {/* EnergyTokenSystem */}
       {userRecognized && (
-        <View style={headerStyles.energyContainer}>
+        <View style={headerStyles.section2}>
           <EnergyTokenSystem onPlay={handleGamePlay} />
         </View>
       )}
 
-      {/* Käyttäjäprofiili */}
+      {/* UserName*/}
       {userRecognized && playerName && (
-        <View style={headerStyles.userHeaderContainer}>
-          <Pressable
-            style={({ pressed }) => [
-              headerStyles.userHeaderButton,
-              pressed && headerStyles.userHeaderButtonPressed,
-            ]}
-            onPress={() => setModalVisible(true)}
-          >
-            <Text style={headerStyles.userName}>{playerName}</Text>
-            {userAvatar ? (
-              <Image source={userAvatar} style={headerStyles.headerAvatarImage} />
-            ) : (
-              <FontAwesome5
-                name="user"
-                size={22}
-                color="white"
-                style={headerStyles.defaultUserIcon}
-              />
-            )}
-          </Pressable>
+      <Pressable onPress={() => setModalVisible(true)}>
+        <View style={headerStyles.section3}>
+          <Text style={headerStyles.userName}>{playerName}</Text>
         </View>
+      </Pressable>
+      )}
+
+      {/*Avatar*/}
+      {userRecognized && (
+      <Pressable onPress={() => setModalVisible(true)}>
+        <View style={headerStyles.section4}>
+          {userAvatar ? (
+            <Image source={userAvatar} style={headerStyles.headerAvatarImage} />
+          ) : (
+            <FontAwesome5
+              name="user"
+              size={22}
+              color="white"
+              style={headerStyles.defaultUserIcon}
+            />
+          )}
+        </View>
+      </Pressable>
       )}
 
       {/* Pelaajakortti */}
@@ -95,4 +88,4 @@ export default function Header({ isUserRecognized, name }) {
       )}
     </View>
   );
-}
+};
