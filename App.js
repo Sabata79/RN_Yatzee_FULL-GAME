@@ -77,15 +77,15 @@ export default function App() {
         tabBarActiveTintColor: '#ffffff',
         tabBarInactiveTintColor: 'gray',
         tabBarLabelStyle: {
-          marginTop: 5,
+          
           fontSize: 14,
           fontFamily: 'AntonRegular',
         },
         tabBarIcon: ({ focused }) => {
           const iconStyle = {
-            width: 50, 
-            height: 50, 
-            size: 28, 
+            width: 40, 
+            height: 40, 
+            size: 32, 
             color: focused ? '#eae6e6' : 'gray',
           };
 
@@ -109,13 +109,13 @@ export default function App() {
           );
         } else if (route.name === 'Rules') {
           return (
-            <View style={{ marginLeft: -1 }}>
+            <View style={{ marginLeft: 3 }}>
               <FontAwesome5 name="book" {...iconStyle} />
             </View>
           );
         } else if (route.name === 'About Me') {
           return (
-            <View style={{ marginLeft: -1 }}> 
+            <View style={{ marginLeft: 4 }}> 
               <FontAwesome5 name="user" {...iconStyle} />
             </View>
           );
@@ -128,6 +128,7 @@ export default function App() {
         options={{
           tabBarStyle: { display: 'none' }, 
           tabBarButton: () => null,
+          swipeEnabled: false,
         }}
       >
         {() => (
@@ -151,7 +152,6 @@ return (
   <SafeAreaProvider>
     <GameProvider>
       <SafeAreaView style={styles.container}>
-        {/* Päivitysmodal */}
         <Modal
           visible={updateModalVisible}
           transparent={true}
@@ -162,7 +162,7 @@ return (
             <View style={updateModalStyles.updateModalContent}>
               <Text style={updateModalStyles.updateModalTitle}>New Update Available!</Text>
               <Text style={updateModalStyles.updateModalMessage}>
-                Update your app to enjoy the latest features.
+                {updateMessage}
               </Text>
               <Pressable
                 style={updateModalStyles.updateModalUpdateButton}
@@ -170,12 +170,12 @@ return (
               >
                 <Text style={updateModalStyles.updateModalUpdateButtonText}>Update</Text>
               </Pressable>
-              <Pressable
+              {/* <Pressable
                 style={updateModalStyles.updateModalCancelButton}
                 onPress={() => setUpdateModalVisible(false)}
               >
                 <Text style={updateModalStyles.updateModalCancelButtonText}>Cancel</Text>
-              </Pressable>
+              </Pressable> */}
             </View>
           </View>
         </Modal>
@@ -183,13 +183,10 @@ return (
         <NavigationContainer>
           <Stack.Navigator
             screenOptions={{
-              headerShown: false, // Piilota oletuksena kaikki navigaation headerit
+              headerShown: false, 
             }}
           >
-            {/* LandingPage ilman Header-komponenttia */}
             <Stack.Screen name="LandingPage" component={LandingPage} />
-
-            {/* MainApp sisältää Headerin */}
             <Stack.Screen
               name="MainApp"
               component={TabNavigator}
