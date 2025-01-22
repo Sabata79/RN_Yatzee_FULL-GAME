@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { FlatList, Text, View, Alert, Pressable, ImageBackground, Animated } from 'react-native';
+import { FlatList, Text, View, Alert, Pressable, ImageBackground, Animated, Dimensions } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import styles from '../styles/styles';
 import { NBR_OF_THROWS, NBR_OF_DICES, MAX_SPOTS, BONUS_POINTS, BONUS_POINTS_LIMIT } from '../constants/Game';
@@ -9,6 +9,9 @@ import { useGame } from '../components/GameContext';
 import RenderFirstRow from '../components/RenderFirstRow';
 import GlowingText from './AnimatedText';
 import GameSave from '../components/GameSave';
+
+const { width, height } = Dimensions.get('window');
+const isSmallScreen = height < 720;
 
 let board = [];
 
@@ -408,7 +411,7 @@ function checkAndUnlockYatzy(rolledDices) {
         if (index === 0) {
             return (
                 <View style={styles.item}>
-                    <MaterialCommunityIcons name="dice-1" size={45} style={styles.icon} />
+                    <MaterialCommunityIcons name="dice-1" size={isSmallScreen ? 40 : 45} style={styles.icon} />
                 </View>
             );
             //Sum of ones
@@ -458,7 +461,7 @@ function checkAndUnlockYatzy(rolledDices) {
         } else if (index === 4) {
             return (
                 <View style={styles.item}>
-                    <MaterialCommunityIcons name="dice-2" size={45} style={styles.icon} />
+                    <MaterialCommunityIcons name="dice-2" size={isSmallScreen ? 40 : 45} style={styles.icon} />
                 </View>
             );
             // Sum of twos
@@ -492,7 +495,7 @@ function checkAndUnlockYatzy(rolledDices) {
         } else if (index === 8) {
             return (
                 <View style={styles.item}>
-                    <MaterialCommunityIcons name="dice-3" size={45} style={styles.icon} />
+                    <MaterialCommunityIcons name="dice-3" size={isSmallScreen ? 40 : 45} style={styles.icon} />
                 </View>
             );
             // Sum of Threes
@@ -510,7 +513,7 @@ function checkAndUnlockYatzy(rolledDices) {
         } else if (index === 14) {
             return (
                 <View style={styles.item}>
-                    <MaterialCommunityIcons name="home" size={25} style={styles.icon} />
+                    <MaterialCommunityIcons name="home" size={isSmallScreen ? 22 : 25} style={styles.icon} />
                     <Text style={{ fontSize: 10, color: 'white' }}>FullHouse</Text>
                 </View>
             );
@@ -528,7 +531,7 @@ function checkAndUnlockYatzy(rolledDices) {
         } else if (index === 12) {
             return (
                 <View style={styles.item}>
-                    <MaterialCommunityIcons name="dice-4" size={45} style={styles.icon} />
+                    <MaterialCommunityIcons name="dice-4" size={isSmallScreen ? 40 : 45} style={styles.icon} />
                 </View>
             );
         } else if (index === 13) {
@@ -544,7 +547,7 @@ function checkAndUnlockYatzy(rolledDices) {
         } else if (index === 18) {
             return (
                 <View style={styles.item}>
-                    <MaterialCommunityIcons name="cards-outline" size={25} style={styles.icon} />
+                    <MaterialCommunityIcons name="cards-outline" size={isSmallScreen ? 22 : 25} style={styles.icon} />
                     <Text style={{ fontSize: 10, color: 'white' }}>small</Text>
                 </View>
             );
@@ -562,7 +565,7 @@ function checkAndUnlockYatzy(rolledDices) {
         } else if (index === 16) {
             return (
                 <View style={styles.item}>
-                    <MaterialCommunityIcons name="dice-5" size={45} style={styles.icon} />
+                    <MaterialCommunityIcons name="dice-5" size={isSmallScreen ? 40 : 45} style={styles.icon} />
                 </View>
             );
             // Sum of Fives
@@ -579,7 +582,7 @@ function checkAndUnlockYatzy(rolledDices) {
         } else if (index === 22) {
             return (
                 <View style={styles.item}>
-                    <MaterialCommunityIcons name="cards-outline" size={25} style={styles.icon} />
+                    <MaterialCommunityIcons name="cards-outline" size={isSmallScreen ? 22 : 25} style={styles.icon} />
                     <Text style={{ fontSize: 10, color: 'white' }}>large</Text>
                 </View>
             );
@@ -597,7 +600,7 @@ function checkAndUnlockYatzy(rolledDices) {
         } else if (index === 20) {
             return (
                 <View style={styles.item}>
-                    <MaterialCommunityIcons name="dice-6" size={45} style={styles.icon} />
+                    <MaterialCommunityIcons name="dice-6" size={isSmallScreen ? 40 : 45} style={styles.icon} />
                 </View>
             );
             // Sum of Sixes
@@ -614,7 +617,7 @@ function checkAndUnlockYatzy(rolledDices) {
         } else if (index === 26) {
             return (
                 <View style={styles.item}>
-                    <MaterialCommunityIcons name="star-outline" size={25} style={styles.icon} />
+                    <MaterialCommunityIcons name="star-outline" size={isSmallScreen ? 22 : 25} style={styles.icon} />
                     <Text style={{ fontSize: 10, color: 'white' }}>Yatzy</Text>
                 </View>
             );
@@ -654,7 +657,7 @@ function checkAndUnlockYatzy(rolledDices) {
         } else if (index === 30) {
             return (
                 <View style={styles.item}>
-                    <MaterialCommunityIcons name="account-question-outline" size={25} style={styles.icon} />
+                    <MaterialCommunityIcons name="account-question-outline" size={isSmallScreen ? 22 : 25} style={styles.icon} />
                     <Text style={{ fontSize: 10, color: 'white' }}>Change</Text>
                 </View>
             );
