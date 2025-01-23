@@ -71,7 +71,7 @@ const EnergyTokenSystem = () => {
   useEffect(() => {
     if (tokens <= 4 && !nextTokenTime) {
       const now = new Date();
-      const nextTime = new Date(now.getTime() + 4.8 * 60 * 60 * 1000); // 5 minuutin regenerointiaika
+      const nextTime = new Date(now.getTime() + 2.4 * 60 * 60 * 1000); 
       setNextTokenTime(nextTime);
       console.log('Regenerointiaika asetettu:', nextTime);
     }
