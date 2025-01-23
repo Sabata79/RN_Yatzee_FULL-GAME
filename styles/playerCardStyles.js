@@ -1,16 +1,8 @@
 import { StyleSheet } from 'react-native';
 import { Dimensions } from 'react-native';
 
-// Hae ruudun koko
 const { width, height } = Dimensions.get('window');
-
-// Määritellään fold-näytön tunnistuslogiikka
-const isFoldScreen = width < 800; // Asetetaan fold-laitteelle erityinen leveysraja
-
-// Määritellään avatarit rivillä eri laitteille
-const avatarsPerRow = isFoldScreen ? 1.2 : 2; // Vähennetään riville mahtuvia avatarin arvoja foldille
-
-// Määritellään avatarin koko suhteessa näyttöön
+const isFoldScreen = width < 800; 
 const avatarSize = isFoldScreen ? 80: 110;
 
 
@@ -20,13 +12,13 @@ export default styles = StyleSheet.create({
     playerCardContainer: {
         marginTop: 10,
         marginBottom: 10,
-        alignItems: 'flex-start',
+        alignItems: 'center',    
     },
     playerInfoContainer: {
         flexDirection: 'row',
         alignItems: 'center',
         width: '100%',
-        height: 100,
+        height: '18%',
         marginBottom: 5,
     },
     playerNameContainer: {
@@ -48,6 +40,7 @@ export default styles = StyleSheet.create({
     },
     playerCardModalContainer: {
         width: '80%',
+        maxWidth: 350,
         marginTop: '5%',
         padding: 10,
         borderRadius: 10,
