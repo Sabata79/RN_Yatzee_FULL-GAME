@@ -10,7 +10,7 @@ Enjoy the game and feel free to share any thoughts or suggestions you might have
 `;
 
 export const aboutFeatures = `
-Features:
+                                FEATURES:
 
 - Classic Yatzy Gameplay: Enjoy the traditional Yatzy game with all the standard rules and scoring.
 

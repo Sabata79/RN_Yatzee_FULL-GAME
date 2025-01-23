@@ -713,7 +713,7 @@ export default styles = StyleSheet.create({
     },
     aboutTitle: {
         fontSize: 24,
-        paddingLeft: 20,
+        paddingLeft: "10%",
         color: '#e3dddd',
         fontFamily: 'AntonRegular',
     },
@@ -727,8 +727,11 @@ export default styles = StyleSheet.create({
     aboutLinkText: {
         fontSize: 16,
         color: '#f30909',
+        backgroundColor: '#00000098',
+        alignSelf: 'center',
+        padding: 10,
         textAlign: 'center',
-        fontFamily: 'AntonRegular',
+        fontFamily: 'Roboto',
         textDecorationLine: 'underline',
         marginBottom: 20,
     },
