@@ -1,9 +1,18 @@
 import { StyleSheet } from 'react-native';
 import { Dimensions } from 'react-native';
 
-const windowWidth = Dimensions.get('window').width;
-const avatarsPerRow = windowWidth > 500 ? 3 : 2;
-const avatarSize = (windowWidth / avatarsPerRow) - 120;
+// Hae ruudun koko
+const { width, height } = Dimensions.get('window');
+
+// Määritellään fold-näytön tunnistuslogiikka
+const isFoldScreen = width < 800; // Asetetaan fold-laitteelle erityinen leveysraja
+
+// Määritellään avatarit rivillä eri laitteille
+const avatarsPerRow = isFoldScreen ? 1.2 : 2; // Vähennetään riville mahtuvia avatarin arvoja foldille
+
+// Määritellään avatarin koko suhteessa näyttöön
+const avatarSize = isFoldScreen ? 80: 110;
+
 
 export default styles = StyleSheet.create({
 
@@ -150,7 +159,7 @@ export default styles = StyleSheet.create({
         flexWrap: 'wrap',
     },
     avatarModalImage: {
-        width: avatarSize,
+        width: avatarSize, 
         height: avatarSize,
         borderRadius: avatarSize / 2,
         padding: 2,
