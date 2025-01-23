@@ -1,7 +1,8 @@
 import { Dimensions, StyleSheet } from 'react-native';
 
 const { width, height } = Dimensions.get('window');
-const isSmallScreen = height < 720; 
+const isSmallScreen = height < 720;
+const isFoldScreen = width < 1300; 
 
 export default styles = StyleSheet.create({
 
@@ -19,7 +20,10 @@ export default styles = StyleSheet.create({
     },
     overlay: {
         flex: 1,
+        width: '100%',
         backgroundColor: 'rgba(0, 0, 0, 0.6)',
+        maxWidth: 420,
+        alignSelf:'center',
     },
     titleContainer: {
         flexDirection: 'row',
@@ -71,6 +75,7 @@ export default styles = StyleSheet.create({
         flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
+        maxWidth: 550,
         zIndex: 10,
     },
 
@@ -418,6 +423,7 @@ export default styles = StyleSheet.create({
         marginTop: 90,
         alignItems: 'center',
         justifyContent: 'center',
+        maxWidth: 500,
     },
     filterLayer: {
         position: 'absolute',
