@@ -1,9 +1,7 @@
-import Constants from 'expo-constants';
-import { use } from 'react';
 import { Dimensions, StyleSheet } from 'react-native';
 
 const { width, height } = Dimensions.get('window');
-const isSmallScreen = height < 720;
+const isSmallScreen = height < 720; 
 
 export default styles = StyleSheet.create({
 
@@ -38,7 +36,8 @@ export default styles = StyleSheet.create({
     },
     input: {
         padding: 10,
-        width: 200,
+        width: "50%",
+        maxWidth: 200,
         justifyContent: 'center',
         textAlign: 'center',
         fontFamily: 'AntonRegular',
@@ -816,13 +815,16 @@ export default styles = StyleSheet.create({
     },
     registerImage: {
         width: width * 0.9,
-        height: height * 0.36,
-        marginBottom: -20,
-        marginTop: -20,
+        height: height * 0.4,
+        maxWidth: 400,
+        maxHeight: 400,
+        marginBottom: -30,
     },
     hiThereImage: {
         width: width * 1,
         height: height * 0.5,
+        maxWidth: 400,
+        maxHeight: 400,
         marginBottom: -120,
         marginTop: -50,
     },

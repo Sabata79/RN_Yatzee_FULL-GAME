@@ -69,7 +69,7 @@ export default function App() {
     <Tab.Navigator
       tabBarPosition="bottom"
       screenOptions={({ route }) => ({
-        headerShown: true,
+        headerShown: false,
         tabBarStyle: {
           height: isSmallScreen ? 55 : 85, 
           backgroundColor: 'black',
