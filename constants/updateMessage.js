@@ -6,10 +6,5 @@
 // Button {Cancel}
 
 export const updateMessage =
-`
-+Energy Token System
-+New Scoreboard UI
-
-+Energia systeemi
-+Uusi pistetaulukko käyttöliittymä
+`-Responsive fix for mobile devices
 `;
