@@ -111,7 +111,7 @@ const EnergyTokenSystem = () => {
       visibilityTime: 2000,
       position: 'top',
       onHide: () => {
-        setTokens((prev) => Math.min(prev + 1, 10));
+        setTokens((prev) => Math.min(prev + 1, MAX_TOKENS));
         setVideoTokens((prev) => prev + 1);
         Toast.show({
           type: 'success',

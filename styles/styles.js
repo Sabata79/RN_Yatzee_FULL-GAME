@@ -36,13 +36,6 @@ export default styles = StyleSheet.create({
         flex: 1,
         right: 10,
     },
-    footer: {
-        width: '100%',
-        backgroundColor: 'transparent',
-        flexDirection: 'row',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
     input: {
         padding: 10,
         width: 200,
