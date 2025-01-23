@@ -18,8 +18,8 @@ const styles = StyleSheet.create({
   logo: {
     width: width * 1.6,
     height: width * 1.6,
-    maxWidth: 300,
-    maxHeight: 300,
+    maxWidth: 600,
+    maxHeight: 600,
     marginBottom: 5,
   },
   progressBar: {
