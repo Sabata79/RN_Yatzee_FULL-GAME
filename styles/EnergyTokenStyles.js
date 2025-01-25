@@ -2,11 +2,11 @@ import { StyleSheet } from 'react-native';
 
 const styles = StyleSheet.create({
   energyContainer: {
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    paddingHorizontal: 10, 
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
     paddingVertical: 5,
-    width: '100%', 
+    width: '100%',
   },
   energyIcon: {
     zIndex: 1,
@@ -14,16 +14,16 @@ const styles = StyleSheet.create({
   },
   progressBarContainer: {
     position: 'absolute',
-    flex: 1, 
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    width: '100%', 
+    width: '100%',
   },
   progressBar: {
     position: 'relative',
     left: 28,
     height: 20,
-    width: 75, 
+    width: 75,
     borderRadius: 5,
     overflow: 'hidden',
     backgroundColor: 'transparent',
@@ -50,7 +50,7 @@ const styles = StyleSheet.create({
     zIndex: 5,
   },
 
-// Modal
+  // Modal
   energyModalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -88,16 +88,30 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 20,
     marginBottom: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  energyModalButtonPressed: {
+    backgroundColor: '#388e3c',
+    transform: [{ scale: 0.95 }],
   },
   energyModalCloseButton: {
-    backgroundColor: '#f44336',
-    borderRadius: 5,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
+    position: 'absolute',
+    right: 15,
+    top: -10,
+    backgroundColor: 'transparent',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 3,
+  },
+  energyModalCloseButtonText: {
+    color: 'Black',
+    fontSize: 50,
   },
   energyModalButtonText: {
     color: 'white',
     fontWeight: 'bold',
+    marginTop: 5,
   },
   energyModalFooterText: {
     fontSize: 14,
@@ -105,6 +119,11 @@ const styles = StyleSheet.create({
     marginTop: 10,
     textAlign: 'center',
   },
+  iconContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  }
 
 });
 

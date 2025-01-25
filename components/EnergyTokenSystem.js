@@ -149,16 +149,28 @@ const EnergyTokenSystem = () => {
               </>
             ) : (
               <>
+                <Pressable
+                  style={styles.energyModalCloseButton}
+                  onPress={() => setEnergyModalVisible(false)}
+                >
+                  <Text style={styles.energyModalCloseButtonText}>×</Text>
+                </Pressable>
                 <Text style={styles.energyModalMessage}>You are out of energy tokens!</Text>
                 {videoTokens < VIDEO_TOKEN_LIMIT && (
                   <>
                     <Pressable
-                      style={styles.energyModalButton}
+                      style={({ pressed }) => [
+                        styles.energyModalButton,
+                        pressed && styles.energyModalButtonPressed,
+                      ]}
                       onPress={() => {
                         setEnergyModalVisible(false);
                         handleWatchVideo();
                       }}
                     >
+                      <View style={styles.iconContainer}>
+                        <MaterialCommunityIcons name="video-vintage" size={40} color="white" />
+                      </View>
                       <Text style={styles.energyModalButtonText}>Watch Video for Energy Token</Text>
                     </Pressable>
                     <Text style={styles.energyModalFooterText}>
@@ -171,12 +183,7 @@ const EnergyTokenSystem = () => {
                 </Text>
                 <Text style={[styles.energyModalMessage, { fontWeight: 'bold' }]}>{timeToNextToken}</Text>
 
-                <Pressable
-                  style={[styles.energyModalButton, styles.energyModalCloseButton]}
-                  onPress={() => setEnergyModalVisible(false)}
-                >
-                  <Text style={styles.energyModalButtonText}>Close</Text>
-                </Pressable>
+
               </>
             )}
           </View>
