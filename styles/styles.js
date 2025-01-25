@@ -169,7 +169,7 @@ export default styles = StyleSheet.create({
         borderWidth: 3,
         borderColor: 'orange',
         width: '96%',
-        height: 50,
+        height: '10%',
         borderRadius: 5,
         justifyContent: 'space-between',
         alignItems: 'center',
