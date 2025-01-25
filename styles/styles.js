@@ -285,15 +285,14 @@ export default styles = StyleSheet.create({
     nbrThrowsText: {
         fontSize: 17,
         fontFamily: 'AntonRegular',
-        width: 35,
-        height: 35,
-        marginLeft: 10,
+        width: 40,
+        height: 40,
         borderRadius: 100,
         borderWidth: 2,
         textAlign: 'center',
         alignContent: 'center',
         justifyContent: 'center',
-        backgroundColor: 'red',
+        backgroundColor: '#fb0202ad',
     },
     lastItem: {
         flex: 6,
