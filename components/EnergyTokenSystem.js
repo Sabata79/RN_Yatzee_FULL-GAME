@@ -4,7 +4,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { ProgressBar } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import styles from '../styles/energyTokenStyles';
-import { MAX_TOKENS, VIDEO_TOKEN_LIMIT, MILLISECONDS_IN_A_DAY } from '../constants/Game';
+import { MAX_TOKENS, VIDEO_TOKEN_LIMIT } from '../constants/Game';
 import Toast from 'react-native-toast-message';
 import { useGame } from '../components/GameContext';
 
@@ -14,33 +14,22 @@ const EnergyTokenSystem = () => {
   const [nextTokenTime, setNextTokenTime] = useState(null);
   const [timeToNextToken, setTimeToNextToken] = useState('');
 
-  // Debug-lokit
-  // useEffect(() => {
-  //   console.log('nextTokenTime:', nextTokenTime);
-  //   console.log('timeToNextToken:', timeToNextToken);
-  // }, [nextTokenTime, timeToNextToken]);
-
-  // Ladataan tallennetut tiedot
   useEffect(() => {
     const loadSavedData = async () => {
       try {
-        // Haetaan tallennetut videoTokenit
         const savedVideoTokens = parseInt(await AsyncStorage.getItem('videoTokens')) || 0;
         setVideoTokens(savedVideoTokens);
 
-        // Tallennetaan muut tiedot kuten normaalisti
         const savedTokens = parseInt(await AsyncStorage.getItem('tokens')) || 10;  // Oletusarvo 10
         setTokens(savedTokens);
 
-        // Tarkistetaan, milloin edellinen nollaus tehtiin
         const lastReset = await AsyncStorage.getItem('lastVideoTokenReset');
         const now = new Date();
         const resetTime = new Date(lastReset);
 
-        // Jos edellisestä nollauksesta on kulunut yli 24h, nollataan videoTokenit
         if (lastReset && now - resetTime >= 24 * 60 * 60 * 1000) {
           await AsyncStorage.setItem('lastVideoTokenReset', now.toISOString());
-          setVideoTokens(0); // Nollaa videoTokenit
+          setVideoTokens(0);
         }
       } catch (e) {
         console.error('Failed to load saved data:', e);
@@ -50,7 +39,6 @@ const EnergyTokenSystem = () => {
     loadSavedData();
   }, [setTokens, setVideoTokens]);
 
-  // Tallennetaan tiedot
   useEffect(() => {
     const saveData = async () => {
       try {
@@ -67,7 +55,6 @@ const EnergyTokenSystem = () => {
     saveData();
   }, [tokens, nextTokenTime, videoTokens]);
 
-  // Asetetaan regenerointiaika, jos tokeneita <= 4
   useEffect(() => {
     if (tokens <= 4 && !nextTokenTime) {
       const now = new Date();
@@ -77,7 +64,6 @@ const EnergyTokenSystem = () => {
     }
   }, [tokens, nextTokenTime]);
 
-  // Päivitetään jäljellä oleva aika
   useEffect(() => {
     const updateRemainingTime = () => {
       if (tokens <= 4 && nextTokenTime instanceof Date && !isNaN(nextTokenTime.getTime())) {
@@ -91,8 +77,8 @@ const EnergyTokenSystem = () => {
           setTimeToNextToken(`${hours} h ${minutes} min ${seconds} sec`);
         } else {
           setTimeToNextToken('Token ready!');
-          setNextTokenTime(null); // Nollaa regenerointiaika
-          setTokens((prev) => Math.min(prev + 1, MAX_TOKENS)); // Lisää yksi token
+          setNextTokenTime(null); 
+          setTokens((prev) => Math.min(prev + 1, MAX_TOKENS));
         }
       } else {
         setTimeToNextToken('Calculating...');
