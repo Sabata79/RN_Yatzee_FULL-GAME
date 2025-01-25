@@ -9,7 +9,7 @@ import Toast from 'react-native-toast-message';
 import { useGame } from '../components/GameContext';
 
 const EnergyTokenSystem = () => {
-  
+
   const { tokens, setTokens, videoTokens, setVideoTokens, energyModalVisible, setEnergyModalVisible } = useGame();
   const [nextTokenTime, setNextTokenTime] = useState(null);
   const [timeToNextToken, setTimeToNextToken] = useState('');
@@ -58,7 +58,7 @@ const EnergyTokenSystem = () => {
   useEffect(() => {
     if (tokens <= 4 && !nextTokenTime) {
       const now = new Date();
-      const nextTime = new Date(now.getTime() + 2.4 * 60 * 60 * 1000); 
+      const nextTime = new Date(now.getTime() + 2.4 * 60 * 60 * 1000);
       setNextTokenTime(nextTime);
       console.log('Regenerointiaika asetettu:', nextTime);
     }
@@ -77,7 +77,7 @@ const EnergyTokenSystem = () => {
           setTimeToNextToken(`${hours} h ${minutes} min ${seconds} sec`);
         } else {
           setTimeToNextToken('Token ready!');
-          setNextTokenTime(null); 
+          setNextTokenTime(null);
           setTokens((prev) => Math.min(prev + 1, MAX_TOKENS));
         }
       } else {
@@ -113,7 +113,7 @@ const EnergyTokenSystem = () => {
 
   const progress = tokens ? tokens / MAX_TOKENS : 0;
 
-return (
+  return (
     <View style={styles.energyContainer}>
       <Toast />
       <MaterialCommunityIcons name="flash" size={40} color="gold" style={styles.energyIcon} />
