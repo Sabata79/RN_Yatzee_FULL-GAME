@@ -2,7 +2,7 @@ import { StyleSheet } from 'react-native';
 import { Dimensions } from 'react-native';
 
 const { width,height } = Dimensions.get("window");
-const isSmallScreen = height < 720;
+const isSmallScreen = height < 650; 
 
 const styles = StyleSheet.create({
   container: {

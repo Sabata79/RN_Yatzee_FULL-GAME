@@ -4,7 +4,7 @@ import { StyleSheet, Dimensions } from 'react-native';
 import Constants from 'expo-constants';
 
 const { height, width } = Dimensions.get('window');
-const isSmallScreen = height < 720; // Tarkista pieni näyttö
+const isSmallScreen = height < 650;  
 
 const headerStyles = StyleSheet.create({
   header: {

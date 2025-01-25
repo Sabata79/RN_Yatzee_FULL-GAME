@@ -1,8 +1,7 @@
 import { Dimensions, StyleSheet } from 'react-native';
 
 const { width, height } = Dimensions.get('window');
-const isSmallScreen = height < 720;
-const isFoldScreen = width < 1300; 
+const isSmallScreen = height < 650; 
 
 export default styles = StyleSheet.create({
 

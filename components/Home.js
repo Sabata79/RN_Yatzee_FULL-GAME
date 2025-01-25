@@ -8,7 +8,6 @@ import { ref, set, get } from 'firebase/database';
 import uuid from 'react-native-uuid';
 import { useNavigation } from '@react-navigation/native';
 import { useGame } from '../components/GameContext';
-import { navigationImages } from '../constants/NavigationImagePaths';
 
 export default function Home({ setPlayerId }) {
   const [localName, setLocalName] = useState('');

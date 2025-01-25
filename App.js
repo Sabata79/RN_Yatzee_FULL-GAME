@@ -1,11 +1,11 @@
 import * as Updates from 'expo-updates';
 import React, { useState, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { SafeAreaView, Modal, View, Text, Pressable, Dimensions } from 'react-native';
+import { SafeAreaView, Modal, View, Text, Pressable, Dimensions, Easing } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
+import { createBottomTabNavigator,TransitionSpecs, SceneStyleInterpolators } from '@react-navigation/bottom-tabs';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
 import { GameProvider } from './components/GameContext';
@@ -31,7 +31,7 @@ export default function App() {
   const [updateModalVisible, setUpdateModalVisible] = useState(false);
 
   const Stack = createStackNavigator();
-  const Tab = createMaterialTopTabNavigator();
+  const Tab = createBottomTabNavigator();  // Vaihdetaan material-top-tabs -> bottom-tabs
 
   useEffect(() => {
     if (!__DEV__) {
@@ -65,90 +65,85 @@ export default function App() {
   }
 
   // Tab navigator for the main application screens
-  const TabNavigator = () => (
-    <Tab.Navigator
-      tabBarPosition="bottom"
-      screenOptions={({ route }) => ({
-        headerShown: false,
-        tabBarStyle: {
-          height: isSmallScreen ? 55 : 85, 
-          backgroundColor: 'black',
+const TabNavigator = () => (
+  <Tab.Navigator
+    tabBarPosition="bottom"
+    screenOptions={({ route }) => ({
+      headerShown: false,
+      tabBarStyle: {
+        height: isSmallScreen ? 55 : 70,
+        paddingTop: isSmallScreen ? 0 : 5,
+        backgroundColor: 'black',
+        borderTopWidth: 0,
+      },
+      tabBarActiveTintColor: '#ffffff',
+      tabBarInactiveTintColor: 'gray',
+      tabBarLabelStyle: {
+        height: isSmallScreen ? 30 : 50,
+        width: isSmallScreen ? 30 : 50,
+        fontSize: isSmallScreen ? 9 : 12,
+        letterSpacing: -0.1,
+        fontFamily: 'AntonRegular',
+      },
+      tabBarIcon: ({ focused }) => {
+        const iconStyle = {
+          size: isSmallScreen ? 22 : 28,
+          color: focused ? '#eae6e6' : 'gray',
+        };
+
+        if (route.name === 'Home') {
+          return <FontAwesome5 name="home" {...iconStyle} />;
+        } else if (route.name === 'Gameboard') {
+          return <FontAwesome5 name="dice" {...iconStyle} />;
+        } else if (route.name === 'Scoreboard') {
+          return <FontAwesome5 name="trophy" {...iconStyle} />;
+        } else if (route.name === 'Rules') {
+          return <FontAwesome5 name="book" {...iconStyle} />;
+        } else if (route.name === 'About Me') {
+          return <FontAwesome5 name="user" {...iconStyle} />;
+        }
+      },
+      // Animaatioasetukset
+      transitionSpec: {
+        animation: 'timing',  // Animaation tyyppi
+        config: {
+          duration: 800,  // Animaation kesto
+          easing: Easing.inOut(Easing.ease),
         },
-        tabBarIndicatorStyle: {
-          display: 'none',
-        },
-        tabBarActiveTintColor: '#ffffff',
-        tabBarInactiveTintColor: 'gray',
-        tabBarLabelStyle: {
-          height: isSmallScreen ? 25 : 30,
-          width: isSmallScreen ? 25 : 30,
-          fontSize: isSmallScreen ? 9 : 12, 
-          fontFamily: 'AntonRegular',
-        },
+      },
+      sceneStyleInterpolator: SceneStyleInterpolators.forFade,
+    })}
+  >
+    {/* Home Tab */}
+    <Tab.Screen
+      name="Home"
+      options={{
+        tabBarLabel: 'Home',
         tabBarIcon: ({ focused }) => {
           const iconStyle = {
-            size: isSmallScreen ? 22 : 32, 
+            size: isSmallScreen ? 22 : 30,
             color: focused ? '#eae6e6' : 'gray',
           };
-
-          if (route.name === 'Home') {
-            return (
-              <View style={{ marginLeft: -5 }}>
-                <FontAwesome5 name="home" {...iconStyle} />
-              </View>
-            );
-          } else if (route.name === 'Gameboard') {
-            return (
-              <View style={{ marginLeft: -5 }}>
-                <FontAwesome5 name="dice" {...iconStyle} />
-              </View>
-            );
-          } else if (route.name === 'Scoreboard') {
-            return (
-              <View style={{ marginLeft: -5 }}>
-                <FontAwesome5 name="trophy" {...iconStyle} />
-              </View>
-            );
-          } else if (route.name === 'Rules') {
-            return (
-              <View style={{ marginLeft: 3 }}>
-                <FontAwesome5 name="book" {...iconStyle} />
-              </View>
-            );
-          } else if (route.name === 'About Me') {
-            return (
-              <View style={{ marginLeft: 4 }}>
-                <FontAwesome5 name="user" {...iconStyle} />
-              </View>
-            );
-          }
+          return <FontAwesome5 name="home" {...iconStyle} />;
         },
-      })}
+        tabBarStyle: { display: 'none' },  // Piilotetaan tab-bar Home-sivulla
+      }}
     >
-      <Tab.Screen
-        name="Home"
-        options={{
-          tabBarStyle: { display: 'none' },
-          tabBarButton: () => null,
-          swipeEnabled: false,
-        }}
-      >
-        {() => (
-          <Home
-            setIsUserRecognized={setIsUserRecognized}
-            setName={setName}
-            setPlayerId={setPlayerId}
-          />
-        )}
-      </Tab.Screen>
-      <Tab.Screen name="Gameboard" options={{ tabBarLabel: 'Game' }} component={Gameboard} />
-      <Tab.Screen name="Scoreboard" options={{ tabBarLabel: 'Scores' }} component={Scoreboard} />
-      <Tab.Screen name="Rules" options={{ tabBarLabel: 'Help' }} component={Rules} />
-      <Tab.Screen name="About Me" options={{ tabBarLabel: 'About' }} component={About} />
-    </Tab.Navigator>
-  );
-
-
+      {() => (
+        <Home
+          setIsUserRecognized={setIsUserRecognized}
+          setName={setName}
+          setPlayerId={setPlayerId}
+        />
+      )}
+    </Tab.Screen>
+    {/* Muut Tab Screen -komponentit */}
+    <Tab.Screen name="Gameboard" options={{ tabBarLabel: 'Game' }} component={Gameboard} />
+    <Tab.Screen name="Scoreboard" options={{ tabBarLabel: 'Scores' }} component={Scoreboard} />
+    <Tab.Screen name="Rules" options={{ tabBarLabel: 'Help' }} component={Rules} />
+    <Tab.Screen name="About Me" options={{ tabBarLabel: 'About' }} component={About} />
+  </Tab.Navigator>
+);
 
   return (
     <SafeAreaProvider>
@@ -187,7 +182,8 @@ export default function App() {
                 name="MainApp"
                 component={TabNavigator}
                 options={{
-                  headerShown: true, // Näytetään navigaation header
+                  headerShown: true,
+                  swipeEnabled: false,
                   header: () => (
                     <Header
                       isUserRecognized={isUserRecognized}
