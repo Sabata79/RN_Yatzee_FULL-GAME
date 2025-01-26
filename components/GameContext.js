@@ -64,10 +64,10 @@ export const GameProvider = ({ children }) => {
       const videoTokenRef = ref(database, `players/${playerId}/videoTokens`);
       const snapshot = await get(videoTokenRef);
       const fetchedVideoTokens = snapshot.exists() ? snapshot.val() : 0;
-      setVideoTokens(fetchedVideoTokens); // Asetetaan ladatut video tokenit
+      setVideoTokens(fetchedVideoTokens); 
     } catch (error) {
       console.error('Error fetching video tokens from Firebase:', error);
-      setVideoTokens(0); // Jos virhe, asetetaan oletusarvo
+      setVideoTokens(0); 
     }
   };
 
@@ -76,7 +76,7 @@ export const GameProvider = ({ children }) => {
     if (playerId && tokens !== null) {
       try {
         const tokenRef = ref(database, `players/${playerId}/tokens`);
-        await set(tokenRef, tokens); // Päivitetään Firebaseen
+        await set(tokenRef, tokens); 
         console.log(`Tokens päivitetty Firebaseen: ${tokens}`);
       } catch (error) {
         console.error('Virhe Firebase-tokens-päivityksessä:', error);

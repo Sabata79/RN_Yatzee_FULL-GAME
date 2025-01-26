@@ -96,6 +96,8 @@ const EnergyTokenSystem = () => {
       text2: 'Please wait while we process your reward.',
       visibilityTime: 2000,
       position: 'top',
+      topOffset: 0,
+      zIndex: 1000,
       onHide: () => {
         setTokens((prev) => Math.min(prev + 1, MAX_TOKENS));
         setVideoTokens((prev) => prev + 1);
@@ -105,7 +107,8 @@ const EnergyTokenSystem = () => {
           text2: 'Thank you! You earned 1 extra token.',
           visibilityTime: 3000,
           position: 'top',
-          topOffset: 50,
+          topOffset: 0,
+          zIndex: 1000,
         });
       },
     });
@@ -144,7 +147,7 @@ const EnergyTokenSystem = () => {
                   style={[styles.energyModalButton, styles.energyModalCloseButton]}
                   onPress={() => setEnergyModalVisible(false)}
                 >
-                  <Text style={styles.energyModalButtonText}>Close</Text>
+                  <Text style={styles.energyModalCloseButtonText}>×</Text>
                 </Pressable>
               </>
             ) : (

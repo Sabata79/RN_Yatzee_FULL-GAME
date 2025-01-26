@@ -3,7 +3,8 @@ import { Animated, Pressable,Dimensions } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 const { width, height } = Dimensions.get('window');
-const isSmallScreen = height < 720; 
+console.log(height);
+const isSmallScreen = height < 600; 
 
 export default function DiceAnimation({ diceName, isSelected, onSelect, animationValue, color, isRolling, fadeOpacity }) {
 

@@ -31,7 +31,7 @@ export default function App() {
   const [updateModalVisible, setUpdateModalVisible] = useState(false);
 
   const Stack = createStackNavigator();
-  const Tab = createBottomTabNavigator();  // Vaihdetaan material-top-tabs -> bottom-tabs
+  const Tab = createBottomTabNavigator();
 
   useEffect(() => {
     if (!__DEV__) {
@@ -75,6 +75,7 @@ const TabNavigator = () => (
         paddingTop: isSmallScreen ? 0 : 5,
         backgroundColor: 'black',
         borderTopWidth: 0,
+        borderTopColor: 'black'
       },
       tabBarActiveTintColor: '#ffffff',
       tabBarInactiveTintColor: 'gray',

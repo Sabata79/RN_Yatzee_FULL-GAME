@@ -144,7 +144,7 @@ export default function Home({ setPlayerId }) {
               onPressOut={handlePlay}
             >
               <Text style={styles.buttonText}>PLAY</Text>
-              <FontAwesome5 name="play" size={60} color="black" style={{ marginRight: 0 }} />
+              <FontAwesome5 name="play" size={45} color="black" style={{ marginRight: 0 }} />
             </Pressable>
             <Pressable
               style={({ pressed }) => [
@@ -154,7 +154,7 @@ export default function Home({ setPlayerId }) {
               onPressOut={handleChangeName}
             >
               <Text style={styles.buttonText}>Change name</Text>
-              <FontAwesome5 name="user-edit" size={60} color="black" />
+              <FontAwesome5 name="user-edit" size={40} color="black" />
             </Pressable>
           </View>
         )}
