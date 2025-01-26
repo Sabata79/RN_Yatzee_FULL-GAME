@@ -37,6 +37,7 @@ yarn-error.*
 
 # Ignore all .json files
 *.json
+eas.json
 
 # Ignore babel.config.js
 babel.config.js
