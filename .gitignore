@@ -43,9 +43,14 @@ eas.json
 babel.config.js
 eas.config.js
 
+
 # extras
 profile.jpg
 
 # Ingnore assets folder and its content
 assets/
 tools/
+
+## Ignore case sensitive components
+EnergyTokenSystem.js
+GameContext.js
