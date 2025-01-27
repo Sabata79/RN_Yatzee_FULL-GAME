@@ -17,14 +17,14 @@ export default function Home({ setPlayerId }) {
   const navigation = useNavigation();
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  const { setPlayerIdContext, setPlayerNameContext, userRecognized, setUserRecognized, playerName, playerId,setPlayerName } = useGame();
+  const { setPlayerIdContext, setPlayerNameContext, userRecognized, setUserRecognized, playerName, playerId, setPlayerName } = useGame();
 
   useEffect(() => {
     if (localName && playerId) {
       console.log("Updating context with playerId:", playerId);
       setPlayerIdContext(playerId);
       setPlayerNameContext(localName);
-      setLocalPlayerId(playerId); 
+      setLocalPlayerId(playerId);
     }
   }, [localName, playerId]);
 
@@ -72,33 +72,40 @@ export default function Home({ setPlayerId }) {
     console.log("Saving player data:", { name, userId });
   };
 
-  const handlePress = async () => {
-    if (localName.trim() === '') {
-      Alert.alert('Name is required', 'Please enter your name.');
-    } else if (localName.length < 3 || localName.length > 10) {
-      Alert.alert('Name is too short', 'Please enter a nickname with at least 3 characters and maximum 10 characters.');
-    } else {
-      const nameExists = await checkIfNameExists(localName);
-      if (nameExists) {
-        Alert.alert('Name already in use', 'That nickname is already in use. Please choose another.');
-      } else {
-        setUserRecognized(true);
+  const sanitizeInput = (input) => {
+    const sanitized = input.replace(/[^a-zA-Z0-9 ]/g, '');
+    return sanitized.trim();
+  };
 
-        if (!playerId) {
-          const newPlayerId = uuid.v4();
-          setLocalPlayerId(newPlayerId);
-          setPlayerId(newPlayerId);
-          setPlayerIdContext(newPlayerId);
-          setPlayerNameContext(localName);
-          saveNewPlayer(localName, newPlayerId);
-        } else {
-          setPlayerIdContext(playerId);
-          setPlayerNameContext(localName);
-          saveNewPlayer(localName, playerId);
-        }
+const handlePress = async () => {
+  const cleanedName = sanitizeInput(localName);
+
+  if (cleanedName === '') {
+    Alert.alert('Name is required', 'Please enter your name.');
+  } else if (cleanedName.length < 3 || cleanedName.length > 10) {
+    Alert.alert('Invalid Name Length', 'Please enter a nickname with 3-10 characters.');
+  } else {
+    const nameExists = await checkIfNameExists(cleanedName);
+    if (nameExists) {
+      Alert.alert('Name already in use', 'That nickname is already in use. Please choose another.');
+    } else {
+      setUserRecognized(true);
+
+      if (!playerId) {
+        const newPlayerId = uuid.v4();
+        setLocalPlayerId(newPlayerId);
+        setPlayerId(newPlayerId);
+        setPlayerIdContext(newPlayerId);
+        setPlayerNameContext(cleanedName);
+        saveNewPlayer(cleanedName, newPlayerId);
+      } else {
+        setPlayerIdContext(playerId);
+        setPlayerNameContext(cleanedName);
+        saveNewPlayer(cleanedName, playerId);
       }
     }
-  };
+  }
+};
 
   const handlePlay = () => {
     navigation.navigate('Gameboard');
@@ -123,7 +130,7 @@ export default function Home({ setPlayerId }) {
               placeholder="Enter your nickname"
               placeholderTextColor={"white"}
               value={localName}
-              onChangeText={setLocalName}
+              onChangeText={(text) => setLocalName(sanitizeInput(text))}
             />
             <Pressable
               style={({ pressed }) => [styles.homeButton, pressed && styles.homeButtonPressed]}
@@ -138,8 +145,8 @@ export default function Home({ setPlayerId }) {
             <Image source={require("../assets/hiThere.png")} style={styles.hiThereImage} />
             <Pressable
               style={({ pressed }) => [
-              styles.button, pressed && styles.buttonPressed,
-              styles.fullWidthButton,
+                styles.button, pressed && styles.buttonPressed,
+                styles.fullWidthButton,
               ]}
               onPressOut={handlePlay}
             >
@@ -148,8 +155,8 @@ export default function Home({ setPlayerId }) {
             </Pressable>
             <Pressable
               style={({ pressed }) => [
-              styles.button, pressed && styles.buttonPressed,
-              styles.fullWidthButton,
+                styles.button, pressed && styles.buttonPressed,
+                styles.fullWidthButton,
               ]}
               onPressOut={handleChangeName}
             >
