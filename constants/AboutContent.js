@@ -2,11 +2,11 @@ export const aboutTitle = 'About';
 export const aboutTextContent = `
 Welcome to this React Native Yatzy Game!
 
-This project started as part of a coursework assignment, where we explored React Native with Expo. The concept began with a simple dice-rolling feature, where users could select dice by tapping on them.
+This project started as a simple coursework assignment, using React Native and Expo as the foundation. What began with a basic dice-rolling feature—where users could tap to select dice—has since evolved into a fully functional and polished Yatzy game.
 
-Over time, the project evolved into a fully functional Yatzy game. It has been developed at a steady pace, with a focus on learning and creating an enjoyable experience for players.
+Over time, the game has grown beyond its initial scope, incorporating native functionality to enhance features, improve performance, and deliver a smoother player experience. Development has been a steady journey of learning, exploration, and refining to create something both fun and engaging.
 
-Enjoy the game and feel free to share any thoughts or suggestions you might have!
+Enjoy rolling the dice, and feel free to share your thoughts or suggestions.
 `;
 
 export const aboutFeatures = `
@@ -20,11 +20,15 @@ export const aboutFeatures = `
 
 - Firebase Integration: All scores are stored and managed using Firebase, ensuring you can track your progress and high scores.
 
-- Score Tracking: Keep track of your high scores and personal records.
+- Score Tracking: Monitor your progress and compare stats with others using the personalized player card feature.
+
+- Dynamic Scoreboard: Stay competitive with our interactive leaderboard, featuring All-Time, Monthly, and Weekly top players.
+
+- Custom Avatars: Choose from 18 unique avatars to personalize your profile and stand out in the game.
 
 - User Recognition: Recognizes the player’s device, providing a personalized experience each time you play.
 `;
 
 export const aboutContact = `
 Contact:
-For feedback or suggestions, feel free to reach out via email:`;
+`;
