@@ -24,34 +24,45 @@ const EnergyTokenSystem = () => {
   const [timeToNextToken, setTimeToNextToken] = useState('');
   const [adLoaded, setAdLoaded] = useState(false);
 
-  useEffect(() => {
-    const loadAd = () => {
+useEffect(() => {
+  const loadAd = () => {
+    rewarded.load();
+  };
+
+  const unsubscribeLoaded = rewarded.addAdEventListener(
+    RewardedAdEventType.LOADED,
+    () => {
+      setAdLoaded(true);
+    }
+  );
+
+  const unsubscribeEarned = rewarded.addAdEventListener(
+    RewardedAdEventType.EARNED_REWARD,
+    reward => {
+      console.log('User earned reward: ', reward);
+      setTokens((prev) => Math.min(prev + 1, MAX_TOKENS));
+      setVideoTokens((prev) => prev + 1);
+    }
+  );
+
+  // Kun käyttäjä sulkee mainoksen, lataa uusi mainos.
+  const unsubscribeClosed = rewarded.addAdEventListener(
+    RewardedAdEventType.CLOSED,
+    () => {
+      console.log('Ad closed, loading a new one...');
+      setAdLoaded(false);
       rewarded.load();
-    };
+    }
+  );
 
-    const unsubscribeLoaded = rewarded.addAdEventListener(
-      RewardedAdEventType.LOADED,
-      () => {
-        setAdLoaded(true);
-      }
-    );
+  loadAd(); // Lataa mainos heti alussa
 
-    const unsubscribeEarned = rewarded.addAdEventListener(
-      RewardedAdEventType.EARNED_REWARD,
-      reward => {
-        console.log('User earned reward: ', reward);
-        setTokens((prev) => Math.min(prev + 1, MAX_TOKENS));
-        setVideoTokens((prev) => prev + 1);
-      }
-    );
-
-    loadAd();
-
-    return () => {
-      unsubscribeLoaded();
-      unsubscribeEarned();
-    };
-  }, [setTokens, setVideoTokens]);
+  return () => {
+    unsubscribeLoaded();
+    unsubscribeEarned();
+    unsubscribeClosed();
+  };
+}, [setTokens, setVideoTokens]);
 
   useEffect(() => {
     const loadSavedData = async () => {
