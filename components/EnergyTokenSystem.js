@@ -23,46 +23,42 @@ const EnergyTokenSystem = () => {
   const [nextTokenTime, setNextTokenTime] = useState(null);
   const [timeToNextToken, setTimeToNextToken] = useState('');
   const [adLoaded, setAdLoaded] = useState(false);
+  const [rewarded, setRewarded] = useState(null);
 
-useEffect(() => {
-  const loadAd = () => {
-    rewarded.load();
-  };
+  const loadNewAd = () => {
+    
+    const newAd = RewardedAd.createForAdRequest(adUnitId, {
+      keywords: ['gaming', 'rewards'],
+    });
 
-  const unsubscribeLoaded = rewarded.addAdEventListener(
-    RewardedAdEventType.LOADED,
-    () => {
+    newAd.addAdEventListener(RewardedAdEventType.LOADED, () => {
       setAdLoaded(true);
-    }
-  );
+    });
 
-  const unsubscribeEarned = rewarded.addAdEventListener(
-    RewardedAdEventType.EARNED_REWARD,
-    reward => {
-      console.log('User earned reward: ', reward);
+    newAd.addAdEventListener(RewardedAdEventType.EARNED_REWARD, (reward) => {
+      console.log('🏆 User gets reward:', reward);
       setTokens((prev) => Math.min(prev + 1, MAX_TOKENS));
       setVideoTokens((prev) => prev + 1);
-    }
-  );
-
-  // Kun käyttäjä sulkee mainoksen, lataa uusi mainos.
-  const unsubscribeClosed = rewarded.addAdEventListener(
-    RewardedAdEventType.CLOSED,
-    () => {
-      console.log('Ad closed, loading a new one...');
       setAdLoaded(false);
-      rewarded.load();
-    }
-  );
+      loadNewAd();
+    });
 
-  loadAd(); // Lataa mainos heti alussa
-
-  return () => {
-    unsubscribeLoaded();
-    unsubscribeEarned();
-    unsubscribeClosed();
+    setRewarded(newAd);
+    newAd.load();
   };
-}, [setTokens, setVideoTokens]);
+
+  useEffect(() => {
+    loadNewAd(); 
+  }, []);
+
+  const handleWatchVideo = () => {
+    if (adLoaded && rewarded) {
+      console.log("▶ Showing Ad...");
+      rewarded.show();
+    } else {
+      console.log("⚠ Ad is not ready yet.");
+    }
+  };
 
   useEffect(() => {
     const loadSavedData = async () => {
@@ -137,14 +133,6 @@ useEffect(() => {
     const interval = setInterval(updateRemainingTime, 1000);
     return () => clearInterval(interval);
   }, [tokens, nextTokenTime]);
-
-  const handleWatchVideo = async () => {
-    if (adLoaded) {
-      rewarded.show();
-    } else {
-      console.log('Ad not ready yet.');
-    }
-  };
 
   const progress = tokens ? tokens / MAX_TOKENS : 0;
 
