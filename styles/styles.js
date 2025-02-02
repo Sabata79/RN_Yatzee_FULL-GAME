@@ -470,6 +470,7 @@ export default styles = StyleSheet.create({
     },
     flex: {
         flexDirection: 'row',
+        justifyContent: 'center',
     },
     author: {
         fontWeight: 'bold',

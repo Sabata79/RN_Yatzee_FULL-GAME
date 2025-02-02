@@ -9,13 +9,14 @@ import { useGame } from '../components/GameContext';
 import RenderFirstRow from '../components/RenderFirstRow';
 import GlowingText from './AnimatedText';
 import GameSave from '../components/GameSave';
+import { dicefaces } from '../constants/DicePaths';
 
 const { width, height } = Dimensions.get('window');
 const isSmallScreen = height < 720;
 
-let board = [];
-
 export default function Gameboard({ route, navigation }) {
+
+    const [board, setBoard] = useState(Array(NBR_OF_DICES).fill(1));
 
     // 1. Player name and ID
     const [playerName, setPlayerName] = useState('');
@@ -23,7 +24,7 @@ export default function Gameboard({ route, navigation }) {
     const [modalVisible, setModalVisible] = useState(false);
     const [modalMessage, setModalMessage] = useState('');
 
-    const { gameStarted, gameEnded, startGame, endGame, totalPoints, setTotalPoints,tokens,setTokens,setEnergyModalVisible } = useGame();
+    const { gameStarted, gameEnded, startGame, endGame, totalPoints, setTotalPoints, tokens, setTokens, setEnergyModalVisible } = useGame();
     const [elapsedTime, setElapsedTime] = useState(0);
     const { savePlayerPoints } = GameSave({ playerId, totalPoints, elapsedTime, navigation });
 
@@ -307,29 +308,29 @@ export default function Gameboard({ route, navigation }) {
         }, 0);
     }
 
-function checkAndUnlockYatzy(rolledDices) {
-    const yatzyScore = calculateYatzy(rolledDices);
+    function checkAndUnlockYatzy(rolledDices) {
+        const yatzyScore = calculateYatzy(rolledDices);
 
-    setScoringCategories(prevCategories =>
-        prevCategories.map(category => {
-            if (category.name === 'yatzy') {
-                // Do not lock the field if it has never been scored
-                if (category.locked && category.points === 0 && !category.yatzyAchieved) {
-                    console.log('Yatzy field is locked with 0 points initially, keeping it locked.');
-                    return category;
+        setScoringCategories(prevCategories =>
+            prevCategories.map(category => {
+                if (category.name === 'yatzy') {
+                    // Do not lock the field if it has never been scored
+                    if (category.locked && category.points === 0 && !category.yatzyAchieved) {
+                        console.log('Yatzy field is locked with 0 points initially, keeping it locked.');
+                        return category;
+                    }
+                    if (yatzyScore === 50) {
+                        console.log('Yatzy achieved, unlocking the field temporarily.');
+                        return { ...category, locked: false, yatzyAchieved: true };
+                    } else if (category.yatzyAchieved) {
+                        console.log('Yatzy not achieved, locking the field after first Yatzy.');
+                        return { ...category, locked: true };
+                    }
                 }
-                if (yatzyScore === 50) {
-                    console.log('Yatzy achieved, unlocking the field temporarily.');
-                    return { ...category, locked: false, yatzyAchieved: true }; 
-                } else if (category.yatzyAchieved) {
-                    console.log('Yatzy not achieved, locking the field after first Yatzy.');
-                    return { ...category, locked: true };
-                }
-            }
-            return category;
-        })
-    );
-}
+                return category;
+            })
+        );
+    }
 
     // Fullhouse
     function calculateFullHouse(rolledDices) {
@@ -687,53 +688,35 @@ function checkAndUnlockYatzy(rolledDices) {
         }
     };
 
-    const renderDices = () => {
-        const [isRolling, setIsRolling] = useState(false);
+    const [diceAnimations] = useState(() =>
+        Array.from({ length: NBR_OF_DICES }, () => new Animated.Value(0))
+    );
 
+    const [isRolling, setIsRolling] = useState(false);
+
+    const renderDices = () => {
+        
         const throwDices = () => {
             if (nbrOfThrowsLeft > 0) {
                 setIsRolling(true);
-                animateDices();
                 setTimeout(() => {
+                    const newBoard = [...board];
                     for (let i = 0; i < NBR_OF_DICES; i++) {
                         if (!selectedDices[i]) {
                             let randomNumber = Math.floor(Math.random() * 6) + 1;
-                            board[i] = 'dice-' + randomNumber;
+                            newBoard[i] = randomNumber;
                             rolledDices[i] = randomNumber;
                         }
                     }
+                    setBoard(newBoard);
                     setNbrOfThrowsLeft(nbrOfThrowsLeft - 1);
                     setIsRolling(false);
                     checkAndUnlockYatzy(rolledDices);
-                }, 500);
+                }, 1000);
             } else {
                 setStatus('No throws left');
                 setNbrOfThrowsLeft(NBR_OF_THROWS);
             }
-        };
-
-        const [diceAnimations] = useState(() =>
-            Array.from({ length: NBR_OF_DICES }, () => new Animated.Value(0))
-        );
-
-        const animateDices = () => {
-            Animated.parallel(
-                diceAnimations.map((anim, index) =>
-                    !selectedDices[index]
-                        ? Animated.timing(anim, {
-                            toValue: 1,
-                            duration: 500,
-                            useNativeDriver: true,
-                        })
-                        : Animated.timing(anim, {
-                            toValue: 0,
-                            duration: 0,
-                            useNativeDriver: true,
-                        })
-                )
-            ).start(() => {
-                diceAnimations.forEach(anim => anim.setValue(0));
-            });
         };
 
         const diceRow = [];
@@ -741,7 +724,7 @@ function checkAndUnlockYatzy(rolledDices) {
             diceRow.push(
                 <DiceAnimation
                     key={i}
-                    diceName={board[i]}
+                    diceName={dicefaces[board[i] - 1]?.display}
                     isSelected={selectedDices[i]}
                     onSelect={() => selectDice(i)}
                     animationValue={diceAnimations[i]}
@@ -768,12 +751,12 @@ function checkAndUnlockYatzy(rolledDices) {
                 setStatus('Game has not started');
             }
         };
+
         useEffect(() => {
             if (rounds === 0) {
                 endGame();
             }
         }, [rounds]);
-
 
         return (
             <View style={styles.gameboard}>
@@ -847,16 +830,16 @@ function checkAndUnlockYatzy(rolledDices) {
         );
     };
 
-const handleStartGame = () => {
-    if (tokens > 0) {
-        setLayerVisible(false);
-        setStatus("Throw the dices");
-        setTokens((prev) => prev - 1); // Vähennetään yksi token
-        console.log("Game starting...");
-    } else {
-        setEnergyModalVisible(true);
-    }
-};
+    const handleStartGame = () => {
+        if (tokens > 0) {
+            setLayerVisible(false);
+            setStatus("Throw the dices");
+            setTokens((prev) => prev - 1); // Vähennetään yksi token
+            console.log("Game starting...");
+        } else {
+            setEnergyModalVisible(true);
+        }
+    };
     // Remove ImageBackground
     return (
         <ImageBackground source={require('../assets/diceBackground.jpg')} style={styles.background}>
