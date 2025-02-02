@@ -50,8 +50,8 @@ const DiceAnimation = ({ diceName, isSelected, onSelect, animationValue, color, 
                             style={{
                                 position: 'absolute',
                                 top: 0,
-                                left: -5,
-                                width: scaledSpriteWidth,
+                                left: 0,
+                                width: 45,
                                 height: scaledSpriteHeight,
                                 transform: [{ translateY }],
                             }}
