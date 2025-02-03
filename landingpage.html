@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>SMR Yatzy - Landing Page</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        /* Yleiset tyylit */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+
+        /* Header */
+        header {
+            position: relative;
+            background: #2c3e50;
+            min-height: 150px;
+            color: #fff;
+            padding: 10px 20px;
+            text-align: center;
+        }
+
+        header img {
+            position: absolute;
+            left: 0px;
+            top: 60%;
+            transform: translateY(-50%);
+            width: 200px;
+            height: auto;
+        }
+
+        header h1 {
+            margin: 0;
+            margin-top: 50px;
+            font-size: 2em;
+        }
+
+        /* Container */
+        .container {
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .tagline {
+            font-size: 1.2em;
+            margin-bottom: 20px;
+        }
+
+        .description {
+            font-size: 1em;
+            margin-bottom: 20px;
+            text-align: left;
+            white-space: pre-line;
+        }
+
+        .features {
+            text-align: left;
+            margin-bottom: 20px;
+        }
+
+        .features h3 {
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        .features ul {
+            list-style-type: disc;
+            margin-left: 20px;
+            padding-left: 0;
+        }
+
+        .features li {
+            margin: 10px 0;
+        }
+
+        /* Navigointipainikkeet */
+        .buttons {
+            margin-top: 20px;
+        }
+
+        .buttons a {
+            text-decoration: none;
+            color: #fff;
+            background: #4285F4;
+            padding: 10px 20px;
+            border-radius: 4px;
+            margin: 5px;
+            display: inline-block;
+            transition: background 0.3s;
+        }
+
+        .buttons a:hover {
+            background: #2c6bd6;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 0.9em;
+            color: #777;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <img src="./assets/landingLogo.png" alt="SMR Yatzy Logo">
+        <h1>SMR Yatzy</h1>
+    </header>
+    <div class="container">
+        <h2>Welcome to SMR Yatzy!</h2>
+        <p class="tagline">Experience the classic dice game in a modern digital way.</p>
+        <p class="description">
+            Welcome to this React Native Yatzy Game!
+
+            This project started as a simple coursework assignment, using React Native and Expo as the foundation. What
+            began with a basic dice-rolling feature where users could tap to select dice has since evolved into a fully
+            functional and polished Yatzy game.
+
+            Over time, the game has grown beyond its initial scope, incorporating native functionality to enhance
+            features, improve performance, and deliver a smoother player experience. Development has been a steady
+            journey of learning, exploration, and refining to create something both fun and engaging.
+
+            Enjoy rolling the dice, and feel free to share your thoughts or suggestions.
+        </p>
+        <div class="features">
+            <h3>FEATURES:</h3>
+            <ul>
+                <li><strong>Classic Yatzy Gameplay:</strong> Enjoy the traditional Yatzy game with all the standard
+                    rules and scoring.</li>
+                <li><strong>Cross-Platform Compatibility:</strong> Currently optimized for Android devices. An iOS
+                    version is in development.</li>
+                <li><strong>Intuitive User Interface:</strong> Easy-to-navigate screens for a smooth gaming experience.
+                </li>
+                <li><strong>Firebase Integration:</strong> All scores are stored and managed using Firebase, ensuring
+                    you can track your progress and high scores.</li>
+                <li><strong>Score Tracking:</strong> Monitor your progress and compare stats with others using the
+                    personalized player card feature.</li>
+                <li><strong>Dynamic Scoreboard:</strong> Stay competitive with our interactive leaderboard, featuring
+                    All-Time, Monthly, and Weekly top players.</li>
+                <li><strong>Custom Avatars:</strong> Choose from 18 unique avatars to personalize your profile and stand
+                    out in the game.</li>
+                <li><strong>User Recognition:</strong> Recognizes the player’s device, providing a personalized
+                    experience each time you play.</li>
+            </ul>
+        </div>
+        <div class="buttons">
+
+            <a href="privacy-policy.html" target="_blank">Privacy Policy</a>
+            <a href="terms-of-service.html" target="_blank">Terms of Service</a>
+        </div>
+    </div>
+    <footer>
+        <p>&copy; 2025 SMR Yatzy. All Rights Reserved.</p>
+    </footer>
+</body>
+
+</html>
