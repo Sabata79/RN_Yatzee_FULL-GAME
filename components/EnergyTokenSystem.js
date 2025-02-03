@@ -6,6 +6,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import styles from '../styles/energyTokenStyles';
 import { MAX_TOKENS, VIDEO_TOKEN_LIMIT } from '../constants/Game';
 import { useGame } from '../components/GameContext';
+import { ref, get, set } from 'firebase/database';
+import { database } from '../components/Firebase';
 import {
   RewardedAd,
   RewardedAdEventType,
@@ -14,19 +16,35 @@ import {
 
 const adUnitId = __DEV__ ? TestIds.REWARDED : 'ca-app-pub-3940256099942544/5224354917';
 
-const rewarded = RewardedAd.createForAdRequest(adUnitId, {
-  keywords: ['gaming', 'rewards'],
-});
-
 const EnergyTokenSystem = () => {
-  const { tokens, setTokens, videoTokens, setVideoTokens, energyModalVisible, setEnergyModalVisible } = useGame();
+  const {
+    playerId,
+    tokens,
+    setTokens,
+    videoTokens,
+    setVideoTokens,
+    energyModalVisible,
+    setEnergyModalVisible,
+  } = useGame();
   const [nextTokenTime, setNextTokenTime] = useState(null);
   const [timeToNextToken, setTimeToNextToken] = useState('');
   const [adLoaded, setAdLoaded] = useState(false);
   const [rewarded, setRewarded] = useState(null);
+  const [dataLoaded, setDataLoaded] = useState(false);
+
+  const updateNextTokenTimeInFirebase = async (time) => {
+    if (playerId) {
+      try {
+        const nextTimeRef = ref(database, `players/${playerId}/nextTokenTime`);
+        await set(nextTimeRef, time ? time.toISOString() : null);
+        console.log('Updated nextTokenTime in Firebase:', time);
+      } catch (error) {
+        console.error('Error updating nextTokenTime in Firebase:', error);
+      }
+    }
+  };
 
   const loadNewAd = () => {
-
     const newAd = RewardedAd.createForAdRequest(adUnitId, {
       keywords: ['gaming', 'rewards'],
     });
@@ -53,39 +71,52 @@ const EnergyTokenSystem = () => {
 
   const handleWatchVideo = () => {
     if (adLoaded && rewarded) {
-      console.log("▶ Showing Ad...");
+      console.log('▶ Showing Ad...');
       rewarded.show();
     } else {
-      console.log("⚠ Ad is not ready yet.");
+      console.log('⚠ Ad is not ready yet.');
     }
   };
 
   useEffect(() => {
     const loadSavedData = async () => {
       try {
+
         const savedTokensString = await AsyncStorage.getItem('tokens');
-        let savedTokens;
-        if (savedTokensString === null) {
-          savedTokens = MAX_TOKENS;
-        } else {
-          savedTokens = parseInt(savedTokensString, 10);
-        }
+        let savedTokens = savedTokensString === null ? MAX_TOKENS : parseInt(savedTokensString, 10);
         setTokens(savedTokens);
 
         const savedVideoTokensString = await AsyncStorage.getItem('videoTokens');
-        let savedVideoTokens;
-        if (savedVideoTokensString === null) {
-          savedVideoTokens = 0;
-        } else {
-          savedVideoTokens = parseInt(savedVideoTokensString, 10);
-        }
+        let savedVideoTokens = savedVideoTokensString === null ? 0 : parseInt(savedVideoTokensString, 10);
         setVideoTokens(savedVideoTokens);
 
-        const savedNextTokenTimeString = await AsyncStorage.getItem('nextTokenTime');
-        if (savedNextTokenTimeString) {
-          const savedNextTokenTime = new Date(savedNextTokenTimeString);
-          if (!isNaN(savedNextTokenTime.getTime())) {
-            setNextTokenTime(savedNextTokenTime);
+        if (playerId) {
+          const nextTimeRef = ref(database, `players/${playerId}/nextTokenTime`);
+          const snapshot = await get(nextTimeRef);
+          if (snapshot.exists()) {
+            const firebaseNextTokenTime = new Date(snapshot.val());
+            if (!isNaN(firebaseNextTokenTime.getTime())) {
+              setNextTokenTime(firebaseNextTokenTime);
+              console.log('Loaded nextTokenTime from Firebase:', firebaseNextTokenTime);
+            }
+          } else {
+            const savedNextTokenTimeString = await AsyncStorage.getItem('nextTokenTime');
+            if (savedNextTokenTimeString) {
+              const savedNextTokenTime = new Date(savedNextTokenTimeString);
+              if (!isNaN(savedNextTokenTime.getTime())) {
+                setNextTokenTime(savedNextTokenTime);
+                console.log('Loaded nextTokenTime from AsyncStorage:', savedNextTokenTime);
+              }
+            }
+          }
+        } else {
+          const savedNextTokenTimeString = await AsyncStorage.getItem('nextTokenTime');
+          if (savedNextTokenTimeString) {
+            const savedNextTokenTime = new Date(savedNextTokenTimeString);
+            if (!isNaN(savedNextTokenTime.getTime())) {
+              setNextTokenTime(savedNextTokenTime);
+              console.log('Loaded nextTokenTime from AsyncStorage:', savedNextTokenTime);
+            }
           }
         }
 
@@ -103,11 +134,13 @@ const EnergyTokenSystem = () => {
         }
       } catch (e) {
         console.error('Failed to load saved data:', e);
+      } finally {
+        setDataLoaded(true);
       }
     };
 
     loadSavedData();
-  }, [setTokens, setVideoTokens]);
+  }, [setTokens, setVideoTokens, playerId]);
 
   useEffect(() => {
     const saveData = async () => {
@@ -117,28 +150,41 @@ const EnergyTokenSystem = () => {
           await AsyncStorage.setItem('nextTokenTime', nextTokenTime.toISOString());
         }
         await AsyncStorage.setItem('videoTokens', (videoTokens ?? 0).toString());
+        if (playerId) {
+          await updateNextTokenTimeInFirebase(nextTokenTime);
+        }
       } catch (e) {
         console.error('Failed to save data:', e);
       }
     };
 
     saveData();
-  }, [tokens, nextTokenTime, videoTokens]);
+  }, [tokens, nextTokenTime, videoTokens, playerId]);
 
   useEffect(() => {
-    if (tokens <= 4 && !nextTokenTime) {
-      const now = new Date();
-      const nextTime = new Date(now.getTime() + 2.4 * 60 * 60 * 1000);
-      setNextTokenTime(nextTime);
-    }
-  }, [tokens, nextTokenTime]);
+    if (!dataLoaded) return; 
 
+    if (tokens <= 4) {
+      const now = new Date();
+      if (!nextTokenTime || now >= nextTokenTime) {
+        const nextTime = new Date(now.getTime() + 2.4 * 60 * 60 * 1000);
+        setNextTokenTime(nextTime);
+        console.log('Setting new nextTokenTime:', nextTime);
+        if (playerId) {
+          updateNextTokenTimeInFirebase(nextTime);
+        }
+      } else {
+        console.log('Using saved nextTokenTime:', nextTokenTime);
+      }
+    }
+  }, [tokens, nextTokenTime, playerId, dataLoaded]);
+
+  // Päivitetään jäljellä oleva aika joka sekunti
   useEffect(() => {
     const updateRemainingTime = () => {
       if (tokens <= 4 && nextTokenTime instanceof Date && !isNaN(nextTokenTime.getTime())) {
         const now = new Date();
         const diff = nextTokenTime - now;
-
         if (diff > 0) {
           const hours = Math.floor(diff / 1000 / 60 / 60);
           const minutes = Math.floor((diff / 1000 / 60) % 60);
