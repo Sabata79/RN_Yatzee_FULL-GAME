@@ -97,6 +97,8 @@ const styles = StyleSheet.create({
   },
   energyModalCloseButton: {
     position: 'absolute',
+    width: 30,
+    height: 30,
     right: 15,
     top: -10,
     backgroundColor: 'transparent',
@@ -108,8 +110,10 @@ const styles = StyleSheet.create({
     position: 'absolute',
     color: 'Black',
     fontSize: 30,
+    padding: 5,
     top: 5,
     right: 0,
+    zIndex: 3,
   },
   energyModalButtonText: {
     color: 'white',

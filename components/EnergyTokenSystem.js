@@ -26,7 +26,7 @@ const EnergyTokenSystem = () => {
   const [rewarded, setRewarded] = useState(null);
 
   const loadNewAd = () => {
-    
+
     const newAd = RewardedAd.createForAdRequest(adUnitId, {
       keywords: ['gaming', 'rewards'],
     });
@@ -48,7 +48,7 @@ const EnergyTokenSystem = () => {
   };
 
   useEffect(() => {
-    loadNewAd(); 
+    loadNewAd();
   }, []);
 
   const handleWatchVideo = () => {
@@ -63,19 +63,43 @@ const EnergyTokenSystem = () => {
   useEffect(() => {
     const loadSavedData = async () => {
       try {
-        const savedVideoTokens = parseInt(await AsyncStorage.getItem('videoTokens')) || 0;
+        const savedTokensString = await AsyncStorage.getItem('tokens');
+        let savedTokens;
+        if (savedTokensString === null) {
+          savedTokens = MAX_TOKENS;
+        } else {
+          savedTokens = parseInt(savedTokensString, 10);
+        }
+        setTokens(savedTokens);
+
+        const savedVideoTokensString = await AsyncStorage.getItem('videoTokens');
+        let savedVideoTokens;
+        if (savedVideoTokensString === null) {
+          savedVideoTokens = 0;
+        } else {
+          savedVideoTokens = parseInt(savedVideoTokensString, 10);
+        }
         setVideoTokens(savedVideoTokens);
 
-        const savedTokens = parseInt(await AsyncStorage.getItem('tokens')) || 10;
-        setTokens(savedTokens);
+        const savedNextTokenTimeString = await AsyncStorage.getItem('nextTokenTime');
+        if (savedNextTokenTimeString) {
+          const savedNextTokenTime = new Date(savedNextTokenTimeString);
+          if (!isNaN(savedNextTokenTime.getTime())) {
+            setNextTokenTime(savedNextTokenTime);
+          }
+        }
 
         const lastReset = await AsyncStorage.getItem('lastVideoTokenReset');
         const now = new Date();
-        const resetTime = new Date(lastReset);
-
-        if (lastReset && now - resetTime >= 24 * 60 * 60 * 1000) {
+        if (!lastReset) {
           await AsyncStorage.setItem('lastVideoTokenReset', now.toISOString());
           setVideoTokens(0);
+        } else {
+          const resetTime = new Date(lastReset);
+          if (now - resetTime >= 24 * 60 * 60 * 1000) {
+            await AsyncStorage.setItem('lastVideoTokenReset', now.toISOString());
+            setVideoTokens(0);
+          }
         }
       } catch (e) {
         console.error('Failed to load saved data:', e);
