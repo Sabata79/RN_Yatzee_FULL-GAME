@@ -40,7 +40,7 @@ export default function AboutMe() {
           </Text>
 
           <View style={styles.footer}>
-            <Text style={styles.author}>© 2025 SMR</Text>
+            <Text style={styles.author}>© 2025 SMR Yatzy</Text>
           </View>
         </ScrollView>
       </View>
