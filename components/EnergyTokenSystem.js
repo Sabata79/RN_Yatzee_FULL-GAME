@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, Modal, Pressable, Button } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { ProgressBar } from 'react-native-paper';
@@ -15,6 +15,7 @@ import {
 } from 'react-native-google-mobile-ads';
 
 const adUnitId = __DEV__ ? TestIds.REWARDED : 'ca-app-pub-3940256099942544/5224354917';
+const REGEN_INTERVAL = 2.4 * 60 * 60 * 1000; // 2.4 tuntia ms:inä
 
 const EnergyTokenSystem = () => {
   const {
@@ -31,6 +32,9 @@ const EnergyTokenSystem = () => {
   const [adLoaded, setAdLoaded] = useState(false);
   const [rewarded, setRewarded] = useState(null);
   const [dataLoaded, setDataLoaded] = useState(false);
+
+  // Ref to keep track of previous token count
+  const prevTokensRef = useRef(tokens);
 
   const updateNextTokenTimeInFirebase = async (time) => {
     if (playerId) {
@@ -78,10 +82,10 @@ const EnergyTokenSystem = () => {
     }
   };
 
+  // Ladataan tiedot AsyncStoragesta ja Firebaseä varten
   useEffect(() => {
     const loadSavedData = async () => {
       try {
-
         const savedTokensString = await AsyncStorage.getItem('tokens');
         let savedTokens = savedTokensString === null ? MAX_TOKENS : parseInt(savedTokensString, 10);
         setTokens(savedTokens);
@@ -161,48 +165,63 @@ const EnergyTokenSystem = () => {
     saveData();
   }, [tokens, nextTokenTime, videoTokens, playerId]);
 
+  // Jos tokenit vähenevät manuaalisesti (esim. gameboard vähentää tokenin), 
+  // resetoi regenerointiaika uudelleen.
   useEffect(() => {
-    if (!dataLoaded) return; 
-
-    if (tokens <= 4) {
+    if (!dataLoaded) return;
+    if (tokens < prevTokensRef.current) {
       const now = new Date();
-      if (!nextTokenTime || now >= nextTokenTime) {
-        const nextTime = new Date(now.getTime() + 2.4 * 60 * 60 * 1000);
-        setNextTokenTime(nextTime);
-        console.log('Setting new nextTokenTime:', nextTime);
-        if (playerId) {
-          updateNextTokenTimeInFirebase(nextTime);
-        }
-      } else {
-        console.log('Using saved nextTokenTime:', nextTokenTime);
+      const newNextTime = new Date(now.getTime() + REGEN_INTERVAL);
+      setNextTokenTime(newNextTime);
+      console.log("Tokens decreased, resetting regeneration timer to:", newNextTime);
+      if (playerId) {
+        updateNextTokenTimeInFirebase(newNextTime);
       }
     }
-  }, [tokens, nextTokenTime, playerId, dataLoaded]);
+    prevTokensRef.current = tokens;
+  }, [tokens, dataLoaded, playerId]);
 
-  // Päivitetään jäljellä oleva aika joka sekunti
+  // Päivitetään countdown ja lisätään token kun regenerointiaika on kulunut.
   useEffect(() => {
-    const updateRemainingTime = () => {
-      if (tokens <= 4 && nextTokenTime instanceof Date && !isNaN(nextTokenTime.getTime())) {
+    const interval = setInterval(() => {
+      if (tokens < MAX_TOKENS && nextTokenTime instanceof Date && !isNaN(nextTokenTime.getTime())) {
         const now = new Date();
         const diff = nextTokenTime - now;
         if (diff > 0) {
-          const hours = Math.floor(diff / 1000 / 60 / 60);
-          const minutes = Math.floor((diff / 1000 / 60) % 60);
-          const seconds = Math.floor((diff / 1000) % 60);
+          const hours = Math.floor(diff / (1000 * 60 * 60));
+          const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+          const seconds = Math.floor((diff % (1000 * 60)) / 1000);
           setTimeToNextToken(`${hours} h ${minutes} min ${seconds} sec`);
         } else {
-          setTimeToNextToken('Token ready!');
-          setNextTokenTime(null);
-          setTokens((prev) => Math.min(prev + 1, MAX_TOKENS));
+          // Lasketaan montako regenerointijaksoa on kulunut
+          const diffTime = now - nextTokenTime;
+          const tokensToAdd = Math.floor(diffTime / REGEN_INTERVAL) + 1;
+          setTokens(prevTokens => {
+            const newTokenCount = Math.min(prevTokens + tokensToAdd, MAX_TOKENS);
+            return newTokenCount;
+          });
+          if (tokens + tokensToAdd < MAX_TOKENS) {
+            // Uusi regenerointiaika sen perusteella, että osa ajasta on vielä kulunut
+            const remainder = diffTime % REGEN_INTERVAL;
+            const newNextTime = new Date(now.getTime() + (REGEN_INTERVAL - remainder));
+            setNextTokenTime(newNextTime);
+            if (playerId) {
+              updateNextTokenTimeInFirebase(newNextTime);
+            }
+            console.log("Token(s) added, new nextTokenTime:", newNextTime);
+            setTimeToNextToken("Token ready!");
+          } else {
+            setNextTokenTime(null);
+            setTimeToNextToken("Token ready!");
+          }
         }
       } else {
-        setTimeToNextToken('Calculating...');
+        setTimeToNextToken("Calculating...");
       }
-    };
+    }, 1000);
 
-    const interval = setInterval(updateRemainingTime, 1000);
     return () => clearInterval(interval);
-  }, [tokens, nextTokenTime]);
+  }, [tokens, nextTokenTime, playerId]);
 
   const progress = tokens ? tokens / MAX_TOKENS : 0;
 
@@ -243,7 +262,7 @@ const EnergyTokenSystem = () => {
                 >
                   <Text style={styles.energyModalCloseButtonText}>×</Text>
                 </Pressable>
-                <Text style={styles.energyModalMessage}>You are out of energy tokens!</Text>
+                <Text style={styles.energyModalMessage}>Need more tokens ?</Text>
                 {videoTokens < VIDEO_TOKEN_LIMIT && (
                   <>
                     <Button title="Watch Video" onPress={handleWatchVideo} />

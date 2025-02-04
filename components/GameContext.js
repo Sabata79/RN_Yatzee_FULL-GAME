@@ -1,3 +1,4 @@
+// GameContext.js 
 // Purpose: Context for the game state and player data.
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { ref, onValue, get, set } from 'firebase/database';
@@ -28,6 +29,8 @@ export const GameProvider = ({ children }) => {
   const [tokens, setTokens] = useState(null);
   const [videoTokens, setVideoTokens] = useState(0);
   const [energyModalVisible, setEnergyModalVisible] = useState(false);
+  // Uusi tila: onko tili linkitetty Googleen
+  const [isLinked, setIsLinked] = useState(false);
 
   // Fetch the player's avatar from the avatars array
   const fetchInitialTokens = async () => {
@@ -97,6 +100,23 @@ export const GameProvider = ({ children }) => {
     }
   };
 
+  // Avatar URL check in background
+  useEffect(() => {
+    if (playerId) {
+      const playerRef = ref(database, `players/${playerId}/avatar`);
+      onValue(playerRef, (snapshot) => {
+        const avatarPath = snapshot.val();
+        if (avatarPath) {
+          setAvatarUrl(avatarPath);
+          setIsAvatarLoaded(true);
+        } else {
+          setAvatarUrl(null);
+          setIsAvatarLoaded(true);
+        }
+      });
+    }
+  }, [playerId]);
+
   // Get player token information from Firebase
   useEffect(() => {
     if (playerId) {
@@ -114,23 +134,6 @@ export const GameProvider = ({ children }) => {
   useEffect(() => {
     updateVideoTokensInFirebase();
   }, [videoTokens]);
-
-  // Avatar URL check in background
-  useEffect(() => {
-    if (playerId) {
-      const playerRef = ref(database, `players/${playerId}/avatar`);
-      onValue(playerRef, (snapshot) => {
-        const avatarPath = snapshot.val();
-        if (avatarPath) {
-          setAvatarUrl(avatarPath);
-          setIsAvatarLoaded(true);
-        } else {
-          setAvatarUrl(null);
-          setIsAvatarLoaded(true);
-        }
-      });
-    }
-  }, [playerId]);
 
   const setActivePlayer = (id, name) => {
     setActivePlayerId(id);
@@ -218,7 +221,10 @@ export const GameProvider = ({ children }) => {
       videoTokens, // Video tokenit lisätty
       setVideoTokens, // Video tokenien asettaminen
       energyModalVisible,
-      setEnergyModalVisible
+      setEnergyModalVisible,
+      // Uudet tilat tilin linkitykselle:
+      isLinked,
+      setIsLinked,
     }}>
       {children}
     </GameContext.Provider>
