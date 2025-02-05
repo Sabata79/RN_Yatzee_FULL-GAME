@@ -18,7 +18,8 @@ const headerStyles = StyleSheet.create({
     overflow: 'hidden',
   },
   section1: {
-    flex: isSmallScreen ? 1.5 : 2,
+    flex: isSmallScreen ? 1.5 : 1.5,
+    flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'center',
   },
@@ -38,9 +39,15 @@ const headerStyles = StyleSheet.create({
     justifyContent: 'center',
   },
   headerTitle: {
-    fontSize: isSmallScreen ? 18 : width * 0.06, 
+    fontSize: isSmallScreen ? 18 : width * 0.05,
+    alignSelf: 'center',
     fontFamily: 'AntonRegular',
-    color: '#ccc9c9',
+    color: '#ffffff',
+  },
+  headerImage: {
+    height: height * 0.11, 
+    width: width * 0.15, 
+    marginLeft: -width * 0.02, 
   },
   userName: {
     fontSize: isSmallScreen ? 14 : width * 0.04,

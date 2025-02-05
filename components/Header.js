@@ -39,8 +39,8 @@ export default function Header() {
       {/* Header/Logo */}
       <View style={headerStyles.section1}>
         <Text style={headerStyles.headerTitle}>
-          Yatzy <FontAwesome5 name="dice" size={35} color="#ccc9c9" />
-        </Text>
+          SMR </Text>
+        <Image source={require('../assets/desktopIcon.png')} style={headerStyles.headerImage} />
       </View>
 
       {/* EnergyTokenSystem */}
@@ -52,29 +52,29 @@ export default function Header() {
 
       {/* UserName*/}
       {userRecognized && playerName && (
-      <Pressable onPress={() => setModalVisible(true)}>
-        <View style={headerStyles.section3}>
-          <Text style={headerStyles.userName}>{playerName}</Text>
-        </View>
-      </Pressable>
+        <Pressable onPress={() => setModalVisible(true)}>
+          <View style={headerStyles.section3}>
+            <Text style={headerStyles.userName}>{playerName}</Text>
+          </View>
+        </Pressable>
       )}
 
       {/*Avatar*/}
       {userRecognized && (
-      <Pressable onPress={() => setModalVisible(true)}>
-        <View style={headerStyles.section4}>
-          {userAvatar ? (
-            <Image source={userAvatar} style={headerStyles.headerAvatarImage} />
-          ) : (
-            <FontAwesome5
-              name="user"
-              size={22}
-              color="white"
-              style={headerStyles.defaultUserIcon}
-            />
-          )}
-        </View>
-      </Pressable>
+        <Pressable onPress={() => setModalVisible(true)}>
+          <View style={headerStyles.section4}>
+            {userAvatar ? (
+              <Image source={userAvatar} style={headerStyles.headerAvatarImage} />
+            ) : (
+              <FontAwesome5
+                name="user"
+                size={22}
+                color="white"
+                style={headerStyles.defaultUserIcon}
+              />
+            )}
+          </View>
+        </Pressable>
       )}
 
       {/* Pelaajakortti */}
