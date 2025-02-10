@@ -101,7 +101,15 @@ export default function Scoreboard({ navigation }) {
           }
         });
 
-        const sortedScores = tmpScores.sort((a, b) => b.points - a.points);
+        const sortedScores = tmpScores.sort((a, b) => {
+          if (b.points !== a.points) {
+            return b.points - a.points;
+          }
+          if (a.duration !== b.duration) {
+            return a.duration - b.duration;
+          }
+          return new Date(a.date) - new Date(b.date);
+        });
         setScores(sortedScores);
       }
     });
@@ -165,76 +173,76 @@ export default function Scoreboard({ navigation }) {
             <Text style={styles.scoreboardText}>No scores yet</Text>
           ) : (
             <DataTable style={styles.scoreboardContainer}>
-  <DataTable.Header>
-    <DataTable.Title style={[styles.rankHeaderCell]}>
-      <Text style={styles.scoreboardHeader}>Rank #</Text>
-    </DataTable.Title>
-    <DataTable.Title style={[styles.playerHeaderCell]}>
-      <Text style={styles.scoreboardHeader}>Player</Text>
-    </DataTable.Title>
-    <DataTable.Title style={[styles.durationHeaderCell]}>
-      <Text style={styles.scoreboardHeader}>Duration</Text>
-    </DataTable.Title>
-    <DataTable.Title style={[styles.pointsHeaderCell]}>
-      <Text style={styles.scoreboardHeader}>Points</Text>
-    </DataTable.Title>
-  </DataTable.Header>
+              <DataTable.Header>
+                <DataTable.Title style={[styles.rankHeaderCell]}>
+                  <Text style={styles.scoreboardHeader}>Rank #</Text>
+                </DataTable.Title>
+                <DataTable.Title style={[styles.playerHeaderCell]}>
+                  <Text style={styles.scoreboardHeader}>Player</Text>
+                </DataTable.Title>
+                <DataTable.Title style={[styles.durationHeaderCell]}>
+                  <Text style={styles.scoreboardHeader}>Duration</Text>
+                </DataTable.Title>
+                <DataTable.Title style={[styles.pointsHeaderCell]}>
+                  <Text style={styles.scoreboardHeader}>Points</Text>
+                </DataTable.Title>
+              </DataTable.Header>
 
-  {scores.slice(0, NBR_OF_SCOREBOARD_ROWS).map((score, index) => {
-    const isCurrentUser = score.playerId === userId;
+              {scores.slice(0, NBR_OF_SCOREBOARD_ROWS).map((score, index) => {
+                const isCurrentUser = score.playerId === userId;
 
-    return (
-      <DataTable.Row
-        key={score.playerId}
-        onPress={() => handlePlayerCard(score.playerId, score.name, score.scores)}
-        style={isCurrentUser ? { backgroundColor: '#d3bd86' } : {}}
-      >
-        <DataTable.Cell style={[styles.rankCell]}>
-          {index === 0 && (
-            <View style={styles.medalWrapper}>
-              <Image source={require('../assets/medals/firstMedal.png')} style={styles.medal} />
-            </View>
-          )}
-          {index === 1 && (
-            <View style={styles.medalWrapper}>
-              <Image source={require('../assets/medals/silverMedal.png')} style={styles.medal} />
-            </View>
-          )}
-          {index === 2 && (
-            <View style={styles.medalWrapper}>
-              <Image source={require('../assets/medals/bronzeMedal.png')} style={styles.medal} />
-            </View>
-          )}
-          {index > 2 && <Text style={styles.rankText}>{index + 1}.</Text>}
-        </DataTable.Cell>
+                return (
+                  <DataTable.Row
+                    key={score.playerId}
+                    onPress={() => handlePlayerCard(score.playerId, score.name, score.scores)}
+                    style={isCurrentUser ? { backgroundColor: '#d3bd86' } : {}}
+                  >
+                    <DataTable.Cell style={[styles.rankCell]}>
+                      {index === 0 && (
+                        <View style={styles.medalWrapper}>
+                          <Image source={require('../assets/medals/firstMedal.png')} style={styles.medal} />
+                        </View>
+                      )}
+                      {index === 1 && (
+                        <View style={styles.medalWrapper}>
+                          <Image source={require('../assets/medals/silverMedal.png')} style={styles.medal} />
+                        </View>
+                      )}
+                      {index === 2 && (
+                        <View style={styles.medalWrapper}>
+                          <Image source={require('../assets/medals/bronzeMedal.png')} style={styles.medal} />
+                        </View>
+                      )}
+                      {index > 2 && <Text style={styles.rankText}>{index + 1}.</Text>}
+                    </DataTable.Cell>
 
-        <DataTable.Cell style={[styles.playerCell]}>
-          <View style={styles.playerWrapper}>
-            {(() => {
-              const avatarSource = avatars.find((avatar) => avatar.path === score.avatar)?.display;
-              return avatarSource ? (
-                <Image source={avatarSource} style={styles.avatar} />
-              ) : (
-                <View style={styles.defaultAvatarIcon}>
-                  <FontAwesome5 name="user" size={22} color="white" />
-                </View>
-              );
-            })()}
-            <Text style={styles.playerNameText}>{score.name}</Text>
-          </View>
-        </DataTable.Cell>
+                    <DataTable.Cell style={[styles.playerCell]}>
+                      <View style={styles.playerWrapper}>
+                        {(() => {
+                          const avatarSource = avatars.find((avatar) => avatar.path === score.avatar)?.display;
+                          return avatarSource ? (
+                            <Image source={avatarSource} style={styles.avatar} />
+                          ) : (
+                            <View style={styles.defaultAvatarIcon}>
+                              <FontAwesome5 name="user" size={22} color="white" />
+                            </View>
+                          );
+                        })()}
+                        <Text style={styles.playerNameText}>{score.name}</Text>
+                      </View>
+                    </DataTable.Cell>
 
-        <DataTable.Cell style={[styles.durationCell]}>
-          <Text style={styles.durationText}>{score.duration}s</Text>
-        </DataTable.Cell>
+                    <DataTable.Cell style={[styles.durationCell]}>
+                      <Text style={styles.durationText}>{score.duration}s</Text>
+                    </DataTable.Cell>
 
-        <DataTable.Cell style={[styles.pointsCell]}>
-          <Text style={styles.pointsText}>{score.points}</Text>
-        </DataTable.Cell>
-      </DataTable.Row>
-    );
-  })}
-</DataTable>
+                    <DataTable.Cell style={[styles.pointsCell]}>
+                      <Text style={styles.pointsText}>{score.points}</Text>
+                    </DataTable.Cell>
+                  </DataTable.Row>
+                );
+              })}
+            </DataTable>
 
 
           )}
