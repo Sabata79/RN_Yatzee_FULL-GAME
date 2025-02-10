@@ -65,6 +65,11 @@ const EnergyTokenSystem = () => {
       loadNewAd();
     });
 
+    newAd.addAdEventListener('closed', () => {
+      setAdLoaded(false);
+      loadNewAd();
+    });
+
     setRewarded(newAd);
     newAd.load();
   };
