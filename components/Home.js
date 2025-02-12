@@ -8,6 +8,8 @@ import { ref, set, get } from 'firebase/database';
 import uuid from 'react-native-uuid';
 import { useNavigation } from '@react-navigation/native';
 import { useGame } from '../components/GameContext';
+import Linked from "../services/Linked";
+import Recover from "../services/Recover";
 
 export default function Home({ setPlayerId }) {
   const [localName, setLocalName] = useState('');
@@ -16,8 +18,10 @@ export default function Home({ setPlayerId }) {
   const inputRef = useRef(null);
   const navigation = useNavigation();
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const [isLinkModalVisible, setIsLinkModalVisible] = useState(false);
+  const [isRecoverModalVisible, setIsRecoverModalVisible] = useState(false);
 
-  const { setPlayerIdContext, setPlayerNameContext, userRecognized, setUserRecognized, playerName, playerId, setPlayerName } = useGame();
+  const { setPlayerIdContext, setPlayerNameContext, userRecognized, setUserRecognized, playerName, playerId, setPlayerName, isLinked } = useGame();
 
   useEffect(() => {
     if (localName && playerId) {
@@ -28,7 +32,6 @@ export default function Home({ setPlayerId }) {
     }
   }, [localName, playerId]);
 
-
   useEffect(() => {
     if (!loading) {
       Animated.timing(fadeAnim, {
@@ -38,6 +41,7 @@ export default function Home({ setPlayerId }) {
       }).start();
     }
   }, [loading]);
+
 
   const checkIfNameExists = async (name) => {
     const playersRef = ref(database, 'players');
@@ -77,35 +81,35 @@ export default function Home({ setPlayerId }) {
     return sanitized.trim();
   };
 
-const handlePress = async () => {
-  const cleanedName = sanitizeInput(localName);
+  const handlePress = async () => {
+    const cleanedName = sanitizeInput(localName);
 
-  if (cleanedName === '') {
-    Alert.alert('Name is required', 'Please enter your name.');
-  } else if (cleanedName.length < 3 || cleanedName.length > 10) {
-    Alert.alert('Invalid Name Length', 'Please enter a nickname with 3-10 characters.');
-  } else {
-    const nameExists = await checkIfNameExists(cleanedName);
-    if (nameExists) {
-      Alert.alert('Name already in use', 'That nickname is already in use. Please choose another.');
+    if (cleanedName === '') {
+      Alert.alert('Name is required', 'Please enter your name.');
+    } else if (cleanedName.length < 3 || cleanedName.length > 10) {
+      Alert.alert('Invalid Name Length', 'Please enter a nickname with 3-10 characters.');
     } else {
-      setUserRecognized(true);
-
-      if (!playerId) {
-        const newPlayerId = uuid.v4();
-        setLocalPlayerId(newPlayerId);
-        setPlayerId(newPlayerId);
-        setPlayerIdContext(newPlayerId);
-        setPlayerNameContext(cleanedName);
-        saveNewPlayer(cleanedName, newPlayerId);
+      const nameExists = await checkIfNameExists(cleanedName);
+      if (nameExists) {
+        Alert.alert('Name already in use', 'That nickname is already in use. Please choose another.');
       } else {
-        setPlayerIdContext(playerId);
-        setPlayerNameContext(cleanedName);
-        saveNewPlayer(cleanedName, playerId);
+        setUserRecognized(true);
+
+        if (!playerId) {
+          const newPlayerId = uuid.v4();
+          setLocalPlayerId(newPlayerId);
+          setPlayerId(newPlayerId);
+          setPlayerIdContext(newPlayerId);
+          setPlayerNameContext(cleanedName);
+          saveNewPlayer(cleanedName, newPlayerId);
+        } else {
+          setPlayerIdContext(playerId);
+          setPlayerNameContext(cleanedName);
+          saveNewPlayer(cleanedName, playerId);
+        }
       }
     }
-  }
-};
+  };
 
   const handlePlay = () => {
     navigation.navigate('Gameboard');
@@ -114,6 +118,10 @@ const handlePress = async () => {
   const handleChangeName = () => {
     setLocalName('');
     setUserRecognized(false);
+  };
+
+  const handleLinkAccount = () => {
+    setIsLinkModalVisible(true);
   };
 
   return (
@@ -138,8 +146,26 @@ const handlePress = async () => {
             >
               <Text style={styles.buttonText}>OK</Text>
             </Pressable>
+            <Pressable
+              style={({ pressed }) => [
+                styles.button,
+                pressed && styles.buttonPressed,
+                styles.fullWidthButton,
+              ]}
+              onPressOut={() => setIsRecoverModalVisible(true)}
+            >
+              <Text style={styles.buttonText}>Recover linked player</Text>
+              <FontAwesome5 name="redo" size={40} color="black" />
+            </Pressable>
+
+            {/* Recover-module */}
+            <Recover
+              isVisible={isRecoverModalVisible}
+              onClose={() => setIsRecoverModalVisible(false)}
+            />
           </View>
         ) : (
+
           <View style={styles.rulesContainer}>
             <Text style={styles.rulesText}>Hi {playerName}, let's roll the dice!</Text>
             <Image source={require("../assets/hiThere.png")} style={styles.hiThereImage} />
@@ -163,6 +189,24 @@ const handlePress = async () => {
               <Text style={styles.buttonText}>Change name</Text>
               <FontAwesome5 name="user-edit" size={40} color="black" />
             </Pressable>
+
+
+            {/* Show link button if not linked */}
+            {!isLinked && (
+              <Pressable
+                style={({ pressed }) => [styles.homeButton, pressed && styles.homeButtonPressed]}
+                onPressOut={handleLinkAccount}
+              >
+                <Text style={styles.buttonText}>Link your account</Text>
+              </Pressable>
+            )}
+
+            {/* Opens link if player is not linked */}
+            <Linked
+              isVisible={isLinkModalVisible}
+              onClose={() => setIsLinkModalVisible(false)}
+              onLinkAccount={handleLinkAccount}
+            />
           </View>
         )}
       </View>
