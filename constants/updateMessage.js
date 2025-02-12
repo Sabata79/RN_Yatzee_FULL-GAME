@@ -6,5 +6,6 @@
 // Button {Cancel}
 
 export const updateMessage =
-`-Responsive fix for mobile devices
+`-Added Link system to the app
+- Lisätty linkitysmahdollisuus sovellukseen
 `;
