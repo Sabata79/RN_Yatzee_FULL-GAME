@@ -38,6 +38,11 @@ export default function AboutMe() {
           >
             Privacy Policy
           </Text>
+          <Text style={styles.aboutLinkText}
+            onPress={() => Linking.openURL('https://sabata79.github.io/RN_Yatzee_FULL-GAME/terms-of-service.html')}
+          >
+            Terms of Service
+          </Text>
 
           <View style={styles.footer}>
             <Text style={styles.author}>© 2025 SMR Yatzy</Text>
