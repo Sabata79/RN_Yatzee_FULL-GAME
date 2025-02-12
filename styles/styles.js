@@ -1,7 +1,7 @@
 import { Dimensions, StyleSheet } from 'react-native';
 
 const { width, height } = Dimensions.get('window');
-const isSmallScreen = height < 650; 
+const isSmallScreen = height < 650;
 
 export default styles = StyleSheet.create({
 
@@ -22,7 +22,7 @@ export default styles = StyleSheet.create({
         width: '100%',
         backgroundColor: 'rgba(0, 0, 0, 0.6)',
         maxWidth: 420,
-        alignSelf:'center',
+        alignSelf: 'center',
     },
     titleContainer: {
         flexDirection: 'row',
@@ -40,7 +40,7 @@ export default styles = StyleSheet.create({
     input: {
         padding: 10,
         width: "50%",
-        maxWidth: 200,
+        maxWidth: 250,
         justifyContent: 'center',
         textAlign: 'center',
         fontFamily: 'AntonRegular',
@@ -53,6 +53,57 @@ export default styles = StyleSheet.create({
         fontFamily: 'AntonRegular',
         color: '#4a4336',
         textAlign: 'center',
+    },
+    welcomeText: {
+        fontSize: 18,
+        top: -25,
+        width: '90%',
+        color: 'white',
+        textAlign: 'center',
+        fontFamily: 'AntonRegular',
+        alignSelf: 'center',
+        zIndex: 10,
+    },
+    linkContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#6c6b6b',
+        marginTop: 10,
+    },
+    linkText: {
+        fontSize: 14,
+        width: '90%',
+        color: '#ccc9c9',
+        textAlign: 'center',
+        fontFamily: 'AntonRegular',
+        alignSelf: 'center',
+        backgroundColor: '#6c6b6b',
+        padding: 10,
+    },
+    linkNameContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: 10,
+        backgroundColor: '#6c6b6b',
+        width: "50%",
+        borderRadius: 5,
+    },
+    pwInputWrapper: {
+        marginTop: 10,
+        alignItems: 'center',
+        backgroundColor: '#6c6b6b',
+        width: "50%",
+        borderRadius: 5,
+    },
+    pwInput: {
+        padding: 10,
+        fontSize: 16,
+
+        maxWidth: 200,
+        justifyContent: 'center',
+        textAlign: 'center',
+        fontFamily: 'AntonRegular',
+        color: 'white',
     },
     item: {
         flex: 1,
