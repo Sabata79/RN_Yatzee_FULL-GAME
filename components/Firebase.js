@@ -1,14 +1,7 @@
-// Purpose: This file is used to connect to the Firebase database. It is used to store the data of the user's profile and the data of the user's posts.
 import { initializeApp } from "firebase/app";
 import { getDatabase } from 'firebase/database';
-import { API_KEY } from '@env';
-import { AUTH_DOMAIN } from '@env';
-import { DATABASE_URL } from '@env';
-import { PROJECT_ID } from '@env';
-import { STORAGE_BUCKET } from '@env';
-import { MESSAGING_SENDER_ID } from '@env';
-import { APP_ID } from '@env';
-
+import { getAuth, signOut } from "firebase/auth"; 
+import { API_KEY, AUTH_DOMAIN, DATABASE_URL, PROJECT_ID, STORAGE_BUCKET, MESSAGING_SENDER_ID, APP_ID } from '@env';
 
 const firebaseConfig = {
   apiKey: API_KEY,
@@ -21,6 +14,19 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
+
 const database = getDatabase(app);
 
-export { database };
+const auth = getAuth(app);
+
+// Sign out the current user
+const handleSignOut = async () => {
+  try {
+    await signOut(auth); 
+    console.log("User signed out");
+  } catch (error) {
+    console.error("Error signing out:", error);
+  }
+};
+
+export { database, auth, handleSignOut };
