@@ -20,14 +20,14 @@ export default function LandingPage({ navigation }) {
     setIsLinked,
   } = useGame();
 
-  // Kirjaudu anonyymisti Firebase Authilla ja tallenna uid SecureStoreen
+  // Log as anonymous user and save uid to SecureStore
   const doSignInAnonymously = async () => {
     try {
       const result = await signInAnonymously(auth);
       const uid = result.user.uid;
       await SecureStore.setItemAsync("user_id", uid);
       console.log("Anonyymi kirjautuminen onnistui, uid:", uid);
-      // Asetetaan pelaajan uid, mutta ei vielä tunnisteta käyttäjää
+      // Set player id to GameContext but dont recognize user
       setPlayerId(uid);
       return uid;
     } catch (error) {
@@ -36,7 +36,7 @@ export default function LandingPage({ navigation }) {
     }
   };
 
-  // Yritä hakea uid SecureStoresta, ja jos sitä ei löydy, kirjaudu anonyymisti
+  // Try to get user id from SecureStore, if not found, sign in anonymously
   const getOrCreateUserId = async () => {
     try {
       let userId = await SecureStore.getItemAsync("user_id");
@@ -54,21 +54,20 @@ export default function LandingPage({ navigation }) {
   };
 
   useEffect(() => {
-    // Animoidaan näkymää
     Animated.timing(fadeAnim, {
       toValue: 1,
       duration: 1500,
       useNativeDriver: true,
     }).start();
 
-    // Hae tai luo käyttäjän uid ja tarkista käyttäjätiedot tietokannasta
+    // Get or create user id and check if user exists in database
     getOrCreateUserId()
       .then((userId) => {
         if (userId) {
           setPlayerId(userId);
           checkExistingUser(userId);
         } else {
-          // Mikäli uid:a ei saada, asetetaan käyttäjäksi ei tunnistettu
+          // If user id not found, set user as not recognized and navigate to MainApp
           setUserRecognized(false);
           navigation.navigate("MainApp");
         }
@@ -78,14 +77,14 @@ export default function LandingPage({ navigation }) {
       });
   }, []);
 
-  // Tarkista, löytyykö käyttäjän data tietokannasta ja päivitä GameContextin tilat
+  // Check if user exists in database and set user data to GameContext
   const checkExistingUser = async (userId) => {
     const playerRef = ref(database, `players/${userId}`);
     try {
       const snapshot = await get(playerRef);
       const playerData = snapshot.val();
       if (playerData) {
-        // Jos pelaajan data löytyy, asetetaan käyttäjä tunnistetuksi
+        // If player data found, set player data to GameContext
         setPlayerIdContext(userId);
         setPlayerNameContext(playerData.name);
         setPlayerName(playerData.name);
@@ -93,7 +92,7 @@ export default function LandingPage({ navigation }) {
         setIsLinked(!!playerData.isLinked);
         setUserRecognized(true);
       } else {
-        // Jos dataa ei löydy, käyttäjää ei tunnisteta
+        // If player data not found, set user as not recognized
         console.log("Ei löytynyt pelaajatietoja ID:lle:", userId);
         setUserRecognized(false);
       }
@@ -103,7 +102,7 @@ export default function LandingPage({ navigation }) {
     }
   };
 
-  // Päivittää latausprogressia
+  // Update loading progress bar
   const incrementProgress = (toValue) => {
     let currentProgress = 0;
     const interval = setInterval(() => {
