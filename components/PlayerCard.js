@@ -16,7 +16,6 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
         resetViewingPlayer,
         avatarUrl,
         setAvatarUrl,
-        isLinked 
     } = useGame();
 
     const [playerIsLinked, setPlayerIsLinked] = useState(false);

@@ -284,7 +284,7 @@ export default styles = StyleSheet.create({
         borderRadius: 40,
         borderColor: '#4c4949',
         borderWidth: 1,
-        backgroundColor: 'black',
+        backgroundColor: '#000000ba',
     },
 
 });
