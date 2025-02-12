@@ -16,10 +16,9 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
         resetViewingPlayer,
         avatarUrl,
         setAvatarUrl,
-        isLinked // Tämä on nykyisen pelaajan tilin linkitystila, mutta emme käytä sitä suoraan
+        isLinked 
     } = useGame();
 
-    // Uusi tila kunkin pelaajan tietojen (kuten isLinked) näyttämistä varten
     const [playerIsLinked, setPlayerIsLinked] = useState(false);
 
     const [viewingPlayerAvatar, setViewingPlayerAvatar] = useState('');
@@ -84,7 +83,6 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
             // Fetch the "isLinked" flag for the player whose card is being viewed.
             const linkedRef = ref(database, `players/${idToUse}/isLinked`);
             onValue(linkedRef, (snapshot) => {
-                // Oletetaan, että tietokannassa tallennettu arvo on true/false
                 setPlayerIsLinked(snapshot.val());
             });
         }
