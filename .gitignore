@@ -51,7 +51,6 @@ landingLogo.png
 assets/
 tools/
 android/
-services/
 
 ## Ignore case sensitive components
 EnergyTokenSystem.js
