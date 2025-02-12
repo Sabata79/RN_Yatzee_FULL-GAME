@@ -43,9 +43,9 @@ eas.json
 babel.config.js
 eas.config.js
 
-
 # extras
 profile.jpg
+landingLogo.png
 
 # Ingnore assets folder and its content
 assets/
