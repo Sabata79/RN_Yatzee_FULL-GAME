@@ -2,9 +2,9 @@ import { StyleSheet } from 'react-native';
 import { Dimensions } from 'react-native';
 
 const { width, height } = Dimensions.get('window');
-const isFoldScreen = width < 800; 
+const isFoldScreen = width < 800;
 console.log(width);
-const avatarSize = isFoldScreen ? 75: 80;
+const avatarSize = isFoldScreen ? 75 : 80;
 
 
 export default styles = StyleSheet.create({
@@ -13,7 +13,7 @@ export default styles = StyleSheet.create({
     playerCardContainer: {
         marginTop: 10,
         marginBottom: 10,
-        alignItems: 'center',    
+        alignItems: 'center',
     },
     playerInfoContainer: {
         flexDirection: 'row',
@@ -94,6 +94,8 @@ export default styles = StyleSheet.create({
         padding: 1,
         borderColor: '#00000063',
         marginRight: 5,
+        marginLeft: 15,
+        marginTop: 20,
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: '#000000',
@@ -129,8 +131,8 @@ export default styles = StyleSheet.create({
     },
     editAvatarButton: {
         position: 'absolute',
-        left: 80,
-        bottom: 0,
+        bottom: -10,
+        left: 92,
         borderWidth: 1,
         backgroundColor: '#ff0000ff',
         borderRadius: 20,
@@ -153,7 +155,7 @@ export default styles = StyleSheet.create({
         flexWrap: 'wrap',
     },
     avatarModalImage: {
-        width: avatarSize, 
+        width: avatarSize,
         height: avatarSize,
         borderRadius: avatarSize / 2,
         padding: 2,
@@ -274,4 +276,15 @@ export default styles = StyleSheet.create({
         zIndex: 10,
         padding: 5,
     },
+    linkIconContainer: {
+        position: 'absolute',
+        top: 5,
+        left: 0,
+        padding: 10,
+        borderRadius: 40,
+        borderColor: '#4c4949',
+        borderWidth: 1,
+        backgroundColor: 'black',
+    },
+
 });

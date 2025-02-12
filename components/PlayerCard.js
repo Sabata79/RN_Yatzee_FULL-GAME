@@ -8,13 +8,26 @@ import { ref, onValue, update } from 'firebase/database';
 import { avatars } from '../constants/AvatarPaths';
 
 export default function PlayerCard({ isModalVisible, setModalVisible }) {
-    const { playerId, playerName, viewingPlayerId, viewingPlayerName, resetViewingPlayer, avatarUrl, setAvatarUrl } = useGame();
+    const {
+        playerId,
+        playerName,
+        viewingPlayerId,
+        viewingPlayerName,
+        resetViewingPlayer,
+        avatarUrl,
+        setAvatarUrl,
+        isLinked // Tämä on nykyisen pelaajan tilin linkitystila, mutta emme käytä sitä suoraan
+    } = useGame();
+
+    // Uusi tila kunkin pelaajan tietojen (kuten isLinked) näyttämistä varten
+    const [playerIsLinked, setPlayerIsLinked] = useState(false);
 
     const [viewingPlayerAvatar, setViewingPlayerAvatar] = useState('');
     const [avatarSelected, setAvatarSelected] = useState(null);
     const [monthlyRanks, setMonthlyRanks] = useState(Array(12).fill(null));
     const [isAvatarModalVisible, setIsAvatarModalVisible] = useState(false);
     const [topScores, setTopScores] = useState([]);
+    const [isModalModalVisible, setModalModalVisible] = useState(false);
 
     const currentMonth = new Date().getMonth();
     const currentYear = new Date().getFullYear();
@@ -30,7 +43,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     const handleAvatarSelect = (avatar) => {
         const avatarPath = avatar.path;
         setAvatarSelected(avatarPath);
-        setAvatarUrl(avatarPath); 
+        setAvatarUrl(avatarPath);
         saveAvatarToDatabase(avatarPath);
         setIsAvatarModalVisible(false);
     };
@@ -48,7 +61,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
                     console.error('Error saving avatar to Firebase:', error);
                 });
         } else {
-            console.error('Avatarin polku on tyhjä!');
+            console.error('Avatar path is empty!');
         }
     };
 
@@ -57,15 +70,22 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
             fetchTopScores();
             fetchMonthlyRanks();
 
-            // Haetaan avatar Firebase-palvelusta
+            // Fetch avatar from Firebase
             const playerRef = ref(database, `players/${idToUse}/avatar`);
             onValue(playerRef, (snapshot) => {
                 const avatarPath = snapshot.val();
                 if (idToUse === playerId) {
-                    setAvatarUrl(avatarPath || ''); 
+                    setAvatarUrl(avatarPath || '');
                 } else {
                     setViewingPlayerAvatar(avatarPath || '');
                 }
+            });
+
+            // Fetch the "isLinked" flag for the player whose card is being viewed.
+            const linkedRef = ref(database, `players/${idToUse}/isLinked`);
+            onValue(linkedRef, (snapshot) => {
+                // Oletetaan, että tietokannassa tallennettu arvo on true/false
+                setPlayerIsLinked(snapshot.val());
             });
         }
     }, [isModalVisible, idToUse, playerId, setAvatarUrl]);
@@ -108,8 +128,10 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
         }
     };
 
+    // Modified fetchMonthlyRanks with tie-breakers: points descending, then duration ascending, then date ascending.
     const fetchMonthlyRanks = () => {
-        const monthlyScores = Array(12).fill([]);
+        // Create an array of 12 separate empty arrays for each month
+        const monthlyScores = Array.from({ length: 12 }, () => []);
 
         const playerRef = ref(database, `players`);
         onValue(playerRef, (snapshot) => {
@@ -117,36 +139,55 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
                 const playersData = snapshot.val();
                 const currentYear = new Date().getFullYear();
 
-                Object.keys(playersData).forEach(playerId => {
+                // Comparison function: returns true if newScore is better than oldScore.
+                // Better means: higher points; if equal, lower duration; if equal, earlier date.
+                const isBetterScore = (newScore, oldScore) => {
+                    if (newScore.points > oldScore.points) return true;
+                    if (newScore.points < oldScore.points) return false;
+                    if (newScore.duration < oldScore.duration) return true;
+                    if (newScore.duration > oldScore.duration) return false;
+                    return newScore.date < oldScore.date;
+                };
+
+                Object.keys(playersData).forEach((playerId) => {
                     const playerScores = playersData[playerId].scores || {};
-
-                    Object.values(playerScores).forEach(score => {
+                    Object.values(playerScores).forEach((score) => {
+                        // Convert score.date from format "dd.mm.yyyy" to Date object
                         const scoreDate = new Date(score.date.split('.').reverse().join('-'));
-
                         if (scoreDate.getFullYear() === currentYear) {
                             const monthIndex = scoreDate.getMonth();
                             const existingMonthScores = monthlyScores[monthIndex];
-                            const playerBestScore = existingMonthScores.find(score => score.playerId === playerId);
-
-                            if (!playerBestScore || playerBestScore.points < score.points) {
-                                monthlyScores[monthIndex] = existingMonthScores.filter(score => score.playerId !== playerId);
-                                monthlyScores[monthIndex].push({
-                                    playerId,
-                                    points: score.points,
-                                    time: score.time,
-                                });
+                            // Create a score object including duration and date (timestamp)
+                            const scoreObj = {
+                                playerId,
+                                points: score.points,
+                                duration: score.duration,
+                                date: scoreDate.getTime(),
+                            };
+                            const playerBestScore = existingMonthScores.find(s => s.playerId === playerId);
+                            if (!playerBestScore || isBetterScore(scoreObj, playerBestScore)) {
+                                // Remove any existing score for this player and add the new one
+                                monthlyScores[monthIndex] = existingMonthScores.filter(s => s.playerId !== playerId);
+                                monthlyScores[monthIndex].push(scoreObj);
                             }
                         }
                     });
                 });
 
+                // For each month, sort the scores and determine the rank for idToUse
                 const monthRanks = monthlyScores.map((monthScores) => {
                     if (monthScores.length === 0) {
                         return '--';
                     }
-                    monthScores.sort((a, b) => b.points - a.points);
+                    monthScores.sort((a, b) => {
+                        // Compare points (descending)
+                        if (b.points !== a.points) return b.points - a.points;
+                        // If points are equal, compare duration (ascending)
+                        if (a.duration !== b.duration) return a.duration - b.duration;
+                        // If both points and duration are equal, compare date (ascending)
+                        return a.date - b.date;
+                    });
                     const rank = monthScores.findIndex(score => score.playerId === idToUse) + 1;
-
                     return rank === 0 ? '--' : rank;
                 });
 
@@ -200,7 +241,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
                         <Image source={require('../assets/playercardBackground.jpeg')} style={styles.avatarModalBackgroundImage} />
                         <Pressable
                             style={styles.playerCardCloseButton}
-                            onPress={() => setModalVisible(false)}
+                            onPress={() => { setModalModalVisible(false); setModalVisible(false); }}
                         >
                             <Text style={styles.playerCardCloseText}>X</Text>
                         </Pressable>
@@ -214,8 +255,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
                             <View style={styles.avatarModalBackground}>
                                 <View style={styles.avatarModalContainer}>
                                     <Text style={styles.avatarSelectText}>Choose your Avatar:</Text>
-                                    <Pressable style={styles.closeAvatarModalButton} onPress={() =>
-                                        setIsAvatarModalVisible(false)}>
+                                    <Pressable style={styles.closeAvatarModalButton} onPress={() => setIsAvatarModalVisible(false)}>
                                         <Text style={styles.closeAvatarModalText}>X</Text>
                                     </Pressable>
                                     <View style={styles.avatarSelectionWrapper}>
@@ -230,11 +270,18 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
                         </Modal>
 
                         <View style={styles.playerInfoContainer}>
-                            <View style={styles.avatarContainer}>
-                                <Image
-                                    style={styles.avatar}
-                                    source={getAvatarImage(getAvatarToDisplay())}
-                                />
+                            <View style={{ position: 'relative' }}>
+                                <View style={styles.avatarContainer}>
+                                    <Image
+                                        style={styles.avatar}
+                                        source={getAvatarImage(getAvatarToDisplay())}
+                                    />
+                                </View>
+                                {playerIsLinked && (
+                                    <View style={styles.linkIconContainer}>
+                                        <FontAwesome5 name="link" size={20} color="gold" />
+                                    </View>
+                                )}
                             </View>
                             {idToUse === playerId && (
                                 <Pressable
