@@ -17,7 +17,6 @@ import About from './components/AboutMe';
 import Rules from './components/Rules';
 import Header from './components/Header';
 import styles from './styles/styles';
-import { updateMessage } from './constants/updateMessage';
 import updateModalStyles from './styles/updateModalStyles';
 
 const { width, height } = Dimensions.get('window');
@@ -29,6 +28,7 @@ export default function App() {
   const [playerId, setPlayerId] = useState('');
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const [updateModalVisible, setUpdateModalVisible] = useState(false);
+  const updateMessage = `-Added Link system to the app - Lisätty linkitysmahdollisuus sovellukseen`;
 
   const Stack = createStackNavigator();
   const Tab = createBottomTabNavigator();
@@ -74,8 +74,8 @@ const TabNavigator = () => (
         height: isSmallScreen ? 55 : 70,
         paddingTop: isSmallScreen ? 0 : 5,
         backgroundColor: 'black',
-        borderTopWidth: 0,
-        borderTopColor: 'black'
+        borderTopWidth: 0.2,
+        borderTopColor: 'darkorange'
       },
       tabBarActiveTintColor: '#ffffff',
       tabBarInactiveTintColor: 'gray',
@@ -104,11 +104,11 @@ const TabNavigator = () => (
           return <FontAwesome5 name="user" {...iconStyle} />;
         }
       },
-      // Animaatioasetukset
+      
       transitionSpec: {
-        animation: 'timing',  // Animaation tyyppi
+        animation: 'timing', 
         config: {
-          duration: 800,  // Animaation kesto
+          duration: 800, 
           easing: Easing.inOut(Easing.ease),
         },
       },
@@ -127,7 +127,7 @@ const TabNavigator = () => (
           };
           return <FontAwesome5 name="home" {...iconStyle} />;
         },
-        tabBarStyle: { display: 'none' },  // Piilotetaan tab-bar Home-sivulla
+        tabBarStyle: { display: 'none' },
       }}
     >
       {() => (
