@@ -32,7 +32,7 @@ const Recover = ({ isVisible, onClose }) => {
       setErrorModalVisible(true);
       return;
     }
-    
+
     // Check if password is at least 6 characters long
     if (password.length < 6) {
       setErrorModalTitle("Password Error");
@@ -40,7 +40,7 @@ const Recover = ({ isVisible, onClose }) => {
       setErrorModalVisible(true);
       return;
     }
-    
+
     // Validate email format using a regular expression
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
@@ -146,12 +146,15 @@ const Recover = ({ isVisible, onClose }) => {
               onChangeText={setPassword}
             />
 
-            <Pressable style={styles.linkButton} onPress={handleRecoverAccount}>
+            <Pressable style={({ pressed }) => [styles.linkButton, pressed && styles.linkButtonPressed]} onPress={handleRecoverAccount}>
               <Text style={styles.buttonText}>Recover Account</Text>
               <FontAwesome5 name="redo" size={20} color="gold" />
             </Pressable>
 
-            <Pressable style={styles.closeButton} onPress={onClose}>
+            <Pressable
+              style={({ pressed }) => [styles.closeButton, pressed && styles.closeButtonPressed]}
+              onPress={onClose}
+            >
               <Text style={styles.buttonText}>Cancel</Text>
             </Pressable>
           </View>
@@ -188,7 +191,10 @@ const Recover = ({ isVisible, onClose }) => {
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>{errorModalTitle}</Text>
             <Text style={styles.modalText}>{errorModalMessage}</Text>
-            <Pressable style={styles.linkButton} onPress={handleErrorOk}>
+            <Pressable
+              style={({ pressed }) => [styles.linkButton, pressed && styles.linkButtonPressed]}
+              onPress={handleErrorOk}
+            >
               <Text style={styles.buttonText}>OK</Text>
               <FontAwesome5 name="exclamation-triangle" size={20} color="gold" />
             </Pressable>
@@ -244,6 +250,9 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     flexDirection: 'row',
     justifyContent: 'center',
+  },
+    linkButtonPressed: {
+    opacity: 0.8,
   },
   closeButton: {
     backgroundColor: '#999',
