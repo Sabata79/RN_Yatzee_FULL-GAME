@@ -4,7 +4,7 @@ import { StyleSheet, Dimensions } from 'react-native';
 import Constants from 'expo-constants';
 
 const { height, width } = Dimensions.get('window');
-const isSmallScreen = height < 650;  
+const isSmallScreen = height < 650;
 
 const headerStyles = StyleSheet.create({
   header: {
@@ -30,7 +30,7 @@ const headerStyles = StyleSheet.create({
   },
   section3: {
     flex: 2,
-    alignItems: 'flex-end',
+    alignItems: 'center',
     justifyContent: 'center',
   },
   section4: {
@@ -45,31 +45,42 @@ const headerStyles = StyleSheet.create({
     color: '#ffffff',
   },
   headerImage: {
-    height: height * 0.11, 
-    width: width * 0.15, 
-    marginLeft: -width * 0.02, 
+    height: height * 0.11,
+    width: width * 0.15,
+    marginLeft: -width * 0.02,
   },
   userName: {
     fontSize: isSmallScreen ? 14 : width * 0.04,
     fontWeight: 'bold',
     color: 'white',
     textAlign: 'center',
+    justifyContent: 'center',
     width: '100%',
     paddingRight: isSmallScreen ? 20 : 10,
     letterSpacing: -1,
   },
   headerAvatarImage: {
-    width: isSmallScreen ? 50 : 60, 
+    width: isSmallScreen ? 50 : 60,
     height: isSmallScreen ? 50 : 60,
     borderRadius: isSmallScreen ? 25 : 30,
     marginLeft: 10,
     marginTop: 10,
   },
   defaultUserIcon: {
-    fontSize: isSmallScreen ? 20 : 26, 
+    fontSize: isSmallScreen ? 20 : 26,
     color: 'white',
     marginLeft: 10,
     marginRight: 15,
+  },
+  linkIconContainer: {
+    position: 'absolute',
+    top: 5,
+    left: 0,
+    padding: 2,
+    borderRadius: 40,
+    borderColor: '#4c4949',
+    borderWidth: 1,
+    backgroundColor: '#000000ba',
   },
 });
 

@@ -11,7 +11,7 @@ import { avatars } from '../constants/AvatarPaths';
 
 export default function Header() {
   const [isModalVisible, setModalVisible] = useState(false);
-  const { playerId, playerName, userRecognized, avatarUrl } = useGame();
+  const { playerId, playerName, userRecognized, avatarUrl, isLinked } = useGame();
 
   const userAvatar = avatars.find((avatar) => avatar.path === avatarUrl)?.display;
 
@@ -59,20 +59,27 @@ export default function Header() {
         </Pressable>
       )}
 
-      {/*Avatar*/}
+      {/* Avatar */}
       {userRecognized && (
         <Pressable onPress={() => setModalVisible(true)}>
           <View style={headerStyles.section4}>
-            {userAvatar ? (
-              <Image source={userAvatar} style={headerStyles.headerAvatarImage} />
-            ) : (
-              <FontAwesome5
-                name="user"
-                size={22}
-                color="white"
-                style={headerStyles.defaultUserIcon}
-              />
-            )}
+            <View style={{ position: 'relative' }}>
+              {userAvatar ? (
+                <Image source={userAvatar} style={headerStyles.headerAvatarImage} />
+              ) : (
+                <FontAwesome5
+                  name="user"
+                  size={22}
+                  color="white"
+                  style={headerStyles.defaultUserIcon}
+                />
+              )}
+              {isLinked && (
+                <View style={headerStyles.linkIconContainer}>
+                  <FontAwesome5 name="link" size={16} color="gold" />
+                </View>
+              )}
+            </View>
           </View>
         </Pressable>
       )}
