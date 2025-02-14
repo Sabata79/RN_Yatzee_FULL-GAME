@@ -3,7 +3,7 @@ import { View, Text, Modal, Pressable, Button } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { ProgressBar } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import styles from '../styles/energyTokenStyles';
+import styles from '../styles/EnergyTokenStyles';
 import { MAX_TOKENS, VIDEO_TOKEN_LIMIT } from '../constants/Game';
 import { useGame } from '../components/GameContext';
 import { ref, get, set } from 'firebase/database';
