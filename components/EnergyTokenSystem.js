@@ -20,7 +20,7 @@ const REGEN_INTERVAL = 2.4 * 60 * 60 * 1000; // 2.4 tuntia ms:inä
 const EnergyTokenSystem = () => {
   const {
     playerId,
-    tokens,
+    tokens, 
     setTokens,
     videoTokens,
     setVideoTokens,
