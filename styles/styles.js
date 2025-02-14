@@ -2,6 +2,7 @@ import { Dimensions, StyleSheet } from 'react-native';
 
 const { width, height } = Dimensions.get('window');
 const isSmallScreen = height < 650;
+const isBigScreen = height >= 900;
 
 export default styles = StyleSheet.create({
 
@@ -49,7 +50,7 @@ export default styles = StyleSheet.create({
         borderRadius: 5,
     },
     inputIndexShown: {
-        fontSize: 16,
+        fontSize: isSmallScreen ? 16 : isBigScreen ? 20 : 18,
         fontFamily: 'AntonRegular',
         color: '#4a4336',
         textAlign: 'center',
@@ -107,7 +108,7 @@ export default styles = StyleSheet.create({
     },
     item: {
         flex: 1,
-        height: isSmallScreen ? 35 : 40,
+        height: isSmallScreen ? 35 : isBigScreen ? 60 : 40,
         alignItems: 'center',
         justifyContent: 'center',
         marginTop: 3,
@@ -136,6 +137,7 @@ export default styles = StyleSheet.create({
         marginVertical: 0,
     },
     firstRow: {
+        marginTop: isBigScreen ? '30%' : 0,
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
@@ -237,6 +239,7 @@ export default styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
     },
+
     button: {
         margin: 5,
         marginTop: isSmallScreen ? 8 : 15,
@@ -246,8 +249,8 @@ export default styles = StyleSheet.create({
         backgroundColor: '#ee8d1ef5',
         borderWidth: 3,
         borderColor: 'orange',
-        width: isSmallScreen ? '32%' : '39%',
-        height: isSmallScreen ? 41 : 50,
+        width: isSmallScreen ? '32%' : isBigScreen ? '45%' : '39%',  // Suuremmat napit suuremmilla näytöillä
+        height: isSmallScreen ? 41 : isBigScreen ? 60 : 50,
         borderRadius: 5,
         justifyContent: 'space-between',
         alignItems: 'center',
@@ -270,8 +273,8 @@ export default styles = StyleSheet.create({
         backgroundColor: '#ff6d00',
         borderWidth: 3,
         borderColor: '#ff4500',
-        width: '39%',
-        height: 50,
+        width: isSmallScreen ? '32%' : isBigScreen ? '45%' : '39%',
+        height: isSmallScreen ? 41 : isBigScreen ? 60 : 50,
         borderRadius: 5,
         justifyContent: 'space-between',
         alignItems: 'center',
@@ -482,14 +485,13 @@ export default styles = StyleSheet.create({
         bottom: 0,
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
         zIndex: 999,
-        justifyContent: 'flex-start',
+        justifyContent: 'center',        
         alignItems: 'center',
         display: 'flex',
-        paddingTop: 200,
     },
     centeredText: {
         color: 'white',
-        fontSize: 32,
+        fontSize: isBigScreen ? 32 : 20,
         fontWeight: 'bold',
         textAlign: 'center',
         textShadowColor: '#ff0000',

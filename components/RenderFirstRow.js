@@ -51,7 +51,7 @@ const RenderFirstRow = () => {
 
   const stopGlowEffect = () => {
     glowAnim.stopAnimation();
-    glowAnim.setValue(1); // Palautetaan kirkastus normaaliin
+    glowAnim.setValue(1); 
   };
 
   return (

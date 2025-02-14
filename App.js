@@ -21,6 +21,7 @@ import updateModalStyles from './styles/updateModalStyles';
 
 const { width, height } = Dimensions.get('window');
 const isSmallScreen = height < 720;
+const isBigScreen = height >= 900;
 
 export default function App() {
   const [isUserRecognized, setIsUserRecognized] = useState(false);
@@ -71,24 +72,22 @@ const TabNavigator = () => (
     screenOptions={({ route }) => ({
       headerShown: false,
       tabBarStyle: {
-        height: isSmallScreen ? 55 : 70,
+        height: isSmallScreen ? 55 : isBigScreen ? 85 : 70,
         paddingTop: isSmallScreen ? 0 : 5,
         backgroundColor: 'black',
         borderTopWidth: 0.2,
-        borderTopColor: 'darkorange'
+        borderTopColor: 'darkorange',
       },
       tabBarActiveTintColor: '#ffffff',
       tabBarInactiveTintColor: 'gray',
       tabBarLabelStyle: {
-        height: isSmallScreen ? 30 : 50,
-        width: isSmallScreen ? 30 : 50,
-        fontSize: isSmallScreen ? 9 : 12,
+        fontSize: isSmallScreen ? 9 : isBigScreen ? 16 : 12,
         letterSpacing: -0.1,
         fontFamily: 'AntonRegular',
       },
       tabBarIcon: ({ focused }) => {
         const iconStyle = {
-          size: isSmallScreen ? 22 : 28,
+          size: isSmallScreen ? 22 : isBigScreen ? 28 : 28,
           color: focused ? '#eae6e6' : 'gray',
         };
 
