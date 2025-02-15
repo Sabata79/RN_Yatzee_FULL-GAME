@@ -1,8 +1,9 @@
 import React from 'react';
 import { ScrollView, View, Text, ImageBackground, Image } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
 import styles from '../styles/styles';
 import { rulesTextContent, combinationsData, SCORE_COMPARSION_TEXT } from '../constants/Game';
+import { linkingText } from '../constants/AboutContent';
 import { navigationImages } from '../constants/NavigationImagePaths';
 
 export default function Rules() {
@@ -27,7 +28,6 @@ export default function Rules() {
           <Text style={styles.rulesText}>{rulesTextContent}</Text>
 
           <Text style={[styles.rulesText, { marginTop: 5, fontSize: 25 }]}>Combinations</Text>
-
           {combinationsData.map((combination, index) => (
             <View style={styles.rulesCombination} key={index}>
               <MaterialCommunityIcons name={combination.icon} size={30} color="white" />
@@ -43,8 +43,32 @@ export default function Rules() {
           <Text style={styles.rulesText}>{SCORE_COMPARSION_TEXT.duration}</Text>
           <Text style={styles.rulesText}>{SCORE_COMPARSION_TEXT.dateTime}</Text>
 
+          {/* Account Linking Help Section */}
+          <View style={{ flexDirection: 'row', alignItems: 'baseline', marginTop: 10 }}>
+            <Text
+              style={[
+                styles.rulesText,
+                {
+                  fontSize: 22,
+                  lineHeight: 26, 
+                }
+              ]}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              Account Linking Help
+            </Text>
+
+            <View style={{ backgroundColor: 'black', padding: 5, borderRadius: 25, marginLeft: -80, marginBottom: 5 }}>
+              <FontAwesome5 name="link" size={20} color="gold" />
+            </View>
+          </View>
+          <View style={{ marginTop: 70 }}>
+          <Text style={styles.rulesText}>{linkingText}</Text>
+          </View>
         </View>
       </ImageBackground>
     </ScrollView>
   );
+
 }
