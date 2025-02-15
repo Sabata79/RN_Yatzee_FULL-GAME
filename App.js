@@ -29,7 +29,7 @@ export default function App() {
   const [playerId, setPlayerId] = useState('');
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const [updateModalVisible, setUpdateModalVisible] = useState(false);
-  const updateMessage = `-Added Link system to the app - Lisätty linkitysmahdollisuus sovellukseen`;
+  const updateMessage = `-Viimeinen testiversio, Kiitos testaajille!-`;
 
   const Stack = createStackNavigator();
   const Tab = createBottomTabNavigator();
