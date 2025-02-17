@@ -59,7 +59,7 @@ export default function Rules() {
               Account Linking Help
             </Text>
 
-            <View style={{ backgroundColor: 'black', padding: 5, borderRadius: 25, marginLeft: -80, marginBottom: 5 }}>
+            <View style={{ backgroundColor: 'black', padding: 5, borderRadius: 25, marginLeft: -40, marginBottom: 5 }}>
               <FontAwesome5 name="link" size={20} color="gold" />
             </View>
           </View>
