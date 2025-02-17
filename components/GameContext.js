@@ -1,5 +1,4 @@
-// GameContext.js 
-// Purpose: Context for the game state and player data.
+// GameContext.js
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { ref, onValue, get, set } from 'firebase/database';
 import { database } from './Firebase';
@@ -29,13 +28,29 @@ export const GameProvider = ({ children }) => {
   const [tokens, setTokens] = useState(null);
   const [videoTokens, setVideoTokens] = useState(0);
   const [energyModalVisible, setEnergyModalVisible] = useState(false);
-  // Uusi tila: onko tili linkitetty Googleen
+  // Tilin linkityksen tila
   const [isLinked, setIsLinked] = useState(false);
+  // Pelaajan taso (default on 'basic')
   const [playerLevel, setPlayerLevel] = useState('basic');
 
-console.log('playerLevel:', playerLevel);
+  console.log('playerLevel:', playerLevel);
 
-  // Fetch the player's avatar from the avatars array
+  // Kuunnellaan pelaajan tasoa Firebase-tietokannasta, kun playerId on saatavilla
+  useEffect(() => {
+    if (playerId) {
+      const levelRef = ref(database, `players/${playerId}/level`);
+      const unsubscribe = onValue(levelRef, (snapshot) => {
+        if (snapshot.exists()) {
+          const levelValue = snapshot.val();
+          setPlayerLevel(levelValue);
+          console.log('Player level updated from Firebase:', levelValue);
+        }
+      });
+      return () => unsubscribe();
+    }
+  }, [playerId]);
+
+  // Hae tokenit Firebase:sta
   const fetchInitialTokens = async () => {
     try {
       const tokenRef = ref(database, `players/${playerId}/tokens`);
@@ -45,7 +60,6 @@ console.log('playerLevel:', playerLevel);
         const fetchedTokens = snapshot.val();
         console.log('Firebase-tokens:', fetchedTokens);
 
-        // If tokens are not loaded, set them to fetched value
         if (fetchedTokens !== tokens) {
           setTokens(fetchedTokens);
         }
@@ -56,15 +70,12 @@ console.log('playerLevel:', playerLevel);
       }
     } catch (error) {
       console.error('Virhe tokenien lataamisessa:', error);
-
-      // If tokens are not loaded, set them to max
       if (tokens !== MAX_TOKENS) {
         setTokens(MAX_TOKENS);
       }
     }
   };
 
-  // Fecth video tokens from Firebase
   const fetchVideoTokens = async () => {
     try {
       const videoTokenRef = ref(database, `players/${playerId}/videoTokens`);
@@ -77,7 +88,6 @@ console.log('playerLevel:', playerLevel);
     }
   };
 
-  // Update tokens in Firebase
   const updateTokensInFirebase = async () => {
     if (playerId && tokens !== null) {
       try {
@@ -90,7 +100,6 @@ console.log('playerLevel:', playerLevel);
     }
   };
 
-  // Update video tokens in Firebase
   const updateVideoTokensInFirebase = async () => {
     if (playerId && videoTokens !== null) {
       try {
@@ -103,7 +112,6 @@ console.log('playerLevel:', playerLevel);
     }
   };
 
-  // Avatar URL check in background
   useEffect(() => {
     if (playerId) {
       const playerRef = ref(database, `players/${playerId}/avatar`);
@@ -120,7 +128,6 @@ console.log('playerLevel:', playerLevel);
     }
   }, [playerId]);
 
-  // Get player token information from Firebase
   useEffect(() => {
     if (playerId) {
       fetchInitialTokens();
@@ -128,12 +135,10 @@ console.log('playerLevel:', playerLevel);
     }
   }, [playerId]);
 
-  // Update tokens in Firebase, when they change
   useEffect(() => {
     updateTokensInFirebase();
   }, [tokens]);
 
-  // Update video tokens in Firebase, when they change
   useEffect(() => {
     updateVideoTokensInFirebase();
   }, [videoTokens]);
@@ -221,11 +226,10 @@ console.log('playerLevel:', playerLevel);
       setUserRecognized,
       tokens,
       setTokens,
-      videoTokens, // Video tokenit lisätty
-      setVideoTokens, // Video tokenien asettaminen
+      videoTokens,
+      setVideoTokens,
       energyModalVisible,
       setEnergyModalVisible,
-      // Uudet tilat tilin linkitykselle:
       isLinked,
       setIsLinked,
       playerLevel,

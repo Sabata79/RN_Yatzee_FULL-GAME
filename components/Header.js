@@ -32,15 +32,6 @@ export default function Header() {
     console.log('Peli aloitettu!');
   };
 
-  // Funktio, joka kiertää pelaajan tasoa seuraavaan
-  const cyclePlayerLevel = () => {
-    const levelOrder = ['basic', 'advanced', 'elite', 'legendary'];
-    const currentIndex = levelOrder.indexOf(playerLevel.toLowerCase());
-    const nextIndex = (currentIndex + 1) % levelOrder.length;
-    setPlayerLevel(levelOrder[nextIndex]);
-    console.log('New player level:', levelOrder[nextIndex]);
-  };
-
   return (
     <View style={headerStyles.header}>
       {/* Header/Logo */}
@@ -69,9 +60,6 @@ export default function Header() {
       {userRecognized && (
         <Pressable
           onPress={() => {
-            // Päivitetään pelaajan tasoa kiertämällä seuraavaan tasoon
-            cyclePlayerLevel();
-            // Näytetään avatar-modiaali
             setModalVisible(true);
           }}
         >
