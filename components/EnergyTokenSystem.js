@@ -14,7 +14,9 @@ import {
   TestIds,
 } from 'react-native-google-mobile-ads';
 
-const adUnitId = __DEV__ ? TestIds.REWARDED : 'ca-app-pub-3940256099942544/5224354917';
+const adUnitId = __DEV__
+  ? TestIds.REWARDED
+  : Constants.expoConfig?.extra?.adUnitId || process.env.EXPO_PUBLIC_AD_UNIT_ID;
 const REGEN_INTERVAL = 2.4 * 60 * 60 * 1000; // 2.4 tuntia ms:inä
 
 const EnergyTokenSystem = () => {
