@@ -31,6 +31,9 @@ export const GameProvider = ({ children }) => {
   const [energyModalVisible, setEnergyModalVisible] = useState(false);
   // Uusi tila: onko tili linkitetty Googleen
   const [isLinked, setIsLinked] = useState(false);
+  const [playerLevel, setPlayerLevel] = useState('basic');
+
+console.log('playerLevel:', playerLevel);
 
   // Fetch the player's avatar from the avatars array
   const fetchInitialTokens = async () => {
@@ -225,6 +228,8 @@ export const GameProvider = ({ children }) => {
       // Uudet tilat tilin linkitykselle:
       isLinked,
       setIsLinked,
+      playerLevel,
+      setPlayerLevel,
     }}>
       {children}
     </GameContext.Provider>

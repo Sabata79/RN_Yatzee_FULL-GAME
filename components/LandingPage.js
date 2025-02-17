@@ -18,6 +18,7 @@ export default function LandingPage({ navigation }) {
     setPlayerId,
     setPlayerName,
     setIsLinked,
+    setPlayerLevel,
   } = useGame();
 
   // Log as anonymous user and save uid to SecureStore
@@ -91,6 +92,7 @@ export default function LandingPage({ navigation }) {
         setPlayerId(userId);
         setIsLinked(!!playerData.isLinked);
         setUserRecognized(true);
+        setPlayerLevel(playerData.level);
       } else {
         // If player data not found, set user as not recognized
         console.log("Ei löytynyt pelaajatietoja ID:lle:", userId);

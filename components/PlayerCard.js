@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Modal, Pressable, ScrollView, Image } from 'react-native';
+import { View, Text, Modal, Pressable, ScrollView as RNScrollView, Image } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useGame } from '../components/GameContext';
 import styles from '../styles/playerCardStyles';
 import { database } from './Firebase';
 import { ref, onValue, update } from 'firebase/database';
 import { avatars } from '../constants/AvatarPaths';
+import AvatarContainer from '../components/AvatarContainer';
 
 export default function PlayerCard({ isModalVisible, setModalVisible }) {
     const {
@@ -16,6 +17,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
         resetViewingPlayer,
         avatarUrl,
         setAvatarUrl,
+        playerLevel,
     } = useGame();
 
     const [playerIsLinked, setPlayerIsLinked] = useState(false);
@@ -225,107 +227,96 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
         return [...topScores, ...emptyScores].slice(0, 5);
     };
 
-    return (
-        <View style={styles.playerCardContainer}>
-            <Modal
-                animationType="slide"
-                transparent={true}
-                visible={isModalVisible}
-                onRequestClose={() => setModalVisible(false)}
+  return (
+    <View style={styles.playerCardContainer}>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={isModalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.playerCardModalBackground}>
+          <View style={styles.playerCardModalContainer}>
+            <Image 
+              source={require('../assets/playercardBackground.jpeg')} 
+              style={styles.avatarModalBackgroundImage} 
+            />
+            <Pressable
+              style={styles.playerCardCloseButton}
+              onPress={() => { setModalModalVisible(false); setModalVisible(false); }}
             >
-                <View style={styles.playerCardModalBackground}>
-                    <View style={styles.playerCardModalContainer}>
-                        <Image source={require('../assets/playercardBackground.jpeg')} style={styles.avatarModalBackgroundImage} />
-                        <Pressable
-                            style={styles.playerCardCloseButton}
-                            onPress={() => { setModalModalVisible(false); setModalVisible(false); }}
-                        >
-                            <Text style={styles.playerCardCloseText}>X</Text>
-                        </Pressable>
+              <Text style={styles.playerCardCloseText}>X</Text>
+            </Pressable>
 
-                        <Modal
-                            animationType="slide"
-                            transparent={true}
-                            visible={isAvatarModalVisible}
-                            onRequestClose={() => setIsAvatarModalVisible(false)}
-                        >
-                            <View style={styles.avatarModalBackground}>
-                                <View style={styles.avatarModalContainer}>
-                                    <Text style={styles.avatarSelectText}>Choose your Avatar:</Text>
-                                    <Pressable style={styles.closeAvatarModalButton} onPress={() => setIsAvatarModalVisible(false)}>
-                                        <Text style={styles.closeAvatarModalText}>X</Text>
-                                    </Pressable>
-                                    <View style={styles.avatarSelectionWrapper}>
-                                        {avatars.map((avatar, index) => (
-                                            <Pressable key={index} onPress={() => handleAvatarSelect(avatar)}>
-                                                <Image style={styles.avatarModalImage} source={avatar.display} />
-                                            </Pressable>
-                                        ))}
-                                    </View>
-                                </View>
-                            </View>
-                        </Modal>
+            {/* Korvataan vanha avatar modaalin koodi uudella AvatarContainer-komponentilla */}
+            <AvatarContainer 
+              isVisible={isAvatarModalVisible} 
+              onClose={() => setIsAvatarModalVisible(false)}
+              avatars={avatars}
+              handleAvatarSelect={handleAvatarSelect}
+              playerLevel={playerLevel}
+            />
 
-                        <View style={styles.playerInfoContainer}>
-                            <View style={{ position: 'relative' }}>
-                                <View style={styles.avatarContainer}>
-                                    <Image
-                                        style={styles.avatar}
-                                        source={getAvatarImage(getAvatarToDisplay())}
-                                    />
-                                </View>
-                                {playerIsLinked && (
-                                    <View style={styles.linkIconContainer}>
-                                        <FontAwesome5 name="link" size={20} color="gold" />
-                                    </View>
-                                )}
-                            </View>
-                            {idToUse === playerId && (
-                                <Pressable
-                                    style={styles.editAvatarButton}
-                                    onPress={() => setIsAvatarModalVisible(true)}
-                                >
-                                    <FontAwesome5 name="edit" size={20} color="white" />
-                                </Pressable>
-                            )}
-                            <View style={styles.playerNameContainer}>
-                                <Text style={styles.playerCardName}>{nameToUse}</Text>
-                            </View>
-                        </View>
-
-                        <ScrollView style={styles.playerCardScoresContainer}>
-                            <Text style={styles.playerCardScoresTitle}>YOUR TOP 5 SCORES</Text>
-                            {getTopScoresWithEmptySlots().map((score, index) => (
-                                <View key={index} style={styles.scoreRow}>
-                                    <View style={styles.scoreTextContainer}>
-                                        <Text style={styles.playerCardScoreItem}>
-                                            {index + 1}. {score.points} points in {score.duration} sec
-                                        </Text>
-                                    </View>
-                                    <View style={styles.dateContainer}>
-                                        <Text style={styles.playerCardScoreDate}>{score.date}</Text>
-                                    </View>
-                                </View>
-                            ))}
-                        </ScrollView>
-
-                        <View style={styles.playerCardTrophyCase}>
-                            <Text style={styles.playerCardTrophyCaseTitle}>TROPHIES {currentYear}</Text>
-                            <View style={styles.playerCardMonthsContainer}>
-                                {Array(12).fill(null).map((_, index) => (
-                                    <View
-                                        key={index}
-                                        style={[styles.playerCardMonth, index === currentMonth ? styles.playerCardOngoingMonth : null]}
-                                    >
-                                        <Text style={styles.playerCardMonthText}>{monthNames[index]}</Text>
-                                        {getTrophyForMonth(index)}
-                                    </View>
-                                ))}
-                            </View>
-                        </View>
-                    </View>
+            <View style={styles.playerInfoContainer}>
+              <View style={{ position: 'relative' }}>
+                <View style={styles.avatarContainer}>
+                  <Image
+                    style={styles.avatar}
+                    source={getAvatarImage(getAvatarToDisplay())}
+                  />
                 </View>
-            </Modal>
+                {playerIsLinked && (
+                  <View style={styles.linkIconContainer}>
+                    <FontAwesome5 name="link" size={20} color="gold" />
+                  </View>
+                )}
+              </View>
+              {idToUse === playerId && (
+                <Pressable
+                  style={styles.editAvatarButton}
+                  onPress={() => setIsAvatarModalVisible(true)}
+                >
+                  <FontAwesome5 name="edit" size={20} color="white" />
+                </Pressable>
+              )}
+              <View style={styles.playerNameContainer}>
+                <Text style={styles.playerCardName}>{nameToUse}</Text>
+              </View>
+            </View>
+
+            <RNScrollView style={styles.playerCardScoresContainer}>
+              <Text style={styles.playerCardScoresTitle}>YOUR TOP 5 SCORES</Text>
+              {getTopScoresWithEmptySlots().map((score, index) => (
+                <View key={index} style={styles.scoreRow}>
+                  <View style={styles.scoreTextContainer}>
+                    <Text style={styles.playerCardScoreItem}>
+                      {index + 1}. {score.points} points in {score.duration} sec
+                    </Text>
+                  </View>
+                  <View style={styles.dateContainer}>
+                    <Text style={styles.playerCardScoreDate}>{score.date}</Text>
+                  </View>
+                </View>
+              ))}
+            </RNScrollView>
+
+            <View style={styles.playerCardTrophyCase}>
+              <Text style={styles.playerCardTrophyCaseTitle}>TROPHIES {currentYear}</Text>
+              <View style={styles.playerCardMonthsContainer}>
+                {Array(12).fill(null).map((_, index) => (
+                  <View
+                    key={index}
+                    style={[styles.playerCardMonth, index === currentMonth ? styles.playerCardOngoingMonth : null]}
+                  >
+                    <Text style={styles.playerCardMonthText}>{monthNames[index]}</Text>
+                    {getTrophyForMonth(index)}
+                  </View>
+                ))}
+              </View>
+            </View>
+          </View>
         </View>
-    );
+      </Modal>
+    </View>
+  );
 }

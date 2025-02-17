@@ -1,6 +1,4 @@
-// NOTICE: Styles of the component are in the file 'headerStyles.js'. Styles are made whit section flex and flexDirection row. 
-
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { View, Text, Pressable, Image } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import PlayerCard from './PlayerCard';
@@ -11,7 +9,15 @@ import { avatars } from '../constants/AvatarPaths';
 
 export default function Header() {
   const [isModalVisible, setModalVisible] = useState(false);
-  const { playerId, playerName, userRecognized, avatarUrl, isLinked } = useGame();
+  const {
+    playerId,
+    playerName,
+    userRecognized,
+    avatarUrl,
+    isLinked,
+    playerLevel,
+    setPlayerLevel,
+  } = useGame();
 
   const userAvatar = avatars.find((avatar) => avatar.path === avatarUrl)?.display;
 
@@ -26,20 +32,20 @@ export default function Header() {
     console.log('Peli aloitettu!');
   };
 
-  useEffect(() => {
-    if (avatarUrl) {
-      console.log('Avatar URL is set:', avatarUrl);
-    } else {
-      console.log('No Avatar URL found.');
-    }
-  }, [avatarUrl]);
+  // Funktio, joka kiertää pelaajan tasoa seuraavaan
+  const cyclePlayerLevel = () => {
+    const levelOrder = ['basic', 'advanced', 'elite', 'legendary'];
+    const currentIndex = levelOrder.indexOf(playerLevel.toLowerCase());
+    const nextIndex = (currentIndex + 1) % levelOrder.length;
+    setPlayerLevel(levelOrder[nextIndex]);
+    console.log('New player level:', levelOrder[nextIndex]);
+  };
 
   return (
     <View style={headerStyles.header}>
       {/* Header/Logo */}
       <View style={headerStyles.section1}>
-        <Text style={headerStyles.headerTitle}>
-          SMR </Text>
+        <Text style={headerStyles.headerTitle}>SMR</Text>
         <Image source={require('../assets/desktopIcon.png')} style={headerStyles.headerImage} />
       </View>
 
@@ -50,7 +56,7 @@ export default function Header() {
         </View>
       )}
 
-      {/* UserName*/}
+      {/* UserName */}
       {userRecognized && playerName && (
         <Pressable onPress={() => setModalVisible(true)}>
           <View style={headerStyles.section3}>
@@ -61,7 +67,14 @@ export default function Header() {
 
       {/* Avatar */}
       {userRecognized && (
-        <Pressable onPress={() => setModalVisible(true)}>
+        <Pressable
+          onPress={() => {
+            // Päivitetään pelaajan tasoa kiertämällä seuraavaan tasoon
+            cyclePlayerLevel();
+            // Näytetään avatar-modiaali
+            setModalVisible(true);
+          }}
+        >
           <View style={headerStyles.section4}>
             <View style={{ position: 'relative' }}>
               {userAvatar ? (
@@ -95,4 +108,4 @@ export default function Header() {
       )}
     </View>
   );
-};
+}
