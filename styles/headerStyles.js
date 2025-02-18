@@ -16,6 +16,7 @@ const headerStyles = StyleSheet.create({
     backgroundColor: 'black',
     marginTop: statusBarHeight,
     overflow: 'hidden',
+    marginTop: 0,
   },
   section1: {
     flex: isSmallScreen ? 1.5 : 1.5,
