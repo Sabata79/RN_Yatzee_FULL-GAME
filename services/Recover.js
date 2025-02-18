@@ -4,7 +4,7 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import * as SecureStore from 'expo-secure-store';
 import { auth, database } from '../components/Firebase';
 import { useGame } from '../components/GameContext';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
 import { ref, update, get, remove } from 'firebase/database';
 import * as Updates from 'expo-updates';
 
@@ -12,6 +12,8 @@ const Recover = ({ isVisible, onClose }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false); // Toggle for password visibility
+    const [resetMessage, setResetMessage] = useState(null);
+    const [isResetMode, setIsResetMode] = useState(false);
 
     const [successModalVisible, setSuccessModalVisible] = useState(false);
     const [errorModalVisible, setErrorModalVisible] = useState(false);
@@ -66,62 +68,107 @@ const Recover = ({ isVisible, onClose }) => {
         }
     };
 
+    const handleResetPassword = async () => {
+        if (!email.trim()) {
+            setResetMessage("Please enter your email to reset your password.");
+            return;
+        }
+
+        try {
+            // Aseta reset-tila heti, jotta salasanakenttä piilotetaan välittömästi
+            setIsResetMode(true);
+            await sendPasswordResetEmail(auth, email);
+            setResetMessage("Password reset link has been sent to your email.");
+            setPassword(''); // Nollataan salasana
+        } catch (error) {
+            setResetMessage(error.message);
+            setIsResetMode(false);
+        }
+    };
+
+    const handleEmailChange = (text) => {
+        setEmail(text);
+        setResetMessage(null);
+    };
+
     return (
-        <>
-            {/* Recover Modal */}
-            <Modal transparent={true} animationType="slide" visible={isVisible} onRequestClose={onClose}>
-                <View style={styles.modalContainer}>
-                    <View style={styles.modalContent}>
-                        <Text style={styles.modalTitle}>
-                            Recover <FontAwesome5 name="link" size={20} color="gold" /> Account
-                        </Text>
-                        <Text style={styles.modalText}>
-                            Enter your email and password to recover your linked account.
-                        </Text>
-
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Enter your email"
-                            autoCapitalize="none"
-                            value={email}
-                            onChangeText={setEmail}
-                        />
-
-                        <View style={styles.passwordContainer}>
+        <Modal transparent={true} animationType="slide" visible={isVisible} onRequestClose={onClose}>
+            <View style={styles.modalContainer}>
+                <View style={styles.modalContent}>
+                    <Text style={styles.modalTitle}>
+                        Recover <FontAwesome5 name="link" size={20} color="gold" /> Account
+                    </Text>
+                    {isResetMode ? (
+                        <>
+                            <Text style={styles.modalText}>
+                                Enter your email to reset your password.
+                            </Text>
                             <TextInput
-                                style={styles.passwordInput}
-                                placeholder="Enter your password"
-                                secureTextEntry={!showPassword}
-                                value={password}
-                                onChangeText={setPassword}
+                                style={styles.input}
+                                placeholder="Enter your email"
+                                autoCapitalize="none"
+                                value={email}
+                                onChangeText={setEmail}
                             />
-                            <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                                <FontAwesome5 name={showPassword ? "eye-slash" : "eye"} size={20} color="gray" />
+                            {resetMessage && <Text style={styles.resetMessage}>{resetMessage}</Text>}
+                            <Pressable
+                                style={({ pressed }) => [styles.actionButton, pressed && styles.buttonPressed]}
+                                onPress={handleResetPassword}
+                            >
+                                <Text style={styles.buttonText}>SEND!</Text>
+                            </Pressable>
+                            <TouchableOpacity onPress={() => setIsResetMode(false)}>
+                                <Text style={styles.forgotPassword}>Back</Text>
                             </TouchableOpacity>
-                        </View>
-
-                        <Pressable
-                            style={({ pressed }) => [styles.actionButton, pressed && styles.buttonPressed]}
-                            onPress={handleRecoverAccount}
-                        >
-                            <Text style={styles.buttonText}>Recover Account</Text>
-                            <FontAwesome5 name="redo" size={20} color="gold" />
-                        </Pressable>
-
-                        <Pressable
-                            style={({ pressed }) => [styles.closeButton, pressed && styles.buttonPressed]}
-                            onPress={onClose}
-                        >
-                            <Text style={styles.buttonText}>Cancel</Text>
-                        </Pressable>
-                    </View>
+                        </>
+                    ) : (
+                        <>
+                            <Text style={styles.modalText}>
+                                Enter your email and password to recover your linked account.
+                            </Text>
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Enter your email"
+                                autoCapitalize="none"
+                                value={email}
+                                onChangeText={setEmail}
+                            />
+                            <View style={styles.passwordContainer}>
+                                <TextInput
+                                    style={styles.passwordInput}
+                                    placeholder="Enter your password"
+                                    secureTextEntry={!showPassword}
+                                    value={password}
+                                    onChangeText={setPassword}
+                                />
+                                <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                                    <FontAwesome5 name={showPassword ? "eye-slash" : "eye"} size={20} color="gray" />
+                                </TouchableOpacity>
+                            </View>
+                            <Pressable
+                                style={({ pressed }) => [styles.actionButton, pressed && styles.buttonPressed]}
+                                onPress={handleRecoverAccount}
+                            >
+                                <Text style={styles.buttonText}>Recover Account</Text>
+                                <FontAwesome5 name="redo" size={20} color="gold" />
+                            </Pressable>
+                            <TouchableOpacity onPress={() => setIsResetMode(true)}>
+                                <Text style={styles.forgotPassword}>Forgot Password?</Text>
+                            </TouchableOpacity>
+                            <Pressable
+                                style={({ pressed }) => [styles.closeButton, pressed && styles.buttonPressed]}
+                                onPress={onClose}
+                            >
+                                <Text style={styles.buttonText}>Cancel</Text>
+                            </Pressable>
+                        </>
+                    )}
                 </View>
-            </Modal>
-        </>
+            </View>
+        </Modal>
     );
 };
 
-// Styles
 const styles = StyleSheet.create({
     modalContainer: {
         flex: 1,
@@ -157,6 +204,19 @@ const styles = StyleSheet.create({
         marginBottom: 20,
         fontSize: 16,
         color: '#333',
+    },
+    forgotPassword: {
+        color: 'blue',
+        fontSize: 14,
+        marginBottom: 10,
+        alignSelf: 'flex-start',
+        textDecorationLine: 'underline',
+    },
+    resetMessage: {
+        color: 'green',
+        fontSize: 14,
+        marginBottom: 10,
+        textAlign: 'center',
     },
     passwordContainer: {
         flexDirection: 'row',

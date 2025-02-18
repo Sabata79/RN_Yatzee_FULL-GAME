@@ -84,7 +84,7 @@ export default function LandingPage({ navigation }) {
     try {
       const snapshot = await get(playerRef);
       const playerData = snapshot.val();
-      if (playerData) {
+      if (playerData && playerData.name !== undefined) {
         // If player data found, set player data to GameContext
         setPlayerIdContext(userId);
         setPlayerNameContext(playerData.name);
