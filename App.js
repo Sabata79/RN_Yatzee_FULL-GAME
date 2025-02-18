@@ -1,11 +1,11 @@
 import * as Updates from 'expo-updates';
 import React, { useState, useEffect } from 'react';
-import { StatusBar } from 'expo-status-bar';
+import { StatusBar, Linking } from 'react-native';
 import { SafeAreaView, Modal, View, Text, Pressable, Dimensions, Easing } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { createBottomTabNavigator,TransitionSpecs, SceneStyleInterpolators } from '@react-navigation/bottom-tabs';
+import { createBottomTabNavigator, TransitionSpecs, SceneStyleInterpolators } from '@react-navigation/bottom-tabs';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
 import { GameProvider } from './components/GameContext';
@@ -40,9 +40,18 @@ export default function App() {
         try {
           const update = await Updates.checkForUpdateAsync();
           if (update.isAvailable) {
-            await Updates.fetchUpdateAsync();
-            setUpdateAvailable(true);
-            setUpdateModalVisible(true);
+            // Tarkistetaan, onko uusi päivitys uusi binääri (runtimeVersion vaihtunut)
+            const currentRuntimeVersion = Updates.manifest?.runtimeVersion;
+            const newRuntimeVersion = update.manifest?.runtimeVersion;
+            if (
+              currentRuntimeVersion &&
+              newRuntimeVersion &&
+              currentRuntimeVersion !== newRuntimeVersion
+            ) {
+              setUpdateAvailable(true);
+              setUpdateModalVisible(true);
+            }
+            // Jos runtimeVersion on sama, kyseessä on OTA-muutokset, joita ei näytetä.
           }
         } catch (e) {
           console.error('Update failure: ', e);
@@ -54,7 +63,14 @@ export default function App() {
 
   const handleUpdate = async () => {
     setUpdateModalVisible(false);
-    await Updates.reloadAsync();
+    // Avaa Play Kaupan sovellussivu, jotta käyttäjä voi päivittää binäärin
+    const url = 'market://details?id=com.SimpleYatzee';
+    const supported = await Linking.canOpenURL(url);
+    if (supported) {
+      await Linking.openURL(url);
+    } else {
+      console.error("Can't open Play Store URL");
+    }
   };
 
   const [loaded] = useFonts({
@@ -66,84 +82,83 @@ export default function App() {
   }
 
   // Tab navigator for the main application screens
-const TabNavigator = () => (
-  <Tab.Navigator
-    tabBarPosition="bottom"
-    screenOptions={({ route }) => ({
-      headerShown: false,
-      tabBarStyle: {
-        height: isSmallScreen ? 55 : isBigScreen ? 85 : 70,
-        paddingTop: isSmallScreen ? 0 : 5,
-        backgroundColor: 'black',
-        borderTopWidth: 0.2,
-        borderTopColor: 'darkorange',
-      },
-      tabBarActiveTintColor: '#ffffff',
-      tabBarInactiveTintColor: 'gray',
-      tabBarLabelStyle: {
-        fontSize: isSmallScreen ? 9 : isBigScreen ? 16 : 12,
-        letterSpacing: -0.1,
-        fontFamily: 'AntonRegular',
-      },
-      tabBarIcon: ({ focused }) => {
-        const iconStyle = {
-          size: isSmallScreen ? 22 : isBigScreen ? 28 : 28,
-          color: focused ? '#eae6e6' : 'gray',
-        };
-
-        if (route.name === 'Home') {
-          return <FontAwesome5 name="home" {...iconStyle} />;
-        } else if (route.name === 'Gameboard') {
-          return <FontAwesome5 name="dice" {...iconStyle} />;
-        } else if (route.name === 'Scoreboard') {
-          return <FontAwesome5 name="trophy" {...iconStyle} />;
-        } else if (route.name === 'Rules') {
-          return <FontAwesome5 name="book" {...iconStyle} />;
-        } else if (route.name === 'About Me') {
-          return <FontAwesome5 name="user" {...iconStyle} />;
-        }
-      },
-      
-      transitionSpec: {
-        animation: 'timing', 
-        config: {
-          duration: 800, 
-          easing: Easing.inOut(Easing.ease),
+  const TabNavigator = () => (
+    <Tab.Navigator
+      tabBarPosition="bottom"
+      screenOptions={({ route }) => ({
+        headerShown: false,
+        tabBarStyle: {
+          height: isSmallScreen ? 55 : isBigScreen ? 85 : 70,
+          paddingTop: isSmallScreen ? 0 : 5,
+          backgroundColor: 'black',
+          borderTopWidth: 0.2,
+          borderTopColor: 'darkorange',
         },
-      },
-      sceneStyleInterpolator: SceneStyleInterpolators.forFade,
-    })}
-  >
-    {/* Home Tab */}
-    <Tab.Screen
-      name="Home"
-      options={{
-        tabBarLabel: 'Home',
+        tabBarActiveTintColor: '#ffffff',
+        tabBarInactiveTintColor: 'gray',
+        tabBarLabelStyle: {
+          fontSize: isSmallScreen ? 9 : isBigScreen ? 16 : 12,
+          letterSpacing: -0.1,
+          fontFamily: 'AntonRegular',
+        },
         tabBarIcon: ({ focused }) => {
           const iconStyle = {
-            size: isSmallScreen ? 22 : 30,
+            size: isSmallScreen ? 22 : isBigScreen ? 28 : 28,
             color: focused ? '#eae6e6' : 'gray',
           };
-          return <FontAwesome5 name="home" {...iconStyle} />;
+
+          if (route.name === 'Home') {
+            return <FontAwesome5 name="home" {...iconStyle} />;
+          } else if (route.name === 'Gameboard') {
+            return <FontAwesome5 name="dice" {...iconStyle} />;
+          } else if (route.name === 'Scoreboard') {
+            return <FontAwesome5 name="trophy" {...iconStyle} />;
+          } else if (route.name === 'Rules') {
+            return <FontAwesome5 name="book" {...iconStyle} />;
+          } else if (route.name === 'About Me') {
+            return <FontAwesome5 name="user" {...iconStyle} />;
+          }
         },
-        tabBarStyle: { display: 'none' },
-      }}
+        transitionSpec: {
+          animation: 'timing',
+          config: {
+            duration: 800,
+            easing: Easing.inOut(Easing.ease),
+          },
+        },
+        sceneStyleInterpolator: SceneStyleInterpolators.forFade,
+      })}
     >
-      {() => (
-        <Home
-          setIsUserRecognized={setIsUserRecognized}
-          setName={setName}
-          setPlayerId={setPlayerId}
-        />
-      )}
-    </Tab.Screen>
-    {/* Muut Tab Screen -komponentit */}
-    <Tab.Screen name="Gameboard" options={{ tabBarLabel: 'Game' }} component={Gameboard} />
-    <Tab.Screen name="Scoreboard" options={{ tabBarLabel: 'Scores' }} component={Scoreboard} />
-    <Tab.Screen name="Rules" options={{ tabBarLabel: 'Help' }} component={Rules} />
-    <Tab.Screen name="About Me" options={{ tabBarLabel: 'About' }} component={About} />
-  </Tab.Navigator>
-);
+      {/* Home Tab */}
+      <Tab.Screen
+        name="Home"
+        options={{
+          tabBarLabel: 'Home',
+          tabBarIcon: ({ focused }) => {
+            const iconStyle = {
+              size: isSmallScreen ? 22 : 30,
+              color: focused ? '#eae6e6' : 'gray',
+            };
+            return <FontAwesome5 name="home" {...iconStyle} />;
+          },
+          tabBarStyle: { display: 'none' },
+        }}
+      >
+        {() => (
+          <Home
+            setIsUserRecognized={setIsUserRecognized}
+            setName={setName}
+            setPlayerId={setPlayerId}
+          />
+        )}
+      </Tab.Screen>
+      {/* Muut Tab Screen -komponentit */}
+      <Tab.Screen name="Gameboard" options={{ tabBarLabel: 'Game' }} component={Gameboard} />
+      <Tab.Screen name="Scoreboard" options={{ tabBarLabel: 'Scores' }} component={Scoreboard} />
+      <Tab.Screen name="Rules" options={{ tabBarLabel: 'Help' }} component={Rules} />
+      <Tab.Screen name="About Me" options={{ tabBarLabel: 'About' }} component={About} />
+    </Tab.Navigator>
+  );
 
   return (
     <SafeAreaProvider>
