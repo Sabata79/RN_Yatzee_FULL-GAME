@@ -1,10 +1,10 @@
 // NOTICE: These styles are made whit section flex and flexDirection row. The styles are used in the Header.js component
 
-import { StyleSheet, Dimensions } from 'react-native';
-import Constants from 'expo-constants';
+import { StyleSheet, Dimensions, StatusBar, Platform } from 'react-native';
 
 const { height, width } = Dimensions.get('window');
 const isSmallScreen = height < 650;
+const statusBarHeight = Platform.OS === 'android' ? StatusBar.currentHeight || 20 : 0;
 
 const headerStyles = StyleSheet.create({
   header: {
@@ -14,7 +14,7 @@ const headerStyles = StyleSheet.create({
     paddingHorizontal: 10,
     height: isSmallScreen ? 50 : height * 0.1,
     backgroundColor: 'black',
-    marginTop: Constants.statusBarHeight,
+    marginTop: statusBarHeight,
     overflow: 'hidden',
   },
   section1: {
