@@ -124,22 +124,6 @@ export default function Home({ setPlayerId }) {
     setIsLinkModalVisible(true);
   };
 
-//RECOVER TEST!
-
-  const handleReset = async () => {
-    try {
-      await SecureStore.deleteItemAsync('user_id');
-      Alert.alert('SecureStore reset', 'user_id on poistettu.');
-      console.log('user_id deleted from SecureStore');
-    } catch (error) {
-      Alert.alert('Reset error', error.message);
-      console.error('Error deleting user_id from SecureStore:', error);
-    }
-  };
-
-
-
-
   return (
     <ImageBackground source={require("../assets/diceBackground.jpg")} style={styles.background}>
       <View style={styles.overlay}>
@@ -225,9 +209,6 @@ export default function Home({ setPlayerId }) {
             />
           </View>
         )}
-    <View style={{ marginTop: 50, padding: 20 }}>
-      <Button title="Reset SecureStore (user_id)" onPress={handleReset} />
-    </View>
       </View>
     </ImageBackground>
   );
