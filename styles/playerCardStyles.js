@@ -3,7 +3,6 @@ import { Dimensions } from 'react-native';
 
 const { width, height } = Dimensions.get('window');
 const isFoldScreen = width < 800;
-console.log(width);
 const avatarSize = isFoldScreen ? 75 : 80;
 
 

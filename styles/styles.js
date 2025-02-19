@@ -49,12 +49,15 @@ export default styles = StyleSheet.create({
         backgroundColor: '#6c6b6b',
         borderRadius: 5,
     },
-    inputIndexShown: {
-        fontSize: isSmallScreen ? 16 : isBigScreen ? 20 : 18,
-        fontFamily: 'AntonRegular',
-        color: '#4a4336',
-        textAlign: 'center',
-    },
+inputIndexShown: {
+    fontSize: isSmallScreen ? 16 : isBigScreen ? 20 : 18,
+    fontFamily: 'AntonRegular',
+    color: '#534b3d', // Tekstin väri
+    textAlign: 'center',
+    textShadowColor: '#FFFFFF', 
+    textShadowOffset: { width: 0.5, height: 0.5 }, // Varjon siirto
+    textShadowRadius: 1, 
+},
     welcomeText: {
         fontSize: 18,
         top: -25,
