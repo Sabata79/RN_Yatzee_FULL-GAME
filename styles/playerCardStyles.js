@@ -23,9 +23,10 @@ export default styles = StyleSheet.create({
         marginBottom: 5,
     },
     playerNameContainer: {
-        marginLeft: 10,
+        marginLeft: 5,
     },
     playerCardName: {
+        marginTop: 30,
         fontSize: 24,
         fontWeight: 'bold',
         marginBottom: 5,
@@ -183,15 +184,17 @@ export default styles = StyleSheet.create({
     },
     playerCardScoresContainer: {
         marginTop: 5,
-        marginBottom: 5,
+        marginBottom: 0,
     },
     playerCardScoresTitle: {
+        marginTop: 0,
         fontSize: 18,
         marginBottom: 10,
         textAlign: 'center',
         fontWeight: 'bold',
     },
     playerCardScoreItem: {
+        marginTop: 0,
         fontSize: 14,
         fontWeight: 'bold',
         color: '#000',
@@ -207,11 +210,12 @@ export default styles = StyleSheet.create({
         color: '#000000',
         textAlign: 'right',
         flex: 1,
-        paddingTop: 5,
+        paddingTop: 2,
         marginRight: 15,
     },
     playerCardTrophyCase: {
         width: '100%',
+        marginTop: -20,
         alignItems: 'center',
     },
     playerCardTrophyCaseTitle: {
@@ -285,6 +289,16 @@ export default styles = StyleSheet.create({
         borderColor: '#4c4949',
         borderWidth: 1,
         backgroundColor: '#000000ba',
+    },
+    playerStatsContainer: {
+        marginTop: 0,
+        alignItems: 'left',
+        marginLeft: 5,
+    },
+    playerStat: {
+        fontSize: 11,
+        fontWeight: 'bold',
+        color: '#000000',
     },
 
 });
