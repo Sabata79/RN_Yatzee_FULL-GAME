@@ -285,6 +285,14 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
                     <FontAwesome5 name="link" size={20} color="gold" />
                   </View>
                 )}
+                {idToUse === playerId && (
+                  <Pressable
+                    style={styles.editAvatarButton}
+                    onPress={() => setIsAvatarModalVisible(true)}
+                  >
+                    <FontAwesome5 name="edit" size={20} color="white" />
+                  </Pressable>
+                )}
               </View>
               {/* Uusi kontaineri nimelle ja tilastoille */}
               <View style={styles.playerTextContainer}>
