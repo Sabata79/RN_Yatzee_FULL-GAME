@@ -290,7 +290,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
                     style={styles.editAvatarButton}
                     onPress={() => setIsAvatarModalVisible(true)}
                   >
-                    <FontAwesome5 name="edit" size={20} color="white" />
+                    <FontAwesome5 name="edit" size={18} color="white" />
                   </Pressable>
                 )}
               </View>
