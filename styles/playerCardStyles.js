@@ -85,9 +85,9 @@ export default styles = StyleSheet.create({
     },
     // Avatar Styles
     avatarContainer: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
+        width: 80,
+        height: 80,
+        borderRadius: 40,
         overflow: 'hidden',
         marginBottom: 0,
         borderWidth: 1,
@@ -132,7 +132,7 @@ export default styles = StyleSheet.create({
     editAvatarButton: {
         position: 'absolute',
         bottom: 0,
-        left: 75,
+        left: "65%",
         borderWidth: 1,
         backgroundColor: '#ff000096',
         borderRadius: 20,

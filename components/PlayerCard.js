@@ -282,7 +282,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
                 </View>
                 {playerIsLinked && (
                   <View style={styles.linkIconContainer}>
-                    <FontAwesome5 name="link" size={20} color="gold" />
+                    <FontAwesome5 name="link" size={15} color="gold" />
                   </View>
                 )}
                 {idToUse === playerId && (
@@ -290,7 +290,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
                     style={styles.editAvatarButton}
                     onPress={() => setIsAvatarModalVisible(true)}
                   >
-                    <FontAwesome5 name="edit" size={18} color="white" />
+                    <FontAwesome5 name="edit" size={15} color="white" />
                   </Pressable>
                 )}
               </View>
