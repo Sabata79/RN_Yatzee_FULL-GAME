@@ -52,10 +52,10 @@ export default styles = StyleSheet.create({
 inputIndexShown: {
     fontSize: isSmallScreen ? 16 : isBigScreen ? 20 : 18,
     fontFamily: 'AntonRegular',
-    color: '#534b3d', // Tekstin väri
+    color: '#333131ff', // Tekstin väri
     textAlign: 'center',
-    textShadowColor: '#FFFFFF', 
-    textShadowOffset: { width: 0.5, height: 0.5 }, // Varjon siirto
+    textShadowColor: '#b09e9e', 
+    textShadowOffset: { width: 0.2, height: 0.2 }, // Varjon siirto
     textShadowRadius: 1, 
 },
     welcomeText: {
