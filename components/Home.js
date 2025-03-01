@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { View, Text, TextInput, Pressable, Alert, ImageBackground, Image, Animated,Button } from "react-native";
+import { View, Text, TextInput, Pressable, Alert, ImageBackground, Image, Animated, Button } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { FontAwesome5 } from '@expo/vector-icons';
 import styles from '../styles/styles';
@@ -62,11 +62,13 @@ export default function Home({ setPlayerId }) {
     const snapshot = await get(playerRef);
     const playerData = snapshot.val();
 
+    const formattedDate = new Date().toLocaleDateString('fi-FI');
+
     set(playerRef, {
       ...playerData,
       name: name,
       level: "basic",
-      dateJoined: playerData?.dateJoined || new Date().toLocaleDateString(),
+      dateJoined: playerData?.dateJoined || formattedDate, // Käytä uutta formaattia
     });
 
     await SecureStore.setItemAsync("user_id", userId);
@@ -74,7 +76,7 @@ export default function Home({ setPlayerId }) {
     setPlayerName(name);
     setPlayerId(userId);
     console.log("Saving player data:", { name, userId });
-  };
+  }
 
   const sanitizeInput = (input) => {
     const sanitized = input.replace(/[^a-zA-Z0-9 ]/g, '');
