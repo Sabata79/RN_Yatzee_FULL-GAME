@@ -7,10 +7,12 @@ import { useGame } from "../components/GameContext";
 import { ProgressBar } from "react-native-paper";
 import styles from "../styles/landingPageStyles";
 import { signInAnonymously } from "firebase/auth";
+import Constants from "expo-constants";
 
 export default function LandingPage({ navigation }) {
   const [fadeAnim] = useState(new Animated.Value(0));
   const [loadingProgress, setLoadingProgress] = useState(0);
+  // const [gameVersion, setGameVersion] = useState("");
   const {
     setPlayerIdContext,
     setPlayerNameContext,
@@ -19,7 +21,10 @@ export default function LandingPage({ navigation }) {
     setPlayerName,
     setIsLinked,
     setPlayerLevel,
+    setGameVersion,
+    gameVersion,
   } = useGame();
+
 
   // Log as anonymous user and save uid to SecureStore
   const doSignInAnonymously = async () => {
@@ -60,6 +65,9 @@ export default function LandingPage({ navigation }) {
       duration: 1500,
       useNativeDriver: true,
     }).start();
+
+    const version = Constants.expoConfig.version;
+    setGameVersion(version);
 
     // Get or create user id and check if user exists in database
     getOrCreateUserId()
@@ -126,6 +134,9 @@ export default function LandingPage({ navigation }) {
 
   return (
     <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
+      <View style={styles.versionContainer}>
+        <Text style={styles.versionText}>Version: {gameVersion}</Text>
+      </View>
       <View style={styles.logoContainer}>
         <Image source={require("../assets/landingLogo.png")} style={styles.logo} />
       </View>

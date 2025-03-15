@@ -2,8 +2,12 @@ import React from 'react';
 import { ScrollView, View, Text, Image, ImageBackground, Linking } from 'react-native';
 import { aboutTextContent, aboutTitle, aboutFeatures, aboutContact } from '../constants/AboutContent';
 import styles from '../styles/styles';
+import { useGame } from "../components/GameContext";
 
 export default function AboutMe() {
+
+  const { gameVersion } = useGame();
+
   return (
     <ImageBackground
       source={require('../assets/diceBackground.jpg')}
@@ -45,8 +49,13 @@ export default function AboutMe() {
           </Text>
 
           <View style={styles.footer}>
+            <Text style={styles.author}>Version: {gameVersion}</Text>
+          </View>
+
+          <View style={styles.footer}>
             <Text style={styles.author}>© 2025 SMR Yatzy</Text>
           </View>
+
         </ScrollView>
       </View>
     </ImageBackground>

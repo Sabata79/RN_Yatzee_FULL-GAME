@@ -50,7 +50,7 @@ export default function Rules() {
                 styles.rulesText,
                 {
                   fontSize: 22,
-                  lineHeight: 26, 
+                  lineHeight: 26,
                 }
               ]}
               numberOfLines={1}
@@ -64,7 +64,7 @@ export default function Rules() {
             </View>
           </View>
           <View style={{ marginTop: 70 }}>
-          <Text style={styles.rulesText}>{linkingText}</Text>
+            <Text style={styles.rulesText}>{linkingText}</Text>
           </View>
         </View>
       </ImageBackground>
