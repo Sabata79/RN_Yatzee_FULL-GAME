@@ -25,7 +25,7 @@ export default styles = StyleSheet.create({
         marginLeft: 5,
     },
     playerCardName: {
-        marginTop: 30,
+        marginTop: 5,
         fontSize: 24,
         fontWeight: 'bold',
         marginBottom: 5,
@@ -183,12 +183,16 @@ export default styles = StyleSheet.create({
     },
     playerCardScoresContainer: {
         marginTop: 5,
-        marginBottom: 0,
+        marginBottom: 5,
+        borderTopWidth: 1,
+        borderBottomWidth: 1,
+        borderColor: 'black',
     },
+
     playerCardScoresTitle: {
-        marginTop: 0,
+        marginTop: 5,
         fontSize: 18,
-        marginBottom: 10,
+        marginBottom: 0,
         textAlign: 'center',
         fontWeight: 'bold',
     },
@@ -220,6 +224,7 @@ export default styles = StyleSheet.create({
     playerCardTrophyCaseTitle: {
         fontSize: 20,
         fontWeight: 'bold',
+        marginTop: 15,
         marginBottom: 10,
     },
     playerCardMonthsContainer: {
@@ -264,8 +269,8 @@ export default styles = StyleSheet.create({
     },
     playerCardCloseButton: {
         position: 'absolute',
-        right: 21,
-        top: 10,
+        right: 10,
+        top: 0,
         backgroundColor: 'transparent',
         justifyContent: 'center',
         alignItems: 'center',

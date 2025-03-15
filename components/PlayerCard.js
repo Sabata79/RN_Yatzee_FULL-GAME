@@ -82,7 +82,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
               time: score.time,
             }))
             .sort((a, b) => b.points - a.points)
-            .slice(0, 5);
+            .slice(0, 20);
           setTopScores(sortedScores);
         } else {
           setTopScores([]);
@@ -238,9 +238,10 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
   };
 
   const getTopScoresWithEmptySlots = () => {
-    const emptyScores = Array(5 - topScores.length).fill({ points: '', date: '', duration: '' });
-    return [...topScores, ...emptyScores].slice(0, 5);
+    const emptyScores = Array(20 - topScores.length).fill({ points: '', date: '', duration: '' });
+    return [...topScores, ...emptyScores].slice(0, 20);
   };
+
 
   return (
     <View style={styles.playerCardContainer}>
@@ -307,8 +308,8 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
               </View>
             </View>
 
-            <RNScrollView style={styles.playerCardScoresContainer}>
-              <Text style={styles.playerCardScoresTitle}>YOUR TOP 5 SCORES</Text>
+            <Text style={styles.playerCardScoresTitle}>TOP SCORES</Text>
+            <RNScrollView style={[styles.playerCardScoresContainer, { maxHeight: 120 }]}>
               {getTopScoresWithEmptySlots().map((score, index) => (
                 <View key={index} style={styles.scoreRow}>
                   <View style={styles.scoreTextContainer}>
