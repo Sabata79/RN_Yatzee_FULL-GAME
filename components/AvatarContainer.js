@@ -1,6 +1,5 @@
-// AvatarContainer.js
 import React, { useState, useEffect } from 'react';
-import { Modal, View, Text, Pressable, Image, StyleSheet, Dimensions } from 'react-native';
+import { Modal, View, Text, Pressable, Image, StyleSheet, Dimensions, ScrollView } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 
 const { width } = Dimensions.get('window');
@@ -8,25 +7,25 @@ const isFoldScreen = width < 800;
 const avatarSize = isFoldScreen ? 65 : 70;
 
 // Määritellään tasojen järjestys (pienillä kirjaimilla)
-const levelOrder = ['basic', 'advanced', 'elite', 'legendary'];
+const levelOrder = ['beginner', 'basic', 'advanced', 'elite', 'legendary', 'turhapuro'];
 
 const AvatarContainer = ({ isVisible, onClose, avatars, handleAvatarSelect, playerLevel }) => {
-  const tabs = ['Basic', 'Advanced', 'Elite', 'Legendary'];
-  const [selectedTab, setSelectedTab] = useState('Basic');
 
-  // Laske effectivePlayerLevel aina, käyttäen oletusarvoa "basic" jos playerLevel on undefined.
-  const effectivePlayerLevel = (playerLevel || 'basic').toLowerCase();
+  const tabs = ['Beginner', 'Basic', 'Advanced', 'Elite', 'Legendary']; 
+  const [selectedTab, setSelectedTab] = useState('Beginner');
+  const [showTurhapuroTab, setShowTurhapuroTab] = useState(false); 
 
-  // Päivitetään selectedTab, jos pelaajan taso on pienempi kuin nykyinen valittu välilehti
+  const effectivePlayerLevel = (playerLevel || 'beginner').toLowerCase();
+
   useEffect(() => {
-    const currentTabIndex = levelOrder.indexOf(selectedTab.toLowerCase());
-    const playerLevelIndex = levelOrder.indexOf(effectivePlayerLevel);
-    if (currentTabIndex > playerLevelIndex) {
-      // Aseta selectedTabksi pelaajan tason mukainen välilehti
-      const newTab = levelOrder[playerLevelIndex];
-      setSelectedTab(newTab.charAt(0).toUpperCase() + newTab.slice(1));
+    if (effectivePlayerLevel === 'turhapuro') {
+      setShowTurhapuroTab(true); 
+      setSelectedTab('Beginner'); 
+    } else {
+      setShowTurhapuroTab(false); 
+      setSelectedTab('Beginner'); 
     }
-  }, [playerLevel, selectedTab, effectivePlayerLevel]);
+  }, [effectivePlayerLevel]);
 
   // Suodatetaan avatarit valitun välilehden mukaan käyttäen case-insensitive vertailua
   const filteredAvatars = avatars.filter(
@@ -42,60 +41,77 @@ const AvatarContainer = ({ isVisible, onClose, avatars, handleAvatarSelect, play
     >
       <View style={styles.avatarModalBackground}>
         <View style={styles.avatarModalContainer}>
+          {/* Sulkemisnappi omassa rivissään */}
+          <View style={styles.closeButtonContainer}>
+            <Pressable style={styles.closeAvatarModalButton} onPress={onClose}>
+              <Text style={styles.closeAvatarModalText}>X</Text>
+            </Pressable>
+          </View>
+
+          {/* Avatar valinta */}
+          <Text style={styles.avatarSelectText}>Choose your Avatar</Text>
+
           {/* Välilehdet */}
           <View style={styles.tabsContainer}>
-            {tabs.map(tab => {
-              // Tarkistetaan, onko välilehti lukittu pelaajan tason perusteella.
+            {tabs.map((tab, index) => {
               const isLocked =
                 levelOrder.indexOf(effectivePlayerLevel) < levelOrder.indexOf(tab.toLowerCase());
+              const isSelected = selectedTab.toLowerCase() === tab.toLowerCase();
+              const isBelowPlayerLevel = levelOrder.indexOf(tab.toLowerCase()) <= levelOrder.indexOf(effectivePlayerLevel);
+
               return (
                 <Pressable
                   key={tab}
                   style={[
                     styles.tabButton,
-                    selectedTab.toLowerCase() === tab.toLowerCase() && styles.activeTabButton,
-                    isLocked && styles.lockedTabButton,
+                    isSelected ? styles.activeTabButton : styles.inactiveTabButton,
+                    (isLocked || !isBelowPlayerLevel) && styles.lockedTabButton,
+                    isBelowPlayerLevel && !isSelected && styles.unlockedTabButton,
                   ]}
                   onPress={() => {
-                    if (!isLocked) {
+                    if (!isLocked || showTurhapuroTab) {
                       setSelectedTab(tab);
                     }
                   }}
                 >
-                  <Text
-                    style={[
-                      styles.tabText,
-                      selectedTab.toLowerCase() === tab.toLowerCase() && styles.activeTabText,
-                    ]}
-                  >
+                  <Text style={[styles.tabText, isSelected && styles.activeTabText]}>
                     {tab}
                   </Text>
-                  {isLocked && (
-                    <FontAwesome5
-                      name="lock"
-                      size={14}
-                      color="gold"
-                      style={{ marginLeft: 5 }}
-                    />
-                  )}
+                  {isLocked && <FontAwesome5 name="lock" size={10} color="gold" style={{ marginLeft: 5 }} />}
                 </Pressable>
               );
             })}
           </View>
 
-          <Text style={styles.avatarSelectText}>Choose your Avatar:</Text>
-
-          <Pressable style={styles.closeAvatarModalButton} onPress={onClose}>
-            <Text style={styles.closeAvatarModalText}>X</Text>
-          </Pressable>
-
-          <View style={styles.avatarSelectionWrapper}>
-            {filteredAvatars.map((avatar, index) => (
-              <Pressable key={index} onPress={() => handleAvatarSelect(avatar)}>
-                <Image style={styles.avatarModalImage} source={avatar.display} />
+          {/* Wrap Turhapuro Tab with a View for proper display */}
+          {showTurhapuroTab && (
+            <View style={styles.turhapuroTabWrapper}>
+              <Pressable
+                style={[
+                  styles.tabButton,
+                  selectedTab.toLowerCase() === 'turhapuro'
+                    ? styles.activeTabButton
+                    : styles.inactiveTabButton,
+                ]}
+                onPress={() => setSelectedTab('Turhapuro')}
+              >
+                <Text style={[styles.tabText, selectedTab.toLowerCase() === 'turhapuro' && styles.activeTabText]}>
+                  Turhapuro
+                </Text>
               </Pressable>
-            ))}
-          </View>
+            </View>
+          )}
+
+          {/* Avatars */}
+          <ScrollView contentContainerStyle={styles.scrollViewContent}>
+            <View style={styles.avatarSelectionWrapper}>
+              {filteredAvatars.map((avatar, index) => (
+                <Pressable key={index} onPress={() => handleAvatarSelect(avatar)}>
+                  <Image style={styles.avatarModalImage} source={avatar.display} />
+                </Pressable>
+              ))}
+            </View>
+          </ScrollView>
         </View>
       </View>
     </Modal>
@@ -105,62 +121,76 @@ const AvatarContainer = ({ isVisible, onClose, avatars, handleAvatarSelect, play
 const styles = StyleSheet.create({
   avatarModalBackground: {
     flex: 1,
-    marginTop: '15%',
     alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
   },
   avatarModalContainer: {
     width: '80%',
-    height: '90%',
+    height: '80%',
     backgroundColor: '#141414',
     borderRadius: 10,
     padding: 10,
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#fff',
+    position: 'relative',
+    flexDirection: 'column',
   },
   avatarSelectText: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center',
     color: '#fff',
+    textAlign: 'center',
+  },
+  closeButtonContainer: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 15,
+    alignItems: 'center',
   },
   closeAvatarModalButton: {
     position: 'absolute',
-    right: 10,
-    top: 2,
+    right: 5,
+    top: 0,
   },
   closeAvatarModalText: {
     color: '#fff',
     fontSize: 22,
     fontWeight: 'bold',
-    padding: 5,
   },
   tabsContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-evenly',
     width: '100%',
-    marginBottom: 15,
+    flexWrap: 'wrap',
   },
   tabButton: {
-    marginTop: 30,
+    flex: 1,
     flexDirection: 'row',
+    height: 25,
+    justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 5,
-    paddingHorizontal: 5,
     borderRadius: 5,
-    backgroundColor: '#ccc',
+    margin: 5,
+    minWidth: 60,
   },
   activeTabButton: {
     backgroundColor: '#62a346',
   },
+  inactiveTabButton: {
+    backgroundColor: '#405f2b',
+  },
+  unlockedTabButton: { 
+    backgroundColor: '#405f2b',
+  },
   lockedTabButton: {
-    backgroundColor: '#999',
+    backgroundColor: '#999999',
   },
   tabText: {
-    color: '#333',
-    fontSize: 12,
+    color: '#fff',
+    fontSize: 11,
   },
   activeTabText: {
     color: '#fff',
@@ -178,6 +208,19 @@ const styles = StyleSheet.create({
     borderRadius: avatarSize / 2,
     margin: 5,
     resizeMode: 'contain',
+  },
+  turhapuroTabWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    marginTop: 0,
+  },
+  scrollViewContent: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-around',
+    paddingBottom: 20,
   },
 });
 

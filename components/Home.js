@@ -67,8 +67,8 @@ export default function Home({ setPlayerId }) {
     set(playerRef, {
       ...playerData,
       name: name,
-      level: "basic",
-      dateJoined: playerData?.dateJoined || formattedDate, // Käytä uutta formaattia
+      level: "beginner",
+      dateJoined: playerData?.dateJoined || formattedDate,
     });
 
     await SecureStore.setItemAsync("user_id", userId);
