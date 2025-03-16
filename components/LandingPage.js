@@ -12,7 +12,6 @@ import Constants from "expo-constants";
 export default function LandingPage({ navigation }) {
   const [fadeAnim] = useState(new Animated.Value(0));
   const [loadingProgress, setLoadingProgress] = useState(0);
-  // const [gameVersion, setGameVersion] = useState("");
   const {
     setPlayerIdContext,
     setPlayerNameContext,
