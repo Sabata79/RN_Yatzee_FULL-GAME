@@ -141,6 +141,11 @@ export default function Scoreboard({ navigation }) {
     setViewingPlayerNameContext('');
   };
 
+  const isBeginnerAvatar = (avatarPath) => {
+    const avatar = avatars.find(av => av.path === avatarPath);
+    return avatar && avatar.level === 'Beginner';
+  };
+
   return (
     <ImageBackground source={require('../assets/diceBackground.jpg')} style={styles.background}>
       <View style={styles.overlay}>
@@ -221,7 +226,7 @@ export default function Scoreboard({ navigation }) {
                         {(() => {
                           const avatarSource = avatars.find((avatar) => avatar.path === score.avatar)?.display;
                           return avatarSource ? (
-                            <Image source={avatarSource} style={styles.avatar} />
+                            <Image source={avatarSource} style={[isBeginnerAvatar(score.avatar) ? styles.beginnerAvatar : styles.avatar]} />
                           ) : (
                             <View style={styles.defaultAvatarIcon}>
                               <FontAwesome5 name="user" size={22} color="white" />

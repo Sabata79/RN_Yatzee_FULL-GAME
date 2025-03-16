@@ -49,15 +49,15 @@ export default styles = StyleSheet.create({
         backgroundColor: '#6c6b6b',
         borderRadius: 5,
     },
-inputIndexShown: {
-    fontSize: isSmallScreen ? 16 : isBigScreen ? 20 : 18,
-    fontFamily: 'AntonRegular',
-    color: '#333131ff', // Tekstin väri
-    textAlign: 'center',
-    textShadowColor: '#b09e9e', 
-    textShadowOffset: { width: 0.2, height: 0.2 }, // Varjon siirto
-    textShadowRadius: 1, 
-},
+    inputIndexShown: {
+        fontSize: isSmallScreen ? 16 : isBigScreen ? 20 : 18,
+        fontFamily: 'AntonRegular',
+        color: '#333131ff', // Tekstin väri
+        textAlign: 'center',
+        textShadowColor: '#b09e9e',
+        textShadowOffset: { width: 0.2, height: 0.2 }, // Varjon siirto
+        textShadowRadius: 1,
+    },
     welcomeText: {
         fontSize: 18,
         top: -25,
@@ -488,7 +488,7 @@ inputIndexShown: {
         bottom: 0,
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
         zIndex: 999,
-        justifyContent: 'center',        
+        justifyContent: 'center',
         alignItems: 'center',
         display: 'flex',
     },
@@ -960,6 +960,17 @@ inputIndexShown: {
         marginLeft: 15,
         borderWidth: 1,
         borderColor: 'black',
+    },
+    beginnerAvatar: {
+        borderRadius: 0,
+        width: 35,
+        height: 25,
+        resizeMode: 'cover',
+        marginLeft: 18,
+        marginRight: 12,
+        borderRadius: 2,
+        borderWidth: 1,
+        borderColor: '#4f4c4c36',
     },
     defaultAvatarIcon: {
         width: isSmallScreen ? 30 : 40,
