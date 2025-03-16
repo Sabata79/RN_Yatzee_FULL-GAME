@@ -11,19 +11,19 @@ const levelOrder = ['beginner', 'basic', 'advanced', 'elite', 'legendary', 'turh
 
 const AvatarContainer = ({ isVisible, onClose, avatars, handleAvatarSelect, playerLevel }) => {
 
-  const tabs = ['Beginner', 'Basic', 'Advanced', 'Elite', 'Legendary']; 
+  const tabs = ['Beginner', 'Basic', 'Advanced', 'Elite', 'Legendary'];
   const [selectedTab, setSelectedTab] = useState('Beginner');
-  const [showTurhapuroTab, setShowTurhapuroTab] = useState(false); 
+  const [showTurhapuroTab, setShowTurhapuroTab] = useState(false);
 
   const effectivePlayerLevel = (playerLevel || 'beginner').toLowerCase();
 
   useEffect(() => {
     if (effectivePlayerLevel === 'turhapuro') {
-      setShowTurhapuroTab(true); 
-      setSelectedTab('Beginner'); 
+      setShowTurhapuroTab(true);
+      setSelectedTab('Beginner');
     } else {
-      setShowTurhapuroTab(false); 
-      setSelectedTab('Beginner'); 
+      setShowTurhapuroTab(false);
+      setSelectedTab('Beginner');
     }
   }, [effectivePlayerLevel]);
 
@@ -107,7 +107,13 @@ const AvatarContainer = ({ isVisible, onClose, avatars, handleAvatarSelect, play
             <View style={styles.avatarSelectionWrapper}>
               {filteredAvatars.map((avatar, index) => (
                 <Pressable key={index} onPress={() => handleAvatarSelect(avatar)}>
-                  <Image style={styles.avatarModalImage} source={avatar.display} />
+                  <Image
+                    style={[
+                      styles.avatarModalImage,
+                      avatar.level === 'Beginner' ? styles.beginnerAvatar : styles.defaultAvatar
+                    ]}
+                    source={avatar.display}
+                  />
                 </Pressable>
               ))}
             </View>
@@ -182,7 +188,7 @@ const styles = StyleSheet.create({
   inactiveTabButton: {
     backgroundColor: '#405f2b',
   },
-  unlockedTabButton: { 
+  unlockedTabButton: {
     backgroundColor: '#405f2b',
   },
   lockedTabButton: {
@@ -207,7 +213,23 @@ const styles = StyleSheet.create({
     height: avatarSize,
     borderRadius: avatarSize / 2,
     margin: 5,
-    resizeMode: 'contain',
+    resizeMode: 'cover', // Oletus kaikille avatareille
+  },
+
+  // Tyyli Beginner-tason lipuille
+  beginnerAvatar: {
+    borderRadius: 0,
+    width: 50, // Pienennä leveyttä
+    height: 35, // Pienennä korkeutta
+    resizeMode: 'cover', // Venytä kuva
+    margin: 5,
+    borderWidth: 1,
+    borderColor: '#4f4c4c36',
+  },
+
+  // Tyyli muille avatareille (jotka ovat jo valmiiksi pyöreitä)
+  defaultAvatar: {
+    borderRadius: avatarSize / 2, // Täysin pyöreä
   },
   turhapuroTabWrapper: {
     flexDirection: 'row',

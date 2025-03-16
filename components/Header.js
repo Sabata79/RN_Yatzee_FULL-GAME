@@ -21,6 +21,11 @@ export default function Header() {
 
   const userAvatar = avatars.find((avatar) => avatar.path === avatarUrl)?.display;
 
+  const isBeginnerAvatar = (avatarPath) => {
+    const avatar = avatars.find(av => av.path === avatarPath);
+    return avatar && avatar.level === 'Beginner';
+  };
+
   const selectedPlayer = {
     playerId: playerId,
     playerName: playerName,
@@ -66,7 +71,12 @@ export default function Header() {
           <View style={headerStyles.section4}>
             <View style={{ position: 'relative' }}>
               {userAvatar ? (
-                <Image source={userAvatar} style={headerStyles.headerAvatarImage} />
+                <Image
+                  source={userAvatar}
+                  style={[
+                    isBeginnerAvatar(avatarUrl) ? headerStyles.beginnerAvatar : headerStyles.headerAvatarImage
+                  ]}
+                />
               ) : (
                 <FontAwesome5
                   name="user"
@@ -76,8 +86,9 @@ export default function Header() {
                 />
               )}
               {isLinked && (
-                <View style={headerStyles.linkIconContainer}>
-                  <FontAwesome5 name="link" size={16} color="gold" />
+                <View style={[
+                      isBeginnerAvatar(avatarUrl) ?  headerStyles.beginnerLinkIconContainer : headerStyles.linkIconContainer]}>
+                  <FontAwesome5 name="link" size={10} color="gold" />
                 </View>
               )}
             </View>

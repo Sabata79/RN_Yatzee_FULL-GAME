@@ -209,6 +209,11 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     return avatar ? avatar.display : require('../assets/whiteDices.png');
   };
 
+  const isBeginnerAvatar = (avatarPath) => {
+    const avatar = avatars.find(av => av.path === avatarPath);
+    return avatar && avatar.level === 'Beginner';
+  };
+
   const getAvatarToDisplay = () => {
     return idToUse === playerId ? avatarUrl : viewingPlayerAvatar;
   };
@@ -277,7 +282,10 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
               <View style={{ position: 'relative' }}>
                 <View style={styles.avatarContainer}>
                   <Image
-                    style={styles.avatar}
+                    style={[
+                      styles.avatar,
+                      isBeginnerAvatar(getAvatarToDisplay()) ? styles.beginnerAvatar : styles.defaultAvatar
+                    ]}
                     source={getAvatarImage(getAvatarToDisplay())}
                   />
                 </View>

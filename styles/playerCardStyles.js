@@ -129,6 +129,20 @@ export default styles = StyleSheet.create({
         margin: 5,
         resizeMode: 'cover',
     },
+    beginnerAvatar: {
+    borderRadius: 0,
+    width: 65, 
+    height: 45, 
+    resizeMode: 'cover', 
+    margin: 5,
+    borderRadius: 3,
+    borderWidth: 1,
+    borderColor: '#4f4c4c36',
+    },
+    defaultAvatar: {
+        borderRadius: 50,
+        resizeMode: 'cover',
+    },
     editAvatarButton: {
         position: 'absolute',
         bottom: 0,
