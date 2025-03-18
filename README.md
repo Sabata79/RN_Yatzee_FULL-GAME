@@ -25,7 +25,8 @@ Enjoy intuitive gameplay, clean graphics, and a user-friendly interface as you d
 
 ## Download and Install
 
-1. The game is currently in its testing phase and is not yet publicly available on Google Play. If you would like to become an early access tester (earlybird) and get the latest version of the game before the official launch, please contact me at **sabata79@gmail.com**.  
+1. The game is currently in its testing phase and is not yet publicly available on Google Play. If you would like to become an early access tester (earlybird) and get the latest version of the game before the official launch, please contact me at **sabata79@gmail.com**. 
+ 
 Please include the email address you use on Google Play, so I can add you to the early access program.
 
 2. Once you are added to the early access program, you will receive an invitation via email to join the test on the Google Play Store.
