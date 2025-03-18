@@ -14,19 +14,21 @@ export const aboutFeatures = `
 
 - Classic Yatzy Gameplay: Enjoy the traditional Yatzy game with all the standard rules and scoring.
 
-- Cross-Platform Compatibility: Currently optimized for Android devices. An iOS version is in development.
+- Optimized for Android: The game is fully optimized for Android devices.
 
 - Intuitive User Interface: Easy-to-navigate screens for a smooth gaming experience.
 
-- Firebase Integration: All scores are stored and managed using Firebase, ensuring you can track your progress and high scores.
+- Firebase Integration: All scores are stored and managed using Firebase, allowing you to track your progress and high scores.
 
 - Score Tracking: Monitor your progress and compare stats with others using the personalized player card feature.
 
-- Dynamic Scoreboard: Stay competitive with our interactive leaderboard, featuring All-Time, Monthly, and Weekly top players.
+- Dynamic Scoreboard: Stay competitive with our interactive leaderboard, featuring all-time, monthly, and weekly top players.
 
-- Custom Avatars: Choose from 18 unique avatars to personalize your profile and stand out in the game.
+- Custom Avatars: Unlock and gain different avatars as you progress through the game.
 
-- User Recognition: Recognizes the player’s device, providing a personalized experience each time you play.
+- Account Linking: Linking your account with an email and password.
+
+- User Recognition: The game recognizes your device, providing a personalized experience every time you play.
 `;
 
 export const aboutContact = `
