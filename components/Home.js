@@ -68,6 +68,7 @@ export default function Home({ setPlayerId }) {
       ...playerData,
       name: name,
       level: "beginner",
+      progresspoints: 0,
       dateJoined: playerData?.dateJoined || formattedDate,
     });
 
