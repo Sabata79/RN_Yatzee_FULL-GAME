@@ -30,6 +30,7 @@ export default function App() {
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const [updateModalVisible, setUpdateModalVisible] = useState(false);
   const updateMessage = ``;
+  const [updateRequired, setUpdateRequired] = useState(false);
 
   const Stack = createStackNavigator();
   const Tab = createBottomTabNavigator();
@@ -40,30 +41,42 @@ export default function App() {
         try {
           const update = await Updates.checkForUpdateAsync();
           if (update.isAvailable) {
-            // Tarkistetaan, onko uusi päivitys uusi binääri (runtimeVersion vaihtunut)
+            // Haetaan nykyinen ja uusi runtimeVersion
             const currentRuntimeVersion = Updates.manifest?.runtimeVersion;
             const newRuntimeVersion = update.manifest?.runtimeVersion;
-            if (
-              currentRuntimeVersion &&
-              newRuntimeVersion &&
-              currentRuntimeVersion !== newRuntimeVersion
-            ) {
-              setUpdateAvailable(true);
-              setUpdateModalVisible(true);
+
+            if (currentRuntimeVersion && newRuntimeVersion && currentRuntimeVersion !== newRuntimeVersion) {
+              setUpdateRequired(true);
+              showUpdateAlert();
             }
-            // Jos runtimeVersion on sama, kyseessä on OTA-muutokset, joita ei näytetä.
           }
         } catch (e) {
-          console.error('Update failure: ', e);
+          console.error('Update check failed: ', e);
         }
       };
       checkForUpdates();
     }
   }, []);
 
+  const showUpdateAlert = () => {
+    Alert.alert(
+      "An update is available",
+      "A new version of the app is available. Do you want to update now?",
+      [
+        {
+          text: "Not now", 
+          style: "cancel",
+        },
+        {
+          text: "Update Now",
+          onPress: handleUpdate,
+        },
+      ],
+      { cancelable: true }
+    );
+  };
+
   const handleUpdate = async () => {
-    setUpdateModalVisible(false);
-    // Avaa Play Kaupan sovellussivu, jotta käyttäjä voi päivittää binäärin
     const url = 'market://details?id=com.SimpleYatzee';
     const supported = await Linking.canOpenURL(url);
     if (supported) {
