@@ -25,11 +25,11 @@ Enjoy intuitive gameplay, clean graphics, and a user-friendly interface as you d
 
 ## Download and Install
 
-1. The game is currently in its testing phase and is not yet publicly available on Google Play. If you would like to become an early access tester (earlybird) and get the latest version of the game before the official launch, please contact me at **sabata79@gmail.com**. 
- 
-Please include the email address you use on Google Play, so I can add you to the early access program.
+The game is now available on Google Play! You can download the latest version directly from the Google Play Store.
 
-2. Once you are added to the early access program, you will receive an invitation via email to join the test on the Google Play Store.
+**Download Link:** [Google Play Store](https://play.google.com/store/apps/details?id=com.SimpleYatzee)
+
+Your feedback is highly appreciated as we continue to improve the game. For any questions, suggestions, or bug reports, please contact me at **sabata79@gmail.com**.
 
 ## Usage
 
@@ -37,11 +37,14 @@ After launching the game, you'll be greeted with a simple menu where you can sta
 
 ## Changelog
 
+### Version 2.0.0 (Stable Release)
+- **Official Release:** The stable version of the game is now officially launched.
+- **Avatar Customization:** European country flags have been added to the avatar selection.
+
 ### Version 1.2.4
 - **Account Linking:** Added the ability to link your account with an email and password. This ensures that your game data is securely stored in the cloud, allowing you to access your progress from any device. Unlinked accounts store progress locally, which may risk data loss if your device is lost or damaged.
 
 ### Version 1.2.0 - Yazee For Testers
-
 - **Added About Me Page:** New 'About Me' page with details about the project and the developer.
 - **Implemented Swipe Navigation:** Users can now navigate between screens using swipe gestures for enhanced experience.
 - **Player Top 5 Scores:** Added functionality to view the player's top 5 scores in a detailed modal.
@@ -52,24 +55,22 @@ After launching the game, you'll be greeted with a simple menu where you can sta
 - **PlayerCard with Trophies:** Display player's top scores along with a trophy case showing monthly rankings.
 
 ### Version 1.1.1
-
 - **Improved Player Recognition:** Switched to **Expo Secure Store** for better user data handling and security.
 - **Added Dice Animation:** Enhanced visual experience with animations for dice rolls.
 - **UI/UX Improvements:** Minor adjustments for smoother user interface.
 - **Bug Fixes:** Corrected logic for bonus points to ensure accurate score calculation.
 
 ### Version 1.1.0
-
 - Integrated **Firebase** for high score management and storage.
 - Enhanced **User Device Recognition** for improved login experience.
 - Improved **UI Design** for a more intuitive user experience.
 - Minor bug fixes and performance optimizations.
 
 ### Version 1.0.0
-
 - Initial release with core Yatzy gameplay.
 - Basic UI play capability.
 - Local high score tracking.
+
 
 ## Feedback
 
