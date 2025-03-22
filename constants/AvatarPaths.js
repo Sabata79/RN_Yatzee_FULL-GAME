@@ -71,4 +71,7 @@ export const avatars = [
     { path: '../assets/avatars/testAvatar16.jpeg', display: require('../assets/avatars/testAvatar16.jpeg'), level: 'Basic' },
     { path: '../assets/avatars/testAvatar17.jpeg', display: require('../assets/avatars/testAvatar17.jpeg'), level: 'Basic' },
     { path: '../assets/avatars/testAvatar18.jpeg', display: require('../assets/avatars/testAvatar18.jpeg'), level: 'Basic' },
+    { path: '../assets/avatars/testAvatar19.jpeg', display: require('../assets/avatars/testAvatar19.jpeg'), level: 'Basic' },
+    { path: '../assets/avatars/testAvatar20.jpeg', display: require('../assets/avatars/testAvatar20.jpeg'), level: 'Basic' },
+    { path: '../assets/avatars/testAvatar21.jpeg', display: require('../assets/avatars/testAvatar21.jpeg'), level: 'Basic' },
 ];
