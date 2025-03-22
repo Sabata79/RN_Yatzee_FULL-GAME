@@ -325,6 +325,7 @@ export default styles = StyleSheet.create({
         borderRadius: 2,
         marginVertical: 2,
         position: 'relative',
+        borderWidth: 0.5,
     },
     progressFill: {
         height: '100%',
