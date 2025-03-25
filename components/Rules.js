@@ -35,6 +35,7 @@ export default function RulesScreen() {
           renderScene={renderScene}
           onIndexChange={setIndex}
           initialLayout={initialLayout}
+          swipeEnabled={false}
           renderTabBar={props => (
             <TabBar
               {...props}

@@ -31,7 +31,6 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
   const [playedGames, setPlayedGames] = useState(0);
   const [avgPoints, setAvgPoints] = useState(0);
   const [avgDuration, setAvgDuration] = useState(0);
-  // Uusi state, jossa tallennettu taso haetaan tietokannasta
   const [storedLevel, setStoredLevel] = useState(null);
 
   const currentMonth = new Date().getMonth();
@@ -68,7 +67,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     }
   };
 
-  // Haetaan top-scoren lista
+  // fetch top scores
   const fetchTopScores = () => {
     if (idToUse) {
       const playerRef = ref(database, `players/${idToUse}/scores`);
@@ -92,7 +91,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     }
   };
 
-  // Haetaan kuukauden sijoitukset nykyiselle vuodelle
+  // Get monthly ranks for current year
   const fetchMonthlyRanks = () => {
     const monthlyScores = Array.from({ length: 12 }, () => []);
     const playersRef = ref(database, `players`);
@@ -148,7 +147,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     });
   };
 
-  // Haetaan edellisen viikon sijoitus
+  // Get weekly rank
   const fetchWeeklyRank = () => {
     const playersRef = ref(database, `players`);
     onValue(playersRef, (snapshot) => {
@@ -156,13 +155,13 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
         const playersData = snapshot.val();
         const currentDate = new Date();
         const currentDay = currentDate.getDay();
-        // Lasketaan tämän viikon maanantai
+        // This week monday
         const mondayThisWeek = new Date(currentDate);
         mondayThisWeek.setDate(currentDate.getDate() - (currentDay === 0 ? 6 : currentDay - 1));
-        // Edellisen viikon sunnuntai on maanantain edeltävä päivä
+        // Last week sunday
         const previousWeekEnd = new Date(mondayThisWeek);
         previousWeekEnd.setDate(mondayThisWeek.getDate() - 1);
-        // Edellisen viikon maanantai
+        // Last week monday
         const previousWeekStart = new Date(previousWeekEnd);
         previousWeekStart.setDate(previousWeekEnd.getDate() - 6);
 
@@ -182,7 +181,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
           });
         });
 
-        // Otetaan kullekin pelaajalle paras tulos
+        // get best scores for each player
         const bestScoresMap = {};
         weeklyScores.forEach(score => {
           if (!bestScoresMap[score.playerId]) {
@@ -217,7 +216,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     });
   };
 
-  // Haetaan pelaajan tilastot: pelattujen pelien määrä, keskiarvot ja alustetaan progressPoints, jos sitä ei ole.
+  // Get player stats
   const fetchPlayerStats = () => {
     if (idToUse) {
       const scoresRef = ref(database, `players/${idToUse}/scores`);
@@ -237,7 +236,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
         setAvgPoints(gamesCount > 0 ? (totalPointsCalc / gamesCount).toFixed(0) : 0);
         setAvgDuration(gamesCount > 0 ? (totalDurationCalc / gamesCount).toFixed(0) : 0);
 
-        // Tarkistetaan, onko progressPoints-kenttää jo olemassa. Jos ei, alustetaan se pelattujen pelien määrällä.
+        // Check if progressPoints is initialized if not, initialize it
         const playerRef = ref(database, `players/${idToUse}`);
         onValue(playerRef, (snapshot) => {
           const playerData = snapshot.val();
@@ -251,7 +250,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     }
   };
 
-  // Haetaan tallennettu level tietokannasta (jos on asetettu)
+  // Get stored level from database
   useEffect(() => {
     if (isModalVisible && idToUse) {
       const playerRef = ref(database, `players/${idToUse}`);
@@ -264,12 +263,9 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     }
   }, [isModalVisible, idToUse]);
 
-// Määritellään pelaajan taso pelattujen pelien (progressPoints) perusteella.
-// Jos tietokannassa on jo asetettu "ylempi" taso (manuaalinen override),
-// käytetään sitä sellaisenaan (progress 100%), ellei laskennallinen taso ole sama.
 const getPlayerLevelInfo = () => {
   const games = playedGames;
-  // Lasketaan laskennallinen taso
+  // Default level is beginner
   let computedLevel = { level: "beginner", min: 0, max: 400 };
   if (games >= 2000) {
     computedLevel = { level: "legendary", min: 2000, max: 2000 };
@@ -283,19 +279,17 @@ const getPlayerLevelInfo = () => {
   const progress = computedLevel.max === computedLevel.min ? 1 : (games - computedLevel.min) / (computedLevel.max - computedLevel.min);
   computedLevel = { ...computedLevel, progress: Math.min(progress, 1) };
 
-  // Oletustasot järjestyksessä
+  // Levels in order from beginner to legendary
   const defaultLevels = ["beginner", "basic", "advanced", "elite", "legendary"];
 
   if (storedLevel) {
     const storedIndex = defaultLevels.indexOf(storedLevel);
     const computedIndex = defaultLevels.indexOf(computedLevel.level);
-    // Jos tallennettua tasoa ei löydy oletuslistasta (esim. "turhapuro"),
-    // palautetaan se sellaisenaan (progress 100%)
+    // If stored level is not found in default levels, return computed level
     if (storedIndex === -1) {
       return { level: storedLevel, progress: 1, min: computedLevel.min, max: computedLevel.max };
     }
-    // Jos laskennallinen taso on korkeampi kuin tallennettu taso,
-    // päivitetään tietokanta ja palautetaan laskennallinen taso
+    //If stored level is lower than computed level, update level to computed level
     if (computedIndex > storedIndex) {
       const playerRef = ref(database, `players/${idToUse}`);
       update(playerRef, { level: computedLevel.level })
@@ -303,13 +297,11 @@ const getPlayerLevelInfo = () => {
         .catch(err => console.error("Error updating level", err));
       return computedLevel;
     }
-    // Jos laskennallinen taso on yhtä suuri kuin tallennettu taso,
-    // palautetaan laskennallinen taso (eli progress lasketaan oikein)
+    // If stored level is same as computed level, return computed level
     if (computedIndex === storedIndex) {
       return computedLevel;
     }
-    // Jos laskennallinen taso on alhaisempi kuin tallennettu (override),
-    // palautetaan tallennettu taso (progress 100%)
+    // If stored level is higher than computed level, return stored level
     return { level: storedLevel, progress: 1, min: computedLevel.min, max: computedLevel.max };
   }
   return computedLevel;
@@ -322,7 +314,7 @@ const getPlayerLevelInfo = () => {
       fetchWeeklyRank();
       fetchPlayerStats();
 
-      // Haetaan avatar tietokannasta
+      // Get avatar
       const avatarRef = ref(database, `players/${idToUse}/avatar`);
       onValue(avatarRef, (snapshot) => {
         const avatarPath = snapshot.val();
@@ -333,7 +325,7 @@ const getPlayerLevelInfo = () => {
         }
       });
 
-      // Haetaan isLinked-lippu
+      // Get isLinked status
       const linkedRef = ref(database, `players/${idToUse}/isLinked`);
       onValue(linkedRef, (snapshot) => {
         setPlayerIsLinked(snapshot.val());
@@ -390,7 +382,7 @@ const getPlayerLevelInfo = () => {
     return [...topScores, ...emptyScores].slice(0, 20);
   };
 
-  // Poimitaan edellisen kuukauden sijoitus (jos nykyinen kuukausi ei ole tammikuu)
+  // Get previous month rank
   const previousMonthRank = currentMonth > 0 ? monthlyRanks[currentMonth - 1] : '--';
 
   const levelInfo = getPlayerLevelInfo();
@@ -450,7 +442,7 @@ const getPlayerLevelInfo = () => {
                   </Pressable>
                 )}
               </View>
-              {/* Pelaajan nimi, tilastot ja progressbar */}
+              {/* Player name etc. */}
               <View style={styles.playerTextContainer}>
                 <View style={styles.playerNameContainer}>
                   <Text style={styles.playerCardName}>{nameToUse}</Text>

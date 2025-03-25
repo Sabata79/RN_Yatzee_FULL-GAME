@@ -52,28 +52,28 @@ export const combinationsData = [
   },
   {
     icon: 'home',
-    description: 'Fullhouse. Three of a kind & pair | 25 points.',
+    description: 'Three of a kind & pair | 25 points.',
     smallText: 'Fullhouse'
   },
   {
     icon: 'cards-outline',
-    description: 'Small straight. 4 consecutive dice | 30 points.',
-    smallText: 'Small'
+    description: '4 consecutive dice | 30 points.',
+    smallText: 'Small straight'
   },
   {
     icon: 'cards-outline',
-    description: 'Large straight. 1-2-3-4-5 or 2-3-4-5-6 | 40 points.',
-    smallText: 'Large'
+    description: '1-2-3-4-5 or 2-3-4-5-6 | 40 points.',
+    smallText: 'Large straight'
   },
   {
     icon: 'star-outline',
-    description: 'Yatzy. All dice with the same side | 50 points.',
+    description: 'All dice with the same side | 50 points.',
     smallText: 'Yatzy'
   },
   {
     icon: 'cards-outline',
-    description: 'Change. Scores the sum of all dice.',
-    smallText: 'change'
+    description: 'Scores the sum of all dice.',
+    smallText: 'Change'
   },
 ];
 export const SCORE_COMPARSION_TEXT = {

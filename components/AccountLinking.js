@@ -7,13 +7,11 @@ export default function AccountLinking() {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       
-      {/* Otsikko + Ikoni */}
       <View style={styles.sectionHeader}>
         <FontAwesome5 name="link" size={24} color="gold" />
         <Text style={styles.sectionTitle}>Account Linking</Text>
       </View>
 
-      {/* Info-box tyyliin */}
       <View style={styles.infoBox}>
         <Text style={styles.infoText}>{linkingText}</Text>
       </View>

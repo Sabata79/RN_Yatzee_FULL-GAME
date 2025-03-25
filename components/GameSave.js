@@ -24,23 +24,20 @@ const savePlayerPoints = async () => {
 
     if (playerData) {
       const newKey = push(ref(database, `players/${playerId}/scores`)).key;
-      
-      // Korjattu päivämäärän muoto:
       const date = new Date();
       const formattedDate = `${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()}`;
 
       const playerPoints = {
         key: newKey,
-        date: formattedDate, // Käytetään uutta muotoa
+        date: formattedDate, 
         time: new Date().toLocaleTimeString(),
         points: totalPoints,
         duration: elapsedTime,
       };
 
-      // Päivitetään top 5 all-time scores
       const updatedScores = playerData.scores ? Object.values(playerData.scores) : [];
       updatedScores.push(playerPoints);
-      updatedScores.sort((a, b) => b.points - a.points); // Järjestetään pisteiden mukaan
+      updatedScores.sort((a, b) => b.points - a.points);
 
       const topScoresLimit = TOPSCORELIMIT;
       const topScores = updatedScores.slice(0, topScoresLimit);

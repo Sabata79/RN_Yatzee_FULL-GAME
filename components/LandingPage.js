@@ -24,7 +24,6 @@ export default function LandingPage({ navigation }) {
     gameVersion,
   } = useGame();
 
-
   // Log as anonymous user and save uid to SecureStore
   const doSignInAnonymously = async () => {
     try {

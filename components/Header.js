@@ -96,7 +96,7 @@ export default function Header() {
         </Pressable>
       )}
 
-      {/* Pelaajakortti */}
+      {/* PlayerCard */}
       {isModalVisible && selectedPlayer && (
         <PlayerCard
           playerId={selectedPlayer.playerId}

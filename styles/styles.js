@@ -55,7 +55,7 @@ export default styles = StyleSheet.create({
         color: '#333131ff', // Tekstin väri
         textAlign: 'center',
         textShadowColor: '#b09e9e',
-        textShadowOffset: { width: 0.2, height: 0.2 }, // Varjon siirto
+        textShadowOffset: { width: 0.2, height: 0.2 },
         textShadowRadius: 1,
     },
     welcomeText: {
@@ -102,7 +102,6 @@ export default styles = StyleSheet.create({
     pwInput: {
         padding: 10,
         fontSize: 16,
-
         maxWidth: 200,
         justifyContent: 'center',
         textAlign: 'center',
@@ -597,7 +596,7 @@ export default styles = StyleSheet.create({
     scoreboardContainer: {
         alignSelf: 'center',
         borderRadius: 5,
-        backgroundColor: '#b4aeaec4',
+        backgroundColor: 'rgba(0, 0, 0, 0.546)',
         width: '95%',
         textAlign: 'center',
         justifyContent: 'center',
@@ -640,7 +639,7 @@ export default styles = StyleSheet.create({
         textAlign: 'center',
         fontFamily: 'Roboto',
         fontWeight: '800',
-        color: '#050404',
+        color: '#ffffff',
         paddingVertical: 5,
         lineHeight: 60,
     },
@@ -648,7 +647,7 @@ export default styles = StyleSheet.create({
         fontSize: 14,
         textAlign: 'center',
         fontFamily: 'AntonRegular',
-        color: 'black',
+        color: '#f5f5f5',
         paddingVertical: 5,
     },
 
@@ -833,40 +832,32 @@ export default styles = StyleSheet.create({
         textShadowRadius: 10,
         zIndex: 999,
     },
-    // Info button
-    infoButton: {
-        position: 'absolute',
-        top: 10,
-        right: 10,
-        borderRadius: 40,
-        padding: 5,
-        alignItems: 'center',
-        justifyContent: 'center',
-        shadowColor: '#fff',
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 5,
-    },
     tabContainer: {
+        flexDirection: 1,
         flexDirection: 'row',
         justifyContent: 'center',
-        marginTop: 5,
-        marginBottom: 10,
+        width: '100%',
+        backgroundColor: 'rgba(0, 0, 0, 0.6)',
+        padding: 5,
+        marginTop: 0, 
     },
     tabText: {
-        fontSize: 16,
-        fontWeight: 'bold',
+        flex: 1,
+        fontSize: 14,
+        lineHeight: 20,
         color: 'white',
-        padding: 10,
+        padding: 0,
+        textAlign: 'center',
+        margin: 5,
     },
     activeTab: {
+        flex: 1,
         borderBottomWidth: 2,
         borderBottomColor: 'gold',
-        padding: 10,
+
     },
     inactiveTab: {
-        padding: 10,
+        flex: 1,
     },
     scoresHeaderContainer: {
         alignItems: 'center',
@@ -875,7 +866,7 @@ export default styles = StyleSheet.create({
     scoresHeaderText: {
         fontSize: isSmallScreen ? 22 : 24,
         fontWeight: 'bold',
-        color: 'white',
+        color: '#f5f5f5',
     },
     registerImage: {
         width: width * 0.9,
@@ -940,9 +931,8 @@ export default styles = StyleSheet.create({
     },
     rankText: {
         fontSize: 16,
-        color: 'black',
+        color: '#f5f5f5',
         textAlign: 'center',
-        fontWeight: 'bold',
     },
     playerCell: {
         flex: 3,
@@ -984,8 +974,7 @@ export default styles = StyleSheet.create({
     },
     playerNameText: {
         fontSize: 16,
-        color: 'black',
-        fontWeight: 'bold',
+        color: '#f5f5f5',
         marginLeft: 5,
         letterSpacing: -0.8,
     },
@@ -997,7 +986,7 @@ export default styles = StyleSheet.create({
     },
     durationText: {
         fontSize: 16,
-        color: 'black',
+        color: '#f5f5f5',
         textAlign: 'center',
         marginLeft: 15,
     },
@@ -1009,7 +998,7 @@ export default styles = StyleSheet.create({
     },
     pointsText: {
         fontSize: 16,
-        color: 'black',
+        color: '#f5f5f5',
         textAlign: 'center',
     },
 

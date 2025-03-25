@@ -150,10 +150,6 @@ export default function Scoreboard({ navigation }) {
     <ImageBackground source={require('../assets/diceBackground.jpg')} style={styles.background}>
       <View style={styles.overlay}>
         <ScrollView style={styles.container}>
-          <View style={styles.scoresHeaderContainer}>
-            <Text style={styles.scoresHeaderText}>SCOREBOARD</Text>
-          </View>
-
           <View style={styles.tabContainer}>
             <TouchableOpacity
               style={scoreType === 'allTime' ? styles.activeTab : styles.inactiveTab}
@@ -200,7 +196,7 @@ export default function Scoreboard({ navigation }) {
                   <DataTable.Row
                     key={score.playerId}
                     onPress={() => handlePlayerCard(score.playerId, score.name, score.scores)}
-                    style={isCurrentUser ? { backgroundColor: '#d3bd86' } : {}}
+                    style={isCurrentUser ? { backgroundColor: '#d3bd867a' } : {}}
                   >
                     <DataTable.Cell style={[styles.rankCell]}>
                       {index === 0 && (

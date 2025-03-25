@@ -6,7 +6,6 @@ const { width } = Dimensions.get('window');
 const isFoldScreen = width < 800;
 const avatarSize = isFoldScreen ? 65 : 70;
 
-// Määritellään tasojen järjestys (pienillä kirjaimilla)
 const levelOrder = ['beginner', 'basic', 'advanced', 'elite', 'legendary', 'turhapuro'];
 
 const AvatarContainer = ({ isVisible, onClose, avatars, handleAvatarSelect, playerLevel }) => {
@@ -27,7 +26,6 @@ const AvatarContainer = ({ isVisible, onClose, avatars, handleAvatarSelect, play
     }
   }, [effectivePlayerLevel]);
 
-  // Suodatetaan avatarit valitun välilehden mukaan käyttäen case-insensitive vertailua
   const filteredAvatars = avatars.filter(
     avatar => avatar.level && avatar.level.toLowerCase() === selectedTab.toLowerCase()
   );
@@ -41,17 +39,17 @@ const AvatarContainer = ({ isVisible, onClose, avatars, handleAvatarSelect, play
     >
       <View style={styles.avatarModalBackground}>
         <View style={styles.avatarModalContainer}>
-          {/* Sulkemisnappi omassa rivissään */}
+          {/*Close button*/}
           <View style={styles.closeButtonContainer}>
             <Pressable style={styles.closeAvatarModalButton} onPress={onClose}>
               <Text style={styles.closeAvatarModalText}>X</Text>
             </Pressable>
           </View>
 
-          {/* Avatar valinta */}
+          {/* Avatar selection */}
           <Text style={styles.avatarSelectText}>Choose your Avatar</Text>
 
-          {/* Välilehdet */}
+          {/* Tabs */}
           <View style={styles.tabsContainer}>
             {tabs.map((tab, index) => {
               const isLocked =

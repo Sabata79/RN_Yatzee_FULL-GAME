@@ -15,26 +15,45 @@ export default function InterfaceGuide() {
       <View style={styles.infoBox}>
         <Text style={styles.infoTitle}>🧍 Accessing Player Card</Text>
         <Text style={styles.infoText}>
-          Tap your avatar in the top-right corner of the screen to open your personal Player Card.
+          🔸 Tap your avatar in the top-right corner of the screen to open your personal Player Card.
+        </Text>
+        <Text style={[styles.infoText, {marginTop: 10}]}>
+         🔸Tap any player’s name on the Scoreboard to view their public Player Card.
         </Text>
       </View>
 
-      {/* Pelaajakortin kuva */}
+      {/* Playercard explain picture */}
       <Image
         source={require('../assets/playerCard_explained.png')} // ← vaihda tiedostonimi oikeaksi
         style={styles.image}
       />
 
-      {/* Numerointi ja selitteet */}
+      {/* Numbers and details */}
       <View style={styles.infoBox}>
         <Text style={styles.infoTitle}>📌 Player Card Sections</Text>
-        <Text style={styles.infoText}>1️⃣ Avatar, Linked icon, and Edit button</Text>
-        <Text style={styles.infoText}>2️⃣ Player level, progress bar, and statistics</Text>
-        <Text style={styles.infoText}>3️⃣ Top scores with duration and dates</Text>
-        <Text style={styles.infoText}>4️⃣ Monthly trophies for current year</Text>
+
+        <View style={styles.bulletRow}>
+          <View style={styles.bullet}><Text style={styles.bulletText}>1</Text></View>
+          <Text style={styles.infoText}>Avatar, Linked icon, and Edit button</Text>
+        </View>
+
+        <View style={styles.bulletRow}>
+          <View style={styles.bullet}><Text style={styles.bulletText}>2</Text></View>
+          <Text style={styles.infoText}>Player level, progress bar, and statistics</Text>
+        </View>
+
+        <View style={styles.bulletRow}>
+          <View style={styles.bullet}><Text style={styles.bulletText}>3</Text></View>
+          <Text style={styles.infoText}>Top scores with duration and dates</Text>
+        </View>
+
+        <View style={styles.bulletRow}>
+          <View style={styles.bullet}><Text style={styles.bulletText}>4</Text></View>
+          <Text style={styles.infoText}>Monthly trophies for current year</Text>
+        </View>
       </View>
 
-      {/* Avatar-tasot */}
+      {/* Avatar levels */}
       <View style={styles.infoBox}>
         <Text style={styles.infoTitle}>🔒 Avatar Unlocks</Text>
         <Text style={styles.infoText}>
@@ -42,7 +61,7 @@ export default function InterfaceGuide() {
         </Text>
       </View>
 
-      {/* Tasojen määritykset */}
+      {/* Player level info */}
       <View style={styles.infoBox}>
         <Text style={styles.infoTitle}>📈 Player Levels</Text>
         <Text style={styles.infoText}>Beginner: 0–400 games</Text>
@@ -99,5 +118,25 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginBottom: 15,
     resizeMode: 'contain',
+  },
+  bulletRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+    gap: 8,
+  },
+  bullet: {
+    backgroundColor: 'gold',
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bulletText: {
+    color: 'black',
+    fontWeight: 'bold',
+    fontSize: 13,
+    fontFamily: 'Roboto',
   },
 });
