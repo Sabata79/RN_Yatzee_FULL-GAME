@@ -2,7 +2,6 @@ import React from 'react';
 import { View, Text, ScrollView, Image, StyleSheet } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { rulesTextContent, combinationsData, SCORE_COMPARSION_TEXT } from '../constants/Game';
-import { navigationImages } from '../constants/NavigationImagePaths';
 
 export default function GameRules() {
     return (
