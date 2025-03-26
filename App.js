@@ -84,7 +84,7 @@ export default function App() {
   };
 
   const handleUpdate = async () => {
-    const url = 'market://details?id=com.SimpleYatzee'; // ← vaihda tarvittaessa sovelluksesi ID
+    const url = 'https://play.google.com/store/apps/details?id=com.SimpleYatzee';
     const supported = await Linking.canOpenURL(url);
     if (supported) {
       await Linking.openURL(url);
