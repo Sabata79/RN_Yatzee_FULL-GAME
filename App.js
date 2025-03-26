@@ -18,6 +18,9 @@ import Rules from './components/Rules';
 import Header from './components/Header';
 import styles from './styles/styles';
 import updateModalStyles from './styles/updateModalStyles';
+import { database } from './components/Firebase';
+import Constants from 'expo-constants';
+import { ref, get } from 'firebase/database';
 
 const { width, height } = Dimensions.get('window');
 const isSmallScreen = height < 720;
@@ -37,47 +40,51 @@ export default function App() {
 
   useEffect(() => {
     if (!__DEV__) {
-      const checkForUpdates = async () => {
+      const checkEASAndFirebase = async () => {
         try {
+          const versionRef = ref(database, 'latestVersion');
+          const snapshot = await get(versionRef);
+          const latestVersion = snapshot.exists() ? snapshot.val() : null;
+          const currentVersion = Constants.nativeApplicationVersion;
+
+          if (latestVersion && latestVersion !== currentVersion) {
+            showUpdateAlert();
+            return;
+          }
+
           const update = await Updates.checkForUpdateAsync();
           if (update.isAvailable) {
-            // Haetaan nykyinen ja uusi runtimeVersion
             const currentRuntimeVersion = Updates.manifest?.runtimeVersion;
             const newRuntimeVersion = update.manifest?.runtimeVersion;
 
             if (currentRuntimeVersion && newRuntimeVersion && currentRuntimeVersion !== newRuntimeVersion) {
-              setUpdateRequired(true);
               showUpdateAlert();
             }
           }
+
         } catch (e) {
-          console.error('Update check failed: ', e);
+          console.error('Version check failed: ', e);
         }
       };
-      checkForUpdates();
+
+      checkEASAndFirebase();
     }
   }, []);
 
   const showUpdateAlert = () => {
     Alert.alert(
-      "An update is available",
-      "A new version of the app is available. Do you want to update now?",
+      'Update available',
+      'A new version of the app is available. Do you want to update now?',
       [
-        {
-          text: "Not now", 
-          style: "cancel",
-        },
-        {
-          text: "Update Now",
-          onPress: handleUpdate,
-        },
+        { text: 'Later', style: 'cancel' },
+        { text: 'Update', onPress: handleUpdate },
       ],
       { cancelable: true }
     );
   };
 
   const handleUpdate = async () => {
-    const url = 'market://details?id=com.SimpleYatzee';
+    const url = 'market://details?id=com.SimpleYatzee'; // ← vaihda tarvittaessa sovelluksesi ID
     const supported = await Linking.canOpenURL(url);
     if (supported) {
       await Linking.openURL(url);
@@ -85,6 +92,7 @@ export default function App() {
       console.error("Can't open Play Store URL");
     }
   };
+
 
   const [loaded] = useFonts({
     AntonRegular: require('./assets/fonts/Anton-Regular.ttf'),
