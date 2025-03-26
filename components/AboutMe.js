@@ -1,63 +1,204 @@
 import React from 'react';
-import { ScrollView, View, Text, Image, ImageBackground, Linking } from 'react-native';
-import { aboutTextContent, aboutTitle, aboutFeatures, aboutContact } from '../constants/AboutContent';
-import styles from '../styles/styles';
-import { useGame } from "../components/GameContext";
+import {
+  ScrollView,
+  View,
+  Text,
+  Image,
+  ImageBackground,
+  Linking,
+  StyleSheet,
+} from 'react-native';
+import {
+  aboutTitle,
+  aboutTextContent,
+  aboutFeatures,
+  aboutContact,
+} from '../constants/AboutContent';
+import { useGame } from '../components/GameContext';
 
 export default function AboutMe() {
-
   const { gameVersion } = useGame();
 
   return (
     <ImageBackground
       source={require('../assets/diceBackground.jpg')}
-      style={styles.background}>
+      style={styles.background}
+      resizeMode="cover"
+    >
       <View style={styles.overlay}>
-        <ScrollView contentContainerStyle={styles.aboutContainer}>
-          <View style={styles.headerContainer}>
+        <ScrollView contentContainerStyle={styles.container}>
+          {/* Profiilikuva + otsikko */}
+          <View style={styles.headerInfoBox}>
             <Image
               source={require('../assets/profile.jpg')}
-              style={styles.profileImage}
+              style={styles.profileImageLarge}
             />
-            <Text style={styles.aboutTitle}>
-              {aboutTitle}
+            <View style={styles.headerTextWrapper}>
+              <Text style={styles.sectionTitle}>About</Text>
+              <Text style={styles.headerSubtitle}>
+                Creator of SMR Yatzy
+              </Text>
+            </View>
+          </View>
+
+          {/* Info-kappaleet */}
+          <View style={styles.infoBox}>
+            {aboutTextContent.trim().split('\n\n').map((paragraph, index) => (
+              <Text key={index} style={styles.infoText}>
+                {paragraph.trim()}
+              </Text>
+            ))}
+          </View>
+          <Text style={styles.boxTitle}>Features</Text>
+          {/* Featuret */}
+          <View style={styles.infoBox}>
+            <Text style={styles.infoText}>{aboutFeatures}</Text>
+          </View>
+          <Text style={styles.boxTitle}>Contact</Text>
+          {/* Linkit */}
+          <View style={styles.infoBox}>
+            <Text
+              style={styles.linkText}
+              onPress={() =>
+                Linking.openURL(
+                  'https://github.com/Sabata79/RN_Yatzee_FULL-GAME/discussions/1'
+                )
+              }
+            >
+              💬 Feedback & Support
+            </Text>
+            <Text
+              style={styles.linkText}
+              onPress={() =>
+                Linking.openURL(
+                  'https://sabata79.github.io/RN_Yatzee_FULL-GAME/privacy-policy.html'
+                )
+              }
+            >
+              📜 Privacy Policy
+            </Text>
+            <Text
+              style={styles.linkText}
+              onPress={() =>
+                Linking.openURL(
+                  'https://sabata79.github.io/RN_Yatzee_FULL-GAME/terms-of-service.html'
+                )
+              }
+            >
+              ⚖️ Terms of Service
             </Text>
           </View>
-          <Text style={styles.aboutText}>
-            {aboutTextContent}
-          </Text>
-          <Text style={styles.aboutFeatureText}>
-            {aboutFeatures}
-          </Text>
-          <Text style={styles.aboutText}>
-            {aboutContact}
-          </Text>
-          <Text style={styles.aboutLinkText}
-            onPress={() => Linking.openURL('https://github.com/Sabata79/RN_Yatzee_FULL-GAME/discussions/1')}
-          >
-            Feedback & Support
-          </Text>
-          <Text style={styles.aboutLinkText}
-            onPress={() => Linking.openURL('https://sabata79.github.io/RN_Yatzee_FULL-GAME/privacy-policy.html')}
-          >
-            Privacy Policy
-          </Text>
-          <Text style={styles.aboutLinkText}
-            onPress={() => Linking.openURL('https://sabata79.github.io/RN_Yatzee_FULL-GAME/terms-of-service.html')}
-          >
-            Terms of Service
-          </Text>
 
+          {/* Footer */}
           <View style={styles.footer}>
-            <Text style={styles.author}>Version: {gameVersion}</Text>
+            <Text style={styles.footerText}>Version: {gameVersion}</Text>
+            <Text style={styles.footerText}>© 2025 SMR Yatzy</Text>
           </View>
-
-          <View style={styles.footer}>
-            <Text style={styles.author}>© 2025 SMR Yatzy</Text>
-          </View>
-
         </ScrollView>
       </View>
     </ImageBackground>
   );
 }
+
+const styles = StyleSheet.create({
+  background: {
+    flex: 1,
+    width: '100%',
+  },
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    maxWidth: 420,
+    alignSelf: 'center',
+  },
+  container: {
+    padding: 20,
+    flexGrow: 1,
+  },
+  headerBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 15,
+    gap: 15,
+  },
+  sectionTitle: {
+    fontSize: 22,
+    color: 'gold',
+    fontFamily: 'AntonRegular',
+    marginLeft: '10%',
+    marginBottom: -50,
+  },
+  boxTitle: {
+    color: 'gold',
+    fontSize: 20,
+    fontFamily: 'AntonRegular',
+    marginBottom: 5,
+    textAlign: 'center',
+  },
+  profileImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 50,
+    borderWidth: 2,
+    borderColor: '#e3dddd',
+  },
+  infoBox: {
+    backgroundColor: 'rgba(0, 0, 0, 0.546)',
+    padding: 15,
+    borderRadius: 10,
+    marginBottom: 15,
+  },
+  infoText: {
+    color: 'white',
+    fontSize: 14,
+    lineHeight: 22,
+    fontFamily: 'Roboto',
+    textAlign: 'center',
+    marginBottom: 10,
+  },
+  linkText: {
+    color: '#ffd700', // kultainen ja lämmin
+    fontSize: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    textAlign: 'center',
+    fontFamily: 'Roboto',
+    backgroundColor: '#00000088',
+    borderRadius: 8,
+    overflow: 'hidden',
+    marginBottom: 10,
+  },
+  footer: {
+    marginTop: 10,
+    alignItems: 'center',
+  },
+  footerText: {
+    fontSize: 12,
+    color: '#ccc9c9',
+    fontFamily: 'Roboto',
+  },
+  headerInfoBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.546)',
+    padding: 15,
+    borderRadius: 10,
+    marginBottom: 15,
+  },
+  profileImageLarge: {
+    width: 90,
+    height: 90,
+    borderRadius: 50,
+    borderWidth: 2,
+    borderColor: '#e3dddd',
+    marginRight: 15,
+  },
+  headerTextWrapper: {
+    flex: 1,
+  },
+  headerSubtitle: {
+    color: '#ccc',
+    fontSize: 12,
+    fontFamily: 'Roboto',
+  },
+});
