@@ -35,14 +35,8 @@ yarn-error.*
 # typescript
 *.tsbuildinfo
 
-# Ignore all .json files
-*.json
+# Ignore config files that are sensitive or local-only
 eas.json
+*.secret.json
 
-# Ignore babel.config.js
-babel.config.js
-eas.config.js
 
-# extras
-profile.jpg
-landingLogo.png
