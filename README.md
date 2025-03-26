@@ -44,7 +44,7 @@ After launching the game, you'll be greeted with a simple menu where you can sta
 ### Version 1.2.4
 - **Account Linking:** Added the ability to link your account with an email and password. This ensures that your game data is securely stored in the cloud, allowing you to access your progress from any device. Unlinked accounts store progress locally, which may risk data loss if your device is lost or damaged.
 
-### Version 1.2.0 - Yazee For Testers
+### Version 1.2.0 - Yatzy For Testers
 - **Added About Me Page:** New 'About Me' page with details about the project and the developer.
 - **Implemented Swipe Navigation:** Users can now navigate between screens using swipe gestures for enhanced experience.
 - **Player Top 5 Scores:** Added functionality to view the player's top 5 scores in a detailed modal.
@@ -71,6 +71,13 @@ After launching the game, you'll be greeted with a simple menu where you can sta
 - Basic UI play capability.
 - Local high score tracking.
 
+## 🔒 Development moved to private repository
+
+The full source code and ongoing development of SMR Yatzy have been moved to a **private repository** for continued maintenance and improvements.
+
+If you're interested in how specific features were implemented (e.g., Firebase integration, Player Card system, Accessibility UI), feel free to reach out – I'm happy to share insights or explain how things were built.
+
+📧 Contact: **sabata79@gmail.com**
 
 ## Feedback
 
