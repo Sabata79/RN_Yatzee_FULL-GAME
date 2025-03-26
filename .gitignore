@@ -46,14 +46,3 @@ eas.config.js
 # extras
 profile.jpg
 landingLogo.png
-
-# Ingnore assets folder and its content
-assets/
-tools/
-android/
-release/
-
-## Ignore case sensitive components
-EnergyTokenSystem.js
-GameContext.js
-Index.js
