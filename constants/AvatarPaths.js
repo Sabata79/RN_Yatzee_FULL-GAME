@@ -50,6 +50,9 @@ export const avatars = [
     { path: '../assets/euflags/sm.png', display: require('../assets/euflags/sm.png'), level: 'Beginner' },
     { path: '../assets/euflags/ua.png', display: require('../assets/euflags/ua.png'), level: 'Beginner' },
     { path: '../assets/euflags/va.png', display: require('../assets/euflags/va.png'), level: 'Beginner' },
+    { path: '../assets/euflags/eu.png', display: require('../assets/euflags/eu.png'), level: 'Beginner' },
+    { path: '..assets/noneuflags/ca.png', display: require('../assets/noneuflags/ca.png'), level: 'Beginner' },
+    { path: '../assets/noneuflags/us.png', display: require('../assets/noneuflags/us.png'), level: 'Beginner' },
 
 
     // Basic avatars
