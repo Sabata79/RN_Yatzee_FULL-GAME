@@ -21,7 +21,7 @@ export default styles = StyleSheet.create({
     overlay: {
         flex: 1,
         width: '100%',
-        backgroundColor: 'rgba(0, 0, 0, 0.6)',
+        backgroundColor: 'rgba(0, 0, 0, 0.537)',
         maxWidth: 420,
         alignSelf: 'center',
     },
