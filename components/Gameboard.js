@@ -725,7 +725,7 @@ function checkAndUnlockYatzy(rolledDices) {
                     const newBoard = [...board];
                     for (let i = 0; i < NBR_OF_DICES; i++) {
                         if (!selectedDices[i]) {
-                            let randomNumber = Math.floor(Math.random() * 2) + 1;
+                            let randomNumber = Math.floor(Math.random() * 6) + 1;
                             newBoard[i] = randomNumber;
                             rolledDices[i] = randomNumber;
                         }
