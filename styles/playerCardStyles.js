@@ -89,7 +89,6 @@ export default styles = StyleSheet.create({
         borderRadius: 40,
         overflow: 'hidden',
         marginBottom: 0,
-        borderWidth: 1,
         padding: 1,
         borderColor: '#00000063',
         marginRight: 5,
@@ -97,7 +96,7 @@ export default styles = StyleSheet.create({
         marginTop: 0,
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: '#000000',
+        backgroundColor: '#ffffff00',
     },
     avatarModalBackground: {
         flex: 1,
