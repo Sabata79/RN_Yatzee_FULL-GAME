@@ -112,10 +112,19 @@ export default function App() {
           height: isSmallScreen ? 55 : isBigScreen ? 85 : 70,
           paddingTop: isSmallScreen ? 0 : 5,
           backgroundColor: '#000000e0',
-          borderTopWidth: 0.2,
-          borderTopColor: 'darkorange',
+          borderTopWidth: 0,
           position: 'absolute',
         },
+        tabBarBackground: () => (
+          <View
+            style={{
+              flex: 1,
+              backgroundColor: '#000000e0',
+              borderTopWidth: 0.6,
+              borderTopColor: 'gold',
+            }}
+          />
+        ),
         tabBarActiveTintColor: '#ffffff',
         tabBarInactiveTintColor: 'gray',
         tabBarLabelStyle: {
