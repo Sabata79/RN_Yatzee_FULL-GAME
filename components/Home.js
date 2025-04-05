@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { View, Text, TextInput, Pressable, Alert, ImageBackground, Image, Animated, Button } from "react-native";
+import { View, Text, TextInput, Pressable, Alert, ImageBackground, Image, Animated } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { FontAwesome5 } from '@expo/vector-icons';
 import styles from '../styles/homeStyles';
@@ -10,6 +10,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useGame } from '../components/GameContext';
 import Linked from "../services/Linked";
 import Recover from "../services/Recover";
+import PlayerCard from "./PlayerCard";
 
 export default function Home({ setPlayerId }) {
   const [localName, setLocalName] = useState('');
@@ -20,6 +21,9 @@ export default function Home({ setPlayerId }) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const [isLinkModalVisible, setIsLinkModalVisible] = useState(false);
   const [isRecoverModalVisible, setIsRecoverModalVisible] = useState(false);
+  const [isModalVisible, setModalVisible] = useState(false);
+  // Uusi tila pelaajan tiedoille modalin avaamista varten
+  const [selectedPlayer, setSelectedPlayer] = useState(null);
 
   const { setPlayerIdContext, setPlayerNameContext, userRecognized, setUserRecognized, playerName, playerId, setPlayerName, isLinked } = useGame();
 
@@ -41,7 +45,6 @@ export default function Home({ setPlayerId }) {
       }).start();
     }
   }, [loading]);
-
 
   const checkIfNameExists = async (name) => {
     const playersRef = ref(database, 'players');
@@ -77,7 +80,7 @@ export default function Home({ setPlayerId }) {
     setPlayerName(name);
     setPlayerId(userId);
     console.log("Saving player data:", { name, userId });
-  }
+  };
 
   const sanitizeInput = (input) => {
     const sanitized = input.replace(/[^a-zA-Z0-9 ]/g, '');
@@ -123,6 +126,12 @@ export default function Home({ setPlayerId }) {
     setUserRecognized(false);
   };
 
+  // Uusi funktio, joka asettaa nykyiset pelaajatiedot modalin avaamista varten
+  const handleViewPlayerCard = () => {
+    setSelectedPlayer({ playerId: playerId, playerName: playerName });
+    setModalVisible(true);
+  };
+
   const handleLinkAccount = () => {
     setIsLinkModalVisible(true);
   };
@@ -144,7 +153,7 @@ export default function Home({ setPlayerId }) {
               onChangeText={(text) => setLocalName(sanitizeInput(text))}
             />
             <Pressable
-              style={({ pressed }) => [styles.homeButton, pressed && styles.homeButtonPressed]}
+              style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
               onPressOut={handlePress}
             >
               <Text style={styles.buttonText}>OK</Text>
@@ -158,9 +167,8 @@ export default function Home({ setPlayerId }) {
               onPressOut={() => setIsRecoverModalVisible(true)}
             >
               <Text style={styles.buttonText}>Recover linked player</Text>
-              <FontAwesome5 name="redo" size={40} color="black" />
+              <FontAwesome5 name="redo" size={30} color="black" style={{ marginLeft: 'auto' }}/>
             </Pressable>
-
             {/* Recover-module */}
             <Recover
               isVisible={isRecoverModalVisible}
@@ -168,32 +176,42 @@ export default function Home({ setPlayerId }) {
             />
           </View>
         ) : (
-
           <View style={styles.rulesContainer}>
             <Text style={styles.rulesText}>Hi {playerName}, let's roll the dice!</Text>
             <Image source={require("../assets/hiThere.png")} style={styles.hiThereImage} />
             <Pressable
               style={({ pressed }) => [
-                styles.button, pressed && styles.buttonPressed,
+                styles.button,
+                pressed && styles.buttonPressed,
                 styles.fullWidthButton,
               ]}
               onPressOut={handlePlay}
             >
               <Text style={styles.buttonText}>PLAY</Text>
-              <FontAwesome5 name="play" size={45} color="black" style={{ marginRight: 0 }} />
+              <FontAwesome5 name="play" size={30} color="black" style={{ marginLeft: 'auto' }} />
             </Pressable>
             <Pressable
               style={({ pressed }) => [
-                styles.button, pressed && styles.buttonPressed,
+                styles.button,
+                pressed && styles.buttonPressed,
+                styles.fullWidthButton,
+              ]}
+              onPressOut={handleViewPlayerCard}
+            >
+              <Text style={styles.buttonText}>View Player Card</Text>
+              <FontAwesome5 name="id-card" size={30} color="black" style={{ marginLeft: 'auto' }}/>
+            </Pressable>
+            <Pressable
+              style={({ pressed }) => [
+                styles.button,
+                pressed && styles.buttonPressed,
                 styles.fullWidthButton,
               ]}
               onPressOut={handleChangeName}
             >
               <Text style={styles.buttonText}>Change name</Text>
-              <FontAwesome5 name="user-edit" size={40} color="black" />
+              <FontAwesome5 name="user-edit" size={30} color="black"style={{ marginLeft: 'auto' }} />
             </Pressable>
-
-
             {/* Show link button if not linked */}
             {!isLinked && (
               <Pressable
@@ -203,7 +221,6 @@ export default function Home({ setPlayerId }) {
                 <Text style={styles.buttonText}>Link your account</Text>
               </Pressable>
             )}
-
             {/* Opens link if player is not linked */}
             <Linked
               isVisible={isLinkModalVisible}
@@ -211,6 +228,15 @@ export default function Home({ setPlayerId }) {
               onLinkAccount={handleLinkAccount}
             />
           </View>
+        )}
+        {/* PlayerCard modal */}
+        {isModalVisible && selectedPlayer && (
+          <PlayerCard
+            playerId={selectedPlayer.playerId}
+            playerName={selectedPlayer.playerName}
+            isModalVisible={isModalVisible}
+            setModalVisible={setModalVisible}
+          />
         )}
       </View>
     </ImageBackground>
