@@ -22,13 +22,13 @@ export default function GlowingText({ children }) {
     }, [glowAnim]);
 
     const glowStyle = {
-        color: 'white',
+        color: 'gold',
         textAlign: 'center',
         fontSize: 38,
         fontWeight: 'bold',
         textShadowColor: 'rgba(255, 0, 0, 1)',  
-        textShadowOffset: { width: 0, height: 0 },
-        textShadowRadius: 10,
+        textShadowOffset: { width: 2, height: 2 },
+        textShadowRadius: 5,
         opacity: glowAnim,
     };
 
