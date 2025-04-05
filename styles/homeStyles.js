@@ -53,19 +53,21 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
   },
   homeButton: {
-    backgroundColor: 'gold',
+    backgroundColor: '#eeac1ef5',
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 5,
     marginBottom: 15,
     width: '80%',
     alignItems: 'center',
+    borderWidth: 3,
+    borderColor: 'orange',
   },
   homeButtonPressed: {
     opacity: 0.8,
   },
   button: {
-    backgroundColor: 'gold',
+    backgroundColor: '#eeac1ef5',
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 5,
@@ -74,6 +76,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'center',
+    borderWidth: 3,
+    borderColor: 'orange',
   },
   buttonPressed: {
     opacity: 0.8,
