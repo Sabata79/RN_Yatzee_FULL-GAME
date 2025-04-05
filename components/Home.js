@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { View, Text, TextInput, Pressable, Alert, ImageBackground, Image, Animated, Button } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { FontAwesome5 } from '@expo/vector-icons';
-import styles from '../styles/styles';
+import styles from '../styles/homeStyles';
 import { database } from '../components/Firebase';
 import { ref, set, get } from 'firebase/database';
 import uuid from 'react-native-uuid';
