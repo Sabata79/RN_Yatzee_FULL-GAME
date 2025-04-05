@@ -821,7 +821,9 @@ function checkAndUnlockYatzy(rolledDices) {
                                 }}
                             >
                                 <Text style={styles.buttonText}>Roll Dices</Text>
+                                <View style={styles.nbrThrowsTextContainer}>
                                 {rounds > 0 && <Text style={styles.nbrThrowsText}>{nbrOfThrowsLeft}</Text>}
+                                </View>
                             </Pressable>
                             <Pressable
                                 disabled={!selectedField}
