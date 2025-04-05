@@ -111,9 +111,10 @@ export default function App() {
         tabBarStyle: {
           height: isSmallScreen ? 55 : isBigScreen ? 85 : 70,
           paddingTop: isSmallScreen ? 0 : 5,
-          backgroundColor: 'black',
+          backgroundColor: '#000000e0',
           borderTopWidth: 0.2,
           borderTopColor: 'darkorange',
+          position: 'absolute',
         },
         tabBarActiveTintColor: '#ffffff',
         tabBarInactiveTintColor: 'gray',
