@@ -8,7 +8,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.8)", // Tummempi ja pehmeämpi tausta
+    backgroundColor:'#2c3e50', // Tummempi ja pehmeämpi tausta
     padding: 20,
   },
   logoContainer: {
@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
     fontSize: 16,
     color: "#ecf0f1",
-    fontFamily: "Roboto", // Yhtenäinen fontti, kuten InterfaceGuidessa
+    fontFamily: "Roboto", 
     textAlign: "center",
   },
   // Esimerkkityyli nappeille, mikäli haluat yhtenäistää myös etusivun nappuloita
