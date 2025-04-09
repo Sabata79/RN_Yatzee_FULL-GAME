@@ -1,7 +1,6 @@
 import * as Updates from 'expo-updates';
 import React, { useState, useEffect } from 'react';
-import { StatusBar, Linking } from 'react-native';
-import { SafeAreaView, Modal, View, Text, Pressable, Dimensions, Easing } from 'react-native';
+import { SafeAreaView, StatusBar, Linking, Alert, Modal, View, Text, Pressable, Dimensions, Easing } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -22,7 +21,7 @@ import { database } from './components/Firebase';
 import Constants from 'expo-constants';
 import { ref, get } from 'firebase/database';
 
-const { width, height } = Dimensions.get('window');
+const { height } = Dimensions.get('window');
 const isSmallScreen = height < 720;
 const isBigScreen = height >= 900;
 
@@ -30,13 +29,21 @@ export default function App() {
   const [isUserRecognized, setIsUserRecognized] = useState(false);
   const [name, setName] = useState('');
   const [playerId, setPlayerId] = useState('');
-  const [updateAvailable, setUpdateAvailable] = useState(false);
   const [updateModalVisible, setUpdateModalVisible] = useState(false);
-  const updateMessage = ``;
-  const [updateRequired, setUpdateRequired] = useState(false);
+  const updateMessage = `A new version of the app is available. Please update to get the latest features and improvements.`;
 
   const Stack = createStackNavigator();
   const Tab = createBottomTabNavigator();
+
+  function isNewerVersion(latest, current) {
+    const latestParts = latest.split('.').map(Number);
+    const currentParts = current.split('.').map(Number);
+    for (let i = 0; i < latestParts.length; i++) {
+      if ((latestParts[i] || 0) > (currentParts[i] || 0)) return true;
+      if ((latestParts[i] || 0) < (currentParts[i] || 0)) return false;
+    }
+    return false;
+  }
 
   useEffect(() => {
     if (!__DEV__) {
@@ -47,8 +54,11 @@ export default function App() {
           const latestVersion = snapshot.exists() ? snapshot.val() : null;
           const currentVersion = Constants.nativeApplicationVersion;
 
-          if (latestVersion && latestVersion !== currentVersion) {
-            showUpdateAlert();
+          console.log('🔥 Firebase latest:', latestVersion);
+          console.log('📱 App version:', currentVersion);
+
+          if (latestVersion && isNewerVersion(latestVersion, currentVersion)) {
+            setUpdateModalVisible(true);
             return;
           }
 
@@ -56,32 +66,18 @@ export default function App() {
           if (update.isAvailable) {
             const currentRuntimeVersion = Updates.manifest?.runtimeVersion;
             const newRuntimeVersion = update.manifest?.runtimeVersion;
-
             if (currentRuntimeVersion && newRuntimeVersion && currentRuntimeVersion !== newRuntimeVersion) {
-              showUpdateAlert();
+              setUpdateModalVisible(true);
             }
           }
-
         } catch (e) {
-          console.error('Version check failed: ', e);
+          console.error('⚠️ Version check failed:', e);
         }
       };
 
       checkEASAndFirebase();
     }
   }, []);
-
-  const showUpdateAlert = () => {
-    Alert.alert(
-      'Update available',
-      'A new version of the app is available. Do you want to update now?',
-      [
-        { text: 'Later', style: 'cancel' },
-        { text: 'Update', onPress: handleUpdate },
-      ],
-      { cancelable: true }
-    );
-  };
 
   const handleUpdate = async () => {
     const url = 'https://play.google.com/store/apps/details?id=com.SimpleYatzee';
@@ -93,7 +89,6 @@ export default function App() {
     }
   };
 
-
   const [loaded] = useFonts({
     AntonRegular: require('./assets/fonts/Anton-Regular.ttf'),
   });
@@ -102,7 +97,6 @@ export default function App() {
     return null;
   }
 
-  // Tab navigator for the main application screens
   const TabNavigator = () => (
     <Tab.Navigator
       tabBarPosition="bottom"
@@ -138,17 +132,11 @@ export default function App() {
             color: focused ? '#eae6e6' : 'gray',
           };
 
-          if (route.name === 'Home') {
-            return <FontAwesome5 name="home" {...iconStyle} />;
-          } else if (route.name === 'Gameboard') {
-            return <FontAwesome5 name="dice" {...iconStyle} />;
-          } else if (route.name === 'Scoreboard') {
-            return <FontAwesome5 name="trophy" {...iconStyle} />;
-          } else if (route.name === 'Rules') {
-            return <FontAwesome5 name="book" {...iconStyle} />;
-          } else if (route.name === 'About Me') {
-            return <FontAwesome5 name="user" {...iconStyle} />;
-          }
+          if (route.name === 'Home') return <FontAwesome5 name="home" {...iconStyle} />;
+          if (route.name === 'Gameboard') return <FontAwesome5 name="dice" {...iconStyle} />;
+          if (route.name === 'Scoreboard') return <FontAwesome5 name="trophy" {...iconStyle} />;
+          if (route.name === 'Rules') return <FontAwesome5 name="book" {...iconStyle} />;
+          if (route.name === 'About Me') return <FontAwesome5 name="user" {...iconStyle} />;
         },
         transitionSpec: {
           animation: 'timing',
@@ -160,7 +148,6 @@ export default function App() {
         sceneStyleInterpolator: SceneStyleInterpolators.forFade,
       })}
     >
-      {/* Home Tab */}
       <Tab.Screen
         name="Home"
         options={{
@@ -183,7 +170,6 @@ export default function App() {
           />
         )}
       </Tab.Screen>
-      {/* Muut Tab Screen -komponentit */}
       <Tab.Screen name="Gameboard" options={{ tabBarLabel: 'Game' }} component={Gameboard} />
       <Tab.Screen name="Scoreboard" options={{ tabBarLabel: 'Scores' }} component={Scoreboard} />
       <Tab.Screen name="Rules" options={{ tabBarLabel: 'Help' }} component={Rules} />
@@ -204,9 +190,7 @@ export default function App() {
             <View style={updateModalStyles.updateModalOverlay}>
               <View style={updateModalStyles.updateModalContent}>
                 <Text style={updateModalStyles.updateModalTitle}>New Update Available!</Text>
-                <Text style={updateModalStyles.updateModalMessage}>
-                  {updateMessage}
-                </Text>
+                <Text style={updateModalStyles.updateModalMessage}>{updateMessage}</Text>
                 <Pressable
                   style={updateModalStyles.updateModalUpdateButton}
                   onPress={handleUpdate}
