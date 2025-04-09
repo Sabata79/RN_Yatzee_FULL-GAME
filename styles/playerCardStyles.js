@@ -29,13 +29,14 @@ export default styles = StyleSheet.create({
         fontSize: 24,
         fontWeight: 'bold',
     },
-    playerTextContainer : {
+    playerTextContainer: {
         alignItems: 'right',
         justifyContent: 'right',
         width: '65%',
         height: '100%',
         marginBottom: 5,
         marginTop: 10,
+        borderRadius: 3,
         backgroundColor: '#00000030',
     },
     playerCardModalBackground: {
@@ -202,18 +203,26 @@ export default styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        backgroundColor: '#00000027',
     },
     playerCardScoresContainer: {
         marginTop: 4,
         marginBottom: 4,
         borderColor: 'black',
-        borderRadius: 5,
+        borderRadius: 3,
         padding: 3,
+        backgroundColor: '#00000027',
+    },
+    evenRow: {
+        backgroundColor: '#ffffff00', // tai läpinäkyvä
+    },
+
+    oddRow: {
+        backgroundColor: '#00000010', // kevyt tumma korostus, voit säätää
     },
     playerCardScoresTitle: {
+        marginTop: 5,
         fontSize: 14,
-        
+
         marginBottom: 0,
         textAlign: 'center',
         fontWeight: 'bold',
@@ -224,7 +233,8 @@ export default styles = StyleSheet.create({
         color: '#000',
         width: '60%',
         marginLeft: 5,
-        
+        marginBottom: 2,
+
     },
     playerCardScoreDate: {
         fontSize: 10,
@@ -235,7 +245,7 @@ export default styles = StyleSheet.create({
         marginRight: 5,
     },
     playerCardTrophyCase: {
-        width: '90%',
+        width: '98%',
         marginTop: 0,
         alignItems: 'center',
     },
