@@ -18,6 +18,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     avatarUrl,
     setAvatarUrl,
     playerLevel,
+    allTimeRank,
   } = useGame();
 
   const [playerIsLinked, setPlayerIsLinked] = useState(false);
@@ -263,49 +264,49 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     }
   }, [isModalVisible, idToUse]);
 
-const getPlayerLevelInfo = () => {
-  const games = playedGames;
-  // Default level is beginner
-  let computedLevel = { level: "beginner", min: 0, max: 400 };
-  if (games >= 2000) {
-    computedLevel = { level: "legendary", min: 2000, max: 2000 };
-  } else if (games >= 1201) {
-    computedLevel = { level: "elite", min: 1201, max: 2000 };
-  } else if (games >= 801) {
-    computedLevel = { level: "advanced", min: 801, max: 1200 };
-  } else if (games >= 401) {
-    computedLevel = { level: "basic", min: 401, max: 800 };
-  }
-  const progress = computedLevel.max === computedLevel.min ? 1 : (games - computedLevel.min) / (computedLevel.max - computedLevel.min);
-  computedLevel = { ...computedLevel, progress: Math.min(progress, 1) };
+  const getPlayerLevelInfo = () => {
+    const games = playedGames;
+    // Default level is beginner
+    let computedLevel = { level: "beginner", min: 0, max: 400 };
+    if (games >= 2000) {
+      computedLevel = { level: "legendary", min: 2000, max: 2000 };
+    } else if (games >= 1201) {
+      computedLevel = { level: "elite", min: 1201, max: 2000 };
+    } else if (games >= 801) {
+      computedLevel = { level: "advanced", min: 801, max: 1200 };
+    } else if (games >= 401) {
+      computedLevel = { level: "basic", min: 401, max: 800 };
+    }
+    const progress = computedLevel.max === computedLevel.min ? 1 : (games - computedLevel.min) / (computedLevel.max - computedLevel.min);
+    computedLevel = { ...computedLevel, progress: Math.min(progress, 1) };
 
-  // Levels in order from beginner to legendary
-  const defaultLevels = ["beginner", "basic", "advanced", "elite", "legendary"];
+    // Levels in order from beginner to legendary
+    const defaultLevels = ["beginner", "basic", "advanced", "elite", "legendary"];
 
-  if (storedLevel) {
-    const storedIndex = defaultLevels.indexOf(storedLevel);
-    const computedIndex = defaultLevels.indexOf(computedLevel.level);
-    // If stored level is not found in default levels, return computed level
-    if (storedIndex === -1) {
+    if (storedLevel) {
+      const storedIndex = defaultLevels.indexOf(storedLevel);
+      const computedIndex = defaultLevels.indexOf(computedLevel.level);
+      // If stored level is not found in default levels, return computed level
+      if (storedIndex === -1) {
+        return { level: storedLevel, progress: 1, min: computedLevel.min, max: computedLevel.max };
+      }
+      //If stored level is lower than computed level, update level to computed level
+      if (computedIndex > storedIndex) {
+        const playerRef = ref(database, `players/${idToUse}`);
+        update(playerRef, { level: computedLevel.level })
+          .then(() => console.log("Level updated to computed level"))
+          .catch(err => console.error("Error updating level", err));
+        return computedLevel;
+      }
+      // If stored level is same as computed level, return computed level
+      if (computedIndex === storedIndex) {
+        return computedLevel;
+      }
+      // If stored level is higher than computed level, return stored level
       return { level: storedLevel, progress: 1, min: computedLevel.min, max: computedLevel.max };
     }
-    //If stored level is lower than computed level, update level to computed level
-    if (computedIndex > storedIndex) {
-      const playerRef = ref(database, `players/${idToUse}`);
-      update(playerRef, { level: computedLevel.level })
-        .then(() => console.log("Level updated to computed level"))
-        .catch(err => console.error("Error updating level", err));
-      return computedLevel;
-    }
-    // If stored level is same as computed level, return computed level
-    if (computedIndex === storedIndex) {
-      return computedLevel;
-    }
-    // If stored level is higher than computed level, return stored level
-    return { level: storedLevel, progress: 1, min: computedLevel.min, max: computedLevel.max };
-  }
-  return computedLevel;
-};
+    return computedLevel;
+  };
 
   useEffect(() => {
     if (isModalVisible && idToUse) {
@@ -387,116 +388,124 @@ const getPlayerLevelInfo = () => {
 
   const levelInfo = getPlayerLevelInfo();
 
-  return (
-    <View style={styles.playerCardContainer}>
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={isModalVisible}
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View style={styles.playerCardModalBackground}>
-          <View style={styles.playerCardModalContainer}>
-            <Image
-              source={require('../assets/playercardBackground.jpeg')}
-              style={styles.avatarModalBackgroundImage}
-            />
+return (
+  <View style={styles.playerCardContainer}>
+    <Modal
+      animationType="slide"
+      transparent={true}
+      visible={isModalVisible}
+      onRequestClose={() => setModalVisible(false)}
+    >
+      <View style={styles.playerCardModalBackground}>
+        <View style={styles.playerCardModalContainer}>
+          <Image
+            source={require('../assets/playercardBackground.jpeg')}
+            style={styles.avatarModalBackgroundImage}
+          />
+
+          {/* HEADER: Nimi keskellä + X oikealla */}
+          <View style={styles.playerCardHeaderCentered}>
+            <Text style={styles.playerCardNameTextCentered}>{nameToUse}</Text>
             <Pressable
               style={styles.playerCardCloseButton}
-              onPress={() => { setModalModalVisible(false); setModalVisible(false); }}
+              onPress={() => {
+                setModalModalVisible(false);
+                setModalVisible(false);
+              }}
             >
               <Text style={styles.playerCardCloseText}>X</Text>
             </Pressable>
+          </View>
 
-            {/* AvatarContainer */}
-            <AvatarContainer
-              isVisible={isAvatarModalVisible}
-              onClose={() => setIsAvatarModalVisible(false)}
-              avatars={avatars}
-              handleAvatarSelect={handleAvatarSelect}
-              playerLevel={playerLevel}
-            />
-
-            <View style={styles.playerInfoContainer}>
-              <View style={{ position: 'relative' }}>
-                <View style={styles.avatarContainer}>
-                  <Image
-                    style={[
-                      styles.avatar,
-                      isBeginnerAvatar(getAvatarToDisplay()) ? styles.beginnerAvatar : styles.defaultAvatar
-                    ]}
-                    source={getAvatarImage(getAvatarToDisplay())}
-                  />
-                </View>
-                {playerIsLinked && (
-                  <View style={styles.linkIconContainer}>
-                    <FontAwesome5 name="link" size={15} color="gold" />
-                  </View>
-                )}
-                {idToUse === playerId && (
-                  <Pressable
-                    style={styles.editAvatarButton}
-                    onPress={() => setIsAvatarModalVisible(true)}
-                  >
-                    <FontAwesome5 name="edit" size={15} color="white" />
-                  </Pressable>
-                )}
+          {/* Avatar + Stats */}
+          <View style={styles.playerInfoContainer}>
+            <View style={{ position: 'relative' }}>
+              <View style={styles.avatarContainer}>
+                <Image
+                  style={[
+                    styles.avatar,
+                    isBeginnerAvatar(getAvatarToDisplay()) ? styles.beginnerAvatar : styles.defaultAvatar,
+                  ]}
+                  source={getAvatarImage(getAvatarToDisplay())}
+                />
               </View>
-              {/* Player name etc. */}
-              <View style={styles.playerTextContainer}>
-                <View style={styles.playerNameContainer}>
-                  <Text style={styles.playerCardName}>{nameToUse}</Text>
+              {playerIsLinked && (
+                <View style={styles.linkIconContainer}>
+                  <FontAwesome5 name="link" size={15} color="gold" />
                 </View>
-                <Text style={[styles.playerStat, { textAlign: 'center' }]}>Level: {levelInfo.level}</Text>
-                <View style={styles.progressContainer}>
-                  <View style={styles.progressBar}>
-                    <View style={[styles.progressFill, { width: `${levelInfo.progress * 100}%` }]} />
-                    <Text style={styles.progressPercentageText}>
-                      {Math.floor(levelInfo.progress * 100)}%
-                    </Text>
-                  </View>
-                </View>
-                <View style={styles.playerStatsContainer}>
-                  <Text style={styles.playerStat}>Played Games: {playedGames}</Text>
-                  <Text style={styles.playerStat}>Avg. Points/Game: {avgPoints}</Text>
-                  <Text style={styles.playerStat}>Avg Duration/Game: {avgDuration} s</Text>
-                </View>
-              </View>
+              )}
+              {idToUse === playerId && (
+                <Pressable
+                  style={styles.editAvatarButton}
+                  onPress={() => setIsAvatarModalVisible(true)}
+                >
+                  <FontAwesome5 name="edit" size={15} color="white" />
+                </Pressable>
+              )}
             </View>
 
-            <Text style={styles.playerCardScoresTitle}>TOP SCORES</Text>
-            <RNScrollView style={[styles.playerCardScoresContainer, { maxHeight: 120 }]}>
-              {getTopScoresWithEmptySlots().map((score, index) => (
-                <View key={index} style={styles.scoreRow}>
-                  <View style={styles.scoreTextContainer}>
-                    <Text style={styles.playerCardScoreItem}>
-                      {index + 1}. {score.points} points in {score.duration} sec
-                    </Text>
-                  </View>
-                  <View style={styles.dateContainer}>
-                    <Text style={styles.playerCardScoreDate}>{score.date}</Text>
-                  </View>
-                </View>
-              ))}
-            </RNScrollView>
-
-            <View style={styles.playerCardTrophyCase}>
-              <Text style={styles.playerCardTrophyCaseTitle}>TROPHIES {currentYear}</Text>
-              <View style={styles.playerCardMonthsContainer}>
-                {Array(12).fill(null).map((_, index) => (
-                  <View
-                    key={index}
-                    style={[styles.playerCardMonth, index === currentMonth ? styles.playerCardOngoingMonth : null]}
-                  >
-                    <Text style={styles.playerCardMonthText}>{monthNames[index]}</Text>
-                    {getTrophyForMonth(index)}
-                  </View>
-                ))}
+            <View style={styles.playerTextContainer}>
+              <Text style={styles.playerStat}>Level: {levelInfo.level}</Text>
+              <View style={styles.progressBar}>
+                <View style={[styles.progressFill, { width: `${levelInfo.progress * 100}%` }]} />
+                <Text style={styles.progressPercentageText}>
+                  {Math.floor(levelInfo.progress * 100)}%
+                </Text>
+              </View>
+              <View style={styles.playerStatsContainer}>
+                <Text style={styles.playerStat}>All Time Rank: {allTimeRank}</Text>
+                <Text style={styles.playerStat}>Played Games: {playedGames}</Text>
+                <Text style={styles.playerStat}>Avg. Points/Game: {avgPoints}</Text>
+                <Text style={styles.playerStat}>Avg Duration/Game: {avgDuration} s</Text>
               </View>
             </View>
           </View>
+
+          {/* TOP SCORES */}
+          <Text style={styles.playerCardScoresTitle}>TOP SCORES</Text>
+          <RNScrollView style={[styles.playerCardScoresContainer, { maxHeight: 120 }]}>
+            {getTopScoresWithEmptySlots().map((score, index) => (
+              <View key={index} style={styles.scoreRow}>
+                <Text style={styles.playerCardScoreItem}>
+                  {index + 1}. {score.points} points in {score.duration} sec
+                </Text>
+                <Text style={styles.playerCardScoreDate}>{score.date}</Text>
+              </View>
+            ))}
+          </RNScrollView>
+
+          {/* TROPHIES */}
+          <View style={styles.playerCardTrophyCase}>
+            <Text style={styles.playerCardTrophyCaseTitle}>TROPHIES {currentYear}</Text>
+            <View style={styles.playerCardMonthsContainer}>
+              {Array(12).fill(null).map((_, index) => (
+                <View
+                  key={index}
+                  style={[
+                    styles.playerCardMonth,
+                    index === currentMonth ? styles.playerCardOngoingMonth : null,
+                  ]}
+                >
+                  <Text style={styles.playerCardMonthText}>{monthNames[index]}</Text>
+                  {getTrophyForMonth(index)}
+                </View>
+              ))}
+            </View>
+          </View>
         </View>
-      </Modal>
-    </View>
-  );
+      </View>
+    </Modal>
+
+    {/* AvatarContainer lisättynä tähän! */}
+    <AvatarContainer
+      isVisible={isAvatarModalVisible}
+      onClose={() => setIsAvatarModalVisible(false)}
+      avatars={avatars}
+      handleAvatarSelect={handleAvatarSelect}
+      playerLevel={playerLevel}
+    />
+  </View>
+);
+
+
 }

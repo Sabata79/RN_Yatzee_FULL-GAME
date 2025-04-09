@@ -36,10 +36,67 @@ export const GameProvider = ({ children }) => {
   const [progressPoints, setProgressPoints] = useState(0);
   const [currentLevel, setCurrentLevel] = useState('');
   const [nextLevel, setNextLevel] = useState('');
+  const [allTimeRank, setAllTimeRank] = useState('--');
 
   console.log('GameContext Log - progressPoints:', progressPoints);
   console.log('GameContext Log - currentLevel:', currentLevel);
   console.log('GameContext Log - nextLevel:', nextLevel);
+  console.log('GameContext Log - allTime Rank:', allTimeRank);
+
+  // Apufunktio, joka määrittää, kumpi score on "parempi"
+  const isBetterScore = (newScore, oldScore) => {
+    if (Number(newScore.points) > Number(oldScore.points)) return true;
+    if (Number(newScore.points) < Number(oldScore.points)) return false;
+    if (Number(newScore.duration) < Number(oldScore.duration)) return true;
+    if (Number(newScore.duration) > Number(oldScore.duration)) return false;
+    const dateA = new Date(newScore.date.split('.').reverse().join('-'));
+    const dateB = new Date(oldScore.date.split('.').reverse().join('-'));
+    return dateA < dateB;
+  };
+
+  // Hakee kaikkien pelaajien parhaan tuloksen ja määrittää pelaajan allTimeRankin
+  useEffect(() => {
+    if (playerId) {
+      const playersRef = ref(database, 'players');
+      const unsubscribe = onValue(playersRef, (snapshot) => {
+        if (!snapshot.exists()) {
+          setAllTimeRank('--');
+          return;
+        }
+        const playersData = snapshot.val();
+        const tmpScores = [];
+        Object.keys(playersData).forEach((pId) => {
+          const player = playersData[pId];
+          if (player.scores) {
+            let bestScore = null;
+            Object.values(player.scores).forEach((score) => {
+              if (!bestScore || isBetterScore(score, bestScore)) {
+                bestScore = score;
+              }
+            });
+            if (bestScore) {
+              tmpScores.push({
+                playerId: pId,
+                points: bestScore.points,
+                duration: bestScore.duration,
+                date: bestScore.date,
+              });
+            }
+          }
+        });
+        tmpScores.sort((a, b) => {
+          if (b.points !== a.points) return b.points - a.points;
+          if (a.duration !== b.duration) return a.duration - b.duration;
+          const dateA = new Date(a.date.split('.').reverse().join('-'));
+          const dateB = new Date(b.date.split('.').reverse().join('-'));
+          return dateA - dateB;
+        });
+        const rankIndex = tmpScores.findIndex((s) => s.playerId === playerId);
+        setAllTimeRank(rankIndex === -1 ? '--' : rankIndex + 1);
+      });
+      return () => unsubscribe();
+    }
+  }, [playerId]);
 
   const updateProgressPoints = (newPoints) => {
     console.log("Updating progress points:", newPoints); // Debug log
@@ -283,11 +340,13 @@ export const GameProvider = ({ children }) => {
       gameVersion,
       setGameVersion,
       progressPoints,
-      setProgressPoints : updateProgressPoints,
+      setProgressPoints: updateProgressPoints,
       currentLevel,
       setCurrentLevel,
       nextLevel,
       setNextLevel,
+      allTimeRank,
+      setAllTimeRank,
     }}>
       {children}
     </GameContext.Provider>
