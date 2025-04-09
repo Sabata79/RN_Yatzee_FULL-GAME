@@ -451,6 +451,7 @@ export default styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         display: 'flex',
+        paddingBottom: 150,
     },
     centeredText: {
         color: 'white',
@@ -728,7 +729,7 @@ export default styles = StyleSheet.create({
     startModalButtonText: {
         color: 'white',
         textAlign: 'center',
-        fontSize: 20,
+        fontSize: 25,
         fontWeight: 'bold',
         textShadowColor: '#ff0000',
         textShadowOffset: { width: 0, height: 0 },
