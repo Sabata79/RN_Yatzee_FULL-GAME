@@ -94,6 +94,7 @@ export default function AboutMe() {
             <Text style={styles.footerText}>Version: {gameVersion}</Text>
             <Text style={styles.footerText}>© 2025 SMR Yatzy</Text>
           </View>
+          <View style={{ height: 80 }} />
         </ScrollView>
       </View>
     </ImageBackground>

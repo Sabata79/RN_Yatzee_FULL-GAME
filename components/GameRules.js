@@ -53,6 +53,7 @@ export default function GameRules() {
                     If both points and duration are equal, the score that was achieved earlier is ranked higher.
                 </Text>
             </View>
+            <View style={{ height: 80 }} />
         </ScrollView>
     );
 }

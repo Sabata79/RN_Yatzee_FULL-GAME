@@ -247,6 +247,7 @@ export default function Scoreboard({ navigation }) {
 
 
           )}
+        <View style={{ height: 80 }} />
         </ScrollView>
       </View>
 

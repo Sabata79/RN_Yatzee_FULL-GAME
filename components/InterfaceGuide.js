@@ -17,8 +17,8 @@ export default function InterfaceGuide() {
         <Text style={styles.infoText}>
           🔸 Tap your avatar in the top-right corner of the screen to open your personal Player Card.
         </Text>
-        <Text style={[styles.infoText, {marginTop: 10}]}>
-         🔸Tap any player’s name on the Scoreboard to view their public Player Card.
+        <Text style={[styles.infoText, { marginTop: 10 }]}>
+          🔸Tap any player’s name on the Scoreboard to view their public Player Card.
         </Text>
       </View>
 
@@ -70,6 +70,7 @@ export default function InterfaceGuide() {
         <Text style={styles.infoText}>Elite: 1201–2000 games</Text>
         <Text style={styles.infoText}>Legendary: 2000+ games</Text>
       </View>
+      <View style={{ height: 80 }} />
     </ScrollView>
   );
 }
