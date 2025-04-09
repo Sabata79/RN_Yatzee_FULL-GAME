@@ -798,6 +798,7 @@ function checkAndUnlockYatzy(rolledDices) {
                                 onPress={() => {
                                     savePlayerPoints();
                                     resetGame();
+                                    navigation.navigate('Scoreboard');
                                 }}
                             >
                                 <Text style={styles.buttonText}>Game Over, Save Your Score</Text>
