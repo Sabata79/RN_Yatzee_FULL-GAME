@@ -196,64 +196,64 @@ export default function Gameboard({ route, navigation }) {
         }
     };
 
-const handleSetPoints = () => {
-  if (selectedField === null) return;
+    const handleSetPoints = () => {
+        if (selectedField === null) return;
 
-  const minorNames = ['ones', 'twos', 'threes', 'fours', 'fives', 'sixes'];
-  const selectedCategory = scoringCategories.find(category => category.index === selectedField);
+        const minorNames = ['ones', 'twos', 'threes', 'fours', 'fives', 'sixes'];
+        const selectedCategory = scoringCategories.find(category => category.index === selectedField);
 
-  if (selectedCategory && !selectedCategory.locked) {
-    if (selectedCategory.name === 'yatzy') {
-      const yatzyScore = calculateYatzy(rolledDices);
-      if (yatzyScore === 50) {
-        // Jos heitto tuottaa Yatzyn, lisätään 50 pistettä stacking-mallin mukaisesti.
-        const newPoints = selectedCategory.points === 0 ? 50 : selectedCategory.points + 50;
-        const updatedCategories = scoringCategories.map(category => {
-          if (category.index === selectedField) {
-            // Unlockataan kenttä (näytetään stacking-pisteet) ja sitten lukitaan Set Points -painalluksessa.
-            return { ...category, points: newPoints, locked: true, yatzyAchieved: true };
-          }
-          return category;
-        });
-        setScoringCategories(updatedCategories);
-        setTotalPoints(totalPoints + 50);
-      } else {
-        // Jos Yatzya ei heitetä, lukitaan Yatzy-kenttä automaattisesti (jolloin se jää 0 pisteeseen, jos ei ole aiemmin stäkätty).
-        const updatedCategories = scoringCategories.map(category => {
-          if (category.index === selectedField) {
-            return { ...category, locked: true };
-          }
-          return category;
-        });
-        setScoringCategories(updatedCategories);
-        // Voit halutessasi näyttää viestin, että Yatzya ei heitetty.
-        // Alert.alert("No Yatzy", "You did not roll a Yatzy, so the Yatzy field is locked with 0 points.");
-      }
-    } else {
-      // Normaali pisteytys muissa kategorioissa
-      const points = selectedCategory.calculateScore(rolledDices);
-      const isMinorNames = minorNames.includes(selectedCategory.name);
-      const updatedCategories = scoringCategories.map(category => {
-        if (category.index === selectedField) {
-          return { ...category, points: points, locked: true };
+        if (selectedCategory && !selectedCategory.locked) {
+            if (selectedCategory.name === 'yatzy') {
+                const yatzyScore = calculateYatzy(rolledDices);
+                if (yatzyScore === 50) {
+                    // Jos heitto tuottaa Yatzyn, lisätään 50 pistettä stacking-mallin mukaisesti.
+                    const newPoints = selectedCategory.points === 0 ? 50 : selectedCategory.points + 50;
+                    const updatedCategories = scoringCategories.map(category => {
+                        if (category.index === selectedField) {
+                            // Unlockataan kenttä (näytetään stacking-pisteet) ja sitten lukitaan Set Points -painalluksessa.
+                            return { ...category, points: newPoints, locked: true, yatzyAchieved: true };
+                        }
+                        return category;
+                    });
+                    setScoringCategories(updatedCategories);
+                    setTotalPoints(totalPoints + 50);
+                } else {
+                    // Jos Yatzya ei heitetä, lukitaan Yatzy-kenttä automaattisesti (jolloin se jää 0 pisteeseen, jos ei ole aiemmin stäkätty).
+                    const updatedCategories = scoringCategories.map(category => {
+                        if (category.index === selectedField) {
+                            return { ...category, locked: true };
+                        }
+                        return category;
+                    });
+                    setScoringCategories(updatedCategories);
+                    // Voit halutessasi näyttää viestin, että Yatzya ei heitetty.
+                    // Alert.alert("No Yatzy", "You did not roll a Yatzy, so the Yatzy field is locked with 0 points.");
+                }
+            } else {
+                // Normaali pisteytys muissa kategorioissa
+                const points = selectedCategory.calculateScore(rolledDices);
+                const isMinorNames = minorNames.includes(selectedCategory.name);
+                const updatedCategories = scoringCategories.map(category => {
+                    if (category.index === selectedField) {
+                        return { ...category, points: points, locked: true };
+                    }
+                    return category;
+                });
+                let newTotalPoints = totalPoints + points;
+                if (isMinorNames) {
+                    const newMinorPoints = minorPoints + points;
+                    if (newMinorPoints >= BONUS_POINTS_LIMIT && !hasAppliedBonus) {
+                        newTotalPoints += BONUS_POINTS;
+                        setHasAppliedBonus(true);
+                    }
+                    setMinorPoints(newMinorPoints);
+                }
+                setScoringCategories(updatedCategories);
+                setTotalPoints(newTotalPoints);
+            }
+            setSelectedField(null);
         }
-        return category;
-      });
-      let newTotalPoints = totalPoints + points;
-      if (isMinorNames) {
-        const newMinorPoints = minorPoints + points;
-        if (newMinorPoints >= BONUS_POINTS_LIMIT && !hasAppliedBonus) {
-          newTotalPoints += BONUS_POINTS;
-          setHasAppliedBonus(true);
-        }
-        setMinorPoints(newMinorPoints);
-      }
-      setScoringCategories(updatedCategories);
-      setTotalPoints(newTotalPoints);
-    }
-    setSelectedField(null);
-  }
-};
+    };
 
 
     // Count the sum of the dices
@@ -320,39 +320,37 @@ const handleSetPoints = () => {
         }, 0);
     }
 
-function checkAndUnlockYatzy(rolledDices) {
-  const yatzyCategory = scoringCategories.find(category => category.name === 'yatzy');
-  if (!yatzyCategory) return;
+    function checkAndUnlockYatzy(rolledDices) {
+        const yatzyCategory = scoringCategories.find(c => c.name === 'yatzy');
+        if (!yatzyCategory) return;
 
-  const yatzyScore = calculateYatzy(rolledDices);
+        const yatzyScore = calculateYatzy(rolledDices);
 
-  if (yatzyScore === 50) {
-    // Jos yatzya saadaan, unlockataan kenttä stackingia varten
-    console.log('Yatzy achieved: unlocking Yatzy field for stacking.');
-    setScoringCategories(prevCategories =>
-      prevCategories.map(category => {
-        if (category.name === 'yatzy') {
-          return { ...category, locked: false, yatzyAchieved: true };
+        if (yatzyScore === 50 && yatzyCategory.points > 0) {
+            // Jos pelaaja on jo aiemmin saanut Yatzyn (>0 pistettä), sallitaan stäkkäys
+            console.log('Yatzy achieved again: unlocking Yatzy field for stacking.');
+            setScoringCategories(prev =>
+                prev.map(c =>
+                    c.name === 'yatzy'
+                        ? { ...c, locked: false, yatzyAchieved: true }
+                        : c
+                )
+            );
+        } else {
+            // Muussa tapauksessa, jos kenttä on auki stacking-tilassa (points>0 ja currently unlocked),
+            // lukitaan se automaattisesti kun Yatzya ei heitetä
+            if (!yatzyCategory.locked && yatzyCategory.yatzyAchieved) {
+                console.log('No Yatzy rolled: auto-locking Yatzy field.');
+                setScoringCategories(prev =>
+                    prev.map(c =>
+                        c.name === 'yatzy'
+                            ? { ...c, locked: true }
+                            : c
+                    )
+                );
+            }
         }
-        return category;
-      })
-    );
-  } else {
-    // Jos yatzya ei heitetä ja kenttä on auki stacking-tilassa,
-    // lukitaan kenttä automaattisesti.
-    if (!yatzyCategory.locked && yatzyCategory.yatzyAchieved) {
-      console.log('No yatzy rolled: auto-locking Yatzy field.');
-      setScoringCategories(prevCategories =>
-        prevCategories.map(category => {
-          if (category.name === 'yatzy') {
-            return { ...category, locked: true };
-          }
-          return category;
-        })
-      );
     }
-  }
-}
 
     // Fullhouse
     function calculateFullHouse(rolledDices) {
@@ -823,7 +821,7 @@ function checkAndUnlockYatzy(rolledDices) {
                             >
                                 <Text style={styles.buttonText}>Roll Dices</Text>
                                 <View style={styles.nbrThrowsTextContainer}>
-                                {rounds > 0 && <Text style={styles.nbrThrowsText}>{nbrOfThrowsLeft}</Text>}
+                                    {rounds > 0 && <Text style={styles.nbrThrowsText}>{nbrOfThrowsLeft}</Text>}
                                 </View>
                             </Pressable>
                             <Pressable
