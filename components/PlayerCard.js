@@ -34,6 +34,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
   const [avgPoints, setAvgPoints] = useState(0);
   const [avgDuration, setAvgDuration] = useState(0);
   const [storedLevel, setStoredLevel] = useState(null);
+  const [viewingAllTimeRank, setViewingAllTimeRank] = useState('--');
 
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
@@ -309,12 +310,36 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     return computedLevel;
   };
 
+  const fetchAllTimeRank = () => {
+    const playersRef = ref(database, `players`);
+    onValue(playersRef, snapshot => {
+      if (!snapshot.exists()) {
+        setViewingAllTimeRank('--');
+        return;
+      }
+      const playersData = snapshot.val();
+      // Rakennetaan lista muodoissa { playerId, maxScore }
+      const bestScores = Object.entries(playersData).map(([pId, data]) => {
+        const scores = data.scores || {};
+        const maxScore = Object.values(scores)
+          .map(s => Number(s.points) || 0)
+          .reduce((m, v) => v > m ? v : m, 0);
+        return { playerId: pId, maxScore };
+      });
+      // Järjestetään laskevasti parhaan single-score mukaan
+      bestScores.sort((a, b) => b.maxScore - a.maxScore);
+      const idx = bestScores.findIndex(item => item.playerId === idToUse);
+      setViewingAllTimeRank(idx >= 0 ? idx + 1 : '--');
+    });
+  };
+
   useEffect(() => {
     if (isModalVisible && idToUse) {
       fetchTopScores();
       fetchMonthlyRanks();
       fetchWeeklyRank();
       fetchPlayerStats();
+      fetchAllTimeRank();
 
       // Get avatar
       const avatarRef = ref(database, `players/${idToUse}/avatar`);
@@ -453,7 +478,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
                   </Text>
                 </View>
                 <View style={styles.playerStatsContainer}>
-                  <Text style={styles.playerStat}>All Time Rank: {allTimeRank}</Text>
+                  <Text style={styles.playerStat}>All Time Rank: {viewingAllTimeRank}</Text>
                   <Text style={styles.playerStat}>Played Games: {playedGames}</Text>
                   <Text style={styles.playerStat}>Avg. Points/Game: {avgPoints}</Text>
                   <Text style={styles.playerStat}>Avg Duration/Game: {avgDuration} s</Text>
