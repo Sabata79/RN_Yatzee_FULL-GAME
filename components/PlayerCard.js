@@ -8,6 +8,7 @@ import { ref, onValue, update } from 'firebase/database';
 import { avatars } from '../constants/AvatarPaths';
 import AvatarContainer from '../components/AvatarContainer';
 import { NBR_OF_SCOREBOARD_ROWS } from '../constants/Game';
+import { PlayercardBg } from '../constants/PlayercardBg';
 
 export default function PlayerCard({ isModalVisible, setModalVisible }) {
   const {
@@ -401,7 +402,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
         <Text style={styles.trophyText}>BRONZE</Text>
       </View>
     );
-    return <Text style={[styles.playerCardMonthText, { fontWeight: 'bold', marginTop: 20, fontSize: 18,  backgroundColor: '#00000000',  }]}>{rank}.</Text>;
+    return <Text style={[styles.playerCardMonthText, { fontWeight: 'bold', marginTop: 20, fontSize: 18, backgroundColor: '#00000000', }]}>{rank}.</Text>;
   };
 
   const getTopScoresWithEmptySlots = () => {
@@ -412,6 +413,11 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
   const previousMonthRank = currentMonth > 0 ? monthlyRanks[currentMonth - 1] : '--';
 
   const levelInfo = getPlayerLevelInfo();
+
+  const getPlayerCardBackground = (level) => {
+    const bg = PlayercardBg.find(bg => bg.level.toLowerCase() === level.toLowerCase());
+    return bg ? bg.display : require('../assets/playercardBackground.jpeg');
+  };
 
   return (
     <View style={styles.playerCardContainer}>
@@ -424,17 +430,17 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
         <View style={styles.playerCardModalBackground}>
           <View style={styles.playerCardModalContainer}>
             <Image
-              source={require('../assets/playercardBackground.jpeg')}
+              source={getPlayerCardBackground(levelInfo.level)}
               style={styles.avatarModalBackgroundImage}
             />
 
             {/* HEADER: Nimi keskellä + X oikealla */}
             <View style={styles.playerCardHeaderCentered}>
-                {playerIsLinked && (
-                  <View style={styles.linkIconContainer}>
-                    <FontAwesome5 name="link" size={10} color="gold" />
-                  </View>
-                )}
+              {playerIsLinked && (
+                <View style={styles.linkIconContainer}>
+                  <FontAwesome5 name="link" size={10} color="gold" />
+                </View>
+              )}
               <Text style={styles.playerCardNameTextCentered}>{nameToUse}</Text>
               <Pressable
                 style={styles.playerCardCloseButton}
