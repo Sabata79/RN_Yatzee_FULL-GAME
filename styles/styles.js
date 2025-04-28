@@ -866,6 +866,14 @@ export default styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#4f4c4c36',
     },
+    advancedAvatar: {
+        borderRadius: 0,
+        width: 40,
+        height: 30,
+        resizeMode: 'cover',
+        marginLeft: 18,
+        marginRight: 12,
+    },
     defaultAvatarIcon: {
         width: isSmallScreen ? 30 : 40,
         height: isSmallScreen ? 30 : 40,

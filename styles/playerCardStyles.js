@@ -325,8 +325,8 @@ export default styles = StyleSheet.create({
     },
     linkIconContainer: {
         position: 'absolute',
-        top: 10,
-        left: 0,
+        top: '70%',
+        left: '30%',
         padding: 5,
         borderRadius: 40,
         borderColor: '#4c4949',

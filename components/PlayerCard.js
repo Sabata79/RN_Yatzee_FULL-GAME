@@ -430,6 +430,11 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
 
             {/* HEADER: Nimi keskellä + X oikealla */}
             <View style={styles.playerCardHeaderCentered}>
+                {playerIsLinked && (
+                  <View style={styles.linkIconContainer}>
+                    <FontAwesome5 name="link" size={10} color="gold" />
+                  </View>
+                )}
               <Text style={styles.playerCardNameTextCentered}>{nameToUse}</Text>
               <Pressable
                 style={styles.playerCardCloseButton}
@@ -454,11 +459,11 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
                     source={getAvatarImage(getAvatarToDisplay())}
                   />
                 </View>
-                {playerIsLinked && (
+                {/* {playerIsLinked && (
                   <View style={styles.linkIconContainer}>
                     <FontAwesome5 name="link" size={15} color="gold" />
                   </View>
-                )}
+                )} */}
                 {idToUse === playerId && (
                   <Pressable
                     style={styles.editAvatarButton}

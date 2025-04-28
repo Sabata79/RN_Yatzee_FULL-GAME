@@ -141,9 +141,12 @@ export default function Scoreboard({ navigation }) {
     setViewingPlayerNameContext('');
   };
 
-  const isBeginnerAvatar = (avatarPath) => {
+  const getAvatarStyle = (avatarPath) => {
     const avatar = avatars.find(av => av.path === avatarPath);
-    return avatar && avatar.level === 'Beginner';
+    if (!avatar) return styles.defaultAvatarIcon;
+    if (avatar.level === 'Beginner') return styles.beginnerAvatar;
+    if (avatar.level === 'Advanced') return styles.advancedAvatar;
+    return styles.avatar;
   };
 
   return (
@@ -222,7 +225,7 @@ export default function Scoreboard({ navigation }) {
                         {(() => {
                           const avatarSource = avatars.find((avatar) => avatar.path === score.avatar)?.display;
                           return avatarSource ? (
-                            <Image source={avatarSource} style={[isBeginnerAvatar(score.avatar) ? styles.beginnerAvatar : styles.avatar]} />
+                            <Image source={avatarSource} style={getAvatarStyle(score.avatar)} />
                           ) : (
                             <View style={styles.defaultAvatarIcon}>
                               <FontAwesome5 name="user" size={22} color="white" />
@@ -247,7 +250,7 @@ export default function Scoreboard({ navigation }) {
 
 
           )}
-        <View style={{ height: 80 }} />
+          <View style={{ height: 80 }} />
         </ScrollView>
       </View>
 

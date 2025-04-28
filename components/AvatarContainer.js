@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, View, Text, Pressable, Image, StyleSheet, Dimensions, ScrollView } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
+import { advance } from '@react-three/fiber';
 
 const { width } = Dimensions.get('window');
 const isFoldScreen = width < 800;
@@ -108,7 +109,11 @@ const AvatarContainer = ({ isVisible, onClose, avatars, handleAvatarSelect, play
                   <Image
                     style={[
                       styles.avatarModalImage,
-                      avatar.level === 'Beginner' ? styles.beginnerAvatar : styles.defaultAvatar
+                      avatar.level === 'Beginner'
+                        ? styles.beginnerAvatar
+                        : avatar.level === 'Advanced'
+                        ? styles.advancedAvatar
+                        : styles.defaultAvatar
                     ]}
                     source={avatar.display}
                   />
@@ -223,6 +228,10 @@ const styles = StyleSheet.create({
     margin: 5,
     borderWidth: 1,
     borderColor: '#4f4c4c36',
+  },
+
+  advancedAvatar: {
+    borderRadius: 0,
   },
 
   // Tyyli muille avatareille (jotka ovat jo valmiiksi pyöreitä)
