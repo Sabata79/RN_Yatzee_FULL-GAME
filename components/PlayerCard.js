@@ -401,7 +401,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
         <Text style={styles.trophyText}>BRONZE</Text>
       </View>
     );
-    return <Text style={[styles.playerCardMonthText, { fontWeight: 'bold', marginTop: 30, fontSize: 20 }]}>{rank}.</Text>;
+    return <Text style={[styles.playerCardMonthText, { fontWeight: 'bold', marginTop: 20, fontSize: 18,  backgroundColor: '#00000000',  }]}>{rank}.</Text>;
   };
 
   const getTopScoresWithEmptySlots = () => {
@@ -489,7 +489,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
             {/* TOP SCORES */}
             <Text style={styles.playerCardScoresTitle}>SCORES</Text>
             <RNScrollView
-              style={[styles.playerCardScoresContainer, { maxHeight: 120 }]}
+              style={styles.playerCardScoresContainer}
               contentContainerStyle={{ paddingTop: 5, paddingBottom: 5 }}
             >
               {getTopScoresWithEmptySlots().map((score, index) => (

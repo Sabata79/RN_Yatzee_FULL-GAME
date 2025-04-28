@@ -211,6 +211,8 @@ export default styles = StyleSheet.create({
         borderRadius: 3,
         padding: 3,
         backgroundColor: '#00000027',
+        minHeight: 80,
+        maxHeight: 120,
     },
     evenRow: {
         backgroundColor: '#ffffff00', // tai läpinäkyvä
@@ -277,8 +279,14 @@ export default styles = StyleSheet.create({
     },
     playerCardOngoingMonth: {
         borderColor: 'green',
-        borderWidth: 4,
+        borderWidth: 2,
+        shadowColor: 'green',
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.8,
+        shadowRadius: 4,
+        elevation: 12,  // Androidilla
     },
+
     playerCardMonthText: {
         fontSize: 11,
         fontWeight: 'bold',
@@ -294,8 +302,7 @@ export default styles = StyleSheet.create({
         borderTopRightRadius: 3,
     },
     emptySlotText: {
-        fontSize: 14,
-        paddingTop: 10,
+        fontSize: 12,
         color: 'black',
         textAlign: 'center',
     },
