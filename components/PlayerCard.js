@@ -9,6 +9,7 @@ import { avatars } from '../constants/AvatarPaths';
 import AvatarContainer from '../components/AvatarContainer';
 import { NBR_OF_SCOREBOARD_ROWS } from '../constants/Game';
 import { PlayercardBg } from '../constants/PlayercardBg';
+import CoinLayer from './CoinLayer';
 
 export default function PlayerCard({ isModalVisible, setModalVisible }) {
   const {
@@ -36,6 +37,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
   const [avgDuration, setAvgDuration] = useState(0);
   const [storedLevel, setStoredLevel] = useState(null);
   const [viewingAllTimeRank, setViewingAllTimeRank] = useState('--');
+  const [weeklyWins, setWeeklyWins] = useState(0);
 
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
@@ -220,6 +222,81 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     });
   };
 
+  const fetchWeeklyWins = () => {
+    const playersRef = ref(database, `players`);
+    onValue(playersRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const playersData = snapshot.val();
+        const now = new Date();
+        const firstScoreDate = new Date();
+        firstScoreDate.setFullYear(firstScoreDate.getFullYear() - 1); // katsotaan esim. vuoden taakse
+
+        let wins = 0;
+
+        // käydään läpi viikko viikolta
+        for (let weeksAgo = 0; weeksAgo <= 52; weeksAgo++) {
+          const monday = new Date(now);
+          monday.setDate(monday.getDate() - monday.getDay() + 1 - weeksAgo * 7);
+          monday.setHours(0, 0, 0, 0);
+
+          const sunday = new Date(monday);
+          sunday.setDate(monday.getDate() + 6);
+          sunday.setHours(23, 59, 59, 999);
+
+          let weeklyScores = [];
+
+          Object.keys(playersData).forEach((pId) => {
+            const playerScores = playersData[pId].scores || {};
+            Object.values(playerScores).forEach((score) => {
+              const scoreDate = new Date(score.date.split('.').reverse().join('-'));
+              if (scoreDate >= monday && scoreDate <= sunday) {
+                weeklyScores.push({
+                  playerId: pId,
+                  points: score.points,
+                  duration: score.duration,
+                  date: scoreDate.getTime(),
+                });
+              }
+            });
+          });
+
+          const bestScoresMap = {};
+          weeklyScores.forEach(score => {
+            if (!bestScoresMap[score.playerId]) {
+              bestScoresMap[score.playerId] = score;
+            } else {
+              const currentBest = bestScoresMap[score.playerId];
+              const isBetterScore = (newScore, oldScore) => {
+                if (newScore.points > oldScore.points) return true;
+                if (newScore.points < oldScore.points) return false;
+                if (newScore.duration < oldScore.duration) return true;
+                if (newScore.duration > oldScore.duration) return false;
+                return newScore.date < oldScore.date;
+              };
+              if (isBetterScore(score, currentBest)) {
+                bestScoresMap[score.playerId] = score;
+              }
+            }
+          });
+
+          const bestScores = Object.values(bestScoresMap);
+          bestScores.sort((a, b) => {
+            if (b.points !== a.points) return b.points - a.points;
+            if (a.duration !== b.duration) return a.duration - b.duration;
+            return a.date - b.date;
+          });
+
+          const winner = bestScores[0];
+          if (winner && winner.playerId === idToUse) {
+            wins += 1;
+          }
+        }
+        setWeeklyWins(wins);
+      }
+    });
+  };
+
+
   // Get player stats
   const fetchPlayerStats = () => {
     if (idToUse) {
@@ -339,6 +416,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
       fetchTopScores();
       fetchMonthlyRanks();
       fetchWeeklyRank();
+      fetchWeeklyWins(); 
       fetchPlayerStats();
       fetchAllTimeRank();
 
@@ -433,6 +511,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
               source={getPlayerCardBackground(levelInfo.level)}
               style={styles.avatarModalBackgroundImage}
             />
+            <CoinLayer weeklyWins={weeklyWins} />
 
             {/* HEADER: Nimi keskellä + X oikealla */}
             <View style={styles.playerCardHeaderCentered}>
@@ -465,11 +544,6 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
                     source={getAvatarImage(getAvatarToDisplay())}
                   />
                 </View>
-                {/* {playerIsLinked && (
-                  <View style={styles.linkIconContainer}>
-                    <FontAwesome5 name="link" size={15} color="gold" />
-                  </View>
-                )} */}
                 {idToUse === playerId && (
                   <Pressable
                     style={styles.editAvatarButton}
@@ -490,6 +564,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
                 </View>
                 <View style={styles.playerStatsContainer}>
                   <Text style={styles.playerStat}>All Time Rank: {viewingAllTimeRank}</Text>
+                  <Text style={styles.playerStat}>Weekly Wins: {weeklyWins}</Text>
                   <Text style={styles.playerStat}>Played Games: {playedGames}</Text>
                   <Text style={styles.playerStat}>Avg. Points/Game: {avgPoints}</Text>
                   <Text style={styles.playerStat}>Avg Duration/Game: {avgDuration} s</Text>

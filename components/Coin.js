@@ -1,0 +1,34 @@
+// components/Coin.js
+import React from 'react';
+import { Animated, StyleSheet, Image } from 'react-native';
+
+const coinImage = require('../assets/coins/coin.png'); // polku oikein?
+
+export const COIN_SIZE = 40;
+
+export default function Coin({ left, translateY, rotation }) {
+  return (
+    <Animated.Image
+      source={coinImage}
+      style={[
+        styles.coin,
+        {
+          left,
+          transform: [
+            { translateY },
+            { rotate: rotation },
+          ],
+        },
+      ]}
+    />
+  );
+}
+
+const styles = StyleSheet.create({
+  coin: {
+    position: 'absolute',
+    width: 40,
+    height: 40,
+    opacity: 0.85,
+  },
+});

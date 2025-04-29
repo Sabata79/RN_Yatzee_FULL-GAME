@@ -33,7 +33,7 @@ export default styles = StyleSheet.create({
         alignItems: 'right',
         justifyContent: 'right',
         width: '65%',
-        height: '100%',
+        height: '110%',
         marginBottom: 5,
         marginTop: 10,
         borderRadius: 3,
@@ -269,7 +269,7 @@ export default styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: 5,
-        backgroundColor: '#f3f3f3',
+        backgroundColor: '#fffcfc',
         borderRadius: 5,
         position: 'relative',
         flexDirection: 'column',
@@ -284,7 +284,7 @@ export default styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 0 },
         shadowOpacity: 0.8,
         shadowRadius: 4,
-        elevation: 12,  // Androidilla
+        elevation: 12, 
     },
 
     playerCardMonthText: {
@@ -337,7 +337,6 @@ export default styles = StyleSheet.create({
         marginTop: 3,
         alignItems: 'left',
         marginLeft: 5,
-        // backgroundColor: '#00000030',
         borderRadius: 2,
         padding: 2,
     },
