@@ -33,9 +33,9 @@ export default styles = StyleSheet.create({
         alignItems: 'right',
         justifyContent: 'right',
         width: '65%',
-        height: '110%',
+        height: 110,
         marginBottom: 5,
-        marginTop: 10,
+        marginTop: 20,
         borderRadius: 3,
         backgroundColor: '#00000030',
     },
@@ -211,8 +211,8 @@ export default styles = StyleSheet.create({
         borderRadius: 3,
         padding: 3,
         backgroundColor: '#00000027',
-        minHeight: 60,
-        maxHeight: 90,
+        height: 53,
+        width: '98%',
     },
     evenRow: {
         backgroundColor: '#ffffff00', // tai läpinäkyvä
@@ -222,9 +222,8 @@ export default styles = StyleSheet.create({
         backgroundColor: '#00000010', // kevyt tumma korostus, voit säätää
     },
     playerCardScoresTitle: {
-        marginTop: 5,
+        marginTop: 18,
         fontSize: 14,
-
         marginBottom: 0,
         textAlign: 'center',
         fontWeight: 'bold',
@@ -264,7 +263,7 @@ export default styles = StyleSheet.create({
         width: '100%',
     },
     playerCardMonth: {
-        width: '23%',
+        width: 60,
         height: 65,
         justifyContent: 'center',
         alignItems: 'center',
@@ -297,7 +296,7 @@ export default styles = StyleSheet.create({
         marginBottom: 10,
         zIndex: 2,
         backgroundColor: '#ffffff8e',
-        width: '96%',
+        width: 56,
         borderTopLeftRadius: 3,
         borderTopRightRadius: 3,
     },

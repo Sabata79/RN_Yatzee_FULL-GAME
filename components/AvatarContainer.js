@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
   tabsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-evenly',
-    width: '100%',
+    width: 250,
     flexWrap: 'wrap',
   },
   tabButton: {
