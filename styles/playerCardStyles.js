@@ -33,7 +33,8 @@ export default styles = StyleSheet.create({
         alignItems: 'right',
         justifyContent: 'right',
         width: '65%',
-        height: 110,
+        minHeight: 110,
+        maxHeight: 110,
         marginBottom: 5,
         marginTop: 20,
         borderRadius: 3,
@@ -211,7 +212,7 @@ export default styles = StyleSheet.create({
         borderRadius: 3,
         padding: 3,
         backgroundColor: '#00000027',
-        height: 85,
+        minHeight: 85,
         maxHeight: 85,
         width: '98%',
     },
@@ -264,7 +265,8 @@ export default styles = StyleSheet.create({
         width: '100%',
     },
     playerCardMonth: {
-        width: 60,
+        width: '23%',
+        marginHorizontal: '1%',
         height: 65,
         justifyContent: 'center',
         alignItems: 'center',
@@ -284,7 +286,7 @@ export default styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 0 },
         shadowOpacity: 0.8,
         shadowRadius: 4,
-        elevation: 12, 
+        elevation: 12,
     },
 
     playerCardMonthText: {
@@ -323,15 +325,28 @@ export default styles = StyleSheet.create({
         zIndex: 10,
         padding: 5,
     },
+    playerCardHeaderCentered: {
+        width: '100%',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between', // nimi + link vasemmalla, X oikealla
+        paddingHorizontal: 10,
+        marginTop: 5,
+    },
+
+    nameAndLinkContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
     linkIconContainer: {
-        position: 'absolute',
-        top: '70%',
-        left: '30%',
+        marginLeft: -15,
+        marginRight: 5,
         padding: 5,
         borderRadius: 40,
         borderColor: '#4c4949',
         borderWidth: 1,
         backgroundColor: '#000000ba',
+        alignSelf: 'center', // pysyy rivillä oikein
     },
     playerStatsContainer: {
         marginTop: 3,

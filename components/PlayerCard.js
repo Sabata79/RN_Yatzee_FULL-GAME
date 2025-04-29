@@ -521,12 +521,14 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
 
             {/* HEADER: Nimi keskellä + X oikealla */}
             <View style={styles.playerCardHeaderCentered}>
-              {playerIsLinked && (
-                <View style={styles.linkIconContainer}>
-                  <FontAwesome5 name="link" size={10} color="gold" />
-                </View>
-              )}
-              <Text style={styles.playerCardNameTextCentered}>{nameToUse}</Text>
+              <View style={styles.nameAndLinkContainer}>
+                {playerIsLinked && (
+                  <View style={styles.linkIconContainer}>
+                    <FontAwesome5 name="link" size={10} color="gold" />
+                  </View>
+                )}
+                <Text style={styles.playerCardNameTextCentered}>{nameToUse}</Text>
+              </View>
               <Pressable
                 style={styles.playerCardCloseButton}
                 onPress={() => {
@@ -537,6 +539,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
                 <Text style={styles.playerCardCloseText}>X</Text>
               </Pressable>
             </View>
+
 
             {/* Avatar + Stats */}
             <View style={styles.playerInfoContainer}>
