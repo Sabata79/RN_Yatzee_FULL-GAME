@@ -34,7 +34,7 @@ export default function InterfaceGuide() {
 
         <View style={styles.bulletRow}>
           <View style={styles.bullet}><Text style={styles.bulletText}>1</Text></View>
-          <Text style={styles.infoText}>Avatar, Linked icon, and Edit button</Text>
+          <Text style={styles.infoText}>Avatar & Edit button</Text>
         </View>
 
         <View style={styles.bulletRow}>
@@ -51,6 +51,11 @@ export default function InterfaceGuide() {
           <View style={styles.bullet}><Text style={styles.bulletText}>4</Text></View>
           <Text style={styles.infoText}>Monthly trophies for current year</Text>
         </View>
+
+        <View style={styles.bulletRow}>
+          <View style={styles.bullet}><Text style={styles.bulletText}>5</Text></View>
+          <Text style={styles.infoText}>Coins that indicates weeklyWins</Text>
+        </View>
       </View>
 
       {/* Avatar levels */}
@@ -58,6 +63,14 @@ export default function InterfaceGuide() {
         <Text style={styles.infoTitle}>🔒 Avatar Unlocks</Text>
         <Text style={styles.infoText}>
           Some avatars are locked based on your level. Visit the Player Card to view and change unlocked avatars.
+        </Text>
+      </View>
+
+      {/* PlayerCard Background info */}
+      <View style={styles.infoBox}>
+        <Text style={styles.infoTitle}>🎴 Player Card Background</Text>
+        <Text style={styles.infoText}>
+          Your Player Card background updates automatically as you level up.
         </Text>
       </View>
 
@@ -71,7 +84,7 @@ export default function InterfaceGuide() {
         <Text style={styles.infoText}>Legendary: 2000+ games</Text>
       </View>
       <View style={{ height: 80 }} />
-    </ScrollView>
+    </ScrollView >
   );
 }
 

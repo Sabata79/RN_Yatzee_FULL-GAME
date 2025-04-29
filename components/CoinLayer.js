@@ -26,7 +26,7 @@ export default function CoinLayer({ weeklyWins }) {
 
   useEffect(() => {
     coins.forEach((coin) => {
-      const landingHeight = screenHeight - 205 - coin.bottomOffset;
+      const landingHeight = screenHeight - 233 - coin.bottomOffset;
 
       Animated.timing(coin.translateY, {
         toValue: landingHeight,
