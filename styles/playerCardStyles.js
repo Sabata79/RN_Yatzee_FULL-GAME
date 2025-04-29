@@ -18,7 +18,7 @@ export default styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         width: '100%',
-        height: '18%',
+        height: '20%',
         marginBottom: 5,
     },
     playerNameContainer: {
@@ -212,8 +212,7 @@ export default styles = StyleSheet.create({
         borderRadius: 3,
         padding: 3,
         backgroundColor: '#00000027',
-        minHeight: 85,
-        maxHeight: 85,
+        height: 60,
         width: '98%',
     },
     evenRow: {
@@ -224,7 +223,7 @@ export default styles = StyleSheet.create({
         backgroundColor: '#00000010', // kevyt tumma korostus, voit säätää
     },
     playerCardScoresTitle: {
-        marginTop: 18,
+        marginTop: 10,
         fontSize: 14,
         marginBottom: 0,
         textAlign: 'center',
@@ -266,8 +265,9 @@ export default styles = StyleSheet.create({
     },
     playerCardMonth: {
         width: '23%',
+        aspectRatio: 0.8,
+        minHeight: 70,
         marginHorizontal: '1%',
-        height: 65,
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: 5,

@@ -585,14 +585,14 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
             <Text style={styles.playerCardScoresTitle}>SCORES</Text>
             <RNScrollView
               style={styles.playerCardScoresContainer}
-              contentContainerStyle={{ paddingTop: 2, paddingBottom: 5 }}
+              contentContainerStyle={{ paddingTop: 2, paddingBottom: 5, flexGrow: 0 }}
             >
               {getTopScoresWithEmptySlots().map((score, index) => (
                 <View
                   key={index}
                   style={[
                     styles.scoreRow,
-                    index % 2 === 0 ? styles.evenRow : styles.oddRow, // joka toinen rivi
+                    index % 2 === 0 ? styles.evenRow : styles.oddRow,
                   ]}
                 >
                   <Text style={styles.playerCardScoreItem}>
