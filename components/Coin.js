@@ -4,7 +4,7 @@ import { Animated, StyleSheet, Image } from 'react-native';
 
 const coinImage = require('../assets/coins/coin.png'); // polku oikein?
 
-export const COIN_SIZE = 40;
+export const COIN_SIZE = 45;
 
 export default function Coin({ left, translateY, rotation }) {
   return (
@@ -27,8 +27,8 @@ export default function Coin({ left, translateY, rotation }) {
 const styles = StyleSheet.create({
   coin: {
     position: 'absolute',
-    width: 40,
-    height: 40,
+    width: 45,
+    height: 45,
     opacity: 0.85,
   },
 });

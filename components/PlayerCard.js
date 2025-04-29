@@ -38,6 +38,9 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
   const [storedLevel, setStoredLevel] = useState(null);
   const [viewingAllTimeRank, setViewingAllTimeRank] = useState('--');
   const [weeklyWins, setWeeklyWins] = useState(0);
+  const [modalHeight, setModalHeight] = useState(0);
+
+
 
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
@@ -416,7 +419,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
       fetchTopScores();
       fetchMonthlyRanks();
       fetchWeeklyRank();
-      fetchWeeklyWins(); 
+      fetchWeeklyWins();
       fetchPlayerStats();
       fetchAllTimeRank();
 
@@ -506,12 +509,15 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
         onRequestClose={() => setModalVisible(false)}
       >
         <View style={styles.playerCardModalBackground}>
-          <View style={styles.playerCardModalContainer}>
+          <View
+            style={styles.playerCardModalContainer}
+            onLayout={(event) => setModalHeight(event.nativeEvent.layout.height)} // 👈
+          >
             <Image
               source={getPlayerCardBackground(levelInfo.level)}
               style={styles.avatarModalBackgroundImage}
             />
-            <CoinLayer weeklyWins={weeklyWins} />
+            <CoinLayer weeklyWins={weeklyWins} modalHeight={modalHeight} />
 
             {/* HEADER: Nimi keskellä + X oikealla */}
             <View style={styles.playerCardHeaderCentered}>

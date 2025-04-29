@@ -1,74 +1,83 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Animated, StyleSheet, Dimensions, Easing } from 'react-native';
 import Coin, { COIN_SIZE } from './Coin';
 
-const { height: screenHeight, width: screenWidth } = Dimensions.get('window');
+const { width: screenWidth } = Dimensions.get('window');
 
-export default function CoinLayer({ weeklyWins }) {
-  const slotSpacing = 5; // väli kolikoiden välillä
-  const slotsPerRow = Math.floor((screenWidth - COIN_SIZE -45) / (COIN_SIZE + slotSpacing));
-
-  const coins = Array.from({ length: weeklyWins }).map((_, index) => {
-    const slotIndex = index % slotsPerRow;
-    const row = Math.floor(index / slotsPerRow);
-
-    const left = slotIndex * (COIN_SIZE + slotSpacing);
-    const bottomOffset = row * (COIN_SIZE + slotSpacing);
-
-    return {
-      left,
-      bottomOffset,
-      translateY: new Animated.Value(-100),
-      rotation: new Animated.Value(Math.random() * 360),
-      delay: Math.random() * 500,
-    };
-  });
+export default function CoinLayer({ weeklyWins, modalHeight }) {
+  const [coins, setCoins] = useState([]);
 
   useEffect(() => {
-    coins.forEach((coin) => {
-      const landingHeight = screenHeight - 233 - coin.bottomOffset;
+    const slotSpacing = 5;
+    const slotsPerRow = Math.floor((screenWidth - COIN_SIZE - 45) / (COIN_SIZE + slotSpacing));
 
-      Animated.timing(coin.translateY, {
-        toValue: landingHeight,
-        duration: 900,
-        delay: coin.delay,
-        useNativeDriver: true,
-        easing: Easing.linear,
-      }).start();
+    const generatedCoins = Array.from({ length: weeklyWins }).map((_, index) => {
+      const slotIndex = index % slotsPerRow;
+      const row = Math.floor(index / slotsPerRow);
 
-      Animated.timing(coin.rotation, {
-        toValue: coin.rotation.__getValue() + (Math.random() * 360 + 90),
-        duration: 1000 + Math.random() * 500,
-        delay: coin.delay,
-        useNativeDriver: true,
-        easing: Easing.out(Easing.exp),
-      }).start();
+      const left = slotIndex * (COIN_SIZE + slotSpacing);
+      const bottomOffset = row * (COIN_SIZE + slotSpacing);
+
+      return {
+        left,
+        bottomOffset,
+        translateY: new Animated.Value(-100),
+        rotation: new Animated.Value(Math.random() * 360),
+        delay: Math.random() * 500,
+      };
     });
-  }, []);
 
-  return (
-    <View style={styles.overlay} pointerEvents="none">
-      {coins.map((coin, index) => (
-        <Coin
-          key={index}
-          left={coin.left}
-          translateY={coin.translateY}
-          rotation={coin.rotation.interpolate({
-            inputRange: [0, 360],
-            outputRange: ['0deg', '360deg'],
-          })}
-        />
-      ))}
-    </View>
-  );
+    setCoins(generatedCoins);
+  }, [weeklyWins]);
+
+useEffect(() => {
+  if (!modalHeight) return;
+
+  coins.forEach((coin) => {
+    const landingHeight = modalHeight - COIN_SIZE - 1 - coin.bottomOffset;
+
+    Animated.timing(coin.translateY, {
+      toValue: landingHeight,
+      duration: 900,
+      delay: coin.delay,
+      useNativeDriver: true,
+      easing: Easing.linear,
+    }).start();
+
+    Animated.timing(coin.rotation, {
+      toValue: coin.rotation.__getValue() + (Math.random() * 360 + 90),
+      duration: 1000 + Math.random() * 500,
+      delay: coin.delay,
+      useNativeDriver: true,
+      easing: Easing.out(Easing.exp),
+    }).start();
+  });
+}, [coins, modalHeight]);
+
+return (
+  <View style={styles.overlay} pointerEvents="none">
+    {coins.map((coin, index) => (
+      <Coin
+        key={index}
+        left={coin.left}
+        translateY={coin.translateY}
+        rotation={coin.rotation.interpolate({
+          inputRange: [0, 360],
+          outputRange: ['0deg', '360deg'],
+        })}
+      />
+    ))}
+  </View>
+);
+
 }
 
 const styles = StyleSheet.create({
   overlay: {
     position: 'absolute',
     top: 0,
-    left: 8,
-    width: '80%',
+    left: '5%',
+    width: '90%',
     height: '100%',
     zIndex: 0,
   },

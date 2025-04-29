@@ -211,7 +211,8 @@ export default styles = StyleSheet.create({
         borderRadius: 3,
         padding: 3,
         backgroundColor: '#00000027',
-        height: 53,
+        height: 85,
+        maxHeight: 85,
         width: '98%',
     },
     evenRow: {
