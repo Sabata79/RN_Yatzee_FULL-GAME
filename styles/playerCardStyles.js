@@ -211,8 +211,8 @@ export default styles = StyleSheet.create({
         borderRadius: 3,
         padding: 3,
         backgroundColor: '#00000027',
-        minHeight: 80,
-        maxHeight: 120,
+        minHeight: 60,
+        maxHeight: 90,
     },
     evenRow: {
         backgroundColor: '#ffffff00', // tai läpinäkyvä
