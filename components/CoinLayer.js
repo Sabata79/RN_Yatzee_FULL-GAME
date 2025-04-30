@@ -21,9 +21,10 @@ export default function CoinLayer({ weeklyWins, modalHeight }) {
       return {
         left,
         bottomOffset,
-        translateY: new Animated.Value(-100),
+        translateY: new Animated.Value(-50 - Math.random() * 100),
         rotation: new Animated.Value(Math.random() * 360),
         delay: Math.random() * 500,
+        startLeftOffset: Math.random() * 20 - 10,
       };
     });
 
