@@ -2,7 +2,7 @@
   "expo": {
     "name": "Yatzy",
     "slug": "SimpleYatzee",
-    "version": "2.1.7",
+    "version": "2.1.8",
     "orientation": "portrait",
     "icon": "./assets/desktopIcon.png",
     "userInterfaceStyle": "light",
@@ -16,8 +16,8 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "runtimeVersion": "2.1.7",
-      "buildNumber": "2.1.7",
+      "runtimeVersion": "2.1.8",
+      "buildNumber": "2.1.8",
       "bundleIdentifier": "com.SimpleYatzee"
     },
     "android": {
@@ -32,7 +32,7 @@
         "WAKE_LOCK",
         "com.google.android.gms.permission.AD_ID"
       ],
-      "runtimeVersion": "2.1.7"
+      "runtimeVersion": "2.1.8"
     },
     "web": {
       "favicon": "./assets/favicon.png"

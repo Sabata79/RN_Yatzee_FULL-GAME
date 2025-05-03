@@ -119,7 +119,7 @@ export default function LandingPage({ navigation }) {
       if (currentProgress >= toValue) {
         clearInterval(interval);
       }
-    }, 40);
+    }, 20);
   };
 
   useEffect(() => {
