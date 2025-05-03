@@ -24,7 +24,7 @@ export default function InterfaceGuide() {
 
       {/* Playercard explain picture */}
       <Image
-        source={require('../assets/playerCard_explained.png')} // ← vaihda tiedostonimi oikeaksi
+        source={require('../assets/playerCard_explained.webp')} 
         style={styles.image}
       />
 

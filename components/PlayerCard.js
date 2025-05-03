@@ -450,7 +450,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
 
   const getAvatarImage = (avatarPath) => {
     const avatar = avatars.find(av => av.path === avatarPath);
-    return avatar ? avatar.display : require('../assets/whiteDices.png');
+    return avatar ? avatar.display : require('../assets/whiteDices.webp');
   };
 
   const isBeginnerAvatar = (avatarPath) => {
@@ -467,19 +467,19 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     if (rank === '--') return <Text style={styles.emptySlotText}>--</Text>;
     if (rank === 1) return (
       <View style={styles.trophyContainer}>
-        <Image source={require('../assets/trophies/goldTrophy.jpeg')} style={styles.playerCardTrophyImage} />
+        <Image source={require('../assets/trophies/goldTrophy.webp')} style={styles.playerCardTrophyImage} />
         <Text style={styles.trophyText}>GOLD</Text>
       </View>
     );
     if (rank === 2) return (
       <View style={styles.trophyContainer}>
-        <Image source={require('../assets/trophies/silverTrophy.jpeg')} style={styles.playerCardTrophyImage} />
+        <Image source={require('../assets/trophies/silverTrophy.webp')} style={styles.playerCardTrophyImage} />
         <Text style={styles.trophyText}>SILVER</Text>
       </View>
     );
     if (rank === 3) return (
       <View style={styles.trophyContainer}>
-        <Image source={require('../assets/trophies/bronzeTrophy.jpeg')} style={styles.playerCardTrophyImage} />
+        <Image source={require('../assets/trophies/bronzeTrophy.webp')} style={styles.playerCardTrophyImage} />
         <Text style={styles.trophyText}>BRONZE</Text>
       </View>
     );
@@ -497,7 +497,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
 
   const getPlayerCardBackground = (level) => {
     const bg = PlayercardBg.find(bg => bg.level.toLowerCase() === level.toLowerCase());
-    return bg ? bg.display : require('../assets/playercardBackground.jpeg');
+    return bg ? bg.display : require('../assets/playerCardBg/BeginnerBG.webp');
   };
 
   return (

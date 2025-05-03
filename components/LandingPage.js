@@ -136,7 +136,7 @@ export default function LandingPage({ navigation }) {
         <Text style={styles.versionText}>Version: {gameVersion}</Text>
       </View>
       <View style={styles.logoContainer}>
-        <Image source={require("../assets/landingLogo.png")} style={styles.logo} />
+        <Image source={require("../assets/landingLogo.webp")} style={styles.logo} />
       </View>
       <ProgressBar
         progress={loadingProgress / 100}

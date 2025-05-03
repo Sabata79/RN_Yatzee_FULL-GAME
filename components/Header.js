@@ -42,7 +42,7 @@ export default function Header() {
       {/* Header/Logo */}
       <View style={headerStyles.section1}>
         <Text style={headerStyles.headerTitle}>SMR</Text>
-        <Image source={require('../assets/desktopIcon.png')} style={headerStyles.headerImage} />
+        <Image source={require('../assets/desktopIcon.webp')} style={headerStyles.headerImage} />
       </View>
 
       {/* EnergyTokenSystem */}

@@ -137,13 +137,13 @@ export default function Home({ setPlayerId }) {
   };
 
   return (
-    <ImageBackground source={require("../assets/diceBackground.jpg")} style={styles.background}>
+    <ImageBackground source={require("../assets/diceBackground.webp")} style={styles.background}>
       <View style={styles.overlay}>
         {!userRecognized ? (
           <View style={styles.rulesContainer}>
             <Text style={styles.rulesText}>Hi, Stranger! Can you tell your nickname?</Text>
             <Text style={styles.rulesAuxillaryText}>(Nickname must be 3-10 characters long.)</Text>
-            <Image source={require("../assets/register.png")} style={styles.registerImage} />
+            <Image source={require("../assets/register.webp")} style={styles.registerImage} />
             <TextInput
               ref={inputRef}
               style={styles.input}
@@ -178,7 +178,7 @@ export default function Home({ setPlayerId }) {
         ) : (
           <View style={styles.rulesContainer}>
             <Text style={styles.rulesText}>Hi {playerName}, let's roll the dice!</Text>
-            <Image source={require("../assets/hiThere.png")} style={styles.hiThereImage} />
+            <Image source={require("../assets/hiThere.webp")} style={styles.hiThereImage} />
             <Pressable
               style={({ pressed }) => [
                 styles.button,

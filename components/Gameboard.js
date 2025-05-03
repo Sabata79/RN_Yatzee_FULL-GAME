@@ -865,7 +865,7 @@ export default function Gameboard({ route, navigation }) {
     };
     // Remove ImageBackground
     return (
-        <ImageBackground source={require('../assets/diceBackground.jpg')} style={styles.background}>
+        <ImageBackground source={require('../assets/diceBackground.webp')} style={styles.background}>
             {isLayerVisible && (
                 <Pressable
                     onPress={() => {

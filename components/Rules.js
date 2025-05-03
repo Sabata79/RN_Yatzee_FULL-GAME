@@ -25,7 +25,7 @@ export default function RulesScreen() {
 
   return (
     <ImageBackground
-      source={require('../assets/diceBackground.jpg')}
+      source={require('../assets/diceBackground.webp')}
       style={{ flex: 1 }}
       resizeMode="cover"
     >

@@ -21,7 +21,7 @@ export default function AboutMe() {
 
   return (
     <ImageBackground
-      source={require('../assets/diceBackground.jpg')}
+      source={require('../assets/diceBackground.webp')}
       style={styles.background}
       resizeMode="cover"
     >
@@ -30,7 +30,7 @@ export default function AboutMe() {
           {/* Profiilikuva + otsikko */}
           <View style={styles.headerInfoBox}>
             <Image
-              source={require('../assets/profile.jpg')}
+              source={require('../assets/profile.webp')}
               style={styles.profileImageLarge}
             />
             <View style={styles.headerTextWrapper}>

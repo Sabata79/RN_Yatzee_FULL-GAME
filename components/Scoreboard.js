@@ -150,7 +150,7 @@ export default function Scoreboard({ navigation }) {
   };
 
   return (
-    <ImageBackground source={require('../assets/diceBackground.jpg')} style={styles.background}>
+    <ImageBackground source={require('../assets/diceBackground.webp')} style={styles.background}>
       <View style={styles.overlay}>
         <ScrollView style={styles.container}>
           <View style={styles.tabContainer}>
@@ -204,17 +204,17 @@ export default function Scoreboard({ navigation }) {
                     <DataTable.Cell style={[styles.rankCell]}>
                       {index === 0 && (
                         <View style={styles.medalWrapper}>
-                          <Image source={require('../assets/medals/firstMedal.png')} style={styles.medal} />
+                          <Image source={require('../assets/medals/firstMedal.webp')} style={styles.medal} />
                         </View>
                       )}
                       {index === 1 && (
                         <View style={styles.medalWrapper}>
-                          <Image source={require('../assets/medals/silverMedal.png')} style={styles.medal} />
+                          <Image source={require('../assets/medals/silverMedal.webp')} style={styles.medal} />
                         </View>
                       )}
                       {index === 2 && (
                         <View style={styles.medalWrapper}>
-                          <Image source={require('../assets/medals/bronzeMedal.png')} style={styles.medal} />
+                          <Image source={require('../assets/medals/bronzeMedal.webp')} style={styles.medal} />
                         </View>
                       )}
                       {index > 2 && <Text style={styles.rankText}>{index + 1}.</Text>}

@@ -2,7 +2,7 @@
 import React from 'react';
 import { Animated, StyleSheet, Image } from 'react-native';
 
-const coinImage = require('../assets/coins/coin.png'); // polku oikein?
+const coinImage = require('../assets/coins/coin.webp'); // polku oikein?
 
 export const COIN_SIZE = 45;
 
