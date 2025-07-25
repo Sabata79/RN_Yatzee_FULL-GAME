@@ -40,8 +40,6 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
   const [weeklyWins, setWeeklyWins] = useState(0);
   const [modalHeight, setModalHeight] = useState(0);
 
-
-
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
 

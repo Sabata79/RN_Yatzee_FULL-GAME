@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Pressable, Image } from 'react-native';
+import { View, Text, Pressable, Image, Modal } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import PlayerCard from './PlayerCard';
 import EnergyTokenSystem from './EnergyTokenSystem';
@@ -63,18 +63,16 @@ export default function Header() {
 
       {/* Avatar */}
       {userRecognized && (
-        <Pressable
-          onPress={() => {
-            setModalVisible(true);
-          }}
-        >
+        <Pressable onPress={() => setModalVisible(true)}>
           <View style={headerStyles.section4}>
             <View style={{ position: 'relative' }}>
               {userAvatar ? (
                 <Image
                   source={userAvatar}
                   style={[
-                    isBeginnerAvatar(avatarUrl) ? headerStyles.beginnerAvatar : headerStyles.headerAvatarImage
+                    isBeginnerAvatar(avatarUrl)
+                      ? headerStyles.beginnerAvatar
+                      : headerStyles.headerAvatarImage,
                   ]}
                 />
               ) : (
@@ -86,8 +84,13 @@ export default function Header() {
                 />
               )}
               {isLinked && (
-                <View style={[
-                      isBeginnerAvatar(avatarUrl) ?  headerStyles.beginnerLinkIconContainer : headerStyles.linkIconContainer]}>
+                <View
+                  style={[
+                    isBeginnerAvatar(avatarUrl)
+                      ? headerStyles.beginnerLinkIconContainer
+                      : headerStyles.linkIconContainer,
+                  ]}
+                >
                   <FontAwesome5 name="link" size={10} color="gold" />
                 </View>
               )}
@@ -96,15 +99,23 @@ export default function Header() {
         </Pressable>
       )}
 
-      {/* PlayerCard */}
-      {isModalVisible && selectedPlayer && (
-        <PlayerCard
-          playerId={selectedPlayer.playerId}
-          playerName={selectedPlayer.playerName}
-          isModalVisible={isModalVisible}
-          setModalVisible={setModalVisible}
-        />
-      )}
+      {/* PlayerCard modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={isModalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        {selectedPlayer && (
+          <PlayerCard
+            playerId={selectedPlayer.playerId}
+            playerName={selectedPlayer.playerName}
+            isModalVisible={isModalVisible}
+            setModalVisible={setModalVisible}
+            playerScores={selectedPlayer.playerScores}
+          />
+        )}
+      </Modal>
     </View>
   );
 }
