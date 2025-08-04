@@ -1,8 +1,18 @@
 import { initializeApp } from "firebase/app";
 import { getDatabase } from 'firebase/database';
-import { getAuth, signOut } from "firebase/auth"; 
-import { API_KEY, AUTH_DOMAIN, DATABASE_URL, PROJECT_ID, STORAGE_BUCKET, MESSAGING_SENDER_ID, APP_ID } from '@env';
+import { 
+  initializeAuth, 
+  getReactNativePersistence, 
+  signOut 
+} from "firebase/auth";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
+import { 
+  API_KEY, AUTH_DOMAIN, DATABASE_URL, PROJECT_ID, 
+  STORAGE_BUCKET, MESSAGING_SENDER_ID, APP_ID 
+} from '@env';
+
+// Firebase config
 const firebaseConfig = {
   apiKey: API_KEY,
   authDomain: AUTH_DOMAIN,
@@ -13,16 +23,21 @@ const firebaseConfig = {
   appId: APP_ID
 };
 
+// Init Firebase
 const app = initializeApp(firebaseConfig);
 
-const database = getDatabase(app);
+// Init Auth with persistence (IMPORTANT!)
+const auth = initializeAuth(app, {
+  persistence: getReactNativePersistence(AsyncStorage)
+});
 
-const auth = getAuth(app);
+// Init Database
+const database = getDatabase(app);
 
 // Sign out the current user
 const handleSignOut = async () => {
   try {
-    await signOut(auth); 
+    await signOut(auth);
     console.log("User signed out");
   } catch (error) {
     console.error("Error signing out:", error);

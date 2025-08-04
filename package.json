@@ -17,8 +17,6 @@
     "@react-navigation/bottom-tabs": "^7.2.0",
     "@react-navigation/native": "^7.0.14",
     "@react-navigation/stack": "^7.1.1",
-    "@react-three/drei": "^9.121.4",
-    "@react-three/fiber": "^8.17.14",
     "bcryptjs": "^2.4.3",
     "core-js": "^3.40.0",
     "dotenv": "^16.4.7",
@@ -60,8 +58,6 @@
     "react-native-uuid": "^2.0.3",
     "react-native-vector-icons": "^10.2.0",
     "react-timer-hook": "^3.0.8",
-    "three": "^0.172.0",
-    "three-mesh-bvh": "^0.8.0",
     "uuid": "^11.0.5"
   },
   "devDependencies": {

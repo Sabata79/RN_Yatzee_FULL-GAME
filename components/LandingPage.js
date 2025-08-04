@@ -8,6 +8,10 @@ import { ProgressBar } from "react-native-paper";
 import styles from "../styles/landingPageStyles";
 import { signInAnonymously } from "firebase/auth";
 import Constants from "expo-constants";
+import { Asset } from "expo-asset";
+import { avatars } from "../constants/AvatarPaths";
+import { PlayercardBg } from "../constants/PlayercardBg";
+import { additionalImages } from "../constants/AdditionalImages";
 
 export default function LandingPage({ navigation }) {
   const [fadeAnim] = useState(new Animated.Value(0));
@@ -24,14 +28,36 @@ export default function LandingPage({ navigation }) {
     gameVersion,
   } = useGame();
 
-  // Log as anonymous user and save uid to SecureStore
+  // Ajan mukaan etenevä progressi
+  const animateProgress = (toValue, durationMs) => {
+    const start = Date.now();
+    const fromValue = loadingProgress;
+    const diff = toValue - fromValue;
+
+    const interval = setInterval(() => {
+      const now = Date.now();
+      const elapsed = now - start;
+      const progress = Math.min(fromValue + (diff * (elapsed / durationMs)), toValue);
+
+      setLoadingProgress(progress);
+
+      if (elapsed >= durationMs) {
+        clearInterval(interval);
+        setLoadingProgress(toValue);
+      }
+    }, 50);
+  };
+
+  const cacheImages = (images) => {
+    return images.map((img) => Asset.fromModule(img.display).downloadAsync());
+  };
+
   const doSignInAnonymously = async () => {
     try {
       const result = await signInAnonymously(auth);
       const uid = result.user.uid;
       await SecureStore.setItemAsync("user_id", uid);
       console.log("Anonyymi kirjautuminen onnistui, uid:", uid);
-      // Set player id to GameContext but dont recognize user
       setPlayerId(uid);
       return uid;
     } catch (error) {
@@ -40,7 +66,6 @@ export default function LandingPage({ navigation }) {
     }
   };
 
-  // Try to get user id from SecureStore, if not found, sign in anonymously
   const getOrCreateUserId = async () => {
     try {
       let userId = await SecureStore.getItemAsync("user_id");
@@ -57,6 +82,29 @@ export default function LandingPage({ navigation }) {
     }
   };
 
+  const checkExistingUser = async (userId) => {
+    const playerRef = ref(database, `players/${userId}`);
+    try {
+      const snapshot = await get(playerRef);
+      const playerData = snapshot.val();
+      if (playerData && playerData.name !== undefined) {
+        setPlayerIdContext(userId);
+        setPlayerNameContext(playerData.name);
+        setPlayerName(playerData.name);
+        setPlayerId(userId);
+        setIsLinked(!!playerData.isLinked);
+        setUserRecognized(true);
+        setPlayerLevel(playerData.level);
+      } else {
+        console.log("Ei löytynyt pelaajatietoja ID:lle:", userId);
+        setUserRecognized(false);
+      }
+      animateProgress(100, 1000); // viimeinen vaihe
+    } catch (error) {
+      console.error("Virhe haettaessa pelaajatietoja:", error);
+    }
+  };
+
   useEffect(() => {
     Animated.timing(fadeAnim, {
       toValue: 1,
@@ -67,60 +115,30 @@ export default function LandingPage({ navigation }) {
     const version = Constants.expoConfig.version;
     setGameVersion(version);
 
-    // Get or create user id and check if user exists in database
-    getOrCreateUserId()
-      .then((userId) => {
+    const loadAllAssets = async () => {
+      try {
+        const allImages = [...avatars, ...PlayercardBg, ...additionalImages];
+        const imageAssets = cacheImages(allImages);
+
+        animateProgress(70, 2500); // etenee rauhallisesti alkuun
+
+        await Promise.all(imageAssets);
+
+        const userId = await getOrCreateUserId();
         if (userId) {
           setPlayerId(userId);
-          checkExistingUser(userId);
+          await checkExistingUser(userId);
         } else {
-          // If user id not found, set user as not recognized and navigate to MainApp
           setUserRecognized(false);
           navigation.navigate("MainApp");
         }
-      })
-      .catch((error) => {
-        console.error("Virhe käyttäjän asetuksessa:", error);
-      });
+      } catch (error) {
+        console.error("Assettien esilataus epäonnistui:", error);
+      }
+    };
+
+    loadAllAssets();
   }, []);
-
-  // Check if user exists in database and set user data to GameContext
-  const checkExistingUser = async (userId) => {
-    const playerRef = ref(database, `players/${userId}`);
-    try {
-      const snapshot = await get(playerRef);
-      const playerData = snapshot.val();
-      if (playerData && playerData.name !== undefined) {
-        // If player data found, set player data to GameContext
-        setPlayerIdContext(userId);
-        setPlayerNameContext(playerData.name);
-        setPlayerName(playerData.name);
-        setPlayerId(userId);
-        setIsLinked(!!playerData.isLinked);
-        setUserRecognized(true);
-        setPlayerLevel(playerData.level);
-      } else {
-        // If player data not found, set user as not recognized
-        console.log("Ei löytynyt pelaajatietoja ID:lle:", userId);
-        setUserRecognized(false);
-      }
-      incrementProgress(100);
-    } catch (error) {
-      console.error("Virhe haettaessa pelaajatietoja:", error);
-    }
-  };
-
-  // Update loading progress bar
-  const incrementProgress = (toValue) => {
-    let currentProgress = 0;
-    const interval = setInterval(() => {
-      currentProgress += 1;
-      setLoadingProgress(Math.min(currentProgress, toValue));
-      if (currentProgress >= toValue) {
-        clearInterval(interval);
-      }
-    }, 20);
-  };
 
   useEffect(() => {
     if (loadingProgress === 100) {
@@ -136,7 +154,10 @@ export default function LandingPage({ navigation }) {
         <Text style={styles.versionText}>Version: {gameVersion}</Text>
       </View>
       <View style={styles.logoContainer}>
-        <Image source={require("../assets/landingLogo.webp")} style={styles.logo} />
+        <Image
+          source={require("../assets/landingLogo.webp")}
+          style={styles.logo}
+        />
       </View>
       <ProgressBar
         progress={loadingProgress / 100}

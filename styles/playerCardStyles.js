@@ -325,15 +325,6 @@ export default styles = StyleSheet.create({
         zIndex: 10,
         padding: 5,
     },
-    playerCardHeaderCentered: {
-        width: '100%',
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between', // nimi + link vasemmalla, X oikealla
-        paddingHorizontal: 10,
-        marginTop: 5,
-    },
-
     nameAndLinkContainer: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -362,7 +353,7 @@ export default styles = StyleSheet.create({
         textAlign: 'center',
     },
     progressBar: {
-        width: '95%',
+        width: '85%',
         height: 15,
         marginLeft: 5,
         marginRight: 5,
@@ -373,6 +364,7 @@ export default styles = StyleSheet.create({
         borderWidth: 0.5,
         borderBottomWidth: 0,
         marginBottom: -3,
+        alignSelf: 'center',
     },
     progressFill: {
         height: '100%',

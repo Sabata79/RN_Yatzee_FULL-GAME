@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, View, Text, Pressable, Image, StyleSheet, Dimensions, ScrollView } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
-import { advance } from '@react-three/fiber';
 
 const { width } = Dimensions.get('window');
 const isFoldScreen = width < 800;

@@ -21,7 +21,6 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     avatarUrl,
     setAvatarUrl,
     playerLevel,
-    allTimeRank,
   } = useGame();
 
   const [playerIsLinked, setPlayerIsLinked] = useState(false);
@@ -501,7 +500,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
   return (
     <View style={styles.playerCardContainer}>
       <Modal
-        animationType="slide"
+        animationType="fade"
         transparent={true}
         visible={isModalVisible}
         onRequestClose={() => setModalVisible(false)}

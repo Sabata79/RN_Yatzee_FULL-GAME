@@ -128,10 +128,19 @@ export default function Scoreboard({ navigation }) {
   }
 
   const handlePlayerCard = (playerId, playerName, playerScores) => {
-    setSelectedPlayer({ playerId, playerName, playerScores });
-    setModalVisible(true);
+    const player = { playerId, playerName, playerScores };
+
+    // Asetetaan valittu pelaaja ensin
+    setSelectedPlayer(player);
+
+    // Varmistetaan että kontekstiin menee oikeat tiedot
     setViewingPlayerIdContext(playerId);
     setViewingPlayerNameContext(playerName);
+
+    // Avataan modaali lyhyellä viiveellä (tai layout tickissä), jotta React ehtii prosessoida
+    requestAnimationFrame(() => {
+      setModalVisible(true);
+    });
   };
 
   const closeModal = () => {
@@ -256,15 +265,15 @@ export default function Scoreboard({ navigation }) {
 
       {/* PlayerCard modal for displaying selected player's details */}
       <Modal
-        animationType="slide"
+        animationType="fade"
         transparent={true}
         visible={modalVisible}
         onRequestClose={closeModal}>
         {selectedPlayer && (
           <PlayerCard
-            playerId={selectedPlayer.playerId}
-            playerName={selectedPlayer.playerName}
-            playerScores={selectedPlayer.playerScores}
+            playerId={selectedPlayer?.playerId ?? ""}
+            playerName={selectedPlayer?.playerName ?? ""}
+            playerScores={selectedPlayer?.playerScores ?? []}
             isModalVisible={modalVisible}
             setModalVisible={closeModal}
           />

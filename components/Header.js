@@ -101,20 +101,20 @@ export default function Header() {
 
       {/* PlayerCard modal */}
       <Modal
-        animationType="slide"
+        animationType="fade"
         transparent={true}
         visible={isModalVisible}
         onRequestClose={() => setModalVisible(false)}
       >
-        {selectedPlayer && (
+        <View style={{ flex: 1 }}>
           <PlayerCard
-            playerId={selectedPlayer.playerId}
-            playerName={selectedPlayer.playerName}
+            playerId={selectedPlayer?.playerId ?? ""}
+            playerName={selectedPlayer?.playerName ?? ""}
             isModalVisible={isModalVisible}
             setModalVisible={setModalVisible}
-            playerScores={selectedPlayer.playerScores}
+            playerScores={selectedPlayer?.playerScores ?? []}
           />
-        )}
+        </View>
       </Modal>
     </View>
   );
