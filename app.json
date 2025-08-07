@@ -1,5 +1,6 @@
 {
   "expo": {
+    "sdkVersion": "53.0.0",
     "name": "Yatzy",
     "slug": "SimpleYatzee",
     "version": "2.1.9",
@@ -11,9 +12,7 @@
       "resizeMode": "contain",
       "backgroundColor": "#2c3e50"
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
       "runtimeVersion": "2.1.9",
@@ -32,8 +31,7 @@
         "WAKE_LOCK",
         "com.google.android.gms.permission.AD_ID"
       ],
-      "runtimeVersion": "2.1.9",
-      "targetSdkVersion": 35
+      "runtimeVersion": "2.1.9"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -46,6 +44,15 @@
     },
     "plugins": [
       [
+        "expo-build-properties",
+        {
+          "android": {
+            "compileSdkVersion": 35,
+            "targetSdkVersion": 35
+          }
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "backgroundColor": "#2c3e50",
@@ -53,7 +60,6 @@
         }
       ]
     ],
-    "newArchEnabled": true,
     "updates": {
       "url": "https://u.expo.dev/d8c9a220-7647-4af7-906f-8ce3856b7189",
       "fallbackToCacheTimeout": 0,

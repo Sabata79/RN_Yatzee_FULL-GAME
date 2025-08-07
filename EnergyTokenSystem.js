@@ -70,7 +70,11 @@ const EnergyTokenSystem = () => {
   };
 
   useEffect(() => {
-    loadNewAd();
+    const timer = setTimeout(() => {
+      loadNewAd();
+    }, 1000);
+
+    return () => clearTimeout(timer);
   }, []);
 
   const handleWatchVideo = () => {
