@@ -201,6 +201,7 @@ export default styles = StyleSheet.create({
     },
     scoreRow: {
         width: '100%',
+        height: 15,
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
@@ -212,8 +213,10 @@ export default styles = StyleSheet.create({
         borderRadius: 3,
         padding: 3,
         backgroundColor: '#00000027',
-        height: 60,
         width: '98%',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        height: 90,
     },
     evenRow: {
         backgroundColor: '#ffffff00', // tai läpinäkyvä

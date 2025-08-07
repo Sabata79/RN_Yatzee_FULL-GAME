@@ -484,7 +484,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
   };
 
   const getTopScoresWithEmptySlots = () => {
-    return topScores;
+    return topScores.slice(0, 5); 
   };
 
   // Get previous month rank
@@ -579,8 +579,8 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
             </View>
 
             {/* TOP SCORES */}
-            <Text style={styles.playerCardScoresTitle}>SCORES</Text>
-            <RNScrollView
+            <Text style={styles.playerCardScoresTitle}>TOP 5 SCORES</Text>
+            <View
               style={styles.playerCardScoresContainer}
               contentContainerStyle={{ paddingTop: 2, paddingBottom: 5, flexGrow: 0 }}
             >
@@ -598,7 +598,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
                   <Text style={styles.playerCardScoreDate}>{score.date}</Text>
                 </View>
               ))}
-            </RNScrollView>
+            </View>
 
             {/* TROPHIES */}
             <View style={styles.playerCardTrophyCase}>

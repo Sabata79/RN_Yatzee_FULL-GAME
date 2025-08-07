@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, Image, Animated } from "react-native";
+import { View, Text, Image, Animated, Alert, Linking } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { database, auth } from "../components/Firebase";
 import { ref, get } from "firebase/database";
@@ -12,6 +12,8 @@ import { Asset } from "expo-asset";
 import { avatars } from "../constants/AvatarPaths";
 import { PlayercardBg } from "../constants/PlayercardBg";
 import { additionalImages } from "../constants/AdditionalImages";
+import remoteConfig from '@react-native-firebase/remote-config';
+
 
 export default function LandingPage({ navigation }) {
   const [fadeAnim] = useState(new Animated.Value(0));
@@ -27,6 +29,18 @@ export default function LandingPage({ navigation }) {
     setGameVersion,
     gameVersion,
   } = useGame();
+
+  // Versioiden vertailu
+  const isVersionOlder = (current, minimum) => {
+    const cur = current.split('.').map(Number);
+    const min = minimum.split('.').map(Number);
+    for (let i = 0; i < min.length; i++) {
+      if ((cur[i] || 0) < min[i]) return true;
+      if ((cur[i] || 0) > min[i]) return false;
+    }
+    return false;
+  };
+
 
   // Ajan mukaan etenevä progressi
   const animateProgress = (toValue, durationMs) => {
@@ -105,6 +119,38 @@ export default function LandingPage({ navigation }) {
     }
   };
 
+  // const checkRemoteUpdate = async () => {
+  //   try {
+  //     await remoteConfig().setDefaults({
+  //       force_update: false,
+  //       update_message: '',
+  //       minimum_supported_version: '2.1.9',
+  //     });
+
+  //     await remoteConfig().fetchAndActivate();
+
+  //     const shouldForceUpdate = remoteConfig().getValue('force_update').asBoolean();
+  //     const updateMessage = remoteConfig().getValue('update_message').asString();
+  //     const minimumVersion = remoteConfig().getValue('minimum_supported_version').asString();
+
+  //     const currentVersion = Constants.expoConfig.version;
+
+  //     // Tarkistetaan vain jos versio on vanhempi JA päivityspakko päällä
+  //     if (shouldForceUpdate && isVersionOlder(currentVersion, minimumVersion)) {
+  //       Alert.alert('Päivitys vaaditaan', updateMessage, [
+  //         {
+  //           text: 'Päivitä',
+  //           onPress: () => {
+  //             Linking.openURL('https://play.google.com/store/apps/details?id=com.SimpleYatzee');
+  //           },
+  //         },
+  //       ]);
+  //     }
+  //   } catch (error) {
+  //     console.log('Remote configin haku epäonnistui:', error);
+  //   }
+  // };
+
   useEffect(() => {
     Animated.timing(fadeAnim, {
       toValue: 1,
@@ -137,6 +183,7 @@ export default function LandingPage({ navigation }) {
       }
     };
 
+    checkRemoteUpdate();
     loadAllAssets();
   }, []);
 
