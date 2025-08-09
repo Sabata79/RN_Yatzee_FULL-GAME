@@ -17,15 +17,13 @@ import Rules from './components/Rules';
 import Header from './components/Header';
 import styles from './styles/styles';
 import updateModalStyles from './styles/updateModalStyles';
-import { database } from './components/Firebase';
-import Constants from 'expo-constants';
-import { ref, get } from 'firebase/database';
 
 const { height } = Dimensions.get('window');
 const isSmallScreen = height < 720;
 const isBigScreen = height >= 900;
 
 export default function App() {
+  // console.log("App initialized!");
   const [isUserRecognized, setIsUserRecognized] = useState(false);
   const [name, setName] = useState('');
   const [playerId, setPlayerId] = useState('');

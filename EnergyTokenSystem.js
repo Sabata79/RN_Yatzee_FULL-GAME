@@ -6,8 +6,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import styles from '../styles/energyTokenStyles';
 import { MAX_TOKENS, VIDEO_TOKEN_LIMIT } from '../constants/Game';
 import { useGame } from '../components/GameContext';
-import { ref, get, set } from 'firebase/database';
-import { database } from '../components/Firebase';
+import { getDatabase, ref, get, set } from '@react-native-firebase/database';
 import {
   RewardedAd,
   RewardedAdEventType,
@@ -32,6 +31,7 @@ const EnergyTokenSystem = () => {
   const [adLoaded, setAdLoaded] = useState(false);
   const [rewarded, setRewarded] = useState(null);
   const [dataLoaded, setDataLoaded] = useState(false);
+  const db = getDatabase();
 
   // Ref to keep track of previous token count
   const prevTokensRef = useRef(tokens);
@@ -39,11 +39,11 @@ const EnergyTokenSystem = () => {
   const updateNextTokenTimeInFirebase = async (time) => {
     if (playerId) {
       try {
-        const nextTimeRef = ref(database, `players/${playerId}/nextTokenTime`);
+        const nextTimeRef = ref(db, `players/${playerId}/nextTokenTime`);
         await set(nextTimeRef, time ? time.toISOString() : null);
-        console.log('Updated nextTokenTime in Firebase:', time);
+        // console.log('Updated nextTokenTime in Firebase:', time);
       } catch (error) {
-        console.error('Error updating nextTokenTime in Firebase:', error);
+        // console.error('Error updating nextTokenTime in Firebase:', error);
       }
     }
   };
@@ -58,7 +58,7 @@ const EnergyTokenSystem = () => {
     });
 
     newAd.addAdEventListener(RewardedAdEventType.EARNED_REWARD, (reward) => {
-      console.log('🏆 User gets reward:', reward);
+      // console.log('🏆 User gets reward:', reward);
       setTokens((prev) => Math.min(prev + 1, MAX_TOKENS));
       setVideoTokens((prev) => prev + 1);
       setAdLoaded(false);
@@ -79,7 +79,7 @@ const EnergyTokenSystem = () => {
 
   const handleWatchVideo = () => {
     if (adLoaded && rewarded) {
-      console.log('▶ Showing Ad...');
+      // console.log('▶ Showing Ad...');
       rewarded.show();
     } else {
       console.log('⚠ Ad is not ready yet.');
@@ -99,13 +99,13 @@ const EnergyTokenSystem = () => {
         setVideoTokens(savedVideoTokens);
 
         if (playerId) {
-          const nextTimeRef = ref(database, `players/${playerId}/nextTokenTime`);
+          const nextTimeRef = ref(db, `players/${playerId}/nextTokenTime`);
           const snapshot = await get(nextTimeRef);
           if (snapshot.exists()) {
             const firebaseNextTokenTime = new Date(snapshot.val());
             if (!isNaN(firebaseNextTokenTime.getTime())) {
               setNextTokenTime(firebaseNextTokenTime);
-              console.log('Loaded nextTokenTime from Firebase:', firebaseNextTokenTime);
+              // console.log('Loaded nextTokenTime from Firebase:', firebaseNextTokenTime);
             }
           } else {
             const savedNextTokenTimeString = await AsyncStorage.getItem('nextTokenTime');

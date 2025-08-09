@@ -31,7 +31,7 @@ export default function Header() {
     playerName: playerName,
   };
 
-  console.log('selectedPlayer:', selectedPlayer);
+  // console.log('selectedPlayer:', selectedPlayer);
 
   const handleGamePlay = () => {
     console.log('Peli aloitettu!');

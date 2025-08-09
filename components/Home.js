@@ -4,7 +4,7 @@ import * as SecureStore from "expo-secure-store";
 import { FontAwesome5 } from '@expo/vector-icons';
 import styles from '../styles/homeStyles';
 import { database } from '../components/Firebase';
-import { ref, set, get } from 'firebase/database';
+import { getDatabase, ref, set, get } from '@react-native-firebase/database';
 import uuid from 'react-native-uuid';
 import { useNavigation } from '@react-navigation/native';
 import { useGame } from '../components/GameContext';
@@ -27,6 +27,8 @@ export default function Home({ setPlayerId }) {
 
   const { setPlayerIdContext, setPlayerNameContext, userRecognized, setUserRecognized, playerName, playerId, setPlayerName, isLinked } = useGame();
 
+  const db = getDatabase();
+
   useEffect(() => {
     if (localName && playerId) {
       console.log("Updating context with playerId:", playerId);
@@ -47,7 +49,7 @@ export default function Home({ setPlayerId }) {
   }, [loading]);
 
   const checkIfNameExists = async (name) => {
-    const playersRef = ref(database, 'players');
+    const playersRef = ref(db, 'players');
     const snapshot = await get(playersRef);
     if (snapshot.exists()) {
       const playersData = snapshot.val();
@@ -61,7 +63,7 @@ export default function Home({ setPlayerId }) {
   };
 
   const saveNewPlayer = async (name, userId) => {
-    const playerRef = ref(database, `players/${userId}`);
+    const playerRef = ref(db, `players/${userId}`);
     const snapshot = await get(playerRef);
     const playerData = snapshot.val();
 

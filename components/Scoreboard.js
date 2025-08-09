@@ -6,6 +6,7 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import styles from '../styles/styles';
 import { NBR_OF_SCOREBOARD_ROWS } from '../constants/Game';
 import { database } from './Firebase';
+const db = database();
 import { ref, onValue } from 'firebase/database';
 import * as SecureStore from 'expo-secure-store';
 import PlayerCard from './PlayerCard';

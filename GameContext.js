@@ -1,8 +1,9 @@
 // GameContext.js 
 // Purpose: Context for the game state and player data.
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { ref, onValue, get, set } from 'firebase/database';
-import { database } from './Firebase';
+import { ref, onValue, get, set } from '@react-native-firebase/database'; // ✅ oikea import
+import { database } from './Firebase'; // ✅ korjattu import
+
 import { MAX_TOKENS, VIDEO_TOKEN_LIMIT } from '../constants/Game';
 
 const GameContext = createContext();
@@ -29,42 +30,33 @@ export const GameProvider = ({ children }) => {
   const [tokens, setTokens] = useState(null);
   const [videoTokens, setVideoTokens] = useState(0);
   const [energyModalVisible, setEnergyModalVisible] = useState(false);
-  // Uusi tila: onko tili linkitetty Googleen
   const [isLinked, setIsLinked] = useState(false);
 
-  // Fetch the player's avatar from the avatars array
+  const db = database(); // ✅ käytetään Firebase-yhteyttä
+
   const fetchInitialTokens = async () => {
     try {
-      const tokenRef = ref(database, `players/${playerId}/tokens`);
+      const tokenRef = ref(db, `players/${playerId}/tokens`);
       const snapshot = await get(tokenRef);
-
       if (snapshot.exists()) {
         const fetchedTokens = snapshot.val();
-        console.log('Firebase-tokens:', fetchedTokens);
-
-        // If tokens are not loaded, set them to fetched value
         if (fetchedTokens !== tokens) {
           setTokens(fetchedTokens);
         }
       } else {
-        console.log('Tokens ei löytynyt Firebase:sta. Luodaan oletusarvo.');
         await set(tokenRef, MAX_TOKENS);
         setTokens(MAX_TOKENS);
       }
     } catch (error) {
-      console.error('Virhe tokenien lataamisessa:', error);
-
-      // If tokens are not loaded, set them to max
       if (tokens !== MAX_TOKENS) {
         setTokens(MAX_TOKENS);
       }
     }
   };
 
-  // Fecth video tokens from Firebase
   const fetchVideoTokens = async () => {
     try {
-      const videoTokenRef = ref(database, `players/${playerId}/videoTokens`);
+      const videoTokenRef = ref(db, `players/${playerId}/videoTokens`);
       const snapshot = await get(videoTokenRef);
       const fetchedVideoTokens = snapshot.exists() ? snapshot.val() : 0;
       setVideoTokens(fetchedVideoTokens); 
@@ -74,36 +66,31 @@ export const GameProvider = ({ children }) => {
     }
   };
 
-  // Update tokens in Firebase
   const updateTokensInFirebase = async () => {
     if (playerId && tokens !== null) {
       try {
-        const tokenRef = ref(database, `players/${playerId}/tokens`);
+        const tokenRef = ref(db, `players/${playerId}/tokens`);
         await set(tokenRef, tokens); 
-        console.log(`Tokens päivitetty Firebaseen: ${tokens}`);
       } catch (error) {
         console.error('Virhe Firebase-tokens-päivityksessä:', error);
       }
     }
   };
 
-  // Update video tokens in Firebase
   const updateVideoTokensInFirebase = async () => {
     if (playerId && videoTokens !== null) {
       try {
-        const videoTokenRef = ref(database, `players/${playerId}/videoTokens`);
+        const videoTokenRef = ref(db, `players/${playerId}/videoTokens`);
         await set(videoTokenRef, videoTokens);
-        console.log(`Video tokens päivitetty Firebaseen: ${videoTokens}`);
       } catch (error) {
         console.error('Virhe video tokenien päivityksessä Firebaseen:', error);
       }
     }
   };
 
-  // Avatar URL check in background
   useEffect(() => {
     if (playerId) {
-      const playerRef = ref(database, `players/${playerId}/avatar`);
+      const playerRef = ref(db, `players/${playerId}/avatar`);
       onValue(playerRef, (snapshot) => {
         const avatarPath = snapshot.val();
         if (avatarPath) {
@@ -117,7 +104,6 @@ export const GameProvider = ({ children }) => {
     }
   }, [playerId]);
 
-  // Get player token information from Firebase
   useEffect(() => {
     if (playerId) {
       fetchInitialTokens();
@@ -125,12 +111,10 @@ export const GameProvider = ({ children }) => {
     }
   }, [playerId]);
 
-  // Update tokens in Firebase, when they change
   useEffect(() => {
     updateTokensInFirebase();
   }, [tokens]);
 
-  // Update video tokens in Firebase, when they change
   useEffect(() => {
     updateVideoTokensInFirebase();
   }, [videoTokens]);
@@ -218,11 +202,10 @@ export const GameProvider = ({ children }) => {
       setUserRecognized,
       tokens,
       setTokens,
-      videoTokens, // Video tokenit lisätty
-      setVideoTokens, // Video tokenien asettaminen
+      videoTokens,
+      setVideoTokens,
       energyModalVisible,
       setEnergyModalVisible,
-      // Uudet tilat tilin linkitykselle:
       isLinked,
       setIsLinked,
     }}>

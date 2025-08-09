@@ -1,19 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, Image, Animated, Alert, Linking } from "react-native";
 import * as SecureStore from "expo-secure-store";
-import { database, auth } from "../components/Firebase";
-import { ref, get } from "firebase/database";
+import { getDatabase, ref, get } from "@react-native-firebase/database";
+import { getAuth, signInAnonymously } from "@react-native-firebase/auth";
 import { useGame } from "../components/GameContext";
 import { ProgressBar } from "react-native-paper";
 import styles from "../styles/landingPageStyles";
-import { signInAnonymously } from "firebase/auth";
 import Constants from "expo-constants";
 import { Asset } from "expo-asset";
 import { avatars } from "../constants/AvatarPaths";
 import { PlayercardBg } from "../constants/PlayercardBg";
 import { additionalImages } from "../constants/AdditionalImages";
-import remoteConfig from '@react-native-firebase/remote-config';
-
+import { fetchRemoteConfig } from "../services/RemoteConfigService";
 
 export default function LandingPage({ navigation }) {
   const [fadeAnim] = useState(new Animated.Value(0));
@@ -30,7 +28,6 @@ export default function LandingPage({ navigation }) {
     gameVersion,
   } = useGame();
 
-  // Versioiden vertailu
   const isVersionOlder = (current, minimum) => {
     const cur = current.split('.').map(Number);
     const min = minimum.split('.').map(Number);
@@ -41,8 +38,6 @@ export default function LandingPage({ navigation }) {
     return false;
   };
 
-
-  // Ajan mukaan etenevä progressi
   const animateProgress = (toValue, durationMs) => {
     const start = Date.now();
     const fromValue = loadingProgress;
@@ -68,6 +63,7 @@ export default function LandingPage({ navigation }) {
 
   const doSignInAnonymously = async () => {
     try {
+      const auth = getAuth();
       const result = await signInAnonymously(auth);
       const uid = result.user.uid;
       await SecureStore.setItemAsync("user_id", uid);
@@ -86,8 +82,6 @@ export default function LandingPage({ navigation }) {
       if (!userId) {
         console.log("UserId:a ei löytynyt, kirjaututaan anonyymisti.");
         userId = await doSignInAnonymously();
-      } else {
-        console.log("UserId haettu SecureStoresta:", userId);
       }
       return userId;
     } catch (error) {
@@ -97,13 +91,13 @@ export default function LandingPage({ navigation }) {
   };
 
   const checkExistingUser = async (userId) => {
-    const playerRef = ref(database, `players/${userId}`);
+    const db = getDatabase();
+    const playerRef = ref(db, `players/${userId}`);
     try {
       const snapshot = await get(playerRef);
       const playerData = snapshot.val();
       if (playerData && playerData.name !== undefined) {
         setPlayerIdContext(userId);
-        setPlayerNameContext(playerData.name);
         setPlayerName(playerData.name);
         setPlayerId(userId);
         setIsLinked(!!playerData.isLinked);
@@ -113,43 +107,26 @@ export default function LandingPage({ navigation }) {
         console.log("Ei löytynyt pelaajatietoja ID:lle:", userId);
         setUserRecognized(false);
       }
-      animateProgress(100, 1000); // viimeinen vaihe
+      animateProgress(100, 1000);
     } catch (error) {
       console.error("Virhe haettaessa pelaajatietoja:", error);
     }
   };
 
-  // const checkRemoteUpdate = async () => {
-  //   try {
-  //     await remoteConfig().setDefaults({
-  //       force_update: false,
-  //       update_message: '',
-  //       minimum_supported_version: '2.1.9',
-  //     });
+  const checkRemoteUpdate = async () => {
+    const config = await fetchRemoteConfig();
+    if (!config) return;
 
-  //     await remoteConfig().fetchAndActivate();
-
-  //     const shouldForceUpdate = remoteConfig().getValue('force_update').asBoolean();
-  //     const updateMessage = remoteConfig().getValue('update_message').asString();
-  //     const minimumVersion = remoteConfig().getValue('minimum_supported_version').asString();
-
-  //     const currentVersion = Constants.expoConfig.version;
-
-  //     // Tarkistetaan vain jos versio on vanhempi JA päivityspakko päällä
-  //     if (shouldForceUpdate && isVersionOlder(currentVersion, minimumVersion)) {
-  //       Alert.alert('Päivitys vaaditaan', updateMessage, [
-  //         {
-  //           text: 'Päivitä',
-  //           onPress: () => {
-  //             Linking.openURL('https://play.google.com/store/apps/details?id=com.SimpleYatzee');
-  //           },
-  //         },
-  //       ]);
-  //     }
-  //   } catch (error) {
-  //     console.log('Remote configin haku epäonnistui:', error);
-  //   }
-  // };
+    const currentVersion = Constants.expoConfig.version;
+    if (config.forceUpdate && isVersionOlder(currentVersion, config.minimum_supported_version)) {
+      Alert.alert('Päivitys vaaditaan', config.update_message, [
+        {
+          text: 'Päivitä',
+          onPress: () => Linking.openURL('https://play.google.com/store/apps/details?id=com.SimpleYatzee'),
+        },
+      ]);
+    }
+  };
 
   useEffect(() => {
     Animated.timing(fadeAnim, {
@@ -159,6 +136,7 @@ export default function LandingPage({ navigation }) {
     }).start();
 
     const version = Constants.expoConfig.version;
+    console.log("App version from const version:", version);
     setGameVersion(version);
 
     const loadAllAssets = async () => {
@@ -166,7 +144,7 @@ export default function LandingPage({ navigation }) {
         const allImages = [...avatars, ...PlayercardBg, ...additionalImages];
         const imageAssets = cacheImages(allImages);
 
-        animateProgress(70, 2500); // etenee rauhallisesti alkuun
+        animateProgress(70, 2500);
 
         await Promise.all(imageAssets);
 
