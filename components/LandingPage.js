@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, Image, Animated, Alert, Linking } from "react-native";
 import * as SecureStore from "expo-secure-store";
-import { getDatabase, ref, get } from "@react-native-firebase/database";
-import { getAuth, signInAnonymously } from "@react-native-firebase/auth";
+import { auth, database } from "../components/Firebase";
 import { useGame } from "../components/GameContext";
 import { ProgressBar } from "react-native-paper";
 import styles from "../styles/landingPageStyles";
@@ -23,7 +22,7 @@ export default function LandingPage({ navigation }) {
     setPlayerId,
     setPlayerName,
     setIsLinked,
-    setPlayerLevel,
+    setPlayerLevel, // jos tätä ei ole kontekstissa, ei katastrofi (alla vartioitu kutsu)
     setGameVersion,
     gameVersion,
   } = useGame();
@@ -61,10 +60,10 @@ export default function LandingPage({ navigation }) {
     return images.map((img) => Asset.fromModule(img.display).downloadAsync());
   };
 
+  // --- RNFirebase auth ---
   const doSignInAnonymously = async () => {
     try {
-      const auth = getAuth();
-      const result = await signInAnonymously(auth);
+      const result = await auth().signInAnonymously();
       const uid = result.user.uid;
       await SecureStore.setItemAsync("user_id", uid);
       console.log("Anonyymi kirjautuminen onnistui, uid:", uid);
@@ -90,11 +89,12 @@ export default function LandingPage({ navigation }) {
     }
   };
 
+  // --- RNFirebase database ---
   const checkExistingUser = async (userId) => {
-    const db = getDatabase();
-    const playerRef = ref(db, `players/${userId}`);
+    const db = database();
+    const playerRef = db.ref(`players/${userId}`);
     try {
-      const snapshot = await get(playerRef);
+      const snapshot = await playerRef.once('value');
       const playerData = snapshot.val();
       if (playerData && playerData.name !== undefined) {
         setPlayerIdContext(userId);
@@ -102,7 +102,10 @@ export default function LandingPage({ navigation }) {
         setPlayerId(userId);
         setIsLinked(!!playerData.isLinked);
         setUserRecognized(true);
-        setPlayerLevel(playerData.level);
+        // kutsu vain jos funktio on olemassa kontekstissa
+        if (typeof setPlayerLevel === 'function') {
+          setPlayerLevel(playerData.level);
+        }
       } else {
         console.log("Ei löytynyt pelaajatietoja ID:lle:", userId);
         setUserRecognized(false);
@@ -117,7 +120,7 @@ export default function LandingPage({ navigation }) {
     const config = await fetchRemoteConfig();
     if (!config) return;
 
-    const currentVersion = Constants.expoConfig.version;
+    const currentVersion = Constants.expoConfig?.version ?? '0.0.0';
     if (config.forceUpdate && isVersionOlder(currentVersion, config.minimum_supported_version)) {
       Alert.alert('Päivitys vaaditaan', config.update_message, [
         {
@@ -135,7 +138,7 @@ export default function LandingPage({ navigation }) {
       useNativeDriver: true,
     }).start();
 
-    const version = Constants.expoConfig.version;
+    const version = Constants.expoConfig?.version ?? '0.0.0';
     console.log("App version from const version:", version);
     setGameVersion(version);
 

@@ -5,9 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import styles from '../styles/styles';
 import { NBR_OF_SCOREBOARD_ROWS } from '../constants/Game';
-import { database } from './Firebase';
-const db = database();
-import { ref, onValue } from 'firebase/database';
+import { database } from '../components/Firebase';
 import * as SecureStore from 'expo-secure-store';
 import PlayerCard from './PlayerCard';
 import { useGame } from '../components/GameContext';
@@ -22,6 +20,8 @@ export default function Scoreboard({ navigation }) {
   const { setViewingPlayerIdContext, setViewingPlayerNameContext, avatarUrl, viewingPlayerAvatar } = useGame();
   const userAvatar = avatars.find((avatar) => avatar.path === avatarUrl)?.display;
 
+  const db = database();
+
   useEffect(() => {
     SecureStore.getItemAsync('user_id').then((storedUserId) => {
       if (storedUserId) {
@@ -33,7 +33,7 @@ export default function Scoreboard({ navigation }) {
   }, [scoreType]);
 
   const getScoreboardData = () => {
-    const playersRef = ref(database, 'players');
+    const playersRef = db().ref('players');
     onValue(playersRef, snapshot => {
       const playersData = snapshot.val();
       const tmpScores = [];

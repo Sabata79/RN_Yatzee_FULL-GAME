@@ -4,14 +4,12 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import * as SecureStore from 'expo-secure-store';
 import { auth, database } from '../components/Firebase';
 import { useGame } from '../components/GameContext';
-import { signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
-import { ref, update, get, remove } from 'firebase/database';
 import * as Updates from 'expo-updates';
 
 const Recover = ({ isVisible, onClose }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false); // Toggle for password visibility
+  const [showPassword, setShowPassword] = useState(false);
   const [resetMessage, setResetMessage] = useState(null);
   const [isResetMode, setIsResetMode] = useState(false);
 
@@ -24,8 +22,8 @@ const Recover = ({ isVisible, onClose }) => {
 
   const handleRecoverAccount = async () => {
     if (!email.trim() || password.length < 6) {
-      setErrorModalTitle("Invalid Input");
-      setErrorModalMessage("Please enter a valid email and a password with at least 6 characters.");
+      setErrorModalTitle('Invalid Input');
+      setErrorModalMessage('Please enter a valid email and a password with at least 6 characters.');
       setErrorModalVisible(true);
       return;
     }
@@ -33,56 +31,60 @@ const Recover = ({ isVisible, onClose }) => {
     try {
       const oldUid = playerId;
 
-      if (auth.currentUser) {
-        await auth.signOut();
+      // Kirjaudu ulos jos joku on sisällä
+      if (auth().currentUser) {
+        await auth().signOut();
       }
 
-      const result = await signInWithEmailAndPassword(auth, email, password);
+      // Kirjaudu sisään sähköpostilla
+      const result = await auth().signInWithEmailAndPassword(email, password);
       const currentUser = result.user;
-      console.log("Recovered account, UID:", currentUser.uid);
       const newUid = currentUser.uid;
+      console.log('Recovered account, UID:', newUid);
+
+      const db = database();
 
       if (oldUid && oldUid !== newUid) {
-        const oldPlayerRef = ref(database, `players/${oldUid}`);
-        const snapshot = await get(oldPlayerRef);
+        // Migroi vanhan UID:n data uuteen
+        const oldPlayerRef = db.ref(`players/${oldUid}`);
+        const snapshot = await oldPlayerRef.once('value');
         const oldData = snapshot.val() || {};
 
-        const newPlayerRef = ref(database, `players/${newUid}`);
-        await update(newPlayerRef, { ...oldData, isLinked: true });
+        const newPlayerRef = db.ref(`players/${newUid}`);
+        await newPlayerRef.update({ ...oldData, isLinked: true });
 
-        await remove(oldPlayerRef);
+        await oldPlayerRef.remove();
       } else {
-        const newPlayerRef = ref(database, `players/${newUid}`);
-        await update(newPlayerRef, { isLinked: true });
+        // Merkitse linkitetyksi
+        const newPlayerRef = db.ref(`players/${newUid}`);
+        await newPlayerRef.update({ isLinked: true });
       }
 
-      await SecureStore.setItemAsync("user_id", newUid);
+      await SecureStore.setItemAsync('user_id', newUid);
       setPlayerId(newUid);
       setIsLinked(true);
 
-      // Näytetään onnistumismodaali, mutta ei suljeta automaattisesti
       setSuccessModalVisible(true);
     } catch (error) {
-      setErrorModalTitle("Recovery Error");
-      setErrorModalMessage("Failed to recover account. Please check your email and password.");
+      setErrorModalTitle('Recovery Error');
+      setErrorModalMessage(error?.message ?? 'Failed to recover account. Please check your email and password.');
       setErrorModalVisible(true);
     }
   };
 
   const handleResetPassword = async () => {
     if (!email.trim()) {
-      setResetMessage("Please enter your email to reset your password.");
+      setResetMessage('Please enter your email to reset your password.');
       return;
     }
 
     try {
-      // Aseta reset-tila heti, jotta salasanakenttä piilotetaan välittömästi
       setIsResetMode(true);
-      await sendPasswordResetEmail(auth, email);
-      setResetMessage("Password reset link has been sent to your email.");
-      setPassword(''); // Nollataan salasana
+      await auth().sendPasswordResetEmail(email);
+      setResetMessage('Password reset link has been sent to your email.');
+      setPassword('');
     } catch (error) {
-      setResetMessage(error.message);
+      setResetMessage(error?.message ?? 'Failed to send reset email.');
       setIsResetMode(false);
     }
   };
@@ -92,7 +94,6 @@ const Recover = ({ isVisible, onClose }) => {
     setResetMessage(null);
   };
 
-  // Tämä funktio suoritetaan, kun käyttäjä painaa "Close" -nappia onnistumis-modalissa.
   const handleSuccessClose = async () => {
     setSuccessModalVisible(false);
     onClose();
@@ -110,9 +111,7 @@ const Recover = ({ isVisible, onClose }) => {
             </Text>
             {isResetMode ? (
               <>
-                <Text style={styles.modalText}>
-                  Enter your email to reset your password.
-                </Text>
+                <Text style={styles.modalText}>Enter your email to reset your password.</Text>
                 <TextInput
                   style={styles.input}
                   placeholder="Enter your email"
@@ -152,7 +151,7 @@ const Recover = ({ isVisible, onClose }) => {
                     onChangeText={setPassword}
                   />
                   <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                    <FontAwesome5 name={showPassword ? "eye-slash" : "eye"} size={20} color="gray" />
+                    <FontAwesome5 name={showPassword ? 'eye-slash' : 'eye'} size={20} color="gray" />
                   </TouchableOpacity>
                 </View>
                 <Pressable
@@ -189,10 +188,7 @@ const Recover = ({ isVisible, onClose }) => {
             <View style={styles.notificationContent}>
               <Text style={styles.notificationTitle}>{errorModalTitle}</Text>
               <Text style={styles.notificationMessage}>{errorModalMessage}</Text>
-              <Pressable
-                style={styles.notificationButton}
-                onPress={() => setErrorModalVisible(false)}
-              >
+              <Pressable style={styles.notificationButton} onPress={() => setErrorModalVisible(false)}>
                 <Text style={styles.notificationButtonText}>Close</Text>
               </Pressable>
             </View>
@@ -212,10 +208,7 @@ const Recover = ({ isVisible, onClose }) => {
             <View style={styles.notificationContent}>
               <Text style={styles.notificationTitle}>Success</Text>
               <Text style={styles.notificationMessage}>Account recovered successfully!</Text>
-              <Pressable
-                style={styles.notificationButton}
-                onPress={handleSuccessClose}
-              >
+              <Pressable style={styles.notificationButton} onPress={handleSuccessClose}>
                 <Text style={styles.notificationButtonText}>Close</Text>
               </Pressable>
             </View>
@@ -231,126 +224,33 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)'
   },
+
   modalContent: {
     backgroundColor: '#fff',
     width: '80%',
     borderRadius: 10,
     padding: 20,
-    alignItems: 'center',
+    alignItems: 'center'
   },
-  modalTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    color: '#333',
-  },
-  modalText: {
-    fontSize: 16,
-    color: '#555',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  input: {
-    width: '100%',
-    padding: 12,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 5,
-    marginBottom: 20,
-    fontSize: 16,
-    color: '#333',
-  },
-  forgotPassword: {
-    color: 'blue',
-    fontSize: 14,
-    marginBottom: 10,
-    alignSelf: 'flex-start',
-    textDecorationLine: 'underline',
-  },
-  resetMessage: {
-    color: 'green',
-    fontSize: 14,
-    marginBottom: 10,
-    textAlign: 'center',
-  },
-  passwordContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: '100%',
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 5,
-    padding: 12,
-    marginBottom: 20,
-  },
-  passwordInput: {
-    flex: 1,
-    fontSize: 16,
-    color: '#333',
-  },
-  actionButton: {
-    backgroundColor: '#62a346',
-    padding: 12,
-    borderRadius: 5,
-    width: '100%',
-    alignItems: 'center',
-    marginBottom: 10,
-    flexDirection: 'row',
-    justifyContent: 'center',
-  },
-  closeButton: {
-    backgroundColor: '#999',
-    padding: 12,
-    borderRadius: 5,
-    width: '100%',
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginRight: 8,
-  },
-  buttonPressed: {
-    opacity: 0.7,
-  },
-  notificationContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.5)',
-  },
-  notificationContent: {
-    backgroundColor: '#fff',
-    padding: 20,
-    borderRadius: 10,
-    width: '80%',
-    alignItems: 'center',
-  },
-  notificationTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  notificationMessage: {
-    fontSize: 16,
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-  notificationButton: {
-    backgroundColor: '#62a346',
-    padding: 12,
-    borderRadius: 5,
-    width: '100%',
-    alignItems: 'center',
-  },
-  notificationButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
+  modalTitle: { fontSize: 24, fontWeight: 'bold', marginBottom: 10, color: '#333' },
+  modalText: { fontSize: 16, color: '#555', marginBottom: 20, textAlign: 'center' },
+  input: { width: '100%', padding: 12, borderColor: '#ccc', borderWidth: 1, borderRadius: 5, marginBottom: 20, fontSize: 16, color: '#333' },
+  forgotPassword: { color: 'blue', fontSize: 14, marginBottom: 10, alignSelf: 'flex-start', textDecorationLine: 'underline' },
+  resetMessage: { color: 'green', fontSize: 14, marginBottom: 10, textAlign: 'center' },
+  passwordContainer: { flexDirection: 'row', alignItems: 'center', width: '100%', borderColor: '#ccc', borderWidth: 1, borderRadius: 5, padding: 12, marginBottom: 20 },
+  passwordInput: { flex: 1, fontSize: 16, color: '#333' },
+  actionButton: { backgroundColor: '#62a346', padding: 12, borderRadius: 5, width: '100%', alignItems: 'center', marginBottom: 10, flexDirection: 'row', justifyContent: 'center' },
+  closeButton: { backgroundColor: '#999', padding: 12, borderRadius: 5, width: '100%', alignItems: 'center' },
+  buttonText: { color: '#fff', fontSize: 16, fontWeight: 'bold', marginRight: 8 },
+  buttonPressed: { opacity: 0.7 },
+  notificationContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' },
+  notificationContent: { backgroundColor: '#fff', padding: 20, borderRadius: 10, width: '80%', alignItems: 'center' },
+  notificationTitle: { fontSize: 20, fontWeight: 'bold', marginBottom: 10 },
+  notificationMessage: { fontSize: 16, textAlign: 'center', marginBottom: 20 },
+  notificationButton: { backgroundColor: '#62a346', padding: 12, borderRadius: 5, width: '100%', alignItems: 'center' },
+  notificationButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
 });
 
 export default Recover;
