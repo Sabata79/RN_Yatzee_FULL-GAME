@@ -3,7 +3,7 @@ import { View, Text, Modal, Pressable, ScrollView as RNScrollView, Image } from 
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useGame } from '../components/GameContext';
 import styles from '../styles/playerCardStyles';
-import database from '@react-native-firebase/database'; // ✅ KORJATTU
+import { database }  from '@react-native-firebase/database'; // ✅ KORJATTU
 import { avatars } from '../constants/AvatarPaths';
 import AvatarContainer from '../components/AvatarContainer';
 import { NBR_OF_SCOREBOARD_ROWS } from '../constants/Game';
