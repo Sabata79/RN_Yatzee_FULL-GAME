@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { FlatList, Text, View, Alert, Pressable, ImageBackground, Animated, Dimensions } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { FlatList, Text, View, Pressable, ImageBackground, Animated, Dimensions } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import styles from '../styles/styles';
 import { NBR_OF_THROWS, NBR_OF_DICES, MAX_SPOTS, BONUS_POINTS, BONUS_POINTS_LIMIT } from '../constants/Game';
