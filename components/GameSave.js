@@ -1,6 +1,5 @@
 import { useGame } from './GameContext';
 import { database } from './Firebase';
-import { ref, set, get, push } from '@react-native-firebase/database';
 import { TOPSCORELIMIT } from '../constants/Game';
 
 const db = database(); // ✅ käytetään modulaarisesti
@@ -20,12 +19,12 @@ const GameSave = ({ totalPoints, navigation }) => {
     }
 
     try {
-      const playerRef = ref(db, `players/${playerId}`);
-      const snapshot = await get(playerRef);
+      const playerRef = db.ref(`players/${playerId}`);
+      const snapshot = await playerRef.once('value');
       const playerData = snapshot.val();
 
       if (playerData) {
-        const newKey = push(ref(db, `players/${playerId}/scores`)).key;
+        const newKey = db.ref(`players/${playerId}/scores`).push().key;
         const date = new Date();
         const formattedDate = `${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()}`;
 
@@ -43,11 +42,13 @@ const GameSave = ({ totalPoints, navigation }) => {
 
         const topScores = updatedScores.slice(0, TOPSCORELIMIT);
 
-        const scoresRef = ref(db, `players/${playerId}/scores`);
-        await set(scoresRef, topScores.reduce((acc, score) => {
-          acc[score.key] = score;
-          return acc;
-        }, {}));
+        const scoresRef = db.ref(`players/${playerId}/scores`);
+        await scoresRef.set(
+          topScores.reduce((acc, score) => {
+            acc[score.key] = score;
+            return acc;
+          }, {})
+        );
 
         saveGame();
         navigation.navigate('Scoreboard');
