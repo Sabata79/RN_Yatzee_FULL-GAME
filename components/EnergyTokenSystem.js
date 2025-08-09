@@ -6,12 +6,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import styles from '../styles/EnergyTokenStyles';
 import { MAX_TOKENS, VIDEO_TOKEN_LIMIT } from '../constants/Game';
 import { useGame } from '../components/GameContext';
-import { getDatabase, ref, get, set } from '@react-native-firebase/database';
+import { database } from '../components/Firebase';
 import {
   RewardedAd,
   RewardedAdEventType,
   TestIds,
 } from 'react-native-google-mobile-ads';
+
+const db = database();
 
 const adUnitId = __DEV__
   ? TestIds.REWARDED
@@ -41,8 +43,8 @@ const EnergyTokenSystem = () => {
   const updateNextTokenTimeInFirebase = async (time) => {
     if (playerId) {
       try {
-        const nextTimeRef = ref(db, `players/${playerId}/nextTokenTime`);
-        await set(nextTimeRef, time ? time.toISOString() : null);
+        const nextTimeRef = db.ref(`players/${playerId}/nextTokenTime`);
+        await nextTimeRef.set(time ? time.toISOString() : null);
         // console.log('Updated nextTokenTime in Firebase:', time);
       } catch (error) {
         console.error('Error updating nextTokenTime in Firebase:', error);
@@ -101,8 +103,8 @@ const EnergyTokenSystem = () => {
         setVideoTokens(savedVideoTokens);
 
         if (playerId) {
-          const nextTimeRef = ref(db, `players/${playerId}/nextTokenTime`);
-          const snapshot = await get(nextTimeRef);
+          const nextTimeRef = db.ref(`players/${playerId}/nextTokenTime`);
+          const snapshot = await nextTimeRef.once('value');
           if (snapshot.exists()) {
             const firebaseNextTokenTime = new Date(snapshot.val());
             if (!isNaN(firebaseNextTokenTime.getTime())) {
