@@ -1,7 +1,6 @@
 // GameContext.js 
 // Purpose: Context for the game state and player data.
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { ref, onValue, get, set } from '@react-native-firebase/database'; // ✅ oikea import
 import { database } from './Firebase'; // ✅ korjattu import
 
 import { MAX_TOKENS, VIDEO_TOKEN_LIMIT } from '../constants/Game';

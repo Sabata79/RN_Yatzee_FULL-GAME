@@ -6,12 +6,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import styles from '../styles/energyTokenStyles';
 import { MAX_TOKENS, VIDEO_TOKEN_LIMIT } from '../constants/Game';
 import { useGame } from '../components/GameContext';
-import { getDatabase, ref, get, set } from '@react-native-firebase/database';
+import { database } from '../components/Firebase';
 import {
   RewardedAd,
   RewardedAdEventType,
   TestIds,
 } from 'react-native-google-mobile-ads';
+
+const db = database();
 
 const adUnitId = __DEV__ ? TestIds.REWARDED : 'ca-app-pub-3940256099942544/5224354917';
 const REGEN_INTERVAL = 2.4 * 60 * 60 * 1000; // 2.4 tuntia ms:inä
@@ -26,12 +28,12 @@ const EnergyTokenSystem = () => {
     energyModalVisible,
     setEnergyModalVisible,
   } = useGame();
+
   const [nextTokenTime, setNextTokenTime] = useState(null);
   const [timeToNextToken, setTimeToNextToken] = useState('');
   const [adLoaded, setAdLoaded] = useState(false);
   const [rewarded, setRewarded] = useState(null);
   const [dataLoaded, setDataLoaded] = useState(false);
-  const db = getDatabase();
 
   // Ref to keep track of previous token count
   const prevTokensRef = useRef(tokens);
@@ -39,11 +41,9 @@ const EnergyTokenSystem = () => {
   const updateNextTokenTimeInFirebase = async (time) => {
     if (playerId) {
       try {
-        const nextTimeRef = ref(db, `players/${playerId}/nextTokenTime`);
-        await set(nextTimeRef, time ? time.toISOString() : null);
-        // console.log('Updated nextTokenTime in Firebase:', time);
+        await db.ref(`players/${playerId}/nextTokenTime`).set(time ? time.toISOString() : null);
       } catch (error) {
-        // console.error('Error updating nextTokenTime in Firebase:', error);
+        console.error('Error updating nextTokenTime in Firebase:', error);
       }
     }
   };
@@ -57,8 +57,7 @@ const EnergyTokenSystem = () => {
       setAdLoaded(true);
     });
 
-    newAd.addAdEventListener(RewardedAdEventType.EARNED_REWARD, (reward) => {
-      // console.log('🏆 User gets reward:', reward);
+    newAd.addAdEventListener(RewardedAdEventType.EARNED_REWARD, () => {
       setTokens((prev) => Math.min(prev + 1, MAX_TOKENS));
       setVideoTokens((prev) => prev + 1);
       setAdLoaded(false);
@@ -79,7 +78,6 @@ const EnergyTokenSystem = () => {
 
   const handleWatchVideo = () => {
     if (adLoaded && rewarded) {
-      // console.log('▶ Showing Ad...');
       rewarded.show();
     } else {
       console.log('⚠ Ad is not ready yet.');
@@ -99,13 +97,11 @@ const EnergyTokenSystem = () => {
         setVideoTokens(savedVideoTokens);
 
         if (playerId) {
-          const nextTimeRef = ref(db, `players/${playerId}/nextTokenTime`);
-          const snapshot = await get(nextTimeRef);
+          const snapshot = await db.ref(`players/${playerId}/nextTokenTime`).once('value');
           if (snapshot.exists()) {
             const firebaseNextTokenTime = new Date(snapshot.val());
             if (!isNaN(firebaseNextTokenTime.getTime())) {
               setNextTokenTime(firebaseNextTokenTime);
-              // console.log('Loaded nextTokenTime from Firebase:', firebaseNextTokenTime);
             }
           } else {
             const savedNextTokenTimeString = await AsyncStorage.getItem('nextTokenTime');
@@ -113,7 +109,6 @@ const EnergyTokenSystem = () => {
               const savedNextTokenTime = new Date(savedNextTokenTimeString);
               if (!isNaN(savedNextTokenTime.getTime())) {
                 setNextTokenTime(savedNextTokenTime);
-                console.log('Loaded nextTokenTime from AsyncStorage:', savedNextTokenTime);
               }
             }
           }
@@ -123,7 +118,6 @@ const EnergyTokenSystem = () => {
             const savedNextTokenTime = new Date(savedNextTokenTimeString);
             if (!isNaN(savedNextTokenTime.getTime())) {
               setNextTokenTime(savedNextTokenTime);
-              console.log('Loaded nextTokenTime from AsyncStorage:', savedNextTokenTime);
             }
           }
         }
@@ -169,15 +163,13 @@ const EnergyTokenSystem = () => {
     saveData();
   }, [tokens, nextTokenTime, videoTokens, playerId]);
 
-  // Jos tokenit vähenevät manuaalisesti (esim. gameboard vähentää tokenin), 
-  // resetoi regenerointiaika uudelleen.
+  // Jos tokenit vähenevät manuaalisesti
   useEffect(() => {
     if (!dataLoaded) return;
     if (tokens < prevTokensRef.current) {
       const now = new Date();
       const newNextTime = new Date(now.getTime() + REGEN_INTERVAL);
       setNextTokenTime(newNextTime);
-      console.log("Tokens decreased, resetting regeneration timer to:", newNextTime);
       if (playerId) {
         updateNextTokenTimeInFirebase(newNextTime);
       }
@@ -185,7 +177,7 @@ const EnergyTokenSystem = () => {
     prevTokensRef.current = tokens;
   }, [tokens, dataLoaded, playerId]);
 
-  // Päivitetään countdown ja lisätään token kun regenerointiaika on kulunut.
+  // Countdown ja token lisäys
   useEffect(() => {
     const interval = setInterval(() => {
       if (tokens < MAX_TOKENS && nextTokenTime instanceof Date && !isNaN(nextTokenTime.getTime())) {
@@ -197,22 +189,17 @@ const EnergyTokenSystem = () => {
           const seconds = Math.floor((diff % (1000 * 60)) / 1000);
           setTimeToNextToken(`${hours} h ${minutes} min ${seconds} sec`);
         } else {
-          // Lasketaan montako regenerointijaksoa on kulunut
           const diffTime = now - nextTokenTime;
           const tokensToAdd = Math.floor(diffTime / REGEN_INTERVAL) + 1;
-          setTokens(prevTokens => {
-            const newTokenCount = Math.min(prevTokens + tokensToAdd, MAX_TOKENS);
-            return newTokenCount;
-          });
+          setTokens(prevTokens => Math.min(prevTokens + tokensToAdd, MAX_TOKENS));
+
           if (tokens + tokensToAdd < MAX_TOKENS) {
-            // Uusi regenerointiaika sen perusteella, että osa ajasta on vielä kulunut
             const remainder = diffTime % REGEN_INTERVAL;
             const newNextTime = new Date(now.getTime() + (REGEN_INTERVAL - remainder));
             setNextTokenTime(newNextTime);
             if (playerId) {
               updateNextTokenTimeInFirebase(newNextTime);
             }
-            console.log("Token(s) added, new nextTokenTime:", newNextTime);
             setTimeToNextToken("Token ready!");
           } else {
             setNextTokenTime(null);
