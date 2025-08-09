@@ -1,13 +1,12 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { getDatabase, ref, onValue, get, set } from '@react-native-firebase/database';
+import { database } from '../components/Firebase';
 import { MAX_TOKENS, VIDEO_TOKEN_LIMIT } from '../constants/Game';
 
 const GameContext = createContext();
-
 export const useGame = () => useContext(GameContext);
 
 export const GameProvider = ({ children }) => {
-  const db = getDatabase();
+  const db = database();
 
   const [playerId, setPlayerId] = useState('');
   const [playerName, setPlayerName] = useState('');
@@ -46,80 +45,81 @@ export const GameProvider = ({ children }) => {
     return dateA < dateB;
   };
 
+  // All Time Rank listener
   useEffect(() => {
-    if (playerId) {
-      const playersRef = ref(db, 'players');
-      const unsubscribe = onValue(playersRef, (snapshot) => {
-        if (!snapshot.exists()) {
-          setAllTimeRank('--');
-          return;
-        }
-        const playersData = snapshot.val();
-        const tmpScores = [];
+    if (!playerId) return;
+    const playersRef = db.ref('players');
 
-        Object.keys(playersData).forEach((pId) => {
-          const player = playersData[pId];
-          if (player.scores) {
-            let bestScore = null;
-            Object.values(player.scores).forEach((score) => {
-              if (!bestScore || isBetterScore(score, bestScore)) {
-                bestScore = score;
-              }
-            });
-            if (bestScore) {
-              tmpScores.push({ playerId: pId, ...bestScore });
+    const handleValue = (snapshot) => {
+      if (!snapshot.exists()) {
+        setAllTimeRank('--');
+        return;
+      }
+      const playersData = snapshot.val();
+      const tmpScores = [];
+
+      Object.keys(playersData).forEach((pId) => {
+        const player = playersData[pId];
+        if (player.scores) {
+          let bestScore = null;
+          Object.values(player.scores).forEach((score) => {
+            if (!bestScore || isBetterScore(score, bestScore)) {
+              bestScore = score;
             }
-          }
-        });
-
-        tmpScores.sort((a, b) => {
-          if (b.points !== a.points) return b.points - a.points;
-          if (a.duration !== b.duration) return a.duration - b.duration;
-          const dateA = new Date(a.date.split('.').reverse().join('-'));
-          const dateB = new Date(b.date.split('.').reverse().join('-'));
-          return dateA - dateB;
-        });
-
-        const rankIndex = tmpScores.findIndex((s) => s.playerId === playerId);
-        setAllTimeRank(rankIndex === -1 ? '--' : rankIndex + 1);
-      });
-
-      return () => unsubscribe();
-    }
-  }, [playerId]);
-
-  useEffect(() => {
-    if (playerId) {
-      const levelRef = ref(db, `players/${playerId}/level`);
-      const unsubscribe = onValue(levelRef, (snapshot) => {
-        if (snapshot.exists()) {
-          setPlayerLevel(snapshot.val());
+          });
+          if (bestScore) tmpScores.push({ playerId: pId, ...bestScore });
         }
       });
-      return () => unsubscribe();
-    }
-  }, [playerId]);
 
-  useEffect(() => {
-    if (playerId) {
-      const avatarRef = ref(db, `players/${playerId}/avatar`);
-      const unsubscribe = onValue(avatarRef, (snapshot) => {
-        const avatarPath = snapshot.val();
-        setAvatarUrl(avatarPath || null);
-        setIsAvatarLoaded(true);
+      tmpScores.sort((a, b) => {
+        if (b.points !== a.points) return b.points - a.points;
+        if (a.duration !== b.duration) return a.duration - b.duration;
+        const dateA = new Date(a.date.split('.').reverse().join('-'));
+        const dateB = new Date(b.date.split('.').reverse().join('-'));
+        return dateA - dateB;
       });
-      return () => unsubscribe();
-    }
+
+      const rankIndex = tmpScores.findIndex((s) => s.playerId === playerId);
+      setAllTimeRank(rankIndex === -1 ? '--' : rankIndex + 1);
+    };
+
+    playersRef.on('value', handleValue);
+    return () => playersRef.off('value', handleValue);
   }, [playerId]);
 
+  // Player level listener
+  useEffect(() => {
+    if (!playerId) return;
+    const levelRef = db.ref(`players/${playerId}/level`);
+    const handleValue = (snapshot) => {
+      if (snapshot.exists()) setPlayerLevel(snapshot.val());
+    };
+    levelRef.on('value', handleValue);
+    return () => levelRef.off('value', handleValue);
+  }, [playerId]);
+
+  // Avatar listener
+  useEffect(() => {
+    if (!playerId) return;
+    const avatarRef = db.ref(`players/${playerId}/avatar`);
+    const handleValue = (snapshot) => {
+      const avatarPath = snapshot.val();
+      setAvatarUrl(avatarPath || null);
+      setIsAvatarLoaded(true);
+    };
+    avatarRef.on('value', handleValue);
+    return () => avatarRef.off('value', handleValue);
+  }, [playerId]);
+
+  // Fetch tokens
   const fetchInitialTokens = async () => {
     try {
-      const tokenRef = ref(db, `players/${playerId}/tokens`);
-      const snapshot = await get(tokenRef);
+      const tokenRef = db.ref(`players/${playerId}/tokens`);
+      const snapshot = await tokenRef.once('value');
       if (snapshot.exists()) {
         setTokens(snapshot.val());
       } else {
-        await set(tokenRef, MAX_TOKENS);
+        await tokenRef.set(MAX_TOKENS);
         setTokens(MAX_TOKENS);
       }
     } catch (error) {
@@ -130,8 +130,8 @@ export const GameProvider = ({ children }) => {
 
   const fetchVideoTokens = async () => {
     try {
-      const videoRef = ref(db, `players/${playerId}/videoTokens`);
-      const snapshot = await get(videoRef);
+      const videoRef = db.ref(`players/${playerId}/videoTokens`);
+      const snapshot = await videoRef.once('value');
       setVideoTokens(snapshot.exists() ? snapshot.val() : 0);
     } catch (error) {
       console.error('Error fetching video tokens:', error);
@@ -141,15 +141,15 @@ export const GameProvider = ({ children }) => {
 
   const updateTokensInFirebase = async () => {
     if (playerId && tokens !== null) {
-      const tokenRef = ref(db, `players/${playerId}/tokens`);
-      await set(tokenRef, tokens);
+      const tokenRef = db.ref(`players/${playerId}/tokens`);
+      await tokenRef.set(tokens);
     }
   };
 
   const updateVideoTokensInFirebase = async () => {
     if (playerId && videoTokens !== null) {
-      const videoRef = ref(db, `players/${playerId}/videoTokens`);
-      await set(videoRef, videoTokens);
+      const videoRef = db.ref(`players/${playerId}/videoTokens`);
+      await videoRef.set(videoTokens);
     }
   };
 
@@ -245,7 +245,6 @@ export const GameProvider = ({ children }) => {
     setEnergyModalVisible,
     isLinked,
     setIsLinked,
-    playerLevel,
     gameVersion,
     setGameVersion,
     progressPoints,
