@@ -4,7 +4,6 @@ import * as SecureStore from "expo-secure-store";
 import { FontAwesome5 } from '@expo/vector-icons';
 import styles from '../styles/homeStyles';
 import { database } from '../components/Firebase';
-import { getDatabase, ref, set, get } from '@react-native-firebase/database';
 import uuid from 'react-native-uuid';
 import { useNavigation } from '@react-navigation/native';
 import { useGame } from '../components/GameContext';
@@ -27,7 +26,7 @@ export default function Home({ setPlayerId }) {
 
   const { setPlayerIdContext, setPlayerNameContext, userRecognized, setUserRecognized, playerName, playerId, setPlayerName, isLinked } = useGame();
 
-  const db = getDatabase();
+  const db = database();
 
   useEffect(() => {
     if (localName && playerId) {
@@ -49,12 +48,12 @@ export default function Home({ setPlayerId }) {
   }, [loading]);
 
   const checkIfNameExists = async (name) => {
-    const playersRef = ref(db, 'players');
-    const snapshot = await get(playersRef);
+    const playersRef = db.ref('players');
+    const snapshot = await playersRef.once('value');
     if (snapshot.exists()) {
       const playersData = snapshot.val();
-      for (let playerId in playersData) {
-        if (playersData[playerId].name === name) {
+      for (let pid in playersData) {
+        if (playersData[pid]?.name === name) {
           return true;
         }
       }
@@ -63,25 +62,25 @@ export default function Home({ setPlayerId }) {
   };
 
   const saveNewPlayer = async (name, userId) => {
-    const playerRef = ref(db, `players/${userId}`);
-    const snapshot = await get(playerRef);
+    const playerRef = db.ref(`players/${userId}`);
+    const snapshot = await playerRef.once('value');
     const playerData = snapshot.val();
 
     const formattedDate = new Date().toLocaleDateString('fi-FI');
 
-    set(playerRef, {
+    await playerRef.set({
       ...playerData,
-      name: name,
-      level: "beginner",
+      name,
+      level: 'beginner',
       progresspoints: 0,
       dateJoined: playerData?.dateJoined || formattedDate,
     });
 
-    await SecureStore.setItemAsync("user_id", userId);
+    await SecureStore.setItemAsync('user_id', userId);
 
     setPlayerName(name);
     setPlayerId(userId);
-    console.log("Saving player data:", { name, userId });
+    console.log('Saving player data:', { name, userId });
   };
 
   const sanitizeInput = (input) => {
@@ -169,7 +168,7 @@ export default function Home({ setPlayerId }) {
               onPressOut={() => setIsRecoverModalVisible(true)}
             >
               <Text style={styles.buttonText}>Recover linked player</Text>
-              <FontAwesome5 name="redo" size={30} color="black" style={{ marginLeft: 'auto' }}/>
+              <FontAwesome5 name="redo" size={30} color="black" style={{ marginLeft: 'auto' }} />
             </Pressable>
             {/* Recover-module */}
             <Recover
@@ -201,7 +200,7 @@ export default function Home({ setPlayerId }) {
               onPressOut={handleViewPlayerCard}
             >
               <Text style={styles.buttonText}>View Player Card</Text>
-              <FontAwesome5 name="id-card" size={30} color="black" style={{ marginLeft: 'auto' }}/>
+              <FontAwesome5 name="id-card" size={30} color="black" style={{ marginLeft: 'auto' }} />
             </Pressable>
             <Pressable
               style={({ pressed }) => [
@@ -212,7 +211,7 @@ export default function Home({ setPlayerId }) {
               onPressOut={handleChangeName}
             >
               <Text style={styles.buttonText}>Change name</Text>
-              <FontAwesome5 name="user-edit" size={30} color="black"style={{ marginLeft: 'auto' }} />
+              <FontAwesome5 name="user-edit" size={30} color="black" style={{ marginLeft: 'auto' }} />
             </Pressable>
             {/* Show link button if not linked */}
             {!isLinked && (
