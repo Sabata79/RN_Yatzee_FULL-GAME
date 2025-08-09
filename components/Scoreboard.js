@@ -33,7 +33,7 @@ export default function Scoreboard({ navigation }) {
   }, [scoreType]);
 
   const getScoreboardData = () => {
-    const playersRef = db().ref('players');
+    const playersRef = db.ref('players');
     onValue(playersRef, snapshot => {
       const playersData = snapshot.val();
       const tmpScores = [];
