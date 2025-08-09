@@ -1,10 +1,9 @@
-import * as Updates from 'expo-updates';
-import React, { useState, useEffect } from 'react';
-import { SafeAreaView, StatusBar, Linking, Alert, Modal, View, Text, Pressable, Dimensions, Easing } from 'react-native';
+import React, { useState } from 'react';
+import { SafeAreaView, StatusBar, Linking, Modal, View, Text, Pressable, Dimensions, Easing } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { createBottomTabNavigator, TransitionSpecs, SceneStyleInterpolators } from '@react-navigation/bottom-tabs';
+import { createBottomTabNavigator, SceneStyleInterpolators } from '@react-navigation/bottom-tabs';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
 import { GameProvider } from './components/GameContext';
