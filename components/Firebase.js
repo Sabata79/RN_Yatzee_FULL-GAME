@@ -1,5 +1,8 @@
+// components/Firebase.js
+import '@react-native-firebase/app';
 import auth from '@react-native-firebase/auth';
 import database from '@react-native-firebase/database';
+import remoteConfig from '@react-native-firebase/remote-config';
 
 // Kirjautumisen ulos-funktio
 const handleSignOut = async () => {
@@ -11,4 +14,4 @@ const handleSignOut = async () => {
   }
 };
 
-export { auth, database, handleSignOut };
+export { auth, database, remoteConfig, handleSignOut };
