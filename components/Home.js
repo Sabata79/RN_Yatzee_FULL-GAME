@@ -3,7 +3,7 @@ import { View, Text, TextInput, Pressable, Alert, ImageBackground, Image, Animat
 import * as SecureStore from "expo-secure-store";
 import { FontAwesome5 } from '@expo/vector-icons';
 import styles from '../styles/homeStyles';
-import { database } from '../components/Firebase';
+import { dbGet, dbSet } from '../components/Firebase';
 import uuid from 'react-native-uuid';
 import { useNavigation } from '@react-navigation/native';
 import { useGame } from '../components/GameContext';
@@ -21,12 +21,18 @@ export default function Home({ setPlayerId }) {
   const [isLinkModalVisible, setIsLinkModalVisible] = useState(false);
   const [isRecoverModalVisible, setIsRecoverModalVisible] = useState(false);
   const [isModalVisible, setModalVisible] = useState(false);
-  // Uusi tila pelaajan tiedoille modalin avaamista varten
   const [selectedPlayer, setSelectedPlayer] = useState(null);
 
-  const { setPlayerIdContext, setPlayerNameContext, userRecognized, setUserRecognized, playerName, playerId, setPlayerName, isLinked } = useGame();
-
-  const db = database();
+  const {
+    setPlayerIdContext,
+    setPlayerNameContext,
+    userRecognized,
+    setUserRecognized,
+    playerName,
+    playerId,
+    setPlayerName,
+    isLinked
+  } = useGame();
 
   useEffect(() => {
     if (localName && playerId) {
@@ -35,7 +41,7 @@ export default function Home({ setPlayerId }) {
       setPlayerNameContext(localName);
       setLocalPlayerId(playerId);
     }
-  }, [localName, playerId]);
+  }, [localName, playerId, setPlayerIdContext, setPlayerNameContext]);
 
   useEffect(() => {
     if (!loading) {
@@ -45,11 +51,10 @@ export default function Home({ setPlayerId }) {
         useNativeDriver: true,
       }).start();
     }
-  }, [loading]);
+  }, [loading, fadeAnim]);
 
   const checkIfNameExists = async (name) => {
-    const playersRef = db.ref('players');
-    const snapshot = await playersRef.once('value');
+    const snapshot = await dbGet('players');
     if (snapshot.exists()) {
       const playersData = snapshot.val();
       for (let pid in playersData) {
@@ -62,13 +67,12 @@ export default function Home({ setPlayerId }) {
   };
 
   const saveNewPlayer = async (name, userId) => {
-    const playerRef = db.ref(`players/${userId}`);
-    const snapshot = await playerRef.once('value');
-    const playerData = snapshot.val();
+    const snap = await dbGet(`players/${userId}`);
+    const playerData = snap.val();
 
     const formattedDate = new Date().toLocaleDateString('fi-FI');
 
-    await playerRef.set({
+    await dbSet(`players/${userId}`, {
       ...playerData,
       name,
       level: 'beginner',
@@ -127,7 +131,6 @@ export default function Home({ setPlayerId }) {
     setUserRecognized(false);
   };
 
-  // Uusi funktio, joka asettaa nykyiset pelaajatiedot modalin avaamista varten
   const handleViewPlayerCard = () => {
     setSelectedPlayer({ playerId: playerId, playerName: playerName });
     setModalVisible(true);
@@ -170,7 +173,6 @@ export default function Home({ setPlayerId }) {
               <Text style={styles.buttonText}>Recover linked player</Text>
               <FontAwesome5 name="redo" size={30} color="black" style={{ marginLeft: 'auto' }} />
             </Pressable>
-            {/* Recover-module */}
             <Recover
               isVisible={isRecoverModalVisible}
               onClose={() => setIsRecoverModalVisible(false)}
@@ -213,7 +215,6 @@ export default function Home({ setPlayerId }) {
               <Text style={styles.buttonText}>Change name</Text>
               <FontAwesome5 name="user-edit" size={30} color="black" style={{ marginLeft: 'auto' }} />
             </Pressable>
-            {/* Show link button if not linked */}
             {!isLinked && (
               <Pressable
                 style={({ pressed }) => [styles.homeButton, pressed && styles.homeButtonPressed]}
@@ -222,7 +223,6 @@ export default function Home({ setPlayerId }) {
                 <Text style={styles.buttonText}>Link your account</Text>
               </Pressable>
             )}
-            {/* Opens link if player is not linked */}
             <Linked
               isVisible={isLinkModalVisible}
               onClose={() => setIsLinkModalVisible(false)}
@@ -230,7 +230,6 @@ export default function Home({ setPlayerId }) {
             />
           </View>
         )}
-        {/* PlayerCard modal */}
         {isModalVisible && selectedPlayer && (
           <PlayerCard
             playerId={selectedPlayer.playerId}

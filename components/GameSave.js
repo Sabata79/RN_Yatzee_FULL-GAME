@@ -1,62 +1,64 @@
+// components/GameSave.js
 import { useGame } from './GameContext';
-import { database } from './Firebase';
+import { dbGet, dbSet, dbRef, push } from './Firebase';
 import { TOPSCORELIMIT } from '../constants/Game';
-
-const db = database(); // ✅ käytetään modulaarisesti
 
 const GameSave = ({ totalPoints, navigation }) => {
   const { playerId, elapsedTime, saveGame } = useGame();
 
   const savePlayerPoints = async () => {
     if (!playerId) {
-      console.error("Player ID is missing in GameSave.");
+      console.error('Player ID is missing in GameSave.');
       return;
     }
-
     if (totalPoints === undefined || totalPoints === null) {
-      console.error("Total points is undefined or null");
+      console.error('Total points is undefined or null');
       return;
     }
 
     try {
-      const playerRef = db.ref(`players/${playerId}`);
-      const snapshot = await playerRef.once('value');
-      const playerData = snapshot.val();
+      // Hae pelaajan data
+      const snap = await dbGet(`players/${playerId}`);
+      const playerData = snap.val();
 
-      if (playerData) {
-        const newKey = db.ref(`players/${playerId}/scores`).push().key;
-        const date = new Date();
-        const formattedDate = `${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()}`;
-
-        const playerPoints = {
-          key: newKey,
-          date: formattedDate,
-          time: new Date().toLocaleTimeString(),
-          points: totalPoints,
-          duration: elapsedTime,
-        };
-
-        const updatedScores = playerData.scores ? Object.values(playerData.scores) : [];
-        updatedScores.push(playerPoints);
-        updatedScores.sort((a, b) => b.points - a.points);
-
-        const topScores = updatedScores.slice(0, TOPSCORELIMIT);
-
-        const scoresRef = db.ref(`players/${playerId}/scores`);
-        await scoresRef.set(
-          topScores.reduce((acc, score) => {
-            acc[score.key] = score;
-            return acc;
-          }, {})
-        );
-
-        saveGame();
-        navigation.navigate('Scoreboard');
-      } else {
-        console.error("Player data not found");
+      if (!playerData) {
+        console.error('Player data not found');
+        return;
       }
+
+      // Luo uusi avain scorelle
+      const scoresPath = `players/${playerId}/scores`;
+      const newRef = push(dbRef(scoresPath));
+      const newKey = newRef.key;
+
+      const now = new Date();
+      const formattedDate = `${now.getDate()}.${now.getMonth() + 1}.${now.getFullYear()}`;
+
+      const playerPoints = {
+        key: newKey,
+        date: formattedDate,
+        time: now.toLocaleTimeString(),
+        points: totalPoints,
+        duration: elapsedTime,
+      };
+
+      // Päivitä top-lista (yhdistä vanhat + uusi → järjestä → rajaa)
+      const prevScores = playerData.scores ? Object.values(playerData.scores) : [];
+      const updatedScores = [...prevScores, playerPoints].sort((a, b) => b.points - a.points);
+      const topScores = updatedScores.slice(0, TOPSCORELIMIT);
+
+      // Kirjoita takaisin objektina avaimilla
+      const scoresObj = topScores.reduce((acc, s) => {
+        acc[s.key] = s;
+        return acc;
+      }, {});
+
+      await dbSet(scoresPath, scoresObj);
+
+      saveGame();
+      navigation.navigate('Scoreboard');
     } catch (error) {
-      console.error("Error saving player points:", error.message);
+      console.error('Error saving player points:', error?.message ?? String(error));
     }
   };
 

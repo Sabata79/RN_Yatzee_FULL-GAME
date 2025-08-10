@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { StyleSheet, Modal, View, Text, TextInput, Pressable, TouchableOpacity } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import * as SecureStore from 'expo-secure-store';
-import { auth, database } from '../components/Firebase';
+import { getAuth, signInAnonymously, EmailAuthProvider, linkWithCredential } from '@react-native-firebase/auth';
+import { dbGet, dbUpdate, dbRef } from '../components/Firebase';
+import { remove as dbRemove } from '../components/Firebase';
 import { useGame } from '../components/GameContext';
 
 const Linked = ({ isVisible, onClose }) => {
@@ -26,16 +28,15 @@ const Linked = ({ isVisible, onClose }) => {
     }
 
     try {
-      // Varmista että käyttäjä on kirjautuneena (anonyymisti tarvittaessa)
-      if (!auth().currentUser) {
-        const res = await auth().signInAnonymously();
+      const auth = getAuth();
+
+      // Varmista että käyttäjä on sisäänkirjautunut (anonyymisti, jos ei vielä)
+      if (!auth.currentUser) {
+        const res = await signInAnonymously(auth);
         console.log('Signed in anonymously, uid:', res.user.uid);
       }
 
-      // Rakenna credential ja linkitä nykyiseen käyttäjään
-      const cred = auth.EmailAuthProvider.credential(email, password);
-      const currentUser = auth().currentUser;
-
+      const currentUser = auth.currentUser;
       if (!currentUser) {
         setErrorModalTitle('Error');
         setErrorModalMessage('User is not signed in.');
@@ -43,28 +44,24 @@ const Linked = ({ isVisible, onClose }) => {
         return;
       }
 
-      await currentUser.linkWithCredential(cred);
+      // Rakenna credential ja linkitä nykyiseen käyttäjään (modular)
+      const cred = EmailAuthProvider.credential(email.trim(), password);
+      await linkWithCredential(currentUser, cred);
       console.log('Link successful, UID (stays same):', currentUser.uid);
 
       const oldUuid = playerId;
       const newUid = currentUser.uid;
 
-      const db = database();
-
       if (oldUuid && oldUuid !== newUid) {
-        // Jos UID olisi muuttunut (yleensä ei linkityksessä), migroidaan data
-        const oldPlayerRef = db.ref(`players/${oldUuid}`);
-        const oldSnap = await oldPlayerRef.once('value');
+        // Harvinainen tapaus: UID muuttuisi (yleensä ei linkityksessä) → migroi data
+        const oldSnap = await dbGet(`players/${oldUuid}`);
         const oldData = oldSnap.val() || {};
 
-        const newPlayerRef = db.ref(`players/${newUid}`);
-        await newPlayerRef.update({ ...oldData, isLinked: true });
-
-        await oldPlayerRef.remove();
+        await dbUpdate(`players/${newUid}`, { ...oldData, isLinked: true });
+        await dbRemove(dbRef(`players/${oldUuid}`));
       } else {
-        // Tyypillisin polku: UID pysyy samana linkityksessä
-        const newPlayerRef = db.ref(`players/${newUid}`);
-        await newPlayerRef.update({ isLinked: true });
+        // Normaali polku: UID pysyy samana
+        await dbUpdate(`players/${newUid}`, { isLinked: true });
       }
 
       await SecureStore.setItemAsync('user_id', newUid);
@@ -72,6 +69,7 @@ const Linked = ({ isVisible, onClose }) => {
       setIsLinked(true);
 
       setSuccessModalVisible(true);
+      onClose?.();
     } catch (error) {
       setErrorModalTitle('Error on linking account');
       setErrorModalMessage(error?.message ?? String(error));
@@ -91,6 +89,7 @@ const Linked = ({ isVisible, onClose }) => {
               style={styles.input}
               placeholder="Enter your email"
               autoCapitalize="none"
+              keyboardType="email-address"
               value={email}
               onChangeText={setEmail}
             />
@@ -123,8 +122,7 @@ const Linked = ({ isVisible, onClose }) => {
         </View>
       </Modal>
 
-      {/* Success / Error modaalit jos sinulla on erilliset komponentit niille, näytä tässä.
-          Nyt vain state päivittyy; lisää omat modal-komponenttisi tarvittaessa. */}
+      {/* successModalVisible / errorModalVisible -tilat on olemassa; voit näyttää ne täällä omilla modaaleilla jos haluat */}
     </>
   );
 };
@@ -132,80 +130,30 @@ const Linked = ({ isVisible, onClose }) => {
 // Styles
 const styles = StyleSheet.create({
   modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    flex: 1, justifyContent: 'center', alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContent: {
-    backgroundColor: '#fff',
-    width: '80%',
-    borderRadius: 10,
-    padding: 20,
-    alignItems: 'center',
+    backgroundColor: '#fff', width: '80%', borderRadius: 10, padding: 20, alignItems: 'center',
   },
-  modalTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    color: '#333',
-  },
-  modalText: {
-    fontSize: 16,
-    color: '#555',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
+  modalTitle: { fontSize: 24, fontWeight: 'bold', marginBottom: 10, color: '#333' },
+  modalText: { fontSize: 16, color: '#555', marginBottom: 20, textAlign: 'center' },
   input: {
-    width: '100%',
-    padding: 12,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 5,
-    marginBottom: 20,
-    fontSize: 16,
-    color: '#333',
+    width: '100%', padding: 12, borderColor: '#ccc', borderWidth: 1,
+    borderRadius: 5, marginBottom: 20, fontSize: 16, color: '#333',
   },
   passwordContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: '100%',
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 5,
-    padding: 12,
-    marginBottom: 20,
+    flexDirection: 'row', alignItems: 'center', width: '100%',
+    borderColor: '#ccc', borderWidth: 1, borderRadius: 5, padding: 12, marginBottom: 20,
   },
-  passwordInput: {
-    flex: 1,
-    fontSize: 16,
-    color: '#333',
-  },
+  passwordInput: { flex: 1, fontSize: 16, color: '#333' },
   linkButton: {
-    backgroundColor: '#62a346',
-    padding: 12,
-    borderRadius: 5,
-    width: '100%',
-    alignItems: 'center',
-    marginBottom: 10,
-    flexDirection: 'row',
-    justifyContent: 'center',
+    backgroundColor: '#62a346', padding: 12, borderRadius: 5,
+    width: '100%', alignItems: 'center', marginBottom: 10, flexDirection: 'row', justifyContent: 'center',
   },
-  buttonPressed: {
-    opacity: 0.7,
-  },
-  closeButton: {
-    backgroundColor: '#999',
-    padding: 12,
-    borderRadius: 5,
-    width: '100%',
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
+  buttonPressed: { opacity: 0.7 },
+  closeButton: { backgroundColor: '#999', padding: 12, borderRadius: 5, width: '100%', alignItems: 'center' },
+  buttonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
 });
 
 export default Linked;

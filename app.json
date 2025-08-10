@@ -12,7 +12,9 @@
       "resizeMode": "contain",
       "backgroundColor": "#2c3e50"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "runtimeVersion": "2.1.9",
@@ -25,14 +27,14 @@
         "backgroundColor": "#2c3e50"
       },
       "package": "com.SimpleYatzee",
+      "googleServicesFile": "./google-services.json",
       "permissions": [
         "INTERNET",
         "ACCESS_NETWORK_STATE",
         "WAKE_LOCK",
         "com.google.android.gms.permission.AD_ID"
       ],
-      "runtimeVersion": "2.1.9",
-      "googleServicesFile": "./android/app/google-services.json"
+      "runtimeVersion": "2.1.9"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -45,6 +47,13 @@
     },
     "plugins": [
       "@react-native-firebase/app",
+      [
+        "react-native-google-mobile-ads",
+        {
+          "androidAppId": "ca-app-pub-9474518865389369~6133058884",
+          "iosAppId": "ca-app-pub-3940256099942544~1458002511"
+        }
+      ],
       [
         "expo-build-properties",
         {
@@ -69,8 +78,5 @@
       "fallbackToCacheTimeout": 0,
       "checkAutomatically": "ON_LOAD"
     }
-  },
-  "react-native-google-mobile-ads": {
-    "android_app_id": "ca-app-pub-9474518865389369~6133058884"
   }
 }

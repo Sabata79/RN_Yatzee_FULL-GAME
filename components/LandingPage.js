@@ -1,7 +1,8 @@
+// screens/LandingPage.js (modular Firebase -yhteensopiva)
 import React, { useState, useEffect } from "react";
 import { View, Text, Image, Animated, Alert, Linking } from "react-native";
 import * as SecureStore from "expo-secure-store";
-import { auth, database } from "../components/Firebase";
+import { signInAnon, dbGet } from "../components/Firebase";
 import { useGame } from "../components/GameContext";
 import { ProgressBar } from "react-native-paper";
 import styles from "../styles/landingPageStyles";
@@ -60,11 +61,11 @@ export default function LandingPage({ navigation }) {
     return images.map((img) => Asset.fromModule(img.display).downloadAsync());
   };
 
-  // --- RNFirebase auth ---
+  // --- RNFirebase auth (modular) ---
   const doSignInAnonymously = async () => {
     try {
-      const result = await auth().signInAnonymously();
-      const uid = result.user.uid;
+      const { user } = await signInAnon();
+      const uid = user.uid;
       await SecureStore.setItemAsync("user_id", uid);
       console.log("Anonyymi kirjautuminen onnistui, uid:", uid);
       setPlayerId(uid);
@@ -89,12 +90,10 @@ export default function LandingPage({ navigation }) {
     }
   };
 
-  // --- RNFirebase database ---
+  // --- RNFirebase database (modular) ---
   const checkExistingUser = async (userId) => {
-    const db = database();
-    const playerRef = db.ref(`players/${userId}`);
     try {
-      const snapshot = await playerRef.once('value');
+      const snapshot = await dbGet(`players/${userId}`);
       const playerData = snapshot.val();
       if (playerData && playerData.name !== undefined) {
         setPlayerIdContext(userId);
@@ -166,6 +165,7 @@ export default function LandingPage({ navigation }) {
 
     checkRemoteUpdate();
     loadAllAssets();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -174,7 +174,7 @@ export default function LandingPage({ navigation }) {
         navigation.navigate("MainApp");
       }, 1500);
     }
-  }, [loadingProgress]);
+  }, [loadingProgress, navigation]);
 
   return (
     <Animated.View style={[styles.container, { opacity: fadeAnim }]}>

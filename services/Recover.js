@@ -2,7 +2,14 @@ import React, { useState } from 'react';
 import { StyleSheet, Modal, View, Text, TextInput, Pressable, TouchableOpacity } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import * as SecureStore from 'expo-secure-store';
-import { auth, database } from '../components/Firebase';
+import {
+  getAuth,
+  signOut,
+  signInWithEmailAndPassword,
+  sendPasswordResetEmail,
+} from '@react-native-firebase/auth';
+import { dbGet, dbUpdate, dbRef } from '../components/Firebase';
+import { remove as dbRemove } from '../components/Firebase';
 import { useGame } from '../components/GameContext';
 import * as Updates from 'expo-updates';
 
@@ -29,35 +36,30 @@ const Recover = ({ isVisible, onClose }) => {
     }
 
     try {
+      const auth = getAuth();
       const oldUid = playerId;
 
-      // Kirjaudu ulos jos joku on sisällä
-      if (auth().currentUser) {
-        await auth().signOut();
+      // Kirjaa ulos mahdollinen aiempi käyttäjä
+      if (auth.currentUser) {
+        await signOut(auth);
       }
 
-      // Kirjaudu sisään sähköpostilla
-      const result = await auth().signInWithEmailAndPassword(email, password);
+      // Kirjaudu sisään email+password
+      const result = await signInWithEmailAndPassword(auth, email.trim(), password);
       const currentUser = result.user;
       const newUid = currentUser.uid;
       console.log('Recovered account, UID:', newUid);
 
-      const db = database();
-
       if (oldUid && oldUid !== newUid) {
         // Migroi vanhan UID:n data uuteen
-        const oldPlayerRef = db.ref(`players/${oldUid}`);
-        const snapshot = await oldPlayerRef.once('value');
-        const oldData = snapshot.val() || {};
+        const oldSnap = await dbGet(`players/${oldUid}`);
+        const oldData = oldSnap.val() || {};
 
-        const newPlayerRef = db.ref(`players/${newUid}`);
-        await newPlayerRef.update({ ...oldData, isLinked: true });
-
-        await oldPlayerRef.remove();
+        await dbUpdate(`players/${newUid}`, { ...oldData, isLinked: true });
+        await dbRemove(dbRef(`players/${oldUid}`));
       } else {
         // Merkitse linkitetyksi
-        const newPlayerRef = db.ref(`players/${newUid}`);
-        await newPlayerRef.update({ isLinked: true });
+        await dbUpdate(`players/${newUid}`, { isLinked: true });
       }
 
       await SecureStore.setItemAsync('user_id', newUid);
@@ -80,7 +82,8 @@ const Recover = ({ isVisible, onClose }) => {
 
     try {
       setIsResetMode(true);
-      await auth().sendPasswordResetEmail(email);
+      const auth = getAuth();
+      await sendPasswordResetEmail(auth, email.trim());
       setResetMessage('Password reset link has been sent to your email.');
       setPassword('');
     } catch (error) {
@@ -96,7 +99,7 @@ const Recover = ({ isVisible, onClose }) => {
 
   const handleSuccessClose = async () => {
     setSuccessModalVisible(false);
-    onClose();
+    onClose?.();
     await Updates.reloadAsync();
   };
 
@@ -116,6 +119,7 @@ const Recover = ({ isVisible, onClose }) => {
                   style={styles.input}
                   placeholder="Enter your email"
                   autoCapitalize="none"
+                  keyboardType="email-address"
                   value={email}
                   onChangeText={setEmail}
                 />
@@ -139,6 +143,7 @@ const Recover = ({ isVisible, onClose }) => {
                   style={styles.input}
                   placeholder="Enter your email"
                   autoCapitalize="none"
+                  keyboardType="email-address"
                   value={email}
                   onChangeText={handleEmailChange}
                 />
@@ -220,20 +225,8 @@ const Recover = ({ isVisible, onClose }) => {
 };
 
 const styles = StyleSheet.create({
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)'
-  },
-
-  modalContent: {
-    backgroundColor: '#fff',
-    width: '80%',
-    borderRadius: 10,
-    padding: 20,
-    alignItems: 'center'
-  },
+  modalContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0, 0, 0, 0.5)' },
+  modalContent: { backgroundColor: '#fff', width: '80%', borderRadius: 10, padding: 20, alignItems: 'center' },
   modalTitle: { fontSize: 24, fontWeight: 'bold', marginBottom: 10, color: '#333' },
   modalText: { fontSize: 16, color: '#555', marginBottom: 20, textAlign: 'center' },
   input: { width: '100%', padding: 12, borderColor: '#ccc', borderWidth: 1, borderRadius: 5, marginBottom: 20, fontSize: 16, color: '#333' },

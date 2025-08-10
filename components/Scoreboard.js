@@ -1,147 +1,137 @@
+// screens/Scoreboard.js
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, ImageBackground, TouchableOpacity, Modal, Image } from 'react-native';
 import { DataTable } from 'react-native-paper';
-import { useNavigation } from '@react-navigation/native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import styles from '../styles/styles';
 import { NBR_OF_SCOREBOARD_ROWS } from '../constants/Game';
-import { database } from '../components/Firebase';
 import * as SecureStore from 'expo-secure-store';
 import PlayerCard from './PlayerCard';
 import { useGame } from '../components/GameContext';
 import { avatars } from '../constants/AvatarPaths';
+import { dbOnValue } from '../components/Firebase';
 
-export default function Scoreboard({ navigation }) {
+export default function Scoreboard() {
   const [scores, setScores] = useState([]);
   const [scoreType, setScoreType] = useState('allTime');
   const [userId, setUserId] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState(null);
-  const { setViewingPlayerIdContext, setViewingPlayerNameContext, avatarUrl, viewingPlayerAvatar } = useGame();
-  const userAvatar = avatars.find((avatar) => avatar.path === avatarUrl)?.display;
 
-  const db = database();
+  const { setViewingPlayerIdContext, setViewingPlayerNameContext } = useGame();
 
   useEffect(() => {
     SecureStore.getItemAsync('user_id').then((storedUserId) => {
-      if (storedUserId) {
-        setUserId(storedUserId);
-      }
+      if (storedUserId) setUserId(storedUserId);
     });
+  }, []);
 
-    getScoreboardData();
-  }, [scoreType]);
+  useEffect(() => {
+    const path = 'players';
 
-  const getScoreboardData = () => {
-    const playersRef = db.ref('players');
-    onValue(playersRef, snapshot => {
+    const parseDate = (d) => {
+      // "dd.mm.yyyy" → Date
+      const parts = String(d).split('.');
+      if (parts.length !== 3) return new Date('1970-01-01');
+      const [dd, mm, yyyy] = parts;
+      return new Date(`${yyyy}-${mm}-${dd}`);
+    };
+
+    const handleSnapshot = (snapshot) => {
       const playersData = snapshot.val();
       const tmpScores = [];
-      const currentMonth = new Date().getMonth();
-      const currentYear = new Date().getFullYear();
-      const currentWeek = getWeekNumber(new Date());
+      const now = new Date();
+      const currentMonth = now.getMonth();
+      const currentYear = now.getFullYear();
+      const currentWeek = getWeekNumber(now);
 
       if (playersData) {
-        Object.keys(playersData).forEach(playerId => {
-          const player = playersData[playerId];
+        Object.keys(playersData).forEach((pid) => {
+          const player = playersData[pid];
+          if (!player?.scores) return;
 
-          if (player.scores) {
-            let scoresToUse = [];
-            if (scoreType === 'monthly') {
-              // Filter by month
-              scoresToUse = Object.values(player.scores).filter(score => {
-                const dateParts = score.date.split('.');
-                if (dateParts.length === 3) {
-                  const formattedDate = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
-                  const scoreDate = new Date(formattedDate);
-                  if (isNaN(scoreDate)) return false;
-                  return scoreDate.getMonth() === currentMonth && scoreDate.getFullYear() === currentYear;
-                }
-                return false;
-              });
-            } else if (scoreType === 'allTime') {
-              scoresToUse = Object.values(player.scores);
-            } else if (scoreType === 'weekly') {
-              // Filter by week
-              scoresToUse = Object.values(player.scores).filter(score => {
-                const dateParts = score.date.split('.');
-                if (dateParts.length === 3) {
-                  const formattedDate = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
-                  const scoreDate = new Date(formattedDate);
-                  if (isNaN(scoreDate)) {
-                    console.error('Virheellinen päivämäärä:', score.date);
-                    return false; // Invalid date
-                  }
-                  return getWeekNumber(scoreDate) === currentWeek; // Get week number of the year
-                }
-                return false;
-              });
-            }
+          let scoresToUse = [];
 
-            if (scoresToUse.length > 0) {
-              let bestScore = null;
-              scoresToUse.forEach(score => {
-                if (!bestScore ||
-                  score.points > bestScore.points ||
-                  (score.points === bestScore.points && score.duration < bestScore.duration) ||
-                  (score.points === bestScore.points && score.duration === bestScore.duration && new Date(score.date) < new Date(bestScore.date))) {
-                  bestScore = score;
-                }
-              });
+          if (scoreType === 'monthly') {
+            scoresToUse = Object.values(player.scores).filter((s) => {
+              const d = parseDate(s.date);
+              return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+            });
+          } else if (scoreType === 'weekly') {
+            scoresToUse = Object.values(player.scores).filter((s) => {
+              const d = parseDate(s.date);
+              return getWeekNumber(d) === currentWeek && d.getFullYear() === currentYear;
+            });
+          } else {
+            // allTime
+            scoresToUse = Object.values(player.scores);
+          }
 
-              if (bestScore) {
-                tmpScores.push({
-                  ...bestScore,
-                  name: player.name,
-                  playerId: playerId,
-                  avatar: player.avatar || null,
-                  scores: Object.values(player.scores)
-                });
+          if (scoresToUse.length > 0) {
+            let best = null;
+            scoresToUse.forEach((s) => {
+              if (
+                !best ||
+                Number(s.points) > Number(best.points) ||
+                (Number(s.points) === Number(best.points) && Number(s.duration) < Number(best.duration)) ||
+                (Number(s.points) === Number(best.points) &&
+                  Number(s.duration) === Number(best.duration) &&
+                  parseDate(s.date) < parseDate(best.date))
+              ) {
+                best = s;
               }
+            });
+
+            if (best) {
+              tmpScores.push({
+                ...best,
+                name: player.name,
+                playerId: pid,
+                avatar: player.avatar || null,
+                scores: Object.values(player.scores),
+              });
             }
           }
         });
 
-        const sortedScores = tmpScores.sort((a, b) => {
-          if (b.points !== a.points) {
-            return b.points - a.points;
-          }
-          if (a.duration !== b.duration) {
-            return a.duration - b.duration;
-          }
-          return new Date(a.date) - new Date(b.date);
+        const sorted = tmpScores.sort((a, b) => {
+          if (Number(b.points) !== Number(a.points)) return Number(b.points) - Number(a.points);
+          if (Number(a.duration) !== Number(b.duration)) return Number(a.duration) - Number(b.duration);
+          return parseDate(a.date) - parseDate(b.date);
         });
-        setScores(sortedScores);
-      }
-    });
-  };
 
-  // Function to get the week number of the year (ISO 8601)
+        setScores(sorted);
+      } else {
+        setScores([]);
+      }
+    };
+
+    // Kiinnitä kuuntelija ja irrota kun scoreType vaihtuu / unmount
+    const unsubscribe = dbOnValue(path, handleSnapshot);
+    return () => {
+      try {
+        unsubscribe && unsubscribe();
+      } catch (_) {
+        // no-op
+      }
+    };
+  }, [scoreType]);
+
+  // ISO-viikkonumero (ma–su)
   function getWeekNumber(date) {
-    const tempDate = new Date(date.getTime());
-    tempDate.setHours(0, 0, 0, 0);
-    tempDate.setDate(tempDate.getDate() + 3 - (tempDate.getDay() + 6) % 7);
-    const firstThursday = tempDate.getTime();
-    tempDate.setMonth(0);
-    tempDate.setDate(1);
-    const weekNumber = Math.ceil(((firstThursday - tempDate) / 86400000 + 1) / 7);
-    return weekNumber;
+    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    const dayNum = d.getUTCDay() || 7; // su=7
+    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
   }
 
   const handlePlayerCard = (playerId, playerName, playerScores) => {
     const player = { playerId, playerName, playerScores };
-
-    // Asetetaan valittu pelaaja ensin
     setSelectedPlayer(player);
-
-    // Varmistetaan että kontekstiin menee oikeat tiedot
     setViewingPlayerIdContext(playerId);
     setViewingPlayerNameContext(playerName);
-
-    // Avataan modaali lyhyellä viiveellä (tai layout tickissä), jotta React ehtii prosessoida
-    requestAnimationFrame(() => {
-      setModalVisible(true);
-    });
+    requestAnimationFrame(() => setModalVisible(true));
   };
 
   const closeModal = () => {
@@ -152,7 +142,7 @@ export default function Scoreboard({ navigation }) {
   };
 
   const getAvatarStyle = (avatarPath) => {
-    const avatar = avatars.find(av => av.path === avatarPath);
+    const avatar = avatars.find((av) => av.path === avatarPath);
     if (!avatar) return styles.defaultAvatarIcon;
     if (avatar.level === 'Beginner') return styles.beginnerAvatar;
     if (avatar.level === 'Advanced') return styles.advancedAvatar;
@@ -166,19 +156,22 @@ export default function Scoreboard({ navigation }) {
           <View style={styles.tabContainer}>
             <TouchableOpacity
               style={scoreType === 'allTime' ? styles.activeTab : styles.inactiveTab}
-              onPress={() => setScoreType('allTime')} >
+              onPress={() => setScoreType('allTime')}
+            >
               <Text style={styles.tabText}>All Time</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={scoreType === 'monthly' ? styles.activeTab : styles.inactiveTab}
-              onPress={() => setScoreType('monthly')}>
+              onPress={() => setScoreType('monthly')}
+            >
               <Text style={styles.tabText}>Monthly</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={scoreType === 'weekly' ? styles.activeTab : styles.inactiveTab}
-              onPress={() => setScoreType('weekly')}>
+              onPress={() => setScoreType('weekly')}
+            >
               <Text style={styles.tabText}>Weekly</Text>
             </TouchableOpacity>
           </View>
@@ -207,7 +200,7 @@ export default function Scoreboard({ navigation }) {
 
                 return (
                   <DataTable.Row
-                    key={score.playerId}
+                    key={`${score.playerId}-${index}`}
                     onPress={() => handlePlayerCard(score.playerId, score.name, score.scores)}
                     style={isCurrentUser ? { backgroundColor: '#d3bd867a' } : {}}
                   >
@@ -233,7 +226,7 @@ export default function Scoreboard({ navigation }) {
                     <DataTable.Cell style={[styles.playerCell]}>
                       <View style={styles.playerWrapper}>
                         {(() => {
-                          const avatarSource = avatars.find((avatar) => avatar.path === score.avatar)?.display;
+                          const avatarSource = avatars.find((a) => a.path === score.avatar)?.display;
                           return avatarSource ? (
                             <Image source={avatarSource} style={getAvatarStyle(score.avatar)} />
                           ) : (
@@ -257,26 +250,21 @@ export default function Scoreboard({ navigation }) {
                 );
               })}
             </DataTable>
-
-
           )}
+
           <View style={{ height: 80 }} />
         </ScrollView>
       </View>
 
-      {/* PlayerCard modal for displaying selected player's details */}
-      <Modal
-        animationType="fade"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={closeModal}>
+      {/* PlayerCard modal */}
+      <Modal animationType="fade" transparent={true} visible={modalVisible} onRequestClose={closeModal}>
         {selectedPlayer && (
           <PlayerCard
-            playerId={selectedPlayer?.playerId ?? ""}
-            playerName={selectedPlayer?.playerName ?? ""}
+            playerId={selectedPlayer?.playerId ?? ''}
+            playerName={selectedPlayer?.playerName ?? ''}
             playerScores={selectedPlayer?.playerScores ?? []}
             isModalVisible={modalVisible}
-            setModalVisible={closeModal}
+            setModalVisible={setModalVisible}  // anna suoraan setter, PlayerCard osaa kutsua falseksi
           />
         )}
       </Modal>

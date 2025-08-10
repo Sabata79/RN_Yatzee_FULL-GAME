@@ -35,7 +35,7 @@ const EnergyTokenSystem = () => {
   const [adLoaded, setAdLoaded] = useState(false);
   const [rewarded, setRewarded] = useState(null);
   const [dataLoaded, setDataLoaded] = useState(false);
-  const db = getDatabase();
+  const db = database();
 
   // Ref to keep track of previous token count
   const prevTokensRef = useRef(tokens);

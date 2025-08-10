@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Modal, Pressable, ScrollView as RNScrollView, Image } from 'react-native';
+import { View, Text, Modal, Pressable, Image } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useGame } from '../components/GameContext';
 import styles from '../styles/playerCardStyles';
-import { database } from '../components/Firebase'; // ✅ KORJATTU
+import { dbOnValue, dbOff, dbGet, dbSet, dbUpdate } from '../components/Firebase';
 import { avatars } from '../constants/AvatarPaths';
 import AvatarContainer from '../components/AvatarContainer';
 import { NBR_OF_SCOREBOARD_ROWS } from '../constants/Game';
@@ -29,7 +29,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
   const [weeklyRank, setWeeklyRank] = useState('--');
   const [isAvatarModalVisible, setIsAvatarModalVisible] = useState(false);
   const [topScores, setTopScores] = useState([]);
-  const [isModalModalVisible, setModalModalVisible] = useState(false);
+  const [isModalModalVisible, setModalModalVisible] = useState(false); // (säilytetty muuttuja)
   const [playedGames, setPlayedGames] = useState(0);
   const [avgPoints, setAvgPoints] = useState(0);
   const [avgDuration, setAvgDuration] = useState(0);
@@ -41,11 +41,9 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
 
-  const db = database(); // ✅ KORJATTU
-
   const monthNames = [
-    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    'Jan','Feb','Mar','Apr','May','Jun',
+    'Jul','Aug','Sep','Oct','Nov','Dec'
   ];
 
   const idToUse = viewingPlayerId || playerId;
@@ -59,429 +57,27 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     setIsAvatarModalVisible(false);
   };
 
-  const saveAvatarToDatabase = (avatarPath) => {
-    if (avatarPath) {
-      const playerRef = db.ref(`players/${playerId}`);
-      playerRef
-        .update({ avatar: avatarPath }) // HUOM! Käytetään playerRef.update
-        .then(() => {
-          setAvatarUrl(avatarPath);
-        })
-        .catch((error) => {
-          console.error('Error saving avatar to Firebase:', error);
-        });
-    } else {
+  const saveAvatarToDatabase = async (avatarPath) => {
+    if (!avatarPath) {
       console.error('Avatar path is empty!');
+      return;
+    }
+    try {
+      await dbUpdate(`players/${playerId}`, { avatar: avatarPath });
+      setAvatarUrl(avatarPath);
+    } catch (e) {
+      console.error('Error saving avatar to Firebase:', e);
     }
   };
 
-  // fetch top scores
-  const fetchTopScores = () => {
-    if (idToUse) {
-      const playerRef = db.ref(`players/${idToUse}/scores`); // 🔁 ref() → db.ref()
-
-      playerRef.on('value', (snapshot) => { // 🔁 onValue() → playerRef.on('value', ...)
-        if (snapshot.exists()) {
-          const scores = snapshot.val();
-          const sortedScores = Object.values(scores)
-            .map(score => ({
-              points: score.points,
-              date: score.date,
-              duration: score.duration,
-              time: score.time,
-            }))
-            .sort((a, b) => b.points - a.points)
-            .slice(0, NBR_OF_SCOREBOARD_ROWS);
-          setTopScores(sortedScores);
-        } else {
-          setTopScores([]);
-        }
-      });
-    }
+  // ----- HELPERS -----
+  const isBetterScore = (a, b) => {
+    if (a.points > b.points) return true;
+    if (a.points < b.points) return false;
+    if (a.duration < b.duration) return true;
+    if (a.duration > b.duration) return false;
+    return a.date < b.date;
   };
-
-  // Get monthly ranks for current year
-  const fetchMonthlyRanks = () => {
-    const monthlyScores = Array.from({ length: 12 }, () => []);
-    const playersRef = db.ref('players'); // 🔁 ref(database, ...) → db.ref(...)
-
-    playersRef.on('value', (snapshot) => { // 🔁 onValue(...) → playersRef.on('value', ...)
-      if (snapshot.exists()) {
-        const playersData = snapshot.val();
-        const currentYear = new Date().getFullYear();
-
-        const isBetterScore = (newScore, oldScore) => {
-          if (newScore.points > oldScore.points) return true;
-          if (newScore.points < oldScore.points) return false;
-          if (newScore.duration < oldScore.duration) return true;
-          if (newScore.duration > oldScore.duration) return false;
-          return newScore.date < oldScore.date;
-        };
-
-        Object.keys(playersData).forEach((pId) => {
-          const playerScores = playersData[pId].scores || {};
-          Object.values(playerScores).forEach((score) => {
-            const scoreDate = new Date(score.date.split('.').reverse().join('-'));
-            if (scoreDate.getFullYear() === currentYear) {
-              const monthIndex = scoreDate.getMonth();
-              const existingMonthScores = monthlyScores[monthIndex];
-              const scoreObj = {
-                playerId: pId,
-                points: score.points,
-                duration: score.duration,
-                date: scoreDate.getTime(),
-              };
-              const playerBestScore = existingMonthScores.find(s => s.playerId === pId);
-              if (!playerBestScore || isBetterScore(scoreObj, playerBestScore)) {
-                monthlyScores[monthIndex] = existingMonthScores.filter(s => s.playerId !== pId);
-                monthlyScores[monthIndex].push(scoreObj);
-              }
-            }
-          });
-        });
-
-        const monthRanks = monthlyScores.map((monthScores) => {
-          if (monthScores.length === 0) return '--';
-          monthScores.sort((a, b) => {
-            if (b.points !== a.points) return b.points - a.points;
-            if (a.duration !== b.duration) return a.duration - b.duration;
-            return a.date - b.date;
-          });
-          const rank = monthScores.findIndex(score => score.playerId === idToUse) + 1;
-          return rank === 0 ? '--' : rank;
-        });
-
-        setMonthlyRanks(monthRanks);
-      } else {
-        setMonthlyRanks(Array(12).fill('--'));
-      }
-    });
-  };
-
-  // Get weekly rank
-  const fetchWeeklyRank = () => {
-    const playersRef = db.ref('players'); // 🔁 ref(database, ...) → db.ref(...)
-
-    playersRef.on('value', (snapshot) => { // 🔁 onValue(...) → .on('value', ...)
-      if (snapshot.exists()) {
-        const playersData = snapshot.val();
-        const currentDate = new Date();
-        const currentDay = currentDate.getDay();
-
-        // Tämä viikon maanantai
-        const mondayThisWeek = new Date(currentDate);
-        mondayThisWeek.setDate(currentDate.getDate() - (currentDay === 0 ? 6 : currentDay - 1));
-
-        // Viime viikon sunnuntai
-        const previousWeekEnd = new Date(mondayThisWeek);
-        previousWeekEnd.setDate(mondayThisWeek.getDate() - 1);
-
-        // Viime viikon maanantai
-        const previousWeekStart = new Date(previousWeekEnd);
-        previousWeekStart.setDate(previousWeekEnd.getDate() - 6);
-
-        let weeklyScores = [];
-
-        Object.keys(playersData).forEach((pId) => {
-          const playerScores = playersData[pId].scores || {};
-          Object.values(playerScores).forEach((score) => {
-            const scoreDate = new Date(score.date.split('.').reverse().join('-'));
-            if (scoreDate >= previousWeekStart && scoreDate <= previousWeekEnd) {
-              weeklyScores.push({
-                playerId: pId,
-                points: score.points,
-                duration: score.duration,
-                date: scoreDate.getTime(),
-              });
-            }
-          });
-        });
-
-        // Paras tulos per pelaaja
-        const bestScoresMap = {};
-        weeklyScores.forEach(score => {
-          if (!bestScoresMap[score.playerId]) {
-            bestScoresMap[score.playerId] = score;
-          } else {
-            const currentBest = bestScoresMap[score.playerId];
-            const isBetterScore = (newScore, oldScore) => {
-              if (newScore.points > oldScore.points) return true;
-              if (newScore.points < oldScore.points) return false;
-              if (newScore.duration < oldScore.duration) return true;
-              if (newScore.duration > oldScore.duration) return false;
-              return newScore.date < oldScore.date;
-            };
-            if (isBetterScore(score, currentBest)) {
-              bestScoresMap[score.playerId] = score;
-            }
-          }
-        });
-
-        const bestScores = Object.values(bestScoresMap);
-        bestScores.sort((a, b) => {
-          if (b.points !== a.points) return b.points - a.points;
-          if (a.duration !== b.duration) return a.duration - b.duration;
-          return a.date - b.date;
-        });
-
-        const rank = bestScores.findIndex(score => score.playerId === idToUse) + 1;
-        setWeeklyRank(rank === 0 ? '--' : rank);
-      } else {
-        setWeeklyRank('--');
-      }
-    });
-  };
-
-
-  const fetchWeeklyWins = () => {
-    const playersRef = db.ref('players'); // korjattu: ref(database, ...) → db.ref(...)
-
-    playersRef.on('value', (snapshot) => {
-      if (snapshot.exists()) {
-        const playersData = snapshot.val();
-        const now = new Date();
-        const firstScoreDate = new Date();
-        firstScoreDate.setFullYear(firstScoreDate.getFullYear() - 1); // vuoden taakse
-
-        let wins = 0;
-
-        for (let weeksAgo = 0; weeksAgo <= 52; weeksAgo++) {
-          const monday = new Date(now);
-          monday.setDate(monday.getDate() - monday.getDay() + 1 - weeksAgo * 7);
-          monday.setHours(0, 0, 0, 0);
-
-          const sunday = new Date(monday);
-          sunday.setDate(monday.getDate() + 6);
-          sunday.setHours(23, 59, 59, 999);
-
-          let weeklyScores = [];
-
-          Object.keys(playersData).forEach((pId) => {
-            const playerScores = playersData[pId].scores || {};
-            Object.values(playerScores).forEach((score) => {
-              const scoreDate = new Date(score.date.split('.').reverse().join('-'));
-              if (scoreDate >= monday && scoreDate <= sunday) {
-                weeklyScores.push({
-                  playerId: pId,
-                  points: score.points,
-                  duration: score.duration,
-                  date: scoreDate.getTime(),
-                });
-              }
-            });
-          });
-
-          const bestScoresMap = {};
-          weeklyScores.forEach(score => {
-            if (!bestScoresMap[score.playerId]) {
-              bestScoresMap[score.playerId] = score;
-            } else {
-              const currentBest = bestScoresMap[score.playerId];
-              const isBetterScore = (newScore, oldScore) => {
-                if (newScore.points > oldScore.points) return true;
-                if (newScore.points < oldScore.points) return false;
-                if (newScore.duration < oldScore.duration) return true;
-                if (newScore.duration > oldScore.duration) return false;
-                return newScore.date < oldScore.date;
-              };
-              if (isBetterScore(score, currentBest)) {
-                bestScoresMap[score.playerId] = score;
-              }
-            }
-          });
-
-          const bestScores = Object.values(bestScoresMap);
-          bestScores.sort((a, b) => {
-            if (b.points !== a.points) return b.points - a.points;
-            if (a.duration !== b.duration) return a.duration - b.duration;
-            return a.date - b.date;
-          });
-
-          const winner = bestScores[0];
-          if (winner && winner.playerId === idToUse) {
-            wins += 1;
-          }
-        }
-
-        setWeeklyWins(wins);
-      }
-    });
-  };
-
-
-
-  // Get player stats
-  const fetchPlayerStats = () => {
-    if (idToUse) {
-      const scoresRef = db.ref(`players/${idToUse}/scores`);
-      scoresRef.on('value', (snapshot) => {
-        let gamesCount = 0;
-        let totalPointsCalc = 0;
-        let totalDurationCalc = 0;
-
-        if (snapshot.exists()) {
-          const scoresData = snapshot.val();
-          gamesCount = Object.keys(scoresData).length;
-
-          Object.values(scoresData).forEach(score => {
-            totalPointsCalc += Number(score.points || 0);
-            totalDurationCalc += Number(score.duration || 0);
-          });
-        }
-
-        setPlayedGames(gamesCount);
-        setAvgPoints(gamesCount > 0 ? (totalPointsCalc / gamesCount).toFixed(0) : 0);
-        setAvgDuration(gamesCount > 0 ? (totalDurationCalc / gamesCount).toFixed(0) : 0);
-
-        // Tarkistetaan, onko progressPoints alustettu
-        const playerRef = db.ref(`players/${idToUse}`);
-        playerRef.once('value').then((snapshot) => {
-          const playerData = snapshot.val();
-          if (!playerData || playerData.progressPoints === undefined) {
-            playerRef.update({ progressPoints: gamesCount })
-              .then(() => console.log("progressPoints initialized."))
-              .catch((error) => console.error("Error initializing progressPoints:", error));
-          }
-        });
-      });
-    }
-  };
-
-  // Get stored level from database
-  useEffect(() => {
-    if (isModalVisible && idToUse) {
-      const playerRef = db.ref(`players/${idToUse}`);
-      playerRef.on('value', (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-          setStoredLevel(data.level);
-        }
-      });
-    }
-  }, [isModalVisible, idToUse]);
-
-  const getPlayerLevelInfo = () => {
-    const games = playedGames;
-    let computedLevel = { level: "beginner", min: 0, max: 400 };
-
-    if (games >= 2000) {
-      computedLevel = { level: "legendary", min: 2000, max: 2000 };
-    } else if (games >= 1201) {
-      computedLevel = { level: "elite", min: 1201, max: 2000 };
-    } else if (games >= 801) {
-      computedLevel = { level: "advanced", min: 801, max: 1200 };
-    } else if (games >= 401) {
-      computedLevel = { level: "basic", min: 401, max: 800 };
-    }
-
-    const progress = computedLevel.max === computedLevel.min
-      ? 1
-      : (games - computedLevel.min) / (computedLevel.max - computedLevel.min);
-
-    computedLevel = { ...computedLevel, progress: Math.min(progress, 1) };
-
-    const defaultLevels = ["beginner", "basic", "advanced", "elite", "legendary"];
-
-    if (storedLevel) {
-      const storedIndex = defaultLevels.indexOf(storedLevel);
-      const computedIndex = defaultLevels.indexOf(computedLevel.level);
-
-      if (storedIndex === -1) {
-        return {
-          level: storedLevel,
-          progress: 1,
-          min: computedLevel.min,
-          max: computedLevel.max,
-        };
-      }
-
-      if (computedIndex > storedIndex) {
-        const playerRef = db.ref(`players/${idToUse}`);
-        playerRef.update({ level: computedLevel.level })
-          .then(() => console.log("Level updated to computed level"))
-          .catch(err => console.error("Error updating level", err));
-        return computedLevel;
-      }
-
-      if (computedIndex === storedIndex) {
-        return computedLevel;
-      }
-
-      return {
-        level: storedLevel,
-        progress: 1,
-        min: computedLevel.min,
-        max: computedLevel.max,
-      };
-    }
-
-    return computedLevel;
-  };
-
-
-  const fetchAllTimeRank = () => {
-    const playersRef = db.ref(`players`);
-    playersRef.on('value', snapshot => {
-      if (!snapshot.exists()) {
-        setViewingAllTimeRank('--');
-        return;
-      }
-
-      const playersData = snapshot.val();
-
-      const bestScores = Object.entries(playersData).map(([pId, data]) => {
-        const scores = data.scores || {};
-        const maxScore = Object.values(scores)
-          .map(s => Number(s.points) || 0)
-          .reduce((m, v) => v > m ? v : m, 0);
-        return { playerId: pId, maxScore };
-      });
-
-      bestScores.sort((a, b) => b.maxScore - a.maxScore);
-      const idx = bestScores.findIndex(item => item.playerId === idToUse);
-      setViewingAllTimeRank(idx >= 0 ? idx + 1 : '--');
-    });
-  };
-
-
-  useEffect(() => {
-    if (isModalVisible && idToUse) {
-      fetchTopScores();
-      fetchMonthlyRanks();
-      fetchWeeklyRank();
-      fetchWeeklyWins();
-      fetchPlayerStats();
-      fetchAllTimeRank();
-
-      const avatarRef = db.ref(`players/${idToUse}/avatar`);
-      const linkedRef = db.ref(`players/${idToUse}/isLinked`);
-
-      const avatarListener = avatarRef.on('value', (snapshot) => {
-        const avatarPath = snapshot.val();
-        if (idToUse === playerId) {
-          setAvatarUrl(avatarPath || '');
-        } else {
-          setViewingPlayerAvatar(avatarPath || '');
-        }
-      });
-
-      const linkedListener = linkedRef.on('value', (snapshot) => {
-        setPlayerIsLinked(snapshot.val());
-      });
-
-      // Cleanup to remove listeners when modal closes or id changes
-      return () => {
-        avatarRef.off('value', avatarListener);
-        linkedRef.off('value', linkedListener);
-      };
-    }
-  }, [isModalVisible, idToUse, playerId, setAvatarUrl]);
-
-  useEffect(() => {
-    if (!isModalVisible) {
-      resetViewingPlayer();
-    }
-  }, [isModalVisible, resetViewingPlayer]);
 
   const getAvatarImage = (avatarPath) => {
     const avatar = avatars.find(av => av.path === avatarPath);
@@ -490,49 +86,347 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
 
   const isBeginnerAvatar = (avatarPath) => {
     const avatar = avatars.find(av => av.path === avatarPath);
-    return avatar && avatar.level === 'Beginner';
+    return !!avatar && avatar.level === 'Beginner';
   };
 
-  const getAvatarToDisplay = () => {
-    return idToUse === playerId ? avatarUrl : viewingPlayerAvatar;
-  };
+  const getAvatarToDisplay = () => (idToUse === playerId ? avatarUrl : viewingPlayerAvatar);
 
-  const getTrophyForMonth = (monthIndex) => {
-    const rank = monthlyRanks[monthIndex];
-    if (rank === '--') return <Text style={styles.emptySlotText}>--</Text>;
-    if (rank === 1) return (
-      <View style={styles.trophyContainer}>
-        <Image source={require('../assets/trophies/goldTrophy.webp')} style={styles.playerCardTrophyImage} />
-        <Text style={styles.trophyText}>GOLD</Text>
-      </View>
-    );
-    if (rank === 2) return (
-      <View style={styles.trophyContainer}>
-        <Image source={require('../assets/trophies/silverTrophy.webp')} style={styles.playerCardTrophyImage} />
-        <Text style={styles.trophyText}>SILVER</Text>
-      </View>
-    );
-    if (rank === 3) return (
-      <View style={styles.trophyContainer}>
-        <Image source={require('../assets/trophies/bronzeTrophy.webp')} style={styles.playerCardTrophyImage} />
-        <Text style={styles.trophyText}>BRONZE</Text>
-      </View>
-    );
-    return <Text style={[styles.playerCardMonthText, { fontWeight: 'bold', marginTop: 20, fontSize: 18, backgroundColor: '#00000000', }]}>{rank}.</Text>;
-  };
-
-  const getTopScoresWithEmptySlots = () => {
-    return topScores.slice(0, 5);
-  };
-
-  // Get previous month rank
-  const previousMonthRank = currentMonth > 0 ? monthlyRanks[currentMonth - 1] : '--';
-
-  const levelInfo = getPlayerLevelInfo();
+  const getTopScoresWithEmptySlots = () => topScores.slice(0, 5);
 
   const getPlayerCardBackground = (level) => {
     const bg = PlayercardBg.find(bg => bg.level.toLowerCase() === level.toLowerCase());
     return bg ? bg.display : require('../assets/playerCardBg/BeginnerBG.webp');
+  };
+
+  // ----- LEVEL COMPUTATION -----
+  const getPlayerLevelInfo = () => {
+    const games = playedGames;
+    let computed = { level: 'beginner', min: 0, max: 400 };
+
+    if (games >= 2000) computed = { level: 'legendary', min: 2000, max: 2000 };
+    else if (games >= 1201) computed = { level: 'elite', min: 1201, max: 2000 };
+    else if (games >= 801)  computed = { level: 'advanced', min: 801, max: 1200 };
+    else if (games >= 401)  computed = { level: 'basic', min: 401, max: 800 };
+
+    const progress = computed.max === computed.min ? 1 : (games - computed.min) / (computed.max - computed.min);
+    computed = { ...computed, progress: Math.min(progress, 1) };
+
+    const defaults = ['beginner', 'basic', 'advanced', 'elite', 'legendary'];
+
+    if (storedLevel) {
+      const storedIdx = defaults.indexOf(storedLevel);
+      const computedIdx = defaults.indexOf(computed.level);
+
+      if (storedIdx === -1) {
+        return { level: storedLevel, progress: 1, min: computed.min, max: computed.max };
+      }
+      if (computedIdx > storedIdx) {
+        // Päivitä ylöspäin jos laskettu taso on korkeampi
+        dbUpdate(`players/${idToUse}`, { level: computed.level })
+          .then(() => console.log('Level updated to computed level'))
+          .catch(err => console.error('Error updating level', err));
+        return computed;
+      }
+      if (computedIdx === storedIdx) return computed;
+
+      // Jos tietokannassa on "korkeampi" custom-taso kuin laskettu
+      return { level: storedLevel, progress: 1, min: computed.min, max: computed.max };
+    }
+
+    return computed;
+  };
+
+  const previousMonthRank = currentMonth > 0 ? monthlyRanks[currentMonth - 1] : '--';
+  const levelInfo = getPlayerLevelInfo();
+
+  // ----- EFFECT: attach/detach kaikki listenerit kun modal auki -----
+  useEffect(() => {
+    if (!isModalVisible || !idToUse) return;
+
+    const subs = []; // { path, cb }
+
+    // TOP SCORES
+    const topScoresPath = `players/${idToUse}/scores`;
+    const topScoresCb = (snapshot) => {
+      if (snapshot.exists()) {
+        const scores = snapshot.val();
+        const sorted = Object.values(scores)
+          .map(s => ({ points: s.points, date: s.date, duration: s.duration, time: s.time }))
+          .sort((a, b) => b.points - a.points)
+          .slice(0, NBR_OF_SCOREBOARD_ROWS);
+        setTopScores(sorted);
+      } else {
+        setTopScores([]);
+      }
+    };
+    dbOnValue(topScoresPath, topScoresCb);
+    subs.push({ path: topScoresPath, cb: topScoresCb });
+
+    // MONTHLY RANKS (koko vuoden)
+    const playersPath = 'players';
+    const monthlyCb = (snapshot) => {
+      if (!snapshot.exists()) {
+        setMonthlyRanks(Array(12).fill('--'));
+        return;
+      }
+      const playersData = snapshot.val();
+      const monthlyScores = Array.from({ length: 12 }, () => []);
+      const year = new Date().getFullYear();
+
+      Object.keys(playersData).forEach((pId) => {
+        const scores = playersData[pId].scores || {};
+        Object.values(scores).forEach((score) => {
+          const d = new Date(score.date.split('.').reverse().join('-'));
+          if (d.getFullYear() === year) {
+            const monthIndex = d.getMonth();
+            const entry = { playerId: pId, points: score.points, duration: score.duration, date: d.getTime() };
+            const existing = monthlyScores[monthIndex].find(s => s.playerId === pId);
+            if (!existing || isBetterScore(entry, existing)) {
+              monthlyScores[monthIndex] = monthlyScores[monthIndex].filter(s => s.playerId !== pId);
+              monthlyScores[monthIndex].push(entry);
+            }
+          }
+        });
+      });
+
+      const monthRanks = monthlyScores.map((arr) => {
+        if (arr.length === 0) return '--';
+        arr.sort((a, b) => {
+          if (b.points !== a.points) return b.points - a.points;
+          if (a.duration !== b.duration) return a.duration - b.duration;
+          return a.date - b.date;
+        });
+        const idx = arr.findIndex(s => s.playerId === idToUse);
+        return idx === -1 ? '--' : idx + 1;
+      });
+
+      setMonthlyRanks(monthRanks);
+    };
+    dbOnValue(playersPath, monthlyCb);
+    subs.push({ path: playersPath, cb: monthlyCb });
+
+    // WEEKLY RANK (viime viikko)
+    const weeklyRankCb = (snapshot) => {
+      if (!snapshot.exists()) {
+        setWeeklyRank('--');
+        return;
+      }
+      const playersData = snapshot.val();
+      const now = new Date();
+      const day = now.getDay();
+      const mondayThisWeek = new Date(now);
+      mondayThisWeek.setDate(now.getDate() - (day === 0 ? 6 : day - 1));
+      const previousWeekEnd = new Date(mondayThisWeek);
+      previousWeekEnd.setDate(mondayThisWeek.getDate() - 1);
+      const previousWeekStart = new Date(previousWeekEnd);
+      previousWeekStart.setDate(previousWeekEnd.getDate() - 6);
+
+      let weeklyScores = [];
+      Object.keys(playersData).forEach((pId) => {
+        const scores = playersData[pId].scores || {};
+        Object.values(scores).forEach((s) => {
+          const d = new Date(s.date.split('.').reverse().join('-'));
+          if (d >= previousWeekStart && d <= previousWeekEnd) {
+            weeklyScores.push({ playerId: pId, points: s.points, duration: s.duration, date: d.getTime() });
+          }
+        });
+      });
+
+      const bestByPlayer = {};
+      weeklyScores.forEach(s => {
+        const cur = bestByPlayer[s.playerId];
+        if (!cur || isBetterScore(s, cur)) bestByPlayer[s.playerId] = s;
+      });
+
+      const best = Object.values(bestByPlayer).sort((a, b) => {
+        if (b.points !== a.points) return b.points - a.points;
+        if (a.duration !== b.duration) return a.duration - b.duration;
+        return a.date - b.date;
+      });
+
+      const r = best.findIndex(s => s.playerId === idToUse) + 1;
+      setWeeklyRank(r === 0 ? '--' : r);
+    };
+    dbOnValue(playersPath, weeklyRankCb);
+    subs.push({ path: playersPath, cb: weeklyRankCb });
+
+    // WEEKLY WINS (vuoden sisällä)
+    const weeklyWinsCb = (snapshot) => {
+      if (!snapshot.exists()) {
+        setWeeklyWins(0);
+        return;
+      }
+      const playersData = snapshot.val();
+      const now = new Date();
+      let wins = 0;
+
+      for (let weeksAgo = 0; weeksAgo <= 52; weeksAgo++) {
+        const monday = new Date(now);
+        monday.setDate(monday.getDate() - monday.getDay() + 1 - weeksAgo * 7);
+        monday.setHours(0, 0, 0, 0);
+
+        const sunday = new Date(monday);
+        sunday.setDate(monday.getDate() + 6);
+        sunday.setHours(23, 59, 59, 999);
+
+        let weeklyScores = [];
+        Object.keys(playersData).forEach((pId) => {
+          const scores = playersData[pId].scores || {};
+          Object.values(scores).forEach((s) => {
+            const d = new Date(s.date.split('.').reverse().join('-'));
+            if (d >= monday && d <= sunday) {
+              weeklyScores.push({ playerId: pId, points: s.points, duration: s.duration, date: d.getTime() });
+            }
+          });
+        });
+
+        const bestByPlayer = {};
+        weeklyScores.forEach(s => {
+          const cur = bestByPlayer[s.playerId];
+          if (!cur || isBetterScore(s, cur)) bestByPlayer[s.playerId] = s;
+        });
+
+        const best = Object.values(bestByPlayer).sort((a, b) => {
+          if (b.points !== a.points) return b.points - a.points;
+          if (a.duration !== b.duration) return a.duration - b.duration;
+          return a.date - b.date;
+        });
+
+        const winner = best[0];
+        if (winner && winner.playerId === idToUse) wins += 1;
+      }
+
+      setWeeklyWins(wins);
+    };
+    dbOnValue(playersPath, weeklyWinsCb);
+    subs.push({ path: playersPath, cb: weeklyWinsCb });
+
+    // PLAYER STATS (+ progressPoints init)
+    const statsCb = async (snapshot) => {
+      let gamesCount = 0;
+      let totalPointsCalc = 0;
+      let totalDurationCalc = 0;
+
+      if (snapshot.exists()) {
+        const scoresData = snapshot.val();
+        gamesCount = Object.keys(scoresData).length;
+        Object.values(scoresData).forEach(score => {
+          totalPointsCalc += Number(score.points || 0);
+          totalDurationCalc += Number(score.duration || 0);
+        });
+      }
+
+      setPlayedGames(gamesCount);
+      setAvgPoints(gamesCount > 0 ? (totalPointsCalc / gamesCount).toFixed(0) : 0);
+      setAvgDuration(gamesCount > 0 ? (totalDurationCalc / gamesCount).toFixed(0) : 0);
+
+      // progressPoints init jos puuttuu
+      const pSnap = await dbGet(`players/${idToUse}`);
+      const pData = pSnap.val();
+      if (!pData || pData.progressPoints === undefined) {
+        dbUpdate(`players/${idToUse}`, { progressPoints: gamesCount })
+          .then(() => console.log('progressPoints initialized.'))
+          .catch(err => console.error('Error initializing progressPoints:', err));
+      }
+    };
+    const statsPath = `players/${idToUse}/scores`;
+    dbOnValue(statsPath, statsCb);
+    subs.push({ path: statsPath, cb: statsCb });
+
+    // ALL-TIME RANK
+    const allTimeCb = (snapshot) => {
+      if (!snapshot.exists()) {
+        setViewingAllTimeRank('--');
+        return;
+      }
+      const playersData = snapshot.val();
+      const bestScores = Object.entries(playersData).map(([pId, data]) => {
+        const scores = data.scores || {};
+        const maxScore = Object.values(scores)
+          .map(s => Number(s.points) || 0)
+          .reduce((m, v) => (v > m ? v : m), 0);
+        return { playerId: pId, maxScore };
+      });
+      bestScores.sort((a, b) => b.maxScore - a.maxScore);
+      const idx = bestScores.findIndex(item => item.playerId === idToUse);
+      setViewingAllTimeRank(idx >= 0 ? idx + 1 : '--');
+    };
+    dbOnValue(playersPath, allTimeCb);
+    subs.push({ path: playersPath, cb: allTimeCb });
+
+    // AVATAR & LINKED
+    const avatarPath = `players/${idToUse}/avatar`;
+    const avatarCb = (snapshot) => {
+      const path = snapshot.val();
+      if (idToUse === playerId) setAvatarUrl(path || '');
+      else setViewingPlayerAvatar(path || '');
+    };
+    dbOnValue(avatarPath, avatarCb);
+    subs.push({ path: avatarPath, cb: avatarCb });
+
+    const linkedPath = `players/${idToUse}/isLinked`;
+    const linkedCb = (snapshot) => setPlayerIsLinked(!!snapshot.val());
+    dbOnValue(linkedPath, linkedCb);
+    subs.push({ path: linkedPath, cb: linkedCb });
+
+    // Stored level (koko player-obj)
+    const levelPath = `players/${idToUse}`;
+    const levelCb = (snapshot) => {
+      const data = snapshot.val();
+      if (data) setStoredLevel(data.level);
+    };
+    dbOnValue(levelPath, levelCb);
+    subs.push({ path: levelPath, cb: levelCb });
+
+    // Cleanup
+    return () => {
+      subs.forEach(({ path, cb }) => dbOff(path, cb));
+    };
+  }, [isModalVisible, idToUse, playerId, setAvatarUrl]);
+
+  useEffect(() => {
+    if (!isModalVisible) {
+      resetViewingPlayer();
+    }
+  }, [isModalVisible, resetViewingPlayer]);
+
+  const getTrophyForMonth = (monthIndex) => {
+    const rank = monthlyRanks[monthIndex];
+    if (rank === '--') return <Text style={styles.emptySlotText}>--</Text>;
+    if (rank === 1) {
+      return (
+        <View style={styles.trophyContainer}>
+          <Image source={require('../assets/trophies/goldTrophy.webp')} style={styles.playerCardTrophyImage} />
+          <Text style={styles.trophyText}>GOLD</Text>
+        </View>
+      );
+    }
+    if (rank === 2) {
+      return (
+        <View style={styles.trophyContainer}>
+          <Image source={require('../assets/trophies/silverTrophy.webp')} style={styles.playerCardTrophyImage} />
+          <Text style={styles.trophyText}>SILVER</Text>
+        </View>
+      );
+    }
+    if (rank === 3) {
+      return (
+        <View style={styles.trophyContainer}>
+          <Image source={require('../assets/trophies/bronzeTrophy.webp')} style={styles.playerCardTrophyImage} />
+          <Text style={styles.trophyText}>BRONZE</Text>
+        </View>
+      );
+    }
+    return (
+      <Text
+        style={[
+          styles.playerCardMonthText,
+          { fontWeight: 'bold', marginTop: 20, fontSize: 18, backgroundColor: '#00000000' },
+        ]}
+      >
+        {rank}.
+      </Text>
+    );
   };
 
   return (
@@ -546,15 +440,12 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
         <View style={styles.playerCardModalBackground}>
           <View
             style={styles.playerCardModalContainer}
-            onLayout={(event) => setModalHeight(event.nativeEvent.layout.height)} // 👈
+            onLayout={(event) => setModalHeight(event.nativeEvent.layout.height)}
           >
-            <Image
-              source={getPlayerCardBackground(levelInfo.level)}
-              style={styles.avatarModalBackgroundImage}
-            />
+            <Image source={getPlayerCardBackground(levelInfo.level)} style={styles.avatarModalBackgroundImage} />
             <CoinLayer weeklyWins={weeklyWins} modalHeight={modalHeight} />
 
-            {/* HEADER: Nimi keskellä + X oikealla */}
+            {/* HEADER */}
             <View style={styles.playerCardHeaderCentered}>
               <View style={styles.nameAndLinkContainer}>
                 {playerIsLinked && (
@@ -575,7 +466,6 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
               </Pressable>
             </View>
 
-
             {/* Avatar + Stats */}
             <View style={styles.playerInfoContainer}>
               <View style={{ position: 'relative' }}>
@@ -589,10 +479,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
                   />
                 </View>
                 {idToUse === playerId && (
-                  <Pressable
-                    style={styles.editAvatarButton}
-                    onPress={() => setIsAvatarModalVisible(true)}
-                  >
+                  <Pressable style={styles.editAvatarButton} onPress={() => setIsAvatarModalVisible(true)}>
                     <FontAwesome5 name="edit" size={15} color="white" />
                   </Pressable>
                 )}
@@ -602,9 +489,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
                 <Text style={styles.playerStat}>Level: {levelInfo.level}</Text>
                 <View style={styles.progressBar}>
                   <View style={[styles.progressFill, { width: `${levelInfo.progress * 100}%` }]} />
-                  <Text style={styles.progressPercentageText}>
-                    {Math.floor(levelInfo.progress * 100)}%
-                  </Text>
+                  <Text style={styles.progressPercentageText}>{Math.floor(levelInfo.progress * 100)}%</Text>
                 </View>
                 <View style={styles.playerStatsContainer}>
                   <Text style={styles.playerStat}>All Time Rank: {viewingAllTimeRank}</Text>
@@ -618,18 +503,9 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
 
             {/* TOP SCORES */}
             <Text style={styles.playerCardScoresTitle}>TOP 5 SCORES</Text>
-            <View
-              style={styles.playerCardScoresContainer}
-              contentContainerStyle={{ paddingTop: 2, paddingBottom: 5, flexGrow: 0 }}
-            >
+            <View style={styles.playerCardScoresContainer} contentContainerStyle={{ paddingTop: 2, paddingBottom: 5, flexGrow: 0 }}>
               {getTopScoresWithEmptySlots().map((score, index) => (
-                <View
-                  key={index}
-                  style={[
-                    styles.scoreRow,
-                    index % 2 === 0 ? styles.evenRow : styles.oddRow,
-                  ]}
-                >
+                <View key={index} style={[styles.scoreRow, index % 2 === 0 ? styles.evenRow : styles.oddRow]}>
                   <Text style={styles.playerCardScoreItem}>
                     {index + 1}. {score.points} points in {score.duration} sec
                   </Text>
@@ -660,7 +536,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
         </View>
       </Modal>
 
-      {/* AvatarContainer lisättynä tähän! */}
+      {/* Avatar-picker modal */}
       <AvatarContainer
         isVisible={isAvatarModalVisible}
         onClose={() => setIsAvatarModalVisible(false)}
@@ -670,6 +546,4 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
       />
     </View>
   );
-
-
 }
