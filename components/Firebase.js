@@ -47,13 +47,19 @@ export const dbRef = (path) => ref(getDatabase(), path);
 export const dbGet = (path) => get(dbRef(path));
 export const dbSet = (path, value) => set(dbRef(path), value);
 export const dbUpdate = (path, value) => update(dbRef(path), value);
+
+// Kuuntelija: käytä REF.on / REF.off (ei top-level onValue/off)
 export const dbOnValue = (path, cb) => {
   const r = dbRef(path);
-  const maybeUnsub = onValue(r, cb);
-  if (typeof maybeUnsub === 'function') return maybeUnsub; // web-tyyli
-  return () => off(r, 'value', cb); // rn-firebase-tyyli
+  r.on('value', cb);
+  return () => r.off('value', cb); // palautetaan unsubscribe
 };
-export const dbOff = (path, cb) => off(dbRef(path), 'value', cb);
+
+export const dbOff = (path, cb) => {
+  const r = dbRef(path);
+  return r.off('value', cb);
+};
+
 
 // RC helperit
 export const rcSetDefaults = (defaults) => setDefaults(getRemoteConfig(), defaults);

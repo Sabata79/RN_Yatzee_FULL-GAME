@@ -28,7 +28,7 @@ const Linked = ({ isVisible, onClose }) => {
       // Varmista että currentUser on olemassa (anon fallback)
       if (!auth.currentUser) {
         console.log('[Link] No currentUser → signInAnon fallback');
-        const res = await signInAnon(); // sun wrapperi
+        const res = await signInAnon(); 
         console.log('[Link] Signed in anonymously, uid:', res?.user?.uid);
       }
 
