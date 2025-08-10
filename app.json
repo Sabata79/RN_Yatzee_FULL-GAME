@@ -31,7 +31,8 @@
         "WAKE_LOCK",
         "com.google.android.gms.permission.AD_ID"
       ],
-      "runtimeVersion": "2.1.9"
+      "runtimeVersion": "2.1.9",
+      "googleServicesFile": "./android/app/google-services.json"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -43,12 +44,15 @@
       }
     },
     "plugins": [
+      "@react-native-firebase/app",
       [
         "expo-build-properties",
         {
           "android": {
             "compileSdkVersion": 35,
-            "targetSdkVersion": 35
+            "targetSdkVersion": 35,
+            "minSdkVersion": 24,
+            "kotlinVersion": "2.0.21"
           }
         }
       ],
