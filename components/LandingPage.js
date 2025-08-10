@@ -1,5 +1,5 @@
-// screens/LandingPage.js (modular Firebase -yhteensopiva)
-import React, { useState, useEffect } from "react";
+// screens/LandingPage.js (smooth progress with guaranteed min duration)
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { View, Text, Image, Animated, Alert, Linking } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { signInAnon, dbGet } from "../components/Firebase";
@@ -13,9 +13,18 @@ import { PlayercardBg } from "../constants/PlayercardBg";
 import { additionalImages } from "../constants/AdditionalImages";
 import { fetchRemoteConfig } from "../services/RemoteConfigService";
 
+const PHASE1_MS = 4000; // 0 → 70% vähintään 4s
+const PHASE2_MS = 2500; // 70% → 100% vähintään 2.5s
+
 export default function LandingPage({ navigation }) {
   const [fadeAnim] = useState(new Animated.Value(0));
-  const [loadingProgress, setLoadingProgress] = useState(0);
+  const [loadingProgress, setLoadingProgress] = useState(0); // 0..100
+
+  // Progress control (ei re-renderiä joka frame)
+  const progressRef = useRef(0);
+  const rafRef = useRef(null);
+  const animCtrlRef = useRef(null); // { cancel: fn, cancelled: bool }
+
   const {
     setPlayerIdContext,
     setPlayerNameContext,
@@ -23,14 +32,14 @@ export default function LandingPage({ navigation }) {
     setPlayerId,
     setPlayerName,
     setIsLinked,
-    setPlayerLevel, // jos tätä ei ole kontekstissa, ei katastrofi (alla vartioitu kutsu)
+    setPlayerLevel, // optional
     setGameVersion,
     gameVersion,
   } = useGame();
 
   const isVersionOlder = (current, minimum) => {
-    const cur = current.split('.').map(Number);
-    const min = minimum.split('.').map(Number);
+    const cur = current.split(".").map(Number);
+    const min = minimum.split(".").map(Number);
     for (let i = 0; i < min.length; i++) {
       if ((cur[i] || 0) < min[i]) return true;
       if ((cur[i] || 0) > min[i]) return false;
@@ -38,36 +47,59 @@ export default function LandingPage({ navigation }) {
     return false;
   };
 
-  const animateProgress = (toValue, durationMs) => {
+  // Easing + requestAnimationFrame – palauttaa Promise, joka resolvaa kun animaatio valmis
+  const runProgress = useCallback((toValue, durationMs = 1000) => {
+    // peru mahdollinen aiempi animaatio
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    if (animCtrlRef.current?.cancel) animCtrlRef.current.cancel();
+
+    const clamp = (v) => Math.max(0, Math.min(100, v));
     const start = Date.now();
-    const fromValue = loadingProgress;
-    const diff = toValue - fromValue;
+    const from = progressRef.current;
+    const target = clamp(toValue);
+    const delta = target - from;
 
-    const interval = setInterval(() => {
-      const now = Date.now();
-      const elapsed = now - start;
-      const progress = Math.min(fromValue + (diff * (elapsed / durationMs)), toValue);
+    const ctrl = {
+      cancelled: false,
+      cancel() {
+        this.cancelled = true;
+      },
+    };
+    animCtrlRef.current = ctrl;
 
-      setLoadingProgress(progress);
+    const easeInOutCubic = (t) =>
+      t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
-      if (elapsed >= durationMs) {
-        clearInterval(interval);
-        setLoadingProgress(toValue);
-      }
-    }, 50);
-  };
+    return new Promise((resolve) => {
+      const tick = () => {
+        if (ctrl.cancelled) return resolve(); // lopeta hiljaa
+        const t = Math.min((Date.now() - start) / durationMs, 1);
+        const eased = easeInOutCubic(t);
+        const val = clamp(from + delta * eased);
+        progressRef.current = val;
+        setLoadingProgress(val);
+
+        if (t < 1) {
+          rafRef.current = requestAnimationFrame(tick);
+        } else {
+          rafRef.current = null;
+          resolve();
+        }
+      };
+      rafRef.current = requestAnimationFrame(tick);
+    });
+  }, []);
 
   const cacheImages = (images) => {
     return images.map((img) => Asset.fromModule(img.display).downloadAsync());
   };
 
-  // --- RNFirebase auth (modular) ---
+  // --- Auth (modular) ---
   const doSignInAnonymously = async () => {
     try {
       const { user } = await signInAnon();
       const uid = user.uid;
       await SecureStore.setItemAsync("user_id", uid);
-      console.log("Anonyymi kirjautuminen onnistui, uid:", uid);
       setPlayerId(uid);
       return uid;
     } catch (error) {
@@ -79,10 +111,7 @@ export default function LandingPage({ navigation }) {
   const getOrCreateUserId = async () => {
     try {
       let userId = await SecureStore.getItemAsync("user_id");
-      if (!userId) {
-        console.log("UserId:a ei löytynyt, kirjaututaan anonyymisti.");
-        userId = await doSignInAnonymously();
-      }
+      if (!userId) userId = await doSignInAnonymously();
       return userId;
     } catch (error) {
       console.error("Virhe getOrCreateUserId-funktiossa:", error);
@@ -90,7 +119,7 @@ export default function LandingPage({ navigation }) {
     }
   };
 
-  // --- RNFirebase database (modular) ---
+  // --- Database (modular) ---
   const checkExistingUser = async (userId) => {
     try {
       const snapshot = await dbGet(`players/${userId}`);
@@ -101,15 +130,10 @@ export default function LandingPage({ navigation }) {
         setPlayerId(userId);
         setIsLinked(!!playerData.isLinked);
         setUserRecognized(true);
-        // kutsu vain jos funktio on olemassa kontekstissa
-        if (typeof setPlayerLevel === 'function') {
-          setPlayerLevel(playerData.level);
-        }
+        if (typeof setPlayerLevel === "function") setPlayerLevel(playerData.level);
       } else {
-        console.log("Ei löytynyt pelaajatietoja ID:lle:", userId);
         setUserRecognized(false);
       }
-      animateProgress(100, 1000);
     } catch (error) {
       console.error("Virhe haettaessa pelaajatietoja:", error);
     }
@@ -119,12 +143,18 @@ export default function LandingPage({ navigation }) {
     const config = await fetchRemoteConfig();
     if (!config) return;
 
-    const currentVersion = Constants.expoConfig?.version ?? '0.0.0';
-    if (config.forceUpdate && isVersionOlder(currentVersion, config.minimum_supported_version)) {
-      Alert.alert('Päivitys vaaditaan', config.update_message, [
+    const currentVersion = Constants.expoConfig?.version ?? "0.0.0";
+    if (
+      config.forceUpdate &&
+      isVersionOlder(currentVersion, config.minimum_supported_version)
+    ) {
+      Alert.alert("Päivitys vaaditaan", config.update_message, [
         {
-          text: 'Päivitä',
-          onPress: () => Linking.openURL('https://play.google.com/store/apps/details?id=com.SimpleYatzee'),
+          text: "Päivitä",
+          onPress: () =>
+            Linking.openURL(
+              "https://play.google.com/store/apps/details?id=com.SimpleYatzee"
+            ),
         },
       ]);
     }
@@ -137,42 +167,53 @@ export default function LandingPage({ navigation }) {
       useNativeDriver: true,
     }).start();
 
-    const version = Constants.expoConfig?.version ?? '0.0.0';
-    console.log("App version from const version:", version);
+    const version = Constants.expoConfig?.version ?? "0.0.0";
     setGameVersion(version);
 
-    const loadAllAssets = async () => {
+    const loadAll = async () => {
       try {
+        // Phase 1: assettien lataus + progress 0 → 70%
         const allImages = [...avatars, ...PlayercardBg, ...additionalImages];
-        const imageAssets = cacheImages(allImages);
+        const assetsPromise = Promise.all(cacheImages(allImages));
+        const phase1Anim = runProgress(70, PHASE1_MS);
+        await Promise.all([assetsPromise, phase1Anim]);
 
-        animateProgress(70, 2500);
-
-        await Promise.all(imageAssets);
-
+        // Haetaan käyttäjä & pelaajatiedot
         const userId = await getOrCreateUserId();
         if (userId) {
-          setPlayerId(userId);
           await checkExistingUser(userId);
         } else {
           setUserRecognized(false);
           navigation.navigate("MainApp");
+          return;
         }
-      } catch (error) {
-        console.error("Assettien esilataus epäonnistui:", error);
+
+        // Remote update tarkistus rinnalle (ei estä progressia)
+        checkRemoteUpdate();
+
+        // Phase 2: 70% → 100% aina vähintään PHASE2_MS
+        await runProgress(100, PHASE2_MS);
+      } catch (e) {
+        console.error("Käynnistysvirhe:", e);
       }
     };
 
-    checkRemoteUpdate();
-    loadAllAssets();
+    loadAll();
+
+    // cleanup
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      if (animCtrlRef.current?.cancel) animCtrlRef.current.cancel();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     if (loadingProgress === 100) {
-      setTimeout(() => {
+      const t = setTimeout(() => {
         navigation.navigate("MainApp");
       }, 1500);
+      return () => clearTimeout(t);
     }
   }, [loadingProgress, navigation]);
 
@@ -181,12 +222,11 @@ export default function LandingPage({ navigation }) {
       <View style={styles.versionContainer}>
         <Text style={styles.versionText}>Version: {gameVersion}</Text>
       </View>
+
       <View style={styles.logoContainer}>
-        <Image
-          source={require("../assets/landingLogo.webp")}
-          style={styles.logo}
-        />
+        <Image source={require("../assets/landingLogo.webp")} style={styles.logo} />
       </View>
+
       <ProgressBar
         progress={loadingProgress / 100}
         color="#62a346"

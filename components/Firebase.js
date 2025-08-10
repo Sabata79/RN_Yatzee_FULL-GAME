@@ -47,7 +47,12 @@ export const dbRef = (path) => ref(getDatabase(), path);
 export const dbGet = (path) => get(dbRef(path));
 export const dbSet = (path, value) => set(dbRef(path), value);
 export const dbUpdate = (path, value) => update(dbRef(path), value);
-export const dbOnValue = (path, cb) => onValue(dbRef(path), cb);
+export const dbOnValue = (path, cb) => {
+  const r = dbRef(path);
+  const maybeUnsub = onValue(r, cb);
+  if (typeof maybeUnsub === 'function') return maybeUnsub; // web-tyyli
+  return () => off(r, 'value', cb); // rn-firebase-tyyli
+};
 export const dbOff = (path, cb) => off(dbRef(path), 'value', cb);
 
 // RC helperit

@@ -786,22 +786,24 @@ export default function Gameboard({ route, navigation }) {
                 </View>
                 <View style={styles.buttonContainer}>
                     {rounds === 0 ? (
-                        <>
-                            <Pressable
-                                style={({ pressed }) => [
-                                    styles.button,
-                                    pressed && styles.buttonPressed,
-                                    { width: '80%' },
-                                ]}
-                                onPress={() => {
-                                    savePlayerPoints();
+                        <><Pressable
+                            style={({ pressed }) => [
+                                styles.button,
+                                pressed && styles.buttonPressed,
+                                { width: '80%' },
+                            ]}
+                            onPress={async () => {
+                                const ok = await savePlayerPoints();
+                                if (ok) {
                                     resetGame();
                                     navigation.navigate('Scoreboard');
-                                }}
-                            >
-                                <Text style={styles.buttonText}>Game Over, Save Your Score</Text>
-                                <MaterialCommunityIcons name="scoreboard-outline" size={24} color="black" />
-                            </Pressable>
+                                }
+                            }}
+                        >
+                            <Text style={styles.buttonText}>Game Over, Save Your Score</Text>
+                            <MaterialCommunityIcons name="scoreboard-outline" size={24} color="black" />
+                        </Pressable>
+
                         </>
                     ) : (
                         <>

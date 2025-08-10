@@ -21,83 +21,75 @@ export default function Scoreboard() {
   const { setViewingPlayerIdContext, setViewingPlayerNameContext } = useGame();
 
   useEffect(() => {
+    // hae oma userId
     SecureStore.getItemAsync('user_id').then((storedUserId) => {
       if (storedUserId) setUserId(storedUserId);
     });
-  }, []);
 
-  useEffect(() => {
-    const path = 'players';
-
-    const parseDate = (d) => {
-      // "dd.mm.yyyy" → Date
-      const parts = String(d).split('.');
-      if (parts.length !== 3) return new Date('1970-01-01');
-      const [dd, mm, yyyy] = parts;
-      return new Date(`${yyyy}-${mm}-${dd}`);
-    };
-
-    const handleSnapshot = (snapshot) => {
+    const handle = (snapshot) => {
       const playersData = snapshot.val();
       const tmpScores = [];
-      const now = new Date();
-      const currentMonth = now.getMonth();
-      const currentYear = now.getFullYear();
-      const currentWeek = getWeekNumber(now);
+      const currentMonth = new Date().getMonth();
+      const currentYear = new Date().getFullYear();
+      const currentWeek = getWeekNumber(new Date());
 
       if (playersData) {
-        Object.keys(playersData).forEach((pid) => {
-          const player = playersData[pid];
-          if (!player?.scores) return;
+        Object.keys(playersData).forEach(playerId => {
+          const player = playersData[playerId];
+          if (player.scores) {
+            let scoresToUse = [];
 
-          let scoresToUse = [];
-
-          if (scoreType === 'monthly') {
-            scoresToUse = Object.values(player.scores).filter((s) => {
-              const d = parseDate(s.date);
-              return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
-            });
-          } else if (scoreType === 'weekly') {
-            scoresToUse = Object.values(player.scores).filter((s) => {
-              const d = parseDate(s.date);
-              return getWeekNumber(d) === currentWeek && d.getFullYear() === currentYear;
-            });
-          } else {
-            // allTime
-            scoresToUse = Object.values(player.scores);
-          }
-
-          if (scoresToUse.length > 0) {
-            let best = null;
-            scoresToUse.forEach((s) => {
-              if (
-                !best ||
-                Number(s.points) > Number(best.points) ||
-                (Number(s.points) === Number(best.points) && Number(s.duration) < Number(best.duration)) ||
-                (Number(s.points) === Number(best.points) &&
-                  Number(s.duration) === Number(best.duration) &&
-                  parseDate(s.date) < parseDate(best.date))
-              ) {
-                best = s;
-              }
-            });
-
-            if (best) {
-              tmpScores.push({
-                ...best,
-                name: player.name,
-                playerId: pid,
-                avatar: player.avatar || null,
-                scores: Object.values(player.scores),
+            if (scoreType === 'monthly') {
+              scoresToUse = Object.values(player.scores).filter(score => {
+                const parts = score.date.split('.');
+                if (parts.length !== 3) return false;
+                const d = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+                if (isNaN(d)) return false;
+                return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
               });
+            } else if (scoreType === 'weekly') {
+              scoresToUse = Object.values(player.scores).filter(score => {
+                const parts = score.date.split('.');
+                if (parts.length !== 3) return false;
+                const d = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+                if (isNaN(d)) return false;
+                return getWeekNumber(d) === currentWeek;
+              });
+            } else {
+              scoresToUse = Object.values(player.scores);
+            }
+
+            if (scoresToUse.length > 0) {
+              let bestScore = null;
+              scoresToUse.forEach(score => {
+                if (
+                  !bestScore ||
+                  score.points > bestScore.points ||
+                  (score.points === bestScore.points && score.duration < bestScore.duration) ||
+                  (score.points === bestScore.points && score.duration === bestScore.duration &&
+                    new Date(score.date) < new Date(bestScore.date))
+                ) {
+                  bestScore = score;
+                }
+              });
+
+              if (bestScore) {
+                tmpScores.push({
+                  ...bestScore,
+                  name: player.name,
+                  playerId,
+                  avatar: player.avatar || null,
+                  scores: Object.values(player.scores),
+                });
+              }
             }
           }
         });
 
         const sorted = tmpScores.sort((a, b) => {
-          if (Number(b.points) !== Number(a.points)) return Number(b.points) - Number(a.points);
-          if (Number(a.duration) !== Number(b.duration)) return Number(a.duration) - Number(b.duration);
-          return parseDate(a.date) - parseDate(b.date);
+          if (b.points !== a.points) return b.points - a.points;
+          if (a.duration !== b.duration) return a.duration - b.duration;
+          return new Date(a.date) - new Date(b.date);
         });
 
         setScores(sorted);
@@ -106,14 +98,9 @@ export default function Scoreboard() {
       }
     };
 
-    // Kiinnitä kuuntelija ja irrota kun scoreType vaihtuu / unmount
-    const unsubscribe = dbOnValue(path, handleSnapshot);
+    const unsubscribe = dbOnValue('players', handle);
     return () => {
-      try {
-        unsubscribe && unsubscribe();
-      } catch (_) {
-        // no-op
-      }
+      if (typeof unsubscribe === 'function') unsubscribe();
     };
   }, [scoreType]);
 

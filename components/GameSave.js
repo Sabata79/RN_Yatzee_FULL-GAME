@@ -1,33 +1,46 @@
 // components/GameSave.js
+import * as SecureStore from 'expo-secure-store';
 import { useGame } from './GameContext';
 import { dbGet, dbSet, dbRef, push } from './Firebase';
 import { TOPSCORELIMIT } from '../constants/Game';
 
-const GameSave = ({ totalPoints, navigation }) => {
+const GameSave = ({ totalPoints }) => {
   const { playerId, elapsedTime, saveGame } = useGame();
 
+  // Fallback: jos contextista puuttuu playerId, haetaan SecureStoresta
+  const resolvePlayerId = async () => {
+    if (playerId) return playerId;
+    try {
+      const stored = await SecureStore.getItemAsync('user_id');
+      return stored || '';
+    } catch {
+      return '';
+    }
+  };
+
   const savePlayerPoints = async () => {
-    if (!playerId) {
+    const uid = await resolvePlayerId();
+    if (!uid) {
       console.error('Player ID is missing in GameSave.');
-      return;
+      return false;
     }
     if (totalPoints === undefined || totalPoints === null) {
       console.error('Total points is undefined or null');
-      return;
+      return false;
     }
 
     try {
       // Hae pelaajan data
-      const snap = await dbGet(`players/${playerId}`);
+      const snap = await dbGet(`players/${uid}`);
       const playerData = snap.val();
 
       if (!playerData) {
         console.error('Player data not found');
-        return;
+        return false;
       }
 
       // Luo uusi avain scorelle
-      const scoresPath = `players/${playerId}/scores`;
+      const scoresPath = `players/${uid}/scores`;
       const newRef = push(dbRef(scoresPath));
       const newKey = newRef.key;
 
@@ -55,10 +68,13 @@ const GameSave = ({ totalPoints, navigation }) => {
 
       await dbSet(scoresPath, scoresObj);
 
-      saveGame();
-      navigation.navigate('Scoreboard');
+      // merkkaa pelin tallennetuksi
+      if (typeof saveGame === 'function') saveGame();
+
+      return true;
     } catch (error) {
       console.error('Error saving player points:', error?.message ?? String(error));
+      return false;
     }
   };
 
