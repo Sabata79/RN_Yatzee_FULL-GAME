@@ -8,13 +8,7 @@ import styles from '../styles/energyTokenStyles';
 import { MAX_TOKENS, VIDEO_TOKEN_LIMIT } from '../constants/Game';
 import { useGame } from '../components/GameContext';
 import { dbGet, dbSet } from '../components/Firebase';
-import {
-  RewardedAd,
-  RewardedAdEventType,
-  TestIds,
-} from 'react-native-google-mobile-ads';
 
-const adUnitId = __DEV__ ? TestIds.REWARDED : 'ca-app-pub-3940256099942544/5224354917';
 const REGEN_INTERVAL = 2.4 * 60 * 60 * 1000; // 2.4 h
 
 const EnergyTokenSystem = () => {
@@ -30,8 +24,6 @@ const EnergyTokenSystem = () => {
 
   const [nextTokenTime, setNextTokenTime] = useState(null);
   const [timeToNextToken, setTimeToNextToken] = useState('');
-  const [adLoaded, setAdLoaded] = useState(false);
-  const [rewarded, setRewarded] = useState(null);
   const [dataLoaded, setDataLoaded] = useState(false);
 
   // Edellinen token-määrä vertailuun
@@ -46,35 +38,10 @@ const EnergyTokenSystem = () => {
     }
   };
 
-  const loadNewAd = () => {
-    const newAd = RewardedAd.createForAdRequest(adUnitId, {
-      keywords: ['gaming', 'rewards'],
-    });
-
-    newAd.addAdEventListener(RewardedAdEventType.LOADED, () => {
-      setAdLoaded(true);
-    });
-
-    newAd.addAdEventListener(RewardedAdEventType.EARNED_REWARD, () => {
-      setTokens((prev) => Math.min((prev ?? 0) + 1, MAX_TOKENS));
-      setVideoTokens((prev) => (prev ?? 0) + 1);
-      setAdLoaded(false);
-      loadNewAd();
-    });
-
-    setRewarded(newAd);
-    newAd.load();
-  };
-
   useEffect(() => {
     const timer = setTimeout(loadNewAd, 1000);
     return () => clearTimeout(timer);
   }, []);
-
-  const handleWatchVideo = () => {
-    if (adLoaded && rewarded) rewarded.show();
-    else console.log('⚠ Ad is not ready yet.');
-  };
 
   // Lataa tallennetut tiedot (AsyncStorage + Firebase nextTokenTime)
   useEffect(() => {
