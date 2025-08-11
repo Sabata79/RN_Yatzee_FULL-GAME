@@ -257,6 +257,7 @@ export const GameProvider = ({ children }) => {
     nextLevel,
     allTimeRank,
     avatarUrl,
+    setAvatarUrl,
     isAvatarLoaded,
   };
 

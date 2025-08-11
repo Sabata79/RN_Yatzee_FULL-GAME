@@ -18,7 +18,7 @@ export default function Scoreboard() {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState(null);
 
-  const { setViewingPlayerIdContext, setViewingPlayerNameContext } = useGame();
+  const { viewingPlayerId, viewingPlayerName, setViewingPlayerId, setViewingPlayerName } = useGame();
 
   useEffect(() => {
     // hae oma userId
@@ -116,16 +116,16 @@ export default function Scoreboard() {
   const handlePlayerCard = (playerId, playerName, playerScores) => {
     const player = { playerId, playerName, playerScores };
     setSelectedPlayer(player);
-    setViewingPlayerIdContext(playerId);
-    setViewingPlayerNameContext(playerName);
+    setViewingPlayerId(playerId);
+    setViewingPlayerName(playerName);
     requestAnimationFrame(() => setModalVisible(true));
   };
 
   const closeModal = () => {
     setModalVisible(false);
     setSelectedPlayer(null);
-    setViewingPlayerIdContext('');
-    setViewingPlayerNameContext('');
+    setViewingPlayerId('');
+    setViewingPlayerName('');
   };
 
   const getAvatarStyle = (avatarPath) => {
