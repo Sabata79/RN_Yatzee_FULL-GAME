@@ -1,5 +1,5 @@
-// screens/LandingPage.js (smooth progress with guaranteed min duration)
-import React, { useState, useEffect, useRef, useCallback } from "react";
+// screens/LandingPage.js
+import React, { useState, useEffect, useRef } from "react";
 import { View, Text, Image, Animated, Alert, Linking } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { signInAnon, dbGet } from "../components/Firebase";
@@ -13,17 +13,11 @@ import { PlayercardBg } from "../constants/PlayercardBg";
 import { additionalImages } from "../constants/AdditionalImages";
 import { fetchRemoteConfig } from "../services/RemoteConfigService";
 
-const PHASE1_MS = 4000; // 0 → 70% vähintään 4s
-const PHASE2_MS = 2500; // 70% → 100% vähintään 2.5s
-
 export default function LandingPage({ navigation }) {
   const [fadeAnim] = useState(new Animated.Value(0));
   const [loadingProgress, setLoadingProgress] = useState(0); // 0..100
-
-  // Progress control (ei re-renderiä joka frame)
-  const progressRef = useRef(0);
-  const rafRef = useRef(null);
-  const animCtrlRef = useRef(null); // { cancel: fn, cancelled: bool }
+  const [bootDone, setBootDone] = useState(false); // kaikki boot-työt valmiit
+  const rafRef = useRef(null); // progress-animaation rAF
 
   const {
     setPlayerIdContext,
@@ -47,48 +41,19 @@ export default function LandingPage({ navigation }) {
     return false;
   };
 
-  // Easing + requestAnimationFrame – palauttaa Promise, joka resolvaa kun animaatio valmis
-  const runProgress = useCallback((toValue, durationMs = 1000) => {
-    // peru mahdollinen aiempi animaatio
+  // Yksi 4s animaatio 0 → 100
+  const startProgress = (durationMs = 4000) => {
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    if (animCtrlRef.current?.cancel) animCtrlRef.current.cancel();
-
-    const clamp = (v) => Math.max(0, Math.min(100, v));
     const start = Date.now();
-    const from = progressRef.current;
-    const target = clamp(toValue);
-    const delta = target - from;
-
-    const ctrl = {
-      cancelled: false,
-      cancel() {
-        this.cancelled = true;
-      },
+    const tick = () => {
+      const t = Math.min((Date.now() - start) / durationMs, 1);
+      setLoadingProgress(t * 100);
+      if (t < 1) {
+        rafRef.current = requestAnimationFrame(tick);
+      }
     };
-    animCtrlRef.current = ctrl;
-
-    const easeInOutCubic = (t) =>
-      t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-
-    return new Promise((resolve) => {
-      const tick = () => {
-        if (ctrl.cancelled) return resolve(); // lopeta hiljaa
-        const t = Math.min((Date.now() - start) / durationMs, 1);
-        const eased = easeInOutCubic(t);
-        const val = clamp(from + delta * eased);
-        progressRef.current = val;
-        setLoadingProgress(val);
-
-        if (t < 1) {
-          rafRef.current = requestAnimationFrame(tick);
-        } else {
-          rafRef.current = null;
-          resolve();
-        }
-      };
-      rafRef.current = requestAnimationFrame(tick);
-    });
-  }, []);
+    rafRef.current = requestAnimationFrame(tick);
+  };
 
   const cacheImages = (images) => {
     return images.map((img) => Asset.fromModule(img.display).downloadAsync());
@@ -170,17 +135,20 @@ export default function LandingPage({ navigation }) {
     const version = Constants.expoConfig?.version ?? "0.0.0";
     setGameVersion(version);
 
-    const loadAll = async () => {
+    const loadAllAssets = async () => {
       try {
-        // Phase 1: assettien lataus + progress 0 → 70%
-        const allImages = [...avatars, ...PlayercardBg, ...additionalImages];
-        const assetsPromise = Promise.all(cacheImages(allImages));
-        const phase1Anim = runProgress(70, PHASE1_MS);
-        await Promise.all([assetsPromise, phase1Anim]);
+        // Käynnistä 4s progress
+        startProgress(4000);
 
-        // Haetaan käyttäjä & pelaajatiedot
+        // Lataa assetit
+        const allImages = [...avatars, ...PlayercardBg, ...additionalImages];
+        const imageAssets = cacheImages(allImages);
+        await Promise.all(imageAssets);
+
+        // Hae käyttäjä
         const userId = await getOrCreateUserId();
         if (userId) {
+          setPlayerId(userId);
           await checkExistingUser(userId);
         } else {
           setUserRecognized(false);
@@ -188,34 +156,33 @@ export default function LandingPage({ navigation }) {
           return;
         }
 
-        // Remote update tarkistus rinnalle (ei estä progressia)
+        // Remote update tarkistus rinnalla (ei estä navigointia)
         checkRemoteUpdate();
 
-        // Phase 2: 70% → 100% aina vähintään PHASE2_MS
-        await runProgress(100, PHASE2_MS);
-      } catch (e) {
-        console.error("Käynnistysvirhe:", e);
+        // Kaikki boot-työt valmiit
+        setBootDone(true);
+      } catch (error) {
+        console.error("Assettien esilataus epäonnistui:", error);
       }
     };
 
-    loadAll();
+    loadAllAssets();
 
-    // cleanup
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
-      if (animCtrlRef.current?.cancel) animCtrlRef.current.cancel();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Navigoi vasta kun progress = 100 JA bootDone = true
   useEffect(() => {
-    if (loadingProgress === 100) {
+    if (loadingProgress === 100 && bootDone) {
       const t = setTimeout(() => {
         navigation.navigate("MainApp");
       }, 1500);
       return () => clearTimeout(t);
     }
-  }, [loadingProgress, navigation]);
+  }, [loadingProgress, bootDone, navigation]);
 
   return (
     <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
@@ -224,14 +191,24 @@ export default function LandingPage({ navigation }) {
       </View>
 
       <View style={styles.logoContainer}>
-        <Image source={require("../assets/landingLogo.webp")} style={styles.logo} />
+        <Image
+          source={require("../assets/landingLogo.webp")}
+          style={styles.logo}
+        />
       </View>
 
-      <ProgressBar
-        progress={loadingProgress / 100}
-        color="#62a346"
-        style={styles.progressBar}
-      />
+      {/* ProgressBar + prosentti overlayna keskelle ilman tyylimuutoksia */}
+      <View style={{ position: "relative" }}>
+        <ProgressBar
+          progress={loadingProgress / 100}
+          color="#62a346"
+          style={styles.progressBar}
+        />
+        <View style={styles.progressOverlay}>
+          <Text style={styles.progressPercentText}>{Math.round(loadingProgress)}%</Text>
+        </View>
+      </View>
+
       <Text style={styles.progressText}>
         {loadingProgress < 100 ? "Checking player data..." : "Complete!"}
       </Text>

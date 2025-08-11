@@ -1,14 +1,14 @@
 import { StyleSheet, Dimensions } from 'react-native';
 
 const { width, height } = Dimensions.get("window");
-const isSmallScreen = height < 650; 
+const isSmallScreen = height < 650;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor:'#2c3e50', // Tummempi ja pehmeämpi tausta
+    backgroundColor: '#2c3e50', // Tummempi ja pehmeämpi tausta
     padding: 20,
   },
   logoContainer: {
@@ -24,7 +24,7 @@ const styles = StyleSheet.create({
   },
   progressBar: {
     width: width * 0.8,
-    height: 10,
+    height: 20,
     marginHorizontal: 20,
     borderRadius: 5,
     backgroundColor: "rgba(245,245,245,0.3)", // Pehmeä vaaleanharmaa taustaksi progressBarille
@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
     fontSize: 16,
     color: "#ecf0f1",
-    fontFamily: "Roboto", 
+    fontFamily: "Roboto",
     textAlign: "center",
   },
   // Esimerkkityyli nappeille, mikäli haluat yhtenäistää myös etusivun nappuloita
@@ -50,6 +50,19 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: "AntonRegular", // Voit käyttää myös InterfaceGuiden tyylejä
     textAlign: "center",
+  },
+  progressOverlay: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  progressPercentText: {
+    color: '#fff',
+    fontWeight: '600',
   },
 });
 
