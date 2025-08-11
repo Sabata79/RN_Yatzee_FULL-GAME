@@ -16,6 +16,7 @@ import Rules from './components/Rules';
 import Header from './components/Header';
 import styles from './styles/styles';
 import updateModalStyles from './styles/updateModalStyles';
+import resetdev from './tools/devReset'
 
 const { height } = Dimensions.get('window');
 const isSmallScreen = height < 720;
@@ -31,50 +32,6 @@ export default function App() {
 
   const Stack = createStackNavigator();
   const Tab = createBottomTabNavigator();
-
-  // function isNewerVersion(latest, current) {
-  //   const latestParts = latest.split('.').map(Number);
-  //   const currentParts = current.split('.').map(Number);
-  //   for (let i = 0; i < latestParts.length; i++) {
-  //     if ((latestParts[i] || 0) > (currentParts[i] || 0)) return true;
-  //     if ((latestParts[i] || 0) < (currentParts[i] || 0)) return false;
-  //   }
-  //   return false;
-  // }
-
-  // useEffect(() => {
-  //   if (!__DEV__) {
-  //     const checkEASAndFirebase = async () => {
-  //       try {
-  //         const versionRef = ref(database, 'latestVersion');
-  //         const snapshot = await get(versionRef);
-  //         const latestVersion = snapshot.exists() ? snapshot.val() : null;
-  //         const currentVersion = Constants.nativeApplicationVersion;
-
-  //         console.log('🔥 Firebase latest:', latestVersion);
-  //         console.log('📱 App version:', currentVersion);
-
-  //         if (latestVersion && isNewerVersion(latestVersion, currentVersion)) {
-  //           setUpdateModalVisible(true);
-  //           return;
-  //         }
-
-  //         const update = await Updates.checkForUpdateAsync();
-  //         if (update.isAvailable) {
-  //           const currentRuntimeVersion = Updates.manifest?.runtimeVersion;
-  //           const newRuntimeVersion = update.manifest?.runtimeVersion;
-  //           if (currentRuntimeVersion && newRuntimeVersion && currentRuntimeVersion !== newRuntimeVersion) {
-  //             setUpdateModalVisible(true);
-  //           }
-  //         }
-  //       } catch (e) {
-  //         console.error('⚠️ Version check failed:', e);
-  //       }
-  //     };
-
-  //     checkEASAndFirebase();
-  //   }
-  // }, []);
 
   const handleUpdate = async () => {
     const url = 'https://play.google.com/store/apps/details?id=com.SimpleYatzee';
