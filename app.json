@@ -12,9 +12,7 @@
       "resizeMode": "contain",
       "backgroundColor": "#2c3e50"
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
       "runtimeVersion": "2.1.9",
@@ -31,8 +29,7 @@
       "permissions": [
         "INTERNET",
         "ACCESS_NETWORK_STATE",
-        "WAKE_LOCK",
-        "com.google.android.gms.permission.AD_ID"
+        "WAKE_LOCK"
       ],
       "runtimeVersion": "2.1.9"
     },
@@ -47,13 +44,6 @@
     },
     "plugins": [
       "@react-native-firebase/app",
-      [
-        "react-native-google-mobile-ads",
-        {
-          "androidAppId": "ca-app-pub-9474518865389369~6133058884",
-          "iosAppId": "ca-app-pub-3940256099942544~1458002511"
-        }
-      ],
       [
         "expo-build-properties",
         {

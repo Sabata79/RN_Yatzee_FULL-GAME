@@ -7,8 +7,7 @@
     "android": "npx expo run:android",
     "ios": "npx expo run:ios",
     "web": "npx expo start --web",
-    "build:android": "cd android && gradlew assembleRelease && cd .. && mkdir release && copy android\\app\\build\\outputs\\apk\\release\\app-release.apk release\\Yatzee.apk",
-    "postinstall": "patch-package"
+    "build:android": "cd android && gradlew assembleRelease && cd .. && mkdir release && copy android\\app\\build\\outputs\\apk\\release\\app-release.apk release\\Yatzee.apk"
   },
   "dependencies": {
     "@expo/vector-icons": "^14.1.0",
@@ -49,7 +48,6 @@
     "react-native-collapsible": "^1.6.2",
     "react-native-dotenv": "^3.4.11",
     "react-native-gesture-handler": "~2.24.0",
-    "react-native-google-mobile-ads": "^14.8.1",
     "react-native-linear-gradient": "^2.8.3",
     "react-native-pager-view": "6.7.1",
     "react-native-paper": "^5.13.1",
