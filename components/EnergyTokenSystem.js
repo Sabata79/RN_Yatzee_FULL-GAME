@@ -1,41 +1,30 @@
+// EnergyTokenSystem.js
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, Modal, Pressable, Button } from 'react-native';
+import { View, Text, Modal, Pressable } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { ProgressBar } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import styles from '../styles/EnergyTokenStyles';
-import { MAX_TOKENS, VIDEO_TOKEN_LIMIT } from '../constants/Game';
-import { useGame } from '../components/GameContext';
-import { database } from '../components/Firebase';
-import {
-  RewardedAd,
-  RewardedAdEventType,
-  TestIds,
-} from 'react-native-google-mobile-ads';
+import { MAX_TOKENS } from '../constants/Game';
+import { useGame } from './GameContext';
+import { database } from './Firebase';
 
 const db = database();
-
-const adUnitId = __DEV__
-  ? TestIds.REWARDED
-  : process.env.EXPO_PUBLIC_AD_UNIT_ID;
 const REGEN_INTERVAL = 2.4 * 60 * 60 * 1000;
 
 const EnergyTokenSystem = () => {
   const {
     playerId,
-    tokens, 
+    tokens,
     setTokens,
-    videoTokens,
-    setVideoTokens,
+    // HUOM: videoTokens/setVideoTokens POISTETTU KÄYTÖSTÄ
     energyModalVisible,
     setEnergyModalVisible,
   } = useGame();
+
   const [nextTokenTime, setNextTokenTime] = useState(null);
   const [timeToNextToken, setTimeToNextToken] = useState('');
-  const [adLoaded, setAdLoaded] = useState(false);
-  const [rewarded, setRewarded] = useState(null);
   const [dataLoaded, setDataLoaded] = useState(false);
-  const db = database();
 
   // Ref to keep track of previous token count
   const prevTokensRef = useRef(tokens);
@@ -45,63 +34,22 @@ const EnergyTokenSystem = () => {
       try {
         const nextTimeRef = db.ref(`players/${playerId}/nextTokenTime`);
         await nextTimeRef.set(time ? time.toISOString() : null);
-        // console.log('Updated nextTokenTime in Firebase:', time);
       } catch (error) {
         console.error('Error updating nextTokenTime in Firebase:', error);
       }
     }
   };
 
-  const loadNewAd = () => {
-    const newAd = RewardedAd.createForAdRequest(adUnitId, {
-      keywords: ['gaming', 'rewards'],
-    });
-
-    newAd.addAdEventListener(RewardedAdEventType.LOADED, () => {
-      setAdLoaded(true);
-    });
-
-    newAd.addAdEventListener(RewardedAdEventType.EARNED_REWARD, (reward) => {
-      console.log('🏆 User gets reward:', reward);
-      setTokens((prev) => Math.min(prev + 1, MAX_TOKENS));
-      setVideoTokens((prev) => prev + 1);
-      setAdLoaded(false);
-      loadNewAd();
-    });
-
-    newAd.addAdEventListener('closed', () => {
-      setAdLoaded(false);
-      loadNewAd();
-    });
-
-    setRewarded(newAd);
-    newAd.load();
-  };
-
-  useEffect(() => {
-    loadNewAd();
-  }, []);
-
-  const handleWatchVideo = () => {
-    if (adLoaded && rewarded) {
-      console.log('▶ Showing Ad...');
-      rewarded.show();
-    } else {
-      console.log('⚠ Ad is not ready yet.');
-    }
-  };
-
   useEffect(() => {
     const loadSavedData = async () => {
       try {
+        // Tokens
         const savedTokensString = await AsyncStorage.getItem('tokens');
-        let savedTokens = savedTokensString === null ? MAX_TOKENS : parseInt(savedTokensString, 10);
+        let savedTokens =
+          savedTokensString === null ? MAX_TOKENS : parseInt(savedTokensString, 10);
         setTokens(savedTokens);
 
-        const savedVideoTokensString = await AsyncStorage.getItem('videoTokens');
-        let savedVideoTokens = savedVideoTokensString === null ? 0 : parseInt(savedVideoTokensString, 10);
-        setVideoTokens(savedVideoTokens);
-
+        // nextTokenTime (Firebase → fallback AsyncStorage)
         if (playerId) {
           const nextTimeRef = db.ref(`players/${playerId}/nextTokenTime`);
           const snapshot = await nextTimeRef.once('value');
@@ -109,7 +57,6 @@ const EnergyTokenSystem = () => {
             const firebaseNextTokenTime = new Date(snapshot.val());
             if (!isNaN(firebaseNextTokenTime.getTime())) {
               setNextTokenTime(firebaseNextTokenTime);
-              // console.log('Loaded nextTokenTime from Firebase:', firebaseNextTokenTime);
             }
           } else {
             const savedNextTokenTimeString = await AsyncStorage.getItem('nextTokenTime');
@@ -131,19 +78,6 @@ const EnergyTokenSystem = () => {
             }
           }
         }
-
-        const lastReset = await AsyncStorage.getItem('lastVideoTokenReset');
-        const now = new Date();
-        if (!lastReset) {
-          await AsyncStorage.setItem('lastVideoTokenReset', now.toISOString());
-          setVideoTokens(0);
-        } else {
-          const resetTime = new Date(lastReset);
-          if (now - resetTime >= 24 * 60 * 60 * 1000) {
-            await AsyncStorage.setItem('lastVideoTokenReset', now.toISOString());
-            setVideoTokens(0);
-          }
-        }
       } catch (e) {
         console.error('Failed to load saved data:', e);
       } finally {
@@ -152,7 +86,7 @@ const EnergyTokenSystem = () => {
     };
 
     loadSavedData();
-  }, [setTokens, setVideoTokens, playerId]);
+  }, [setTokens, playerId]);
 
   useEffect(() => {
     const saveData = async () => {
@@ -161,7 +95,6 @@ const EnergyTokenSystem = () => {
         if (nextTokenTime) {
           await AsyncStorage.setItem('nextTokenTime', nextTokenTime.toISOString());
         }
-        await AsyncStorage.setItem('videoTokens', (videoTokens ?? 0).toString());
         if (playerId) {
           await updateNextTokenTimeInFirebase(nextTokenTime);
         }
@@ -171,7 +104,7 @@ const EnergyTokenSystem = () => {
     };
 
     saveData();
-  }, [tokens, nextTokenTime, videoTokens, playerId]);
+  }, [tokens, nextTokenTime, playerId]);
 
   useEffect(() => {
     if (!dataLoaded) return;
@@ -179,7 +112,7 @@ const EnergyTokenSystem = () => {
       const now = new Date();
       const newNextTime = new Date(now.getTime() + REGEN_INTERVAL);
       setNextTokenTime(newNextTime);
-      console.log("Tokens decreased, resetting regeneration timer to:", newNextTime);
+      console.log('Tokens decreased, resetting regeneration timer to:', newNextTime);
       if (playerId) {
         updateNextTokenTimeInFirebase(newNextTime);
       }
@@ -200,7 +133,7 @@ const EnergyTokenSystem = () => {
         } else {
           const diffTime = now - nextTokenTime;
           const tokensToAdd = Math.floor(diffTime / REGEN_INTERVAL) + 1;
-          setTokens(prevTokens => {
+          setTokens((prevTokens) => {
             const newTokenCount = Math.min(prevTokens + tokensToAdd, MAX_TOKENS);
             return newTokenCount;
           });
@@ -211,15 +144,15 @@ const EnergyTokenSystem = () => {
             if (playerId) {
               updateNextTokenTimeInFirebase(newNextTime);
             }
-            console.log("Token(s) added, new nextTokenTime:", newNextTime);
-            setTimeToNextToken("Token ready!");
+            console.log('Token(s) added, new nextTokenTime:', newNextTime);
+            setTimeToNextToken('Token ready!');
           } else {
             setNextTokenTime(null);
-            setTimeToNextToken("Token ready!");
+            setTimeToNextToken('Token ready!');
           }
         }
       } else {
-        setTimeToNextToken("Calculating...");
+        setTimeToNextToken('Calculating...');
       }
     }, 1000);
 
@@ -230,13 +163,17 @@ const EnergyTokenSystem = () => {
 
   return (
     <View style={styles.energyContainer}>
-      <MaterialCommunityIcons name="flash" size={40} color="gold" style={styles.energyIcon} />
-      <View style={styles.progressBarContainer}>
+      <View style={styles.progressWrap}>
+        <MaterialCommunityIcons
+          name="flash"
+          size={30}
+          color="gold"
+          style={styles.energyIconOverlay}
+        />
         <ProgressBar progress={progress} color="green" style={styles.progressBar} />
-        <Pressable onPress={() => setEnergyModalVisible(true)}>
+        <View style={styles.progressOverlay}>
           <Text style={styles.tokenText}>{tokens}/{MAX_TOKENS}</Text>
-          <Text style={styles.plusMark}>+</Text>
-        </Pressable>
+        </View>
       </View>
       <Modal
         animationType="slide"
@@ -265,15 +202,8 @@ const EnergyTokenSystem = () => {
                 >
                   <Text style={styles.energyModalCloseButtonText}>×</Text>
                 </Pressable>
-                <Text style={styles.energyModalMessage}>Need more tokens ?</Text>
-                {videoTokens < VIDEO_TOKEN_LIMIT && (
-                  <>
-                    <Button title="Watch Video" onPress={handleWatchVideo} />
-                    <Text style={styles.energyModalFooterText}>
-                      Video Tokens Used: {videoTokens}/{VIDEO_TOKEN_LIMIT}
-                    </Text>
-                  </>
-                )}
+
+                {/* Watch Video ja videolaskurit poistettu */}
                 <Text style={styles.energyModalMessage}>Time to next token regeneration:</Text>
                 <Text style={[styles.energyModalMessage, { fontWeight: 'bold' }]}>{timeToNextToken}</Text>
               </>

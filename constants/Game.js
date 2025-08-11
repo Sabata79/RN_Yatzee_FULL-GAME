@@ -12,7 +12,7 @@ export const SMALL_STRAIGHT_POINTS = 30;
 export const LARGE_STRAIGHT_POINTS = 40;
 
 // Energy token system
-export const MAX_TOKENS = 5; // Max energy tokens
+export const MAX_TOKENS = 10; // Max energy tokens
 export const VIDEO_TOKEN_LIMIT = 10; // Max tokens from ads per day
 export const MILLISECONDS_IN_A_DAY = 24 * 60 * 60 * 1000;
 

@@ -47,8 +47,8 @@ export default function Header() {
 
       {/* EnergyTokenSystem */}
       {userRecognized && (
-        <View style={headerStyles.section2}>
-          <EnergyTokenSystem onPlay={handleGamePlay} />
+        <View style={headerStyles.centerOverlay}>
+          <EnergyTokenSystem />
         </View>
       )}
 

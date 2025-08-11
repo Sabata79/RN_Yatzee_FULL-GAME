@@ -2,55 +2,70 @@ import { StyleSheet } from 'react-native';
 
 const styles = StyleSheet.create({
   energyContainer: {
-    flexDirection: 'row',
+    height: 20,
     alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    width: '100%',
+    justifyContent: 'center',
+    pointerEvents: 'none',   // ei interaktiota (halusit passiivisen palkin)
+    left: 0,
   },
   energyIcon: {
     zIndex: 1,
+    top: 0,
     transform: [{ rotate: '-15deg' }],
   },
   progressBarContainer: {
-    position: 'absolute',
-    flex: 1,
-    flexDirection: 'row',
     alignItems: 'center',
-    width: '100%',
+    justifyContent: 'center',
+    height: '100%'
+  },
+  progressWrap: {
+    position: 'relative',
+    width: 60,               // säädä pituus
+    height: 15,
+  },
+  progressOverlay: {
+    position: 'absolute',
+    top: 0, left: 0, right: 0, bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   progressBar: {
-    position: 'relative',
-    left: 28,
-    height: 20,
-    width: 75,
-    borderRadius: 5,
+    width: '100%',
+    height: '100%',
+    borderRadius: 6,
     overflow: 'hidden',
     backgroundColor: 'transparent',
     borderWidth: 1,
     borderColor: 'white',
   },
   tokenText: {
-    position: 'relative',
-    left: -20,
-    fontSize: 14,
+    fontSize: 11,
     fontWeight: 'bold',
-    width: '100%',
     color: 'white',
+    textAlign: 'center',
+    textAlignVertical: 'center',
   },
-  plusMark: {
+  energyIconOverlay: {
     position: 'absolute',
-    fontFamily: 'AntonRegular',
-    left: 15,
-    top: -30,
-    fontSize: 40,
-    fontWeight: 'bold',
-    color: '#0bf012',
-    textShadowColor: 'rgba(0, 0, 0, 1)',
-    textShadowOffset: { width: 0.5, height: 0.5 },
-    textShadowRadius: 1,
-    zIndex: 5,
+    left: -14,               
+    top: -5,
+    zIndex: 3,
+    transform: [{ rotate: '-15deg' }],
+    pointerEvents: 'none',
   },
+  // plusMark: {
+  //   position: 'absolute',
+  //   fontFamily: 'AntonRegular',
+  //   left: 15,
+  //   top: -30,
+  //   fontSize: 40,
+  //   fontWeight: 'bold',
+  //   color: '#0bf012',
+  //   textShadowColor: 'rgba(0, 0, 0, 1)',
+  //   textShadowOffset: { width: 0.5, height: 0.5 },
+  //   textShadowRadius: 1,
+  //   zIndex: 5,
+  // },
 
   // Modal
   energyModalOverlay: {
