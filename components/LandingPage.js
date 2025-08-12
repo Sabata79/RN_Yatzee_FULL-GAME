@@ -17,7 +17,15 @@ export default function LandingPage({ navigation }) {
   const [fadeAnim] = useState(new Animated.Value(0));
   const [loadingProgress, setLoadingProgress] = useState(0); // 0..100
   const [bootDone, setBootDone] = useState(false); // kaikki boot-työt valmiit
+  const [remoteBlock, setRemoteBlock] = useState(false);
+
   const rafRef = useRef(null); // progress-animaation rAF
+  const alertShownRef = useRef(false);
+  const bootStartedRef = useRef(false); // estä tuplasuoritukset Strict Modessa
+
+  // Smart progressin tilan seurannat
+  const bootDoneRef = useRef(false);
+  const remoteBlockRef = useRef(false);
 
   const {
     setPlayerIdContext,
@@ -41,19 +49,72 @@ export default function LandingPage({ navigation }) {
     return false;
   };
 
-  // Yksi 4s animaatio 0 → 100
-  const startProgress = (durationMs = 4000) => {
+  const fire = (name, fn) => {
+    const t0 = Date.now();
+    console.log(`🟡 [BOOT] ${name}…`);
+    Promise.resolve(fn())
+      .then(() => console.log(`🟢 [BOOT] ${name} OK (${Date.now() - t0} ms)`))
+      .catch((e) =>
+        console.error(`🔴 [BOOT] ${name} FAIL (${Date.now() - t0} ms)`, e)
+      );
+  };
+
+  const step = async (name, fn) => {
+    const t0 = Date.now();
+    console.log(`🟡 [BOOT] ${name}…`);
+    try {
+      const res = await fn();
+      console.log(`🟢 [BOOT] ${name} OK (${Date.now() - t0} ms)`);
+      return res;
+    } catch (e) {
+      console.error(`🔴 [BOOT] ${name} FAIL (${Date.now() - t0} ms)`, e);
+      throw e;
+    }
+  };
+
+  // ---- SMART PROGRESS ----
+  // 0 -> holdAt (esim. 92%) minMs-ajassa, sitten odottaa kunnes bootDone tai remoteBlock,
+  // ja viimeistelee finishMs-ajassa 100%:iin (smooth).
+  const startSmartProgress = (minMs = 2500, holdAt = 0.92, finishMs = 400) => {
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
+
     const start = Date.now();
+    let finishing = false;
+    let finishStart = 0;
+
     const tick = () => {
-      const t = Math.min((Date.now() - start) / durationMs, 1);
-      setLoadingProgress(t * 100);
-      if (t < 1) {
+      const now = Date.now();
+      const elapsed = now - start;
+
+      // peruskulku kohti holdAt
+      const base = Math.min(elapsed / minMs, 1) * holdAt;
+
+      // kun boot valmis TAI remoteBlock laukeaa, aloita finalisointi
+      if ((bootDoneRef.current || remoteBlockRef.current) && !finishing) {
+        finishing = true;
+        finishStart = now;
+      }
+
+      let target = base;
+
+      if (finishing) {
+        const finishT = Math.min((now - finishStart) / finishMs, 1);
+        // ease-out
+        const eased = 1 - Math.pow(1 - finishT, 3);
+        target = holdAt + (1 - holdAt) * eased;
+      }
+
+      const pct = Math.max(0, Math.min(100, Math.round(target * 100)));
+      setLoadingProgress(pct);
+
+      if (pct < 100) {
         rafRef.current = requestAnimationFrame(tick);
       }
     };
+
     rafRef.current = requestAnimationFrame(tick);
   };
+  // ------------------------
 
   const cacheImages = (images) => {
     return images.map((img) => Asset.fromModule(img.display).downloadAsync());
@@ -105,27 +166,49 @@ export default function LandingPage({ navigation }) {
   };
 
   const checkRemoteUpdate = async () => {
-    const config = await fetchRemoteConfig();
-    if (!config) return;
+    try {
+      const config = await fetchRemoteConfig();
+      if (!config) return false;
 
-    const currentVersion = Constants.expoConfig?.version ?? "0.0.0";
-    if (
-      config.forceUpdate &&
-      isVersionOlder(currentVersion, config.minimum_supported_version)
-    ) {
-      Alert.alert("Päivitys vaaditaan", config.update_message, [
-        {
-          text: "Päivitä",
-          onPress: () =>
-            Linking.openURL(
-              "https://play.google.com/store/apps/details?id=com.SimpleYatzee"
-            ),
-        },
-      ]);
+      const currentVersion = Constants.expoConfig?.version ?? "0.0.0";
+      const mustUpdate =
+        !!config.forceUpdate &&
+        isVersionOlder(currentVersion, config.minimum_supported_version);
+
+      if (mustUpdate && !alertShownRef.current) {
+        alertShownRef.current = true;
+        setRemoteBlock(true);
+        Alert.alert("Päivitys vaaditaan", config.update_message, [
+          {
+            text: "Päivitä",
+            onPress: () =>
+              Linking.openURL(
+                "https://play.google.com/store/apps/details?id=com.SimpleYatzee"
+              ),
+          },
+        ]);
+      }
+      return mustUpdate;
+    } catch (e) {
+      console.error("[RC] checkRemoteUpdate error", e);
+      return false;
     }
   };
 
+  // pidä refit synkassa statejen kanssa (smart progress)
   useEffect(() => {
+    bootDoneRef.current = bootDone;
+  }, [bootDone]);
+
+  useEffect(() => {
+    remoteBlockRef.current = remoteBlock;
+  }, [remoteBlock]);
+
+  useEffect(() => {
+    // estä tuplasuoritus devissä
+    if (bootStartedRef.current) return;
+    bootStartedRef.current = true;
+
     Animated.timing(fadeAnim, {
       toValue: 1,
       duration: 1500,
@@ -137,27 +220,38 @@ export default function LandingPage({ navigation }) {
 
     const loadAllAssets = async () => {
       try {
-        // Käynnistä 4s progress
-        startProgress(4000);
+        // Käynnistä älykäs progress: 0 -> 92% ~2.5s, sitten finalisoi 400ms kun valmis
+        startSmartProgress(2500, 0.92, 400);
+
+        // Remote update tarkistus rinnalla (ei estä navigointia)
+        fire("Remote update check (non-blocking)", checkRemoteUpdate);
 
         // Lataa assetit
-        const allImages = [...avatars, ...PlayercardBg, ...additionalImages];
-        const imageAssets = cacheImages(allImages);
-        await Promise.all(imageAssets);
+        await step("Esiladataan kuvat", async () => {
+          const allImages = [...avatars, ...PlayercardBg, ...additionalImages];
+          console.log(`[BOOT] Kuvia yhteensä: ${allImages.length}`);
+          const imageAssets = cacheImages(allImages);
+          await Promise.all(imageAssets);
+        });
 
         // Hae käyttäjä
-        const userId = await getOrCreateUserId();
+        const userId = await step("Haetaan/luodaan userId", async () => {
+          const id = await getOrCreateUserId();
+          console.log(`[BOOT] getOrCreateUserId -> ${id}`);
+          return id;
+        });
+
         if (userId) {
           setPlayerId(userId);
-          await checkExistingUser(userId);
+          await step("Tarkistetaan käyttäjän olemassaolo", async () => {
+            await checkExistingUser(userId);
+          });
         } else {
+          console.warn("[BOOT] userId puuttuu -> navigate('MainApp')");
           setUserRecognized(false);
           navigation.navigate("MainApp");
           return;
         }
-
-        // Remote update tarkistus rinnalla (ei estä navigointia)
-        checkRemoteUpdate();
 
         // Kaikki boot-työt valmiit
         setBootDone(true);
@@ -171,18 +265,17 @@ export default function LandingPage({ navigation }) {
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Navigoi vasta kun progress = 100 JA bootDone = true
+  // Navigoi vasta kun progress = 100, bootDone = true, eikä pakotettua päivitystä
   useEffect(() => {
-    if (loadingProgress === 100 && bootDone) {
+    if (!remoteBlock && loadingProgress === 100 && bootDone) {
       const t = setTimeout(() => {
         navigation.navigate("MainApp");
       }, 1500);
       return () => clearTimeout(t);
     }
-  }, [loadingProgress, bootDone, navigation]);
+  }, [remoteBlock, loadingProgress, bootDone, navigation]);
 
   return (
     <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
@@ -197,7 +290,7 @@ export default function LandingPage({ navigation }) {
         />
       </View>
 
-      {/* ProgressBar + prosentti overlayna keskelle ilman tyylimuutoksia */}
+      {/* ProgressBar + prosentti overlayna keskelle */}
       <View style={{ position: "relative" }}>
         <ProgressBar
           progress={loadingProgress / 100}
@@ -205,7 +298,9 @@ export default function LandingPage({ navigation }) {
           style={styles.progressBar}
         />
         <View style={styles.progressOverlay}>
-          <Text style={styles.progressPercentText}>{Math.round(loadingProgress)}%</Text>
+          <Text style={styles.progressPercentText}>
+            {Math.round(loadingProgress)}%
+          </Text>
         </View>
       </View>
 
