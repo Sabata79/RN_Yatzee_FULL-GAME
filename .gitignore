@@ -41,4 +41,6 @@ yarn-error.*
 eas.json
 *.secret.json
 
-
+# eas ignore
+eas.json
+.easignore
