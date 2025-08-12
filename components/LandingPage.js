@@ -168,6 +168,7 @@ export default function LandingPage({ navigation }) {
   const checkRemoteUpdate = async () => {
     try {
       const config = await fetchRemoteConfig();
+        console.log('[RC] fetched', config);
       if (!config) return false;
 
       const currentVersion = Constants.expoConfig?.version ?? "0.0.0";
@@ -178,9 +179,9 @@ export default function LandingPage({ navigation }) {
       if (mustUpdate && !alertShownRef.current) {
         alertShownRef.current = true;
         setRemoteBlock(true);
-        Alert.alert("Päivitys vaaditaan", config.update_message, [
+        Alert.alert("Update needed", config.update_message, [
           {
-            text: "Päivitä",
+            text: "Update",
             onPress: () =>
               Linking.openURL(
                 "https://play.google.com/store/apps/details?id=com.SimpleYatzee"
