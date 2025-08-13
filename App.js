@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
-import { Linking, Modal, View, Text, Pressable, Dimensions, Easing } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Linking, Modal, View, Text, Pressable, Dimensions, Easing, Platform } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import * as NavigationBar from 'expo-navigation-bar';
 import { FontAwesome5 } from '@expo/vector-icons';
-import { NavigationContainer, DarkTheme } from '@react-navigation/native';
+import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { createBottomTabNavigator, SceneStyleInterpolators } from '@react-navigation/bottom-tabs';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
 
@@ -16,24 +17,13 @@ import Scoreboard from './components/Scoreboard';
 import About from './components/AboutMe';
 import Rules from './components/Rules';
 import Header from './components/Header';
-
 import styles from './styles/styles';
 import updateModalStyles from './styles/updateModalStyles';
-// import resetdev from './tools/devReset';
+import resetdev from './tools/devReset';
 
 const { height } = Dimensions.get('window');
 const isSmallScreen = height < 720;
 const isBigScreen = height >= 900;
-
-// Tumma navigaatioteema, jossa taustat läpinäkyviä -> SafeAreaViewin musta näkyy
-const navTheme = {
-  ...DarkTheme,
-  colors: {
-    ...DarkTheme.colors,
-    background: 'transparent',
-    card: 'transparent',
-  },
-};
 
 export default function App() {
   const [isUserRecognized, setIsUserRecognized] = useState(false);
@@ -46,23 +36,41 @@ export default function App() {
   const Stack = createStackNavigator();
   const Tab = createBottomTabNavigator();
 
+  const makeIcon = (name) => ({ focused }) => {
+    const boxW = isSmallScreen ? 28 : isBigScreen ? 34 : 30;   // laatikon leveys
+    const size = isSmallScreen ? 18 : isBigScreen ? 24 : 20;  // itse ikonin koko
+    return (
+      <View style={{ width: boxW, alignItems: 'center' }}>
+        <FontAwesome5 name={name} size={size} color={focused ? '#eae6e6' : 'gray'} />
+      </View>
+    );
+  };
+
+  // Android: tumma navigaatiopalkki + vaaleat ikonit, edge-to-edge-ystävällinen
+  useEffect(() => {
+    if (Platform.OS !== 'android') return;
+    (async () => {
+      try {
+        await NavigationBar.setBackgroundColorAsync('#000000');
+        await NavigationBar.setButtonStyleAsync('light'); // vaaleat ikonit
+        // Halutessasi: jätetään nav bar näkyväksi, mutta käyttäjä voi swipeaamalla tuoda sen esiin
+        await NavigationBar.setBehaviorAsync('inset-swipe');
+      } catch (e) {
+        console.log('[NavigationBar] not available:', e?.message);
+      }
+    })();
+  }, []);
+
   const handleUpdate = async () => {
     const url = 'https://play.google.com/store/apps/details?id=com.SimpleYatzee';
     const supported = await Linking.canOpenURL(url);
-    if (supported) {
-      await Linking.openURL(url);
-    } else {
-      console.error("Can't open Play Store URL");
-    }
+    if (supported) await Linking.openURL(url);
   };
 
   const [loaded] = useFonts({
     AntonRegular: require('./assets/fonts/Anton-Regular.ttf'),
   });
-
-  if (!loaded) {
-    return null;
-  }
+  if (!loaded) return null;
 
   const TabNavigator = () => (
     <Tab.Navigator
@@ -77,14 +85,7 @@ export default function App() {
           position: 'absolute',
         },
         tabBarBackground: () => (
-          <View
-            style={{
-              flex: 1,
-              backgroundColor: '#000000e0',
-              borderTopWidth: 0.6,
-              borderTopColor: 'gold',
-            }}
-          />
+          <View style={{ flex: 1, backgroundColor: '#000000e0', borderTopWidth: 0.6, borderTopColor: 'gold' }} />
         ),
         tabBarActiveTintColor: '#ffffff',
         tabBarInactiveTintColor: 'gray',
@@ -93,26 +94,17 @@ export default function App() {
           letterSpacing: -0.1,
           fontFamily: 'AntonRegular',
         },
-        tabBarIcon: ({ focused }) => {
-          const iconStyle = {
-            size: isSmallScreen ? 22 : isBigScreen ? 28 : 28,
-            color: focused ? '#eae6e6' : 'gray',
-          };
+        // pientä vaakasuuntaista hengitystilaa itemille
+        tabBarItemStyle: { paddingHorizontal: 4 },
 
-          if (route.name === 'Home') return <FontAwesome5 name="home" {...iconStyle} />;
-          if (route.name === 'Gameboard') return <FontAwesome5 name="dice" {...iconStyle} />;
-          if (route.name === 'Scoreboard') return <FontAwesome5 name="trophy" {...iconStyle} />;
-          if (route.name === 'Rules') return <FontAwesome5 name="book" {...iconStyle} />;
-          if (route.name === 'About Me') return <FontAwesome5 name="user" {...iconStyle} />;
-        },
-        transitionSpec: {
-          animation: 'timing',
-          config: {
-            duration: 800,
-            easing: Easing.inOut(Easing.ease),
-          },
-        },
-        sceneStyleInterpolator: SceneStyleInterpolators.forFade,
+        // ikonit: vakioitu laatikko -> ei enää klippausta
+        tabBarIcon:
+          route.name === 'Home' ? makeIcon('home') :
+            route.name === 'Gameboard' ? makeIcon('dice') :
+              route.name === 'Scoreboard' ? makeIcon('trophy') : 
+                route.name === 'Rules' ? makeIcon('book') :
+                  route.name === 'About Me' ? makeIcon('user') :
+                    undefined,
       })}
     >
       <Tab.Screen
@@ -147,10 +139,8 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <GameProvider>
-        <SafeAreaView
-          style={[styles.container, { backgroundColor: '#000', flex: 1 }]}
-          edges={['top', 'bottom', 'left', 'right']}
-        >
+        {/* SafeAreaView täyttää koko näytön ja maalaa taustan mustaksi myös lovi/gesture-barin taakse */}
+        <SafeAreaView edges={['top', 'bottom']} style={{ flex: 1, backgroundColor: '#000' }}>
           <Modal
             visible={updateModalVisible}
             transparent
@@ -168,7 +158,7 @@ export default function App() {
             </View>
           </Modal>
 
-          <NavigationContainer theme={navTheme}>
+          <NavigationContainer>
             <Stack.Navigator screenOptions={{ headerShown: false }}>
               <Stack.Screen name="LandingPage" component={LandingPage} />
               <Stack.Screen
@@ -185,6 +175,7 @@ export default function App() {
             </Stack.Navigator>
           </NavigationContainer>
 
+          {/* Expo StatusBar: vaalea teksti, läpinäkyvä tausta, edge-to-edge */}
           <StatusBar style="light" translucent backgroundColor="transparent" />
         </SafeAreaView>
       </GameProvider>
