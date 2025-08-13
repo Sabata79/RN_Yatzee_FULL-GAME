@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { SafeAreaView, StatusBar, Linking, Modal, View, Text, Pressable, Dimensions, Easing } from 'react-native';
+import { Linking, Modal, View, Text, Pressable, Dimensions, Easing } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 import { FontAwesome5 } from '@expo/vector-icons';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, DarkTheme } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator, SceneStyleInterpolators } from '@react-navigation/bottom-tabs';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
+
 import { GameProvider } from './components/GameContext';
 import LandingPage from './components/LandingPage';
 import Home from './components/Home';
@@ -14,21 +16,32 @@ import Scoreboard from './components/Scoreboard';
 import About from './components/AboutMe';
 import Rules from './components/Rules';
 import Header from './components/Header';
+
 import styles from './styles/styles';
 import updateModalStyles from './styles/updateModalStyles';
-import resetdev from './tools/devReset'
+// import resetdev from './tools/devReset';
 
 const { height } = Dimensions.get('window');
 const isSmallScreen = height < 720;
 const isBigScreen = height >= 900;
 
+// Tumma navigaatioteema, jossa taustat läpinäkyviä -> SafeAreaViewin musta näkyy
+const navTheme = {
+  ...DarkTheme,
+  colors: {
+    ...DarkTheme.colors,
+    background: 'transparent',
+    card: 'transparent',
+  },
+};
+
 export default function App() {
-  // console.log("App initialized!");
   const [isUserRecognized, setIsUserRecognized] = useState(false);
   const [name, setName] = useState('');
   const [playerId, setPlayerId] = useState('');
   const [updateModalVisible, setUpdateModalVisible] = useState(false);
-  const updateMessage = `A new version of the app is available. Please update to get the latest features and improvements.`;
+  const updateMessage =
+    'A new version of the app is available. Please update to get the latest features and improvements.';
 
   const Stack = createStackNavigator();
   const Tab = createBottomTabNavigator();
@@ -134,10 +147,13 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <GameProvider>
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView
+          style={[styles.container, { backgroundColor: '#000', flex: 1 }]}
+          edges={['top', 'bottom', 'left', 'right']}
+        >
           <Modal
             visible={updateModalVisible}
-            transparent={true}
+            transparent
             animationType="fade"
             onRequestClose={() => setUpdateModalVisible(false)}
           >
@@ -145,22 +161,15 @@ export default function App() {
               <View style={updateModalStyles.updateModalContent}>
                 <Text style={updateModalStyles.updateModalTitle}>New Update Available!</Text>
                 <Text style={updateModalStyles.updateModalMessage}>{updateMessage}</Text>
-                <Pressable
-                  style={updateModalStyles.updateModalUpdateButton}
-                  onPress={handleUpdate}
-                >
+                <Pressable style={updateModalStyles.updateModalUpdateButton} onPress={handleUpdate}>
                   <Text style={updateModalStyles.updateModalUpdateButtonText}>Update</Text>
                 </Pressable>
               </View>
             </View>
           </Modal>
 
-          <NavigationContainer>
-            <Stack.Navigator
-              screenOptions={{
-                headerShown: false,
-              }}
-            >
+          <NavigationContainer theme={navTheme}>
+            <Stack.Navigator screenOptions={{ headerShown: false }}>
               <Stack.Screen name="LandingPage" component={LandingPage} />
               <Stack.Screen
                 name="MainApp"
@@ -169,17 +178,14 @@ export default function App() {
                   headerShown: true,
                   swipeEnabled: false,
                   header: () => (
-                    <Header
-                      isUserRecognized={isUserRecognized}
-                      name={name}
-                      playerId={playerId}
-                    />
+                    <Header isUserRecognized={isUserRecognized} name={name} playerId={playerId} />
                   ),
                 }}
               />
             </Stack.Navigator>
           </NavigationContainer>
-          <StatusBar style="light" backgroundColor="black" />
+
+          <StatusBar style="light" translucent backgroundColor="transparent" />
         </SafeAreaView>
       </GameProvider>
     </SafeAreaProvider>

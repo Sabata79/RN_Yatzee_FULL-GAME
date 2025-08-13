@@ -63,7 +63,8 @@
     "react-native-vector-icons": "^10.2.0",
     "react-timer-hook": "^3.0.8",
     "uuid": "^11.0.5",
-    "expo-modules-autolinking": "~2.1.0"
+    "expo-modules-autolinking": "~2.1.0",
+    "expo-navigation-bar": "~4.2.7"
   },
   "devDependencies": {
     "@babel/core": "^7.26.0",
