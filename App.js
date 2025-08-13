@@ -17,9 +17,7 @@ import Scoreboard from './components/Scoreboard';
 import About from './components/AboutMe';
 import Rules from './components/Rules';
 import Header from './components/Header';
-import styles from './styles/styles';
 import updateModalStyles from './styles/updateModalStyles';
-import resetdev from './tools/devReset';
 
 const { height } = Dimensions.get('window');
 const isSmallScreen = height < 720;
@@ -101,7 +99,7 @@ export default function App() {
         tabBarIcon:
           route.name === 'Home' ? makeIcon('home') :
             route.name === 'Gameboard' ? makeIcon('dice') :
-              route.name === 'Scoreboard' ? makeIcon('trophy') : 
+              route.name === 'Scoreboard' ? makeIcon('trophy') :
                 route.name === 'Rules' ? makeIcon('book') :
                   route.name === 'About Me' ? makeIcon('user') :
                     undefined,
