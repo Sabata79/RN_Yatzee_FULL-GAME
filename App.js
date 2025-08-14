@@ -1,11 +1,11 @@
 // App.js
 import React, { useState } from 'react';
-import { View, Text, Pressable, Modal, Linking, Dimensions, Easing } from 'react-native';
+import { View, Text, Pressable, Modal, Linking, Dimensions } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { createBottomTabNavigator, SceneStyleInterpolators } from '@react-navigation/bottom-tabs';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
 
@@ -18,7 +18,6 @@ import About from './components/AboutMe';
 import Rules from './components/Rules';
 import Header from './components/Header';
 
-import styles from './styles/styles';
 import updateModalStyles from './styles/updateModalStyles';
 
 const { height } = Dimensions.get('window');
@@ -45,7 +44,7 @@ function AppShell() {
     if (supported) await Linking.openURL(url);
   };
 
-  const ICON_SIZE = isSmallScreen ? 22 : isBigScreen ? 28 : 28;
+  const ICON_SIZE = isSmallScreen ? 22 : isBigScreen ? 28 : 26;
 
   const IconWrap = ({ children }) => (
     <View
@@ -59,139 +58,152 @@ function AppShell() {
     </View>
   );
 
-  const TabNavigator = () => (
-    <Tab.Navigator
-      tabBarPosition="bottom"
-      screenOptions={({ route }) => ({
-        headerShown: false,
-        tabBarStyle: {
-          height: isSmallScreen ? 55 : isBigScreen ? 85 : 70,
-          paddingTop: isSmallScreen ? 0 : 5,
-          backgroundColor: '#000000e0',
-          borderTopWidth: 0,
-          position: 'absolute',
-        },
-        tabBarBackground: () => (
-          <View
-            style={{
-              flex: 1,
-              backgroundColor: '#000000e0',
-              borderTopWidth: 0.6,
-              borderTopColor: 'gold',
-            }}
-          />
-        ),
-        tabBarActiveTintColor: '#ffffff',
-        tabBarInactiveTintColor: 'gray',
-        tabBarLabelStyle: {
-          fontSize: isSmallScreen ? 9 : isBigScreen ? 16 : 12,
-          letterSpacing: -0.1,
-          fontFamily: 'AntonRegular',
-        },
-        tabBarItemStyle: {
-          paddingHorizontal: 8,
-          minWidth: isSmallScreen ? 64 : 72,
-        },
-        tabBarIcon: ({ focused }) => {
-          const color = focused ? '#eae6e6' : 'gray';
-          const common = {
-            size: ICON_SIZE,
-            color,
-            allowFontScaling: false,
-            style: { includeFontPadding: false, textAlign: 'center' },
-          };
+  const TabNavigator = () => {
+    const baseHeight = isSmallScreen ? 56 : isBigScreen ? 84 : 68;
+    const bottomPad = Math.max(insets.bottom, 8);
 
-          if (route.name === 'Home') {
-            return (
-              <IconWrap>
-                <FontAwesome5 name="home" {...common} />
-              </IconWrap>
-            );
-          }
-          if (route.name === 'Gameboard') {
-            return (
-              <IconWrap>
-                <FontAwesome5 name="dice" {...common} />
-              </IconWrap>
-            );
-          }
-          if (route.name === 'Scoreboard') {
-            return (
-              <IconWrap>
-                <FontAwesome5 name="trophy" {...common} />
-              </IconWrap>
-            );
-          }
-          if (route.name === 'Rules') {
-            return (
-              <IconWrap>
-                <FontAwesome5 name="book" {...common} />
-              </IconWrap>
-            );
-          }
-          if (route.name === 'About Me') {
-            return (
-              <IconWrap>
-                <FontAwesome5 name="user" {...common} />
-              </IconWrap>
-            );
-          }
-          return null;
-        },
-        transitionSpec: {
-          animation: 'timing',
-          config: {
-            duration: 800,
-            easing: Easing.inOut(Easing.ease),
+    return (
+      <Tab.Navigator
+        sceneContainerStyle={{ backgroundColor: '#000' }}
+        screenOptions={({ route }) => ({
+          headerShown: false,
+          tabBarStyle: {
+            height: baseHeight + bottomPad,
+            paddingBottom: bottomPad,
+            paddingTop: 6,
+            backgroundColor: '#000000E6',
+            borderTopWidth: 0,
+            position: 'absolute',
+            left: 0,
+            right: 0,
+            bottom: 0,
           },
-        },
-        sceneStyleInterpolator: SceneStyleInterpolators?.forFade,
-      })}
-    >
-      <Tab.Screen
-        name="Home"
-        options={{
-          tabBarLabel: 'Home',
+          tabBarBackground: () => (
+            <View
+              style={{
+                flex: 1,
+                backgroundColor: '#000000E6',
+                borderTopWidth: 0.6,
+                borderTopColor: 'gold',
+              }}
+            />
+          ),
+          tabBarActiveTintColor: '#ffffff',
+          tabBarInactiveTintColor: 'gray',
+          tabBarLabelStyle: {
+            fontSize: isSmallScreen ? 9 : isBigScreen ? 16 : 12,
+            letterSpacing: -0.1,
+            fontFamily: 'AntonRegular',
+          },
+          tabBarItemStyle: {
+            paddingHorizontal: 8,
+            minWidth: isSmallScreen ? 64 : 72,
+          },
           tabBarIcon: ({ focused }) => {
             const color = focused ? '#eae6e6' : 'gray';
-            return (
-              <IconWrap>
-                <FontAwesome5
-                  name="home"
-                  size={ICON_SIZE}
-                  color={color}
-                  allowFontScaling={false}
-                  style={{ includeFontPadding: false, textAlign: 'center' }}
-                />
-              </IconWrap>
-            );
-          },
-          tabBarStyle: { display: 'none' },
-        }}
-      >
-        {() => (
-          <Home setIsUserRecognized={setIsUserRecognized} setName={setName} setPlayerId={setPlayerId} />
-        )}
-      </Tab.Screen>
+            const common = {
+              size: ICON_SIZE,
+              color,
+              allowFontScaling: false,
+              style: { includeFontPadding: false, textAlign: 'center' },
+            };
 
-      <Tab.Screen name="Gameboard" options={{ tabBarLabel: 'Game' }} component={Gameboard} />
-      <Tab.Screen name="Scoreboard" options={{ tabBarLabel: 'Scores' }} component={Scoreboard} />
-      <Tab.Screen name="Rules" options={{ tabBarLabel: 'Help' }} component={Rules} />
-      <Tab.Screen name="About Me" options={{ tabBarLabel: 'About' }} component={About} />
-    </Tab.Navigator>
-  );
+            if (route.name === 'Home') {
+              return (
+                <IconWrap>
+                  <FontAwesome5 name="home" {...common} />
+                </IconWrap>
+              );
+            }
+            if (route.name === 'Gameboard') {
+              return (
+                <IconWrap>
+                  <FontAwesome5 name="dice" {...common} />
+                </IconWrap>
+              );
+            }
+            if (route.name === 'Scoreboard') {
+              return (
+                <IconWrap>
+                  <FontAwesome5 name="trophy" {...common} />
+                </IconWrap>
+              );
+            }
+            if (route.name === 'Rules') {
+              return (
+                <IconWrap>
+                  <FontAwesome5 name="book" {...common} />
+                </IconWrap>
+              );
+            }
+            if (route.name === 'About Me') {
+              return (
+                <IconWrap>
+                  <FontAwesome5 name="user" {...common} />
+                </IconWrap>
+              );
+            }
+            return null;
+          },
+        })}
+      >
+        <Tab.Screen
+          name="Home"
+          options={{
+            tabBarLabel: 'Home',
+            tabBarIcon: ({ focused }) => {
+              const color = focused ? '#eae6e6' : 'gray';
+              return (
+                <IconWrap>
+                  <FontAwesome5
+                    name="home"
+                    size={ICON_SIZE}
+                    color={color}
+                    allowFontScaling={false}
+                    style={{ includeFontPadding: false, textAlign: 'center' }}
+                  />
+                </IconWrap>
+              );
+            },
+            tabBarStyle: { display: 'none' }, // hide tab bar on Home
+          }}
+        >
+          {() => (
+            <Home
+              setIsUserRecognized={setIsUserRecognized}
+              setName={setName}
+              setPlayerId={setPlayerId}
+            />
+          )}
+        </Tab.Screen>
+
+        <Tab.Screen
+          name="Gameboard"
+          options={{ tabBarLabel: 'Game' }}
+          component={Gameboard}
+        />
+        <Tab.Screen
+          name="Scoreboard"
+          options={{ tabBarLabel: 'Scores' }}
+          component={Scoreboard}
+        />
+        <Tab.Screen
+          name="Rules"
+          options={{ tabBarLabel: 'Help' }}
+          component={Rules}
+        />
+        <Tab.Screen
+          name="About Me"
+          options={{ tabBarLabel: 'About' }}
+          component={About}
+        />
+      </Tab.Navigator>
+    );
+  };
 
   return (
-    <View
-      style={[
-        styles.container,
-        {
-          paddingTop: insets.top,
-          paddingBottom: insets.bottom, // keep content above system nav bar
-          backgroundColor: '#000', // avoid white flashes on edge-to-edge
-        },
-      ]}
-    >
+    <View style={{ flex: 1, backgroundColor: '#000' }}>
+      {/* Update modal */}
       <Modal
         visible={updateModalVisible}
         transparent
@@ -214,18 +226,22 @@ function AppShell() {
           <Stack.Screen name="LandingPage" component={LandingPage} />
           <Stack.Screen
             name="MainApp"
-            component={TabNavigator}
             options={{
               headerShown: true,
               swipeEnabled: false,
               header: () => (
-                <Header isUserRecognized={isUserRecognized} name={name} playerId={playerId} />
+                <View style={{ paddingTop: insets.top, backgroundColor: '#000' }}>
+                  <Header isUserRecognized={isUserRecognized} name={name} playerId={playerId} />
+                </View>
               ),
             }}
-          />
+          >
+            {() => <TabNavigator />}
+          </Stack.Screen>
         </Stack.Navigator>
       </NavigationContainer>
 
+      {/* Edge-to-edge: translucent so content can draw behind, we pad only where needed */}
       <StatusBar style="light" translucent backgroundColor="transparent" />
     </View>
   );
