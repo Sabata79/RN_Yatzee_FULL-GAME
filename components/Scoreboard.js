@@ -257,7 +257,27 @@ export default function Scoreboard() {
               })}
             </DataTable>
           )}
+
+
         </ScrollView>
+        {modalVisible && selectedPlayer && (
+          <PlayerCard
+            playerId={selectedPlayer.playerId}
+            playerName={selectedPlayer.playerName}
+            playerScores={selectedPlayer.playerScores}
+            isModalVisible={modalVisible}
+            setModalVisible={(v) => {
+              if (!v) {
+                setModalVisible(false);
+                setSelectedPlayer(null);
+                setViewingPlayerId('');
+                setViewingPlayerName('');
+              } else {
+                setModalVisible(true);
+              }
+            }}
+          />
+        )}
       </View>
     </ImageBackground>
   );
