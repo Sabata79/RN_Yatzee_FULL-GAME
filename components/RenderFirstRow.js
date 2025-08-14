@@ -2,28 +2,29 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, Animated } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useGame } from '../components/GameContext';
-import { useStopwatch } from 'react-timer-hook'; 
+import { useStopwatch } from 'react-timer-hook';
 import styles from '../styles/styles';
 
 const RenderFirstRow = () => {
-  const { gameStarted, gameEnded, setElapsedTimeContext, isGameSaved, setIsGameSaved} = useGame();
+  const { gameStarted, gameEnded, setElapsedTimeContext, isGameSaved, setIsGameSaved } = useGame();
   const { totalSeconds, start, reset, pause } = useStopwatch({
-    autoStart: false, 
+    autoStart: false,
   });
 
   const [hasStarted, setHasStarted] = useState(false);
-  const [glowAnim] = useState(new Animated.Value(1)); 
+  const [glowAnim] = useState(new Animated.Value(1));
+  const MAX_SECS = 9999;
 
   useEffect(() => {
     if (gameStarted && !hasStarted) {
       start();
-      setHasStarted(true);  
+      setHasStarted(true);
       startGlowEffect();
     } else if (gameEnded) {
-        pause();  
-      setElapsedTimeContext(totalSeconds);  
-      if (isGameSaved) { 
-        reset();  
+      pause();
+      setElapsedTimeContext(totalSeconds);
+      if (isGameSaved) {
+        reset();
         setElapsedTimeContext(0);
         setHasStarted(false);
         setIsGameSaved(false);
@@ -32,16 +33,24 @@ const RenderFirstRow = () => {
     }
   }, [gameStarted, gameEnded, totalSeconds, start, reset, setElapsedTimeContext, isGameSaved, hasStarted]);
 
+  useEffect(() => {
+    if (totalSeconds >= MAX_SECS) {
+      pause();                       
+      setElapsedTimeContext(MAX_SECS); 
+    }
+  }, [totalSeconds, pause, setElapsedTimeContext]);
+
+
   const startGlowEffect = () => {
     Animated.loop(
       Animated.sequence([
         Animated.timing(glowAnim, {
-          toValue: 1.5, 
-          duration: 500, 
+          toValue: 1.5,
+          duration: 500,
           useNativeDriver: true,
         }),
         Animated.timing(glowAnim, {
-          toValue: 1, 
+          toValue: 1,
           duration: 500,
           useNativeDriver: true,
         }),
@@ -51,7 +60,7 @@ const RenderFirstRow = () => {
 
   const stopGlowEffect = () => {
     glowAnim.stopAnimation();
-    glowAnim.setValue(1); 
+    glowAnim.setValue(1);
   };
 
   return (
@@ -68,8 +77,8 @@ const RenderFirstRow = () => {
             color="#ffffff"
             style={{ marginRight: 5, marginTop: 3 }}
           />
-          <Animated.Text style={[styles.firstRowCategoryText,{ width: 60, textAlign: 'center' },{ transform: [{ scale: glowAnim }] }]}>
-            {totalSeconds}s
+          <Animated.Text style={[styles.firstRowCategoryText, { width: 60, textAlign: 'center' }, { transform: [{ scale: glowAnim }] }]}>
+            {Math.min(totalSeconds, MAX_SECS)}s
           </Animated.Text>
         </View>
       </View>
