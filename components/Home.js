@@ -2,11 +2,11 @@ import React, { useState, useEffect, useRef } from "react";
 import { View, Text, TextInput, Pressable, Alert, ImageBackground, Image, Animated } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { FontAwesome5 } from '@expo/vector-icons';
-import { VideoView, useVideoPlayer } from 'expo-video'; // 👈 MP4-video
+import { VideoView, useVideoPlayer } from 'expo-video'; // MP4-video
 import styles from '../styles/homeStyles';
 import { dbGet, dbSet } from '../components/Firebase';
 import uuid from 'react-native-uuid';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useIsFocused } from '@react-navigation/native';
 import { useGame } from '../components/GameContext';
 import Linked from "../services/Linked";
 import Recover from "../services/Recover";
@@ -23,17 +23,16 @@ export default function Home({ setPlayerId }) {
   const [isRecoverModalVisible, setIsRecoverModalVisible] = useState(false);
   const [isModalVisible, setModalVisible] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState(null);
-  const videoRef = useRef(null); // 👈 viittaus videoon
 
-  const videoPlayer = useVideoPlayer(
-    require('../assets/hiThere.mp4'),
-    (p) => {
-      p.loop = false;            // ei looppausta
-      p.muted = true;            // ei ääntä
-      p.playbackRate = 0.60;     // hidastus 60 %
-      p.play();                  // käynnistä
-    }
-  );
+  // Video player state
+  const [videoError, setVideoError] = useState(false);
+
+  // Video player (expo-video)
+  const videoPlayer = useVideoPlayer(require('../assets/hiThere.mp4'), (p) => {
+    p.loop = false;        // ei looppausta
+    p.muted = true;        // ei ääntä
+    p.playbackRate = 0.6;  // hieman hitaampi
+  });
 
   const {
     setPlayerIdContext,
@@ -46,9 +45,26 @@ export default function Home({ setPlayerId }) {
     isLinked
   } = useGame();
 
+  const isFocused = useIsFocused();
+
+  useEffect(() => {
+    if (!videoPlayer) return;
+
+    if (isFocused) {
+      try {
+        // aloita aina alusta kun näkymä palaa näkyviin
+        videoPlayer.currentTime = 0;
+        videoPlayer.play();
+      } catch (e) {
+        console.log('video play failed', e);
+      }
+    } else {
+      try { videoPlayer.pause(); } catch {}
+    }
+  }, [isFocused, videoPlayer]);
+
   useEffect(() => {
     if (localName && playerId) {
-      console.log("Updating context with playerId:", playerId);
       setPlayerIdContext(playerId);
       setPlayerNameContext(localName);
       setLocalPlayerId(playerId);
@@ -65,21 +81,12 @@ export default function Home({ setPlayerId }) {
     }
   }, [loading, fadeAnim]);
 
-  // Vapauta videon resurssit kun komponentti unmounttaa (hyvä tapa Androidilla)
-  useEffect(() => {
-    return () => {
-      videoRef.current?.unloadAsync?.();
-    };
-  }, []);
-
   const checkIfNameExists = async (name) => {
     const snapshot = await dbGet('players');
     if (snapshot.exists()) {
       const playersData = snapshot.val();
       for (let pid in playersData) {
-        if (playersData[pid]?.name === name) {
-          return true;
-        }
+        if (playersData[pid]?.name === name) return true;
       }
     }
     return false;
@@ -88,7 +95,6 @@ export default function Home({ setPlayerId }) {
   const saveNewPlayer = async (name, userId) => {
     const snap = await dbGet(`players/${userId}`);
     const playerData = snap.val();
-
     const formattedDate = new Date().toLocaleDateString('fi-FI');
 
     await dbSet(`players/${userId}`, {
@@ -103,13 +109,9 @@ export default function Home({ setPlayerId }) {
 
     setPlayerName(name);
     setPlayerId(userId);
-    console.log('Saving player data:', { name, userId });
   };
 
-  const sanitizeInput = (input) => {
-    const sanitized = input.replace(/[^a-zA-Z0-9 ]/g, '');
-    return sanitized.trim();
-  };
+  const sanitizeInput = (input) => input.replace(/[^a-zA-Z0-9 ]/g, '').trim();
 
   const handlePress = async () => {
     const cleanedName = sanitizeInput(localName);
@@ -141,23 +143,10 @@ export default function Home({ setPlayerId }) {
     }
   };
 
-  const handlePlay = () => {
-    navigation.navigate('Gameboard');
-  };
-
-  const handleChangeName = () => {
-    setLocalName('');
-    setUserRecognized(false);
-  };
-
-  const handleViewPlayerCard = () => {
-    setSelectedPlayer({ playerId: playerId, playerName: playerName });
-    setModalVisible(true);
-  };
-
-  const handleLinkAccount = () => {
-    setIsLinkModalVisible(true);
-  };
+  const handlePlay = () => navigation.navigate('Gameboard');
+  const handleChangeName = () => { setLocalName(''); setUserRecognized(false); };
+  const handleViewPlayerCard = () => { setSelectedPlayer({ playerId, playerName }); setModalVisible(true); };
+  const handleLinkAccount = () => setIsLinkModalVisible(true);
 
   return (
     <ImageBackground source={require("../assets/diceBackground.webp")} style={styles.background}>
@@ -201,14 +190,24 @@ export default function Home({ setPlayerId }) {
           <View style={styles.rulesContainer}>
             <Text style={styles.rulesText}>Hi {playerName}, let's roll the dice!</Text>
 
-            {/* 👇 Korvaa aiempi still-kuva MP4-animaatiolla */}
-            <VideoView
-              player={videoPlayer}
-              style={styles.hiThereImage} 
-              contentFit="contain"
-              nativeControls={false}
-              allowsFullscreen={false}
-            />
+            {!videoError ? (
+              <VideoView
+                player={videoPlayer}
+                style={styles.hiThereImage}
+                contentFit="contain"
+                nativeControls={false}
+                allowsFullscreen={false}
+                allowsPictureInPicture={false}
+                pointerEvents="none"
+                focusable={false}
+                onError={(e) => {
+                  console.log("Home hiThere video error:", e);
+                  setVideoError(true);
+                }}
+              />
+            ) : (
+              <Image source={require("../assets/hiThere.webp")} style={styles.hiThereImage} />
+            )}
 
             <Pressable
               style={({ pressed }) => [
