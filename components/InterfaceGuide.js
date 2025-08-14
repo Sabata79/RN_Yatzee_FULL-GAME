@@ -1,10 +1,21 @@
 import React from 'react';
 import { ScrollView, View, Text, StyleSheet, Image } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 
 export default function InterfaceGuide() {
+  const insets = useSafeAreaInsets();
+  const tabBarHeight = useBottomTabBarHeight();
+
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+        <ScrollView
+      contentContainerStyle={[
+        styles.container,
+        { paddingBottom: insets.bottom + tabBarHeight + 16 },
+      ]}
+      showsVerticalScrollIndicator={false}
+    >
       {/* Otsikko + Ikoni */}
       <View style={styles.sectionHeader}>
         <MaterialCommunityIcons name="compass-outline" size={24} color="gold" />

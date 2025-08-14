@@ -10,6 +10,9 @@ import PlayerCard from './PlayerCard';
 import { useGame } from '../components/GameContext';
 import { avatars } from '../constants/AvatarPaths';
 import { dbOnValue } from '../components/Firebase';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
+
 
 export default function Scoreboard() {
   const [scores, setScores] = useState([]);
@@ -19,6 +22,10 @@ export default function Scoreboard() {
   const [selectedPlayer, setSelectedPlayer] = useState(null);
 
   const { viewingPlayerId, viewingPlayerName, setViewingPlayerId, setViewingPlayerName } = useGame();
+
+  const insets = useSafeAreaInsets();
+  const tabBarHeight = useBottomTabBarHeight();
+
 
   useEffect(() => {
     // hae oma userId
@@ -137,9 +144,21 @@ export default function Scoreboard() {
   };
 
   return (
-    <ImageBackground source={require('../assets/diceBackground.webp')} style={styles.background}>
+    <ImageBackground
+      source={require('../assets/diceBackground.webp')}
+      style={styles.background}
+    >
       <View style={styles.overlay}>
-        <ScrollView style={styles.container}>
+        <ScrollView
+          style={styles.container}
+          contentContainerStyle={{
+            // riittävä pohjatila: safe area + tabbar + pieni buffer
+            paddingBottom: insets.bottom + tabBarHeight + 16,
+            // halutessa kevyt yläpaddi:
+            // paddingTop: 8,
+          }}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={styles.tabContainer}>
             <TouchableOpacity
               style={scoreType === 'allTime' ? styles.activeTab : styles.inactiveTab}
@@ -238,23 +257,8 @@ export default function Scoreboard() {
               })}
             </DataTable>
           )}
-
-          <View style={{ height: 80 }} />
         </ScrollView>
       </View>
-
-      {/* PlayerCard modal */}
-      <Modal animationType="fade" transparent={true} visible={modalVisible} onRequestClose={closeModal}>
-        {selectedPlayer && (
-          <PlayerCard
-            playerId={selectedPlayer?.playerId ?? ''}
-            playerName={selectedPlayer?.playerName ?? ''}
-            playerScores={selectedPlayer?.playerScores ?? []}
-            isModalVisible={modalVisible}
-            setModalVisible={setModalVisible}  // anna suoraan setter, PlayerCard osaa kutsua falseksi
-          />
-        )}
-      </Modal>
     </ImageBackground>
   );
 }

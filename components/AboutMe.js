@@ -15,9 +15,13 @@ import {
   aboutContact,
 } from '../constants/AboutContent';
 import { useGame } from '../components/GameContext';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 
 export default function AboutMe() {
   const { gameVersion } = useGame();
+  const insets = useSafeAreaInsets();
+  const tabBarHeight = useBottomTabBarHeight();
 
   return (
     <ImageBackground
@@ -26,7 +30,16 @@ export default function AboutMe() {
       resizeMode="cover"
     >
       <View style={styles.overlay}>
-        <ScrollView contentContainerStyle={styles.container}>
+        <ScrollView
+          contentContainerStyle={[
+            styles.container,
+            {
+              // riittävä pohjatila navipalkin ylle
+              paddingBottom: insets.bottom + tabBarHeight + 16,
+            },
+          ]}
+          showsVerticalScrollIndicator={false}
+        >
           {/* Profiilikuva + otsikko */}
           <View style={styles.headerInfoBox}>
             <Image
@@ -49,11 +62,13 @@ export default function AboutMe() {
               </Text>
             ))}
           </View>
+
           <Text style={styles.boxTitle}>Features</Text>
           {/* Featuret */}
           <View style={styles.infoBox}>
             <Text style={styles.infoText}>{aboutFeatures}</Text>
           </View>
+
           <Text style={styles.boxTitle}>Contact</Text>
           {/* Linkit */}
           <View style={styles.infoBox}>
@@ -94,7 +109,6 @@ export default function AboutMe() {
             <Text style={styles.footerText}>Version: {gameVersion}</Text>
             <Text style={styles.footerText}>© 2025 SMR Yatzy</Text>
           </View>
-          <View style={{ height: 80 }} />
         </ScrollView>
       </View>
     </ImageBackground>
@@ -158,7 +172,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   linkText: {
-    color: '#ffd700', // kultainen ja lämmin
+    color: '#ffd700',
     fontSize: 16,
     paddingVertical: 12,
     paddingHorizontal: 10,
