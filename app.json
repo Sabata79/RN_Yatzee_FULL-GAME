@@ -12,7 +12,9 @@
       "resizeMode": "contain",
       "backgroundColor": "#2c3e50"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "runtimeVersion": "2.2.1",
@@ -61,7 +63,8 @@
           "backgroundColor": "#2c3e50",
           "image": "./assets/splash.png"
         }
-      ]
+      ],
+      "expo-video"
     ],
     "updates": {
       "url": "https://u.expo.dev/d8c9a220-7647-4af7-906f-8ce3856b7189",

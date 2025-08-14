@@ -93,10 +93,10 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   hiThereImage: {
-    width: width * 0.7,
-    height: width * 0.7,
+    width: width * 0.65,
+    height: width * 0.65,
     resizeMode: 'contain',
-    marginVertical: 0,
+    marginVertical: -8,
   },
 });
 

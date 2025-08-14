@@ -12,6 +12,7 @@ import { avatars } from "../constants/AvatarPaths";
 import { PlayercardBg } from "../constants/PlayercardBg";
 import { additionalImages } from "../constants/AdditionalImages";
 import { fetchRemoteConfig } from "../services/RemoteConfigService";
+import { Animation, Animations } from "../constants/AnimationPaths";
 
 export default function LandingPage({ navigation }) {
   const [fadeAnim] = useState(new Animated.Value(0));
@@ -229,7 +230,7 @@ export default function LandingPage({ navigation }) {
 
         // Lataa assetit
         await step("Esiladataan kuvat", async () => {
-          const allImages = [...avatars, ...PlayercardBg, ...additionalImages];
+          const allImages = [...avatars, ...PlayercardBg, ...additionalImages, ...Animations];
           console.log(`[BOOT] Kuvia yhteensä: ${allImages.length}`);
           const imageAssets = cacheImages(allImages);
           await Promise.all(imageAssets);

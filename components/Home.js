@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { View, Text, TextInput, Pressable, Alert, ImageBackground, Image, Animated } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { FontAwesome5 } from '@expo/vector-icons';
+import { VideoView, useVideoPlayer } from 'expo-video'; // 👈 MP4-video
 import styles from '../styles/homeStyles';
 import { dbGet, dbSet } from '../components/Firebase';
 import uuid from 'react-native-uuid';
@@ -22,6 +23,17 @@ export default function Home({ setPlayerId }) {
   const [isRecoverModalVisible, setIsRecoverModalVisible] = useState(false);
   const [isModalVisible, setModalVisible] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState(null);
+  const videoRef = useRef(null); // 👈 viittaus videoon
+
+  const videoPlayer = useVideoPlayer(
+    require('../assets/hiThere.mp4'),
+    (p) => {
+      p.loop = false;            // ei looppausta
+      p.muted = true;            // ei ääntä
+      p.playbackRate = 0.60;     // hidastus 60 %
+      p.play();                  // käynnistä
+    }
+  );
 
   const {
     setPlayerIdContext,
@@ -52,6 +64,13 @@ export default function Home({ setPlayerId }) {
       }).start();
     }
   }, [loading, fadeAnim]);
+
+  // Vapauta videon resurssit kun komponentti unmounttaa (hyvä tapa Androidilla)
+  useEffect(() => {
+    return () => {
+      videoRef.current?.unloadAsync?.();
+    };
+  }, []);
 
   const checkIfNameExists = async (name) => {
     const snapshot = await dbGet('players');
@@ -181,7 +200,16 @@ export default function Home({ setPlayerId }) {
         ) : (
           <View style={styles.rulesContainer}>
             <Text style={styles.rulesText}>Hi {playerName}, let's roll the dice!</Text>
-            <Image source={require("../assets/hiThere.webp")} style={styles.hiThereImage} />
+
+            {/* 👇 Korvaa aiempi still-kuva MP4-animaatiolla */}
+            <VideoView
+              player={videoPlayer}
+              style={styles.hiThereImage} 
+              contentFit="contain"
+              nativeControls={false}
+              allowsFullscreen={false}
+            />
+
             <Pressable
               style={({ pressed }) => [
                 styles.button,
