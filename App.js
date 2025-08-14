@@ -20,7 +20,6 @@ import Header from './components/Header';
 
 import styles from './styles/styles';
 import updateModalStyles from './styles/updateModalStyles';
-import resetdev from './tools/devReset'; // optional
 
 const { height } = Dimensions.get('window');
 const isSmallScreen = height < 720;
