@@ -1,3 +1,10 @@
+# Project root files to ignore
+EnergyTokenSystem.js
+.easignore
+eas.config.js
+babel.config.js
+checkfonts.js
+metro.config.js
 # Editor settings
 .vscode/
 
