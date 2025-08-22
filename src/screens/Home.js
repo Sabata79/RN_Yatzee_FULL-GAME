@@ -4,13 +4,13 @@ import * as SecureStore from "expo-secure-store";
 import { FontAwesome5 } from '@expo/vector-icons';
 import { VideoView, useVideoPlayer } from 'expo-video';
 import styles from '../styles/homeStyles';
-import { dbGet, dbSet } from '../components/Firebase';
+import { dbGet, dbSet } from '../services/Firebase';
 import uuid from 'react-native-uuid';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
-import { useGame } from '../components/GameContext';
+import { useGame } from '../constants/GameContext';
 import Linked from "../services/Linked";
 import Recover from "../services/Recover";
-import PlayerCard from "./PlayerCard";
+import PlayerCard from "../components/PlayerCard";
 
 // Home screen component: handles player login, linking, recovery, and welcome video
 export default function Home({ setPlayerId }) {
@@ -37,7 +37,7 @@ export default function Home({ setPlayerId }) {
   const [videoError, setVideoError] = useState(false);
 
   // Video player setup (expo-video)
-  const videoPlayer = useVideoPlayer(require('../assets/hiThere.mp4'), (p) => {
+  const videoPlayer = useVideoPlayer(require('../../assets/hiThere.mp4'), (p) => {
     p.loop = false;        // no looping
     p.muted = true;        // muted
     p.playbackRate = 0.6;  // slightly slower
@@ -165,13 +165,13 @@ export default function Home({ setPlayerId }) {
   const handleLinkAccount = () => setIsLinkModalVisible(true);
 
   return (
-    <ImageBackground source={require("../assets/diceBackground.webp")} style={styles.background}>
+    <ImageBackground source={require("../../assets/diceBackground.webp")} style={styles.background}>
       <View style={styles.overlay}>
         {!userRecognized ? (
           <View style={styles.rulesContainer}>
             <Text style={styles.rulesText}>Hi, Stranger! Can you tell your nickname?</Text>
             <Text style={styles.rulesAuxillaryText}>(Nickname must be 3-10 characters long.)</Text>
-            <Image source={require("../assets/register.webp")} style={styles.registerImage} />
+            <Image source={require("../../assets/register.webp")} style={styles.registerImage} />
             <TextInput
               ref={inputRef}
               style={styles.input}
@@ -222,7 +222,7 @@ export default function Home({ setPlayerId }) {
                 }}
               />
             ) : (
-              <Image source={require("../assets/hiThere.webp")} style={styles.hiThereImage} />
+              <Image source={require("../../assets/hiThere.webp")} style={styles.hiThereImage} />
             )}
 
             <Pressable

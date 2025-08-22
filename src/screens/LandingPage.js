@@ -2,8 +2,8 @@
 import { useState, useEffect, useRef } from "react";
 import { View, Text, Image, Animated, Alert, Linking } from "react-native";
 import * as SecureStore from "expo-secure-store";
-import { signInAnon, dbGet } from "../components/Firebase";
-import { useGame } from "../components/GameContext";
+import { signInAnon, dbGet } from "../services/Firebase";
+import { useGame } from "../constants/GameContext";
 import { ProgressBar } from "react-native-paper";
 import styles from "../styles/landingPageStyles";
 import Constants from "expo-constants";
@@ -13,6 +13,7 @@ import { PlayercardBg } from "../constants/PlayercardBg";
 import { additionalImages } from "../constants/AdditionalImages";
 import { fetchRemoteConfig } from "../services/RemoteConfigService";
 import { Animations } from "../constants/AnimationPaths";
+
 
 export default function LandingPage({ navigation }) {
   const [fadeAnim] = useState(new Animated.Value(0));
@@ -283,7 +284,7 @@ export default function LandingPage({ navigation }) {
 
       <View style={styles.logoContainer}>
         <Image
-          source={require("../assets/landingLogo.webp")}
+          source={require("../../assets/landingLogo.webp")}
           style={styles.logo}
         />
       </View>

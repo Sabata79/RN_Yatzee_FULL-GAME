@@ -5,10 +5,10 @@ import styles from '../styles/styles';
 import { NBR_OF_THROWS, NBR_OF_DICES, MAX_SPOTS, BONUS_POINTS, BONUS_POINTS_LIMIT } from '../constants/Game';
 import DiceAnimation from '../components/DiceAnimation';
 import ModalAlert from '../constants/ModalAlert';
-import { useGame } from '../components/GameContext';
+import { useGame } from '../constants/GameContext';
 import RenderFirstRow from '../components/RenderFirstRow';
-import GlowingText from './AnimatedText';
-import GameSave from '../components/GameSave';
+import GlowingText from '../components/AnimatedText';
+import GameSave from '../constants/GameSave';
 import { dicefaces } from '../constants/DicePaths';
 
 const { width, height } = Dimensions.get('window');
@@ -867,7 +867,7 @@ export default function Gameboard({ route, navigation }) {
     };
     // Remove ImageBackground (if needed)
     return (
-        <ImageBackground source={require('../assets/diceBackground.webp')} style={styles.background}>
+        <ImageBackground source={require('../../assets/diceBackground.webp')} style={styles.background}>
             {isLayerVisible && (
                 <Pressable
                     onPress={() => {

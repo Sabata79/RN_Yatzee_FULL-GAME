@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { View, Text, Animated } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useGame } from '../components/GameContext';
+import { useGame } from '../constants/GameContext';
 import { useStopwatch } from 'react-timer-hook';
 import styles from '../styles/styles';
 

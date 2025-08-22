@@ -1,7 +1,7 @@
 // GameSave utility for saving player scores
 import * as SecureStore from 'expo-secure-store';
-import { useGame } from './GameContext';
-import { dbGet, dbSet, dbRef, push } from './Firebase';
+import { useGame } from '../constants/GameContext';
+import { dbGet, dbSet, dbRef, push } from '../services/Firebase';
 import { TOPSCORELIMIT } from '../constants/Game';
 
 const GameSave = ({ totalPoints }) => {

@@ -1,3 +1,31 @@
+# Editor settings
+.vscode/
+
+# Firebase config
+google-services.json
+firebase-empty.js
+
+# Logs & patches
+*.log
+*.patch
+
+# Sertifikaatit ja avaimet
+*.keystore
+*.jks
+*.pem
+*.p12
+*.key
+*.p8
+
+# Ympäristömuuttujat
+*.env
+*.env.*
+
+# Macin piilotiedostot
+.DS_Store
+# Hide assets folder from public repository
+assets/
+paches/
 # Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
 
 # dependencies
@@ -44,3 +72,6 @@ eas.json
 # eas ignore
 eas.json
 .easignore
+
+# Energy Token System file
+EnergyTokenSystem.js

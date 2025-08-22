@@ -6,7 +6,7 @@ const DiceAnimation = ({ diceName, isSelected, onSelect, animationValue, color, 
     const CONTAINER_SIZE = 45;
 
     const totalFrames = 16;
-    const SPRITE_SHEET = require('../assets/Spritesheet/dice_spritesheet.webp');
+    const SPRITE_SHEET = require('../../assets/Spritesheet/dice_spritesheet.webp');
     const SPRITE_WIDTH = 412;  
     const SPRITE_HEIGHT = 4923; 
 

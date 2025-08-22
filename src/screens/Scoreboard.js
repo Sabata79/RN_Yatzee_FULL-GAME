@@ -6,10 +6,10 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import styles from '../styles/styles';
 import { NBR_OF_SCOREBOARD_ROWS } from '../constants/Game';
 import * as SecureStore from 'expo-secure-store';
-import PlayerCard from './PlayerCard';
-import { useGame } from '../components/GameContext';
+import PlayerCard from '../components/PlayerCard';
+import { useGame } from '../constants/GameContext';
 import { avatars } from '../constants/AvatarPaths';
-import { dbOnValue } from '../components/Firebase';
+import { dbOnValue } from '../services/Firebase';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 
@@ -140,7 +140,7 @@ export default function Scoreboard() {
 
   return (
     <ImageBackground
-      source={require('../assets/diceBackground.webp')}
+      source={require('../../assets/diceBackground.webp')}
       style={styles.background}
     >
       <View style={styles.overlay}>
@@ -208,17 +208,17 @@ export default function Scoreboard() {
                     <DataTable.Cell style={[styles.rankCell]}>
                       {index === 0 && (
                         <View style={styles.medalWrapper}>
-                          <Image source={require('../assets/medals/firstMedal.webp')} style={styles.medal} />
+                          <Image source={require('../../assets/medals/firstMedal.webp')} style={styles.medal} />
                         </View>
                       )}
                       {index === 1 && (
                         <View style={styles.medalWrapper}>
-                          <Image source={require('../assets/medals/silverMedal.webp')} style={styles.medal} />
+                          <Image source={require('../../assets/medals/silverMedal.webp')} style={styles.medal} />
                         </View>
                       )}
                       {index === 2 && (
                         <View style={styles.medalWrapper}>
-                          <Image source={require('../assets/medals/bronzeMedal.webp')} style={styles.medal} />
+                          <Image source={require('../../assets/medals/bronzeMedal.webp')} style={styles.medal} />
                         </View>
                       )}
                       {index > 2 && <Text style={styles.rankText}>{index + 1}.</Text>}
@@ -227,7 +227,7 @@ export default function Scoreboard() {
                     <DataTable.Cell style={[styles.playerCell]}>
                       <View style={styles.playerWrapper}>
                         {(() => {
-                          const avatarSource = avatars.find((a) => a.path === score.avatar)?.display;
+                          const avatarSource = avatars.find((a) => a.path.endsWith(score.avatar))?.display;
                           return avatarSource ? (
                             <Image source={avatarSource} style={getAvatarStyle(score.avatar)} />
                           ) : (

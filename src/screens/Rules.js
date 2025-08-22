@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Dimensions, useWindowDimensions, ImageBackground, View } from 'react-native';
 import { TabView, SceneMap, TabBar } from 'react-native-tab-view';
-import GameRules from './GameRules';
-import AccountLinking from './AccountLinking';
+import GameRules from '../screens/GameRules';
+import AccountLinking from '../screens/AccountLinking';
 import InterfaceGuide from './InterfaceGuide';
 // Multi-tab rules/help screen for the game (Rules, Account Linking, Guide)
 import styles from '../styles/styles';
@@ -26,7 +26,7 @@ export default function RulesScreen() {
 
   return (
     <ImageBackground
-      source={require('../assets/diceBackground.webp')}
+      source={require('../../assets/diceBackground.webp')}
       style={{ flex: 1 }}
       resizeMode="cover"
     >

@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { View, Text, Modal, Pressable, Image } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
-import { useGame } from '../components/GameContext';
+import { useGame } from '../constants/GameContext';
 import styles from '../styles/playerCardStyles';
-import { dbOnValue, dbOff, dbGet, dbUpdate } from '../components/Firebase';
+import { dbOnValue, dbOff, dbGet, dbUpdate } from '../services/Firebase';
 import { avatars } from '../constants/AvatarPaths';
-import AvatarContainer from '../components/AvatarContainer';
+import AvatarContainer from '../constants/AvatarContainer';
 import { NBR_OF_SCOREBOARD_ROWS } from '../constants/Game';
 import { PlayercardBg } from '../constants/PlayercardBg';
 import CoinLayer from './CoinLayer';
@@ -81,7 +81,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
 
   const getAvatarImage = (avatarPath) => {
     const avatar = avatars.find(av => av.path === avatarPath);
-    return avatar ? avatar.display : require('../assets/whiteDices.webp');
+    return avatar ? avatar.display : require('../../assets/whiteDices.webp');
   };
 
   const isBeginnerAvatar = (avatarPath) => {
@@ -95,7 +95,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
 
   const getPlayerCardBackground = (level) => {
     const bg = PlayercardBg.find(bg => bg.level.toLowerCase() === level.toLowerCase());
-    return bg ? bg.display : require('../assets/playerCardBg/BeginnerBG.webp');
+    return bg ? bg.display : require('../../assets/playerCardBg/BeginnerBG.webp');
   };
 
   // ----- LEVEL COMPUTATION -----
@@ -397,7 +397,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     if (rank === 1) {
       return (
         <View style={styles.trophyContainer}>
-          <Image source={require('../assets/trophies/goldTrophy.webp')} style={styles.playerCardTrophyImage} />
+          <Image source={require('../../assets/trophies/goldTrophy.webp')} style={styles.playerCardTrophyImage} />
           <Text style={styles.trophyText}>GOLD</Text>
         </View>
       );
@@ -405,7 +405,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     if (rank === 2) {
       return (
         <View style={styles.trophyContainer}>
-          <Image source={require('../assets/trophies/silverTrophy.webp')} style={styles.playerCardTrophyImage} />
+          <Image source={require('../../assets/trophies/silverTrophy.webp')} style={styles.playerCardTrophyImage} />
           <Text style={styles.trophyText}>SILVER</Text>
         </View>
       );
@@ -413,7 +413,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     if (rank === 3) {
       return (
         <View style={styles.trophyContainer}>
-          <Image source={require('../assets/trophies/bronzeTrophy.webp')} style={styles.playerCardTrophyImage} />
+          <Image source={require('../../assets/trophies/bronzeTrophy.webp')} style={styles.playerCardTrophyImage} />
           <Text style={styles.trophyText}>BRONZE</Text>
         </View>
       );

@@ -10,16 +10,16 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
 
-import { GameProvider } from './components/GameContext';
-import LandingPage from './components/LandingPage';
-import Home from './components/Home';
-import Gameboard from './components/Gameboard';
-import Scoreboard from './components/Scoreboard';
-import About from './components/AboutMe';
-import Rules from './components/Rules';
-import Header from './components/Header';
+import { GameProvider } from './src/constants/GameContext';
+import LandingPage from './src/screens/LandingPage';
+import Home from './src/screens/Home';
+import Gameboard from './src/screens/Gameboard';
+import Scoreboard from './src/screens/Scoreboard';
+import About from './src/screens/AboutMe';
+import Rules from './src/screens/Rules';
+import Header from './src/screens/Header';
 
-import updateModalStyles from './styles/updateModalStyles';
+import updateModalStyles from './src/styles/updateModalStyles';
 
 const { height } = Dimensions.get('window');
 const isSmallScreen = height < 720;

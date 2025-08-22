@@ -35,7 +35,7 @@ export default function InterfaceGuide() {
 
   {/* Player card explanation image */}
       <Image
-        source={require('../assets/playerCard_explained.webp')} 
+        source={require('../../assets/playerCard_explained.webp')} 
         style={styles.image}
       />
 

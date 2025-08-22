@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { View, Text, Pressable, Image, Modal } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
-import PlayerCard from './PlayerCard';
-import EnergyTokenSystem from './EnergyTokenSystem';
+import PlayerCard from '../components/PlayerCard';
+import EnergyTokenSystem from '../components/EnergyTokenSystem';
 import headerStyles from '../styles/headerStyles';
-import { useGame } from './GameContext';
+import { useGame } from '../constants/GameContext';
 import { avatars } from '../constants/AvatarPaths';
 
 export default function Header() {
@@ -34,7 +34,7 @@ export default function Header() {
       {/* Header/Logo */}
       <View style={headerStyles.section1}>
         <Text style={headerStyles.headerTitle}>SMR</Text>
-        <Image source={require('../assets/desktopIcon.webp')} style={headerStyles.headerImage} />
+        <Image source={require('../../assets/desktopIcon.webp')} style={headerStyles.headerImage} />
       </View>
 
       {/* EnergyTokenSystem */}

@@ -1,7 +1,7 @@
 // components/Coin.js
 import { Animated, StyleSheet } from 'react-native';
 
-const coinImage = require('../assets/coins/coin.webp');
+const coinImage = require('../../assets/coins/coin.webp');
 
 export const COIN_SIZE = 45;
 

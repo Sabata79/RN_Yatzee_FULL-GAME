@@ -1,7 +1,7 @@
 // Game context provider for global state management
 import { createContext, useState, useContext, useEffect } from 'react';
-import { dbOnValue, dbOff, dbGet, dbSet } from '../components/Firebase';
-import { MAX_TOKENS, VIDEO_TOKEN_LIMIT } from '../constants/Game';
+import { dbOnValue, dbOff, dbGet, dbSet } from '../services/Firebase';
+import { MAX_TOKENS, VIDEO_TOKEN_LIMIT } from './Game';
 
 const GameContext = createContext();
 export const useGame = () => useContext(GameContext);

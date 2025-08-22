@@ -3,8 +3,8 @@ import { StyleSheet, Modal, View, Text, TextInput, Pressable, TouchableOpacity, 
 import { FontAwesome5 } from '@expo/vector-icons';
 import * as SecureStore from 'expo-secure-store';
 import { getAuth, EmailAuthProvider, linkWithCredential } from '@react-native-firebase/auth';
-import { signInAnon, dbGet, dbUpdate, dbRef, remove as dbRemove } from '../components/Firebase';
-import { useGame } from '../components/GameContext';
+import { signInAnon, dbGet, dbUpdate, dbRef, remove as dbRemove } from './Firebase';
+import { useGame } from '../constants/GameContext';
 
 const Linked = ({ isVisible, onClose }) => {
   const [email, setEmail] = useState('');

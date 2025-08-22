@@ -12,7 +12,7 @@ import {
   aboutTextContent,
   aboutFeatures,
 } from '../constants/AboutContent';
-import { useGame } from '../components/GameContext';
+import { useGame } from '../constants/GameContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 
@@ -25,7 +25,7 @@ export default function AboutMe() {
   return (
     // Main background image and overlay for the About screen
     <ImageBackground
-      source={require('../assets/diceBackground.webp')}
+      source={require('../../assets/diceBackground.webp')}
       style={styles.background}
       resizeMode="cover"
     >
@@ -44,7 +44,7 @@ export default function AboutMe() {
           {/* Profile image and title section */}
           <View style={styles.headerInfoBox}>
             <Image
-              source={require('../assets/profile.webp')}
+              source={require('../../assets/profile.webp')}
               style={styles.profileImageLarge}
             />
             <View style={styles.headerTextWrapper}>

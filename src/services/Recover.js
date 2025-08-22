@@ -8,9 +8,9 @@ import {
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
 } from '@react-native-firebase/auth';
-import { dbGet, dbUpdate, dbRef } from '../components/Firebase';
-import { remove as dbRemove } from '../components/Firebase';
-import { useGame } from '../components/GameContext';
+import { dbGet, dbUpdate, dbRef } from './Firebase';
+import { remove as dbRemove } from './Firebase';
+import { useGame } from '../constants/GameContext';
 import * as Updates from 'expo-updates';
 
 const Recover = ({ isVisible, onClose }) => {
