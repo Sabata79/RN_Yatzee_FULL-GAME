@@ -1,5 +1,4 @@
-// Desc: This file contains the paths for the diceface images
-
+// Dice face paths for the game
 export const dicefaces = [
     { path: '../assets/dicesides/1-dice.webp', display: require('../assets/dicesides/1-dice.webp') },
     { path: '../assets/dicesides/2-dice.webp', display: require('../assets/dicesides/2-dice.webp') },

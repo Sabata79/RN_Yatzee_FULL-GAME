@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { FlatList, Text, View, Pressable, ImageBackground, Animated, Dimensions } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import styles from '../styles/styles';
@@ -30,7 +30,7 @@ export default function Gameboard({ route, navigation }) {
 
     const [isLayerVisible, setLayerVisible] = useState(true);
 
-    // 2. Logic for the game
+    // 2. Game logic state
     const [nbrOfThrowsLeft, setNbrOfThrowsLeft] = useState(NBR_OF_THROWS);
     const [status, setStatus] = useState('Throw the dices');
     const [selectedDices, setSelectedDices] = useState(new Array(NBR_OF_DICES).fill(false));
@@ -162,7 +162,7 @@ export default function Gameboard({ route, navigation }) {
     }, [route.params?.playerId]);
 
 
-    // Reset the game
+    // Reset all game state to initial values
     const resetGame = () => {
         const resetCategories = scoringCategories.map(category => {
             return {
@@ -182,7 +182,7 @@ export default function Gameboard({ route, navigation }) {
         setElapsedTime(0);
     };
 
-    // Making the gameboard
+    // Data for rendering the gameboard grid
     const [data, setData] = useState([
         ...Array.from({ length: 32 }, (_, index) => ({ key: String(index + 2) })),
     ]);
@@ -206,11 +206,11 @@ export default function Gameboard({ route, navigation }) {
             if (selectedCategory.name === 'yatzy') {
                 const yatzyScore = calculateYatzy(rolledDices);
                 if (yatzyScore === 50) {
-                    // Jos heitto tuottaa Yatzyn, lisätään 50 pistettä stacking-mallin mukaisesti.
+                    // If the roll results in a Yatzy, add 50 points (stacking model)
                     const newPoints = selectedCategory.points === 0 ? 50 : selectedCategory.points + 50;
                     const updatedCategories = scoringCategories.map(category => {
                         if (category.index === selectedField) {
-                            // Unlockataan kenttä (näytetään stacking-pisteet) ja sitten lukitaan Set Points -painalluksessa.
+                            // Unlock the field (show stacking points), then lock on Set Points press
                             return { ...category, points: newPoints, locked: true, yatzyAchieved: true };
                         }
                         return category;
@@ -218,7 +218,7 @@ export default function Gameboard({ route, navigation }) {
                     setScoringCategories(updatedCategories);
                     setTotalPoints(totalPoints + 50);
                 } else {
-                    // Jos Yatzya ei heitetä, lukitaan Yatzy-kenttä automaattisesti (jolloin se jää 0 pisteeseen, jos ei ole aiemmin stäkätty).
+                    // If no Yatzy is rolled, lock the Yatzy field automatically (remains 0 if not previously stacked)
                     const updatedCategories = scoringCategories.map(category => {
                         if (category.index === selectedField) {
                             return { ...category, locked: true };
@@ -226,11 +226,11 @@ export default function Gameboard({ route, navigation }) {
                         return category;
                     });
                     setScoringCategories(updatedCategories);
-                    // Voit halutessasi näyttää viestin, että Yatzya ei heitetty.
+                    // Optionally show a message that no Yatzy was rolled
                     // Alert.alert("No Yatzy", "You did not roll a Yatzy, so the Yatzy field is locked with 0 points.");
                 }
             } else {
-                // Normaali pisteytys muissa kategorioissa
+                // Normal scoring for other categories
                 const points = selectedCategory.calculateScore(rolledDices);
                 const isMinorNames = minorNames.includes(selectedCategory.name);
                 const updatedCategories = scoringCategories.map(category => {
@@ -256,7 +256,7 @@ export default function Gameboard({ route, navigation }) {
     };
 
 
-    // Count the sum of the dices
+    // Count the sum of the dices for a given value
     function calculateDiceSum(diceValue) {
         return rolledDices.reduce((sum, dice) => (dice === diceValue ? sum + dice : sum), 0);
     }
@@ -277,7 +277,7 @@ export default function Gameboard({ route, navigation }) {
         return maxPairValue * 2;
     }
 
-    // Three of a kind 
+    // Three of a kind
     function calculateThreeOfAKind(rolledDices) {
         const countsThreeOfaKind = {};
         rolledDices.forEach(dice => {
@@ -306,7 +306,7 @@ export default function Gameboard({ route, navigation }) {
         }
         return 0;
     }
-    // Yahtzee
+    // Yahtzee (all dice the same)
     function calculateYatzy(rolledDices) {
 
         return rolledDices.reduce((sum, dice) => {
@@ -327,7 +327,7 @@ export default function Gameboard({ route, navigation }) {
         const yatzyScore = calculateYatzy(rolledDices);
 
         if (yatzyScore === 50 && yatzyCategory.points > 0) {
-            // Jos pelaaja on jo aiemmin saanut Yatzyn (>0 pistettä), sallitaan stäkkäys
+            // If player already has Yatzy (>0 points), allow stacking
             console.log('Yatzy achieved again: unlocking Yatzy field for stacking.');
             setScoringCategories(prev =>
                 prev.map(c =>
@@ -337,8 +337,8 @@ export default function Gameboard({ route, navigation }) {
                 )
             );
         } else {
-            // Muussa tapauksessa, jos kenttä on auki stacking-tilassa (points>0 ja currently unlocked),
-            // lukitaan se automaattisesti kun Yatzya ei heitetä
+            // Otherwise, if field is open in stacking mode (points>0 and currently unlocked),
+            // lock it automatically if no Yatzy is rolled
             if (!yatzyCategory.locked && yatzyCategory.yatzyAchieved) {
                 console.log('No Yatzy rolled: auto-locking Yatzy field.');
                 setScoringCategories(prev =>
@@ -352,7 +352,7 @@ export default function Gameboard({ route, navigation }) {
         }
     }
 
-    // Fullhouse
+    // Fullhouse (three of a kind + a pair)
     function calculateFullHouse(rolledDices) {
         const counts = {};
         for (const dice of rolledDices) {
@@ -361,7 +361,7 @@ export default function Gameboard({ route, navigation }) {
         const values = Object.values(counts);
         return values.includes(3) && values.includes(2);
     }
-    // Small straight
+    // Small straight (sequence of four)
     function calculateSmallStraight(rolledDices) {
         const sortedDiceValues = [...rolledDices].sort((a, b) => a - b);
         const smallStraights = [
@@ -376,7 +376,7 @@ export default function Gameboard({ route, navigation }) {
         }
         return 0;
     }
-    // Big straight
+    // Large straight (sequence of five)
     function calculateLargeStraight(rolledDices) {
         const sortedDiceValues = [...rolledDices].sort((a, b) => a - b);
         const largeStraights = [
@@ -390,7 +390,7 @@ export default function Gameboard({ route, navigation }) {
         }
         return 0;
     }
-    // Random
+    // Chance (sum of all dice)
     function calculateChange(rolledDices) {
         return rolledDices.reduce((sum, dice) => {
             if (dice === 0) {
@@ -412,30 +412,30 @@ export default function Gameboard({ route, navigation }) {
             }
         };
 
-        // Is field selected
+    // Is field selected
         const isSelected = selectedField === index;
 
-        // Is category locked
+    // Is category locked
         const isLocked = (categoryName) => {
             const category = scoringCategories.find(category => category.name === categoryName);
             return category ? category.locked : false;
         };
 
-        // Get the current category
+    // Get the current category
         const currentCategory = scoringCategories.find(category => category.index === index);
 
-        // Style for the field
+    // Style for the field
         const fieldStyle = currentCategory && currentCategory.locked ? styles.lockedField : styles.selectScore;
 
 
-        // Indexes of the grid
+    // Indexes of the grid
         if (index === 0) {
             return (
                 <View style={styles.item}>
                     <MaterialCommunityIcons name="dice-1" size={isSmallScreen ? 40 : 45} style={styles.icon} />
                 </View>
             );
-            //Sum of ones
+            // Sum of ones
         } else if (index === 1) {
             return (
                 <Pressable onPress={() => handlePressField(index)} disabled={isLocked('ones')}>
@@ -548,7 +548,7 @@ export default function Gameboard({ route, navigation }) {
                     </View>
                 </Pressable>
             );
-            // 4X
+            // Four of a kind
         } else if (index === 12) {
             return (
                 <View style={styles.item}>
@@ -682,7 +682,7 @@ export default function Gameboard({ route, navigation }) {
                     <Text style={{ fontSize: 10, color: 'white' }}>Change</Text>
                 </View>
             );
-            //Sum of Faces
+            // Sum of Faces
         } else if (index === 31) {
             return (
                 <Pressable onPress={() => handlePressField(index)} disabled={isLocked('chance')}>
@@ -859,13 +859,13 @@ export default function Gameboard({ route, navigation }) {
         if (tokens > 0) {
             setLayerVisible(false);
             setStatus("Throw the dices");
-            setTokens((prev) => prev - 1); // Vähennetään yksi token
+            setTokens((prev) => prev - 1); // Decrease one token
             console.log("Game starting...");
         } else {
             setEnergyModalVisible(true);
         }
     };
-    // Remove ImageBackground
+    // Remove ImageBackground (if needed)
     return (
         <ImageBackground source={require('../assets/diceBackground.webp')} style={styles.background}>
             {isLayerVisible && (

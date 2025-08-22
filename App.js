@@ -1,5 +1,6 @@
 // App.js
-import React, { useState } from 'react';
+// Main entry point for the Yatzy app
+import { useState } from 'react';
 import { View, Text, Pressable, Modal, Linking, Dimensions } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { FontAwesome5 } from '@expo/vector-icons';
@@ -24,9 +25,12 @@ const { height } = Dimensions.get('window');
 const isSmallScreen = height < 720;
 const isBigScreen = height >= 900;
 
+
+// Navigation stacks for the app
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
+// Main shell component containing navigation and modals
 function AppShell() {
   const [isUserRecognized, setIsUserRecognized] = useState(false);
   const [name, setName] = useState('');
@@ -38,6 +42,7 @@ function AppShell() {
 
   const insets = useSafeAreaInsets();
 
+  // Open app store link for updating the app
   const handleUpdate = async () => {
     const url = 'https://play.google.com/store/apps/details?id=com.SimpleYatzee';
     const supported = await Linking.canOpenURL(url);
@@ -46,6 +51,7 @@ function AppShell() {
 
   const ICON_SIZE = isSmallScreen ? 22 : isBigScreen ? 28 : 26;
 
+  // Wrapper for tab bar icons to prevent clipping
   const IconWrap = ({ children }) => (
     <View
       style={{
@@ -58,11 +64,13 @@ function AppShell() {
     </View>
   );
 
+  // Bottom tab navigator for main app screens
   const TabNavigator = () => {
     const baseHeight = isSmallScreen ? 56 : isBigScreen ? 84 : 68;
     const bottomPad = Math.max(insets.bottom, 8);
 
     return (
+      // Tab navigator with custom icons and styles
       <Tab.Navigator
         sceneContainerStyle={{ backgroundColor: '#000' }}
         screenOptions={({ route }) => ({
@@ -202,6 +210,7 @@ function AppShell() {
   };
 
   return (
+    // Main app view, includes update modal and navigation
     <View style={{ flex: 1, backgroundColor: '#000' }}>
       {/* Update modal */}
       <Modal
@@ -247,6 +256,7 @@ function AppShell() {
   );
 }
 
+// Root component: loads fonts, provides context, and renders AppShell
 export default function App() {
   const [loaded] = useFonts({
     AntonRegular: require('./assets/fonts/Anton-Regular.ttf'),

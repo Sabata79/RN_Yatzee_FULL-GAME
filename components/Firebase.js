@@ -1,4 +1,4 @@
-// components/Firebase.js (modular, keskitetty)
+// components/Firebase.js (modular, centralized)
 import { getApp } from '@react-native-firebase/app';
 
 // AUTH
@@ -32,27 +32,27 @@ import {
   getValue,
 } from '@react-native-firebase/remote-config';
 
-// ---- Singletons (modular-tyyliin) ----
+// ---- Singletons (modular style) ----
 export const app = () => getApp();
 export const auth = () => getAuth();
 export const database = () => getDatabase();
 export const remoteConfig = () => getRemoteConfig();
 
-// ---- Kätevät helperit (EI namespaced-metodeja) ----
+// ---- Handy helpers (NO namespaced methods) ----
 export const signInAnon = () => signInAnonymously(getAuth());
 export const handleSignOut = () => signOut(getAuth());
 
-// DB helperit
+// DB helpers
 export const dbRef = (path) => ref(getDatabase(), path);
 export const dbGet = (path) => get(dbRef(path));
 export const dbSet = (path, value) => set(dbRef(path), value);
 export const dbUpdate = (path, value) => update(dbRef(path), value);
 
-// Kuuntelija: käytä REF.on / REF.off (ei top-level onValue/off)
+// Listener: use REF.on / REF.off (not top-level onValue/off)
 export const dbOnValue = (path, cb) => {
   const r = dbRef(path);
   r.on('value', cb);
-  return () => r.off('value', cb); // palautetaan unsubscribe
+  return () => r.off('value', cb); // return unsubscribe
 };
 
 export const dbOff = (path, cb) => {
@@ -61,13 +61,13 @@ export const dbOff = (path, cb) => {
 };
 
 
-// RC helperit
+// RC helpers
 export const rcSetDefaults = (defaults) => setDefaults(getRemoteConfig(), defaults);
 export const rcSetSettings = (settings) => setConfigSettings(getRemoteConfig(), settings);
 export const rcFetchAndActivate = () => fetchAndActivate(getRemoteConfig());
 export const rcGet = (key) => getValue(getRemoteConfig(), key);
 
-// Tarvittaessa raakafunktiot ulos
+// Export raw functions if needed
 export {
   ref, get, set, update, onValue, off, push, remove, child,
   onAuthStateChanged,

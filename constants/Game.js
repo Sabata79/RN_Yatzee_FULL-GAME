@@ -1,3 +1,6 @@
+// Game constants
+// Description: These constants define the rules and limits for the game.
+
 export const NBR_OF_DICES = 5;
 export const NBR_OF_THROWS = 3;
 export const MIN_SPOTS = 1;

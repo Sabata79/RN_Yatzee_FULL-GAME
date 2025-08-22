@@ -1,20 +1,24 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { View, Text, Animated } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useGame } from '../components/GameContext';
 import { useStopwatch } from 'react-timer-hook';
 import styles from '../styles/styles';
 
+// Renders the top row of the game UI, including timer and category labels
 const RenderFirstRow = () => {
+  // Game state and timer hooks
   const { gameStarted, gameEnded, setElapsedTimeContext, isGameSaved, setIsGameSaved } = useGame();
   const { totalSeconds, start, reset, pause } = useStopwatch({
     autoStart: false,
   });
 
+  // Local state for timer and animation
   const [hasStarted, setHasStarted] = useState(false);
   const [glowAnim] = useState(new Animated.Value(1));
-  const MAX_SECS = 9999;
+  const MAX_SECS = 9999; // Maximum seconds for timer
 
+  // Effect: Start or stop timer and animation based on game state
   useEffect(() => {
     if (gameStarted && !hasStarted) {
       start();
@@ -33,6 +37,7 @@ const RenderFirstRow = () => {
     }
   }, [gameStarted, gameEnded, totalSeconds, start, reset, setElapsedTimeContext, isGameSaved, hasStarted]);
 
+  // Effect: Cap timer at MAX_SECS
   useEffect(() => {
     if (totalSeconds >= MAX_SECS) {
       pause();                       
@@ -41,6 +46,7 @@ const RenderFirstRow = () => {
   }, [totalSeconds, pause, setElapsedTimeContext]);
 
 
+  // Starts the glowing animation for the timer
   const startGlowEffect = () => {
     Animated.loop(
       Animated.sequence([
@@ -58,11 +64,13 @@ const RenderFirstRow = () => {
     ).start();
   };
 
+  // Stops the glowing animation and resets value
   const stopGlowEffect = () => {
     glowAnim.stopAnimation();
     glowAnim.setValue(1);
   };
 
+  // Render the first row: Minor label, animated timer, Major label
   return (
     <View style={styles.firstRow}>
       <View style={styles.firstRowItem}>
@@ -77,7 +85,8 @@ const RenderFirstRow = () => {
             color="#ffffff"
             style={{ marginRight: 5, marginTop: 3 }}
           />
-          <Animated.Text style={[styles.firstRowCategoryText, { width: 60, textAlign: 'center' }, { transform: [{ scale: glowAnim }] }]}>
+          {/* Animated timer text with glow effect */}
+          <Animated.Text style={[styles.firstRowCategoryText, { width: 60, textAlign: 'center' }, { transform: [{ scale: glowAnim }] }]}> 
             {Math.min(totalSeconds, MAX_SECS)}s
           </Animated.Text>
         </View>

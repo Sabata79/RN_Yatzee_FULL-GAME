@@ -1,4 +1,4 @@
-import React from 'react';
+// constants/ModalAlert.js
 import { View, Text, Modal, Pressable } from 'react-native';
 
 export default function ModalAlert({ visible, message, onClose }) {

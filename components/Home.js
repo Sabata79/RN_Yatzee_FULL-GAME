@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { View, Text, TextInput, Pressable, Alert, ImageBackground, Image, Animated } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { FontAwesome5 } from '@expo/vector-icons';
-import { VideoView, useVideoPlayer } from 'expo-video'; // MP4-video
+import { VideoView, useVideoPlayer } from 'expo-video';
 import styles from '../styles/homeStyles';
 import { dbGet, dbSet } from '../components/Firebase';
 import uuid from 'react-native-uuid';
@@ -12,26 +12,35 @@ import Linked from "../services/Linked";
 import Recover from "../services/Recover";
 import PlayerCard from "./PlayerCard";
 
+// Home screen component: handles player login, linking, recovery, and welcome video
 export default function Home({ setPlayerId }) {
+
+  // Local state for player name and ID
   const [localName, setLocalName] = useState('');
   const [localPlayerId, setLocalPlayerId] = useState('');
   const [loading, setLoading] = useState(true);
+
+  // Ref for focusing the name input
   const inputRef = useRef(null);
   const navigation = useNavigation();
+
+  // Animation for fade-in effects
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const [isLinkModalVisible, setIsLinkModalVisible] = useState(false);
   const [isRecoverModalVisible, setIsRecoverModalVisible] = useState(false);
   const [isModalVisible, setModalVisible] = useState(false);
+
+  // Modal visibility states
   const [selectedPlayer, setSelectedPlayer] = useState(null);
 
-  // Video player state
+  // Error state for video playback
   const [videoError, setVideoError] = useState(false);
 
-  // Video player (expo-video)
+  // Video player setup (expo-video)
   const videoPlayer = useVideoPlayer(require('../assets/hiThere.mp4'), (p) => {
-    p.loop = false;        // ei looppausta
-    p.muted = true;        // ei ääntä
-    p.playbackRate = 0.6;  // hieman hitaampi
+    p.loop = false;        // no looping
+    p.muted = true;        // muted
+    p.playbackRate = 0.6;  // slightly slower
   });
 
   const {
@@ -43,26 +52,29 @@ export default function Home({ setPlayerId }) {
     playerId,
     setPlayerName,
     isLinked
+    // Game context values and setters
   } = useGame();
 
   const isFocused = useIsFocused();
 
+  // Play or pause the welcome video when the screen is focused
   useEffect(() => {
     if (!videoPlayer) return;
 
     if (isFocused) {
       try {
-        // aloita aina alusta kun näkymä palaa näkyviin
+        // always start from beginning when view becomes visible
         videoPlayer.currentTime = 0;
         videoPlayer.play();
       } catch (e) {
         console.log('video play failed', e);
       }
     } else {
-      try { videoPlayer.pause(); } catch {}
+      try { videoPlayer.pause(); } catch { }
     }
   }, [isFocused, videoPlayer]);
 
+  // Update game context when localName or playerId changes
   useEffect(() => {
     if (localName && playerId) {
       setPlayerIdContext(playerId);
@@ -71,6 +83,7 @@ export default function Home({ setPlayerId }) {
     }
   }, [localName, playerId, setPlayerIdContext, setPlayerNameContext]);
 
+  // Animate the fade-in effect for the welcome message
   useEffect(() => {
     if (!loading) {
       Animated.timing(fadeAnim, {
@@ -81,6 +94,7 @@ export default function Home({ setPlayerId }) {
     }
   }, [loading, fadeAnim]);
 
+  // Check if the player name already exists
   const checkIfNameExists = async (name) => {
     const snapshot = await dbGet('players');
     if (snapshot.exists()) {
@@ -92,6 +106,7 @@ export default function Home({ setPlayerId }) {
     return false;
   };
 
+  // Save a new player to the database
   const saveNewPlayer = async (name, userId) => {
     const snap = await dbGet(`players/${userId}`);
     const playerData = snap.val();
@@ -111,6 +126,7 @@ export default function Home({ setPlayerId }) {
     setPlayerId(userId);
   };
 
+  // Sanitize user input
   const sanitizeInput = (input) => input.replace(/[^a-zA-Z0-9 ]/g, '').trim();
 
   const handlePress = async () => {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { View, Text, Pressable, Image, Modal } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import PlayerCard from './PlayerCard';
@@ -15,8 +15,6 @@ export default function Header() {
     userRecognized,
     avatarUrl,
     isLinked,
-    playerLevel,
-    setPlayerLevel,
   } = useGame();
 
   const userAvatar = avatars.find((avatar) => avatar.path === avatarUrl)?.display;
@@ -29,12 +27,6 @@ export default function Header() {
   const selectedPlayer = {
     playerId: playerId,
     playerName: playerName,
-  };
-
-  // console.log('selectedPlayer:', selectedPlayer);
-
-  const handleGamePlay = () => {
-    console.log('Peli aloitettu!');
   };
 
   return (

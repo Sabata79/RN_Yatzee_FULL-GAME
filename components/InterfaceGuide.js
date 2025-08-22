@@ -1,4 +1,4 @@
-import React from 'react';
+// IntefaceGuide.js
 import { ScrollView, View, Text, StyleSheet, Image } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -16,13 +16,13 @@ export default function InterfaceGuide() {
       ]}
       showsVerticalScrollIndicator={false}
     >
-      {/* Otsikko + Ikoni */}
+  {/* Title and icon */}
       <View style={styles.sectionHeader}>
         <MaterialCommunityIcons name="compass-outline" size={24} color="gold" />
         <Text style={styles.sectionTitle}>Interface Guide</Text>
       </View>
 
-      {/* Info: Miten korttiin pääsee */}
+  {/* Info: How to access the player card */}
       <View style={styles.infoBox}>
         <Text style={styles.infoTitle}>🧍 Accessing Player Card</Text>
         <Text style={styles.infoText}>
@@ -33,13 +33,13 @@ export default function InterfaceGuide() {
         </Text>
       </View>
 
-      {/* Playercard explain picture */}
+  {/* Player card explanation image */}
       <Image
         source={require('../assets/playerCard_explained.webp')} 
         style={styles.image}
       />
 
-      {/* Numbers and details */}
+  {/* Player card sections and details */}
       <View style={styles.infoBox}>
         <Text style={styles.infoTitle}>📌 Player Card Sections</Text>
 
@@ -69,7 +69,7 @@ export default function InterfaceGuide() {
         </View>
       </View>
 
-      {/* Avatar levels */}
+  {/* Avatar levels */}
       <View style={styles.infoBox}>
         <Text style={styles.infoTitle}>🔒 Avatar Unlocks</Text>
         <Text style={styles.infoText}>
@@ -77,7 +77,7 @@ export default function InterfaceGuide() {
         </Text>
       </View>
 
-      {/* PlayerCard Background info */}
+  {/* Player card background info */}
       <View style={styles.infoBox}>
         <Text style={styles.infoTitle}>🎴 Player Card Background</Text>
         <Text style={styles.infoText}>
@@ -85,7 +85,7 @@ export default function InterfaceGuide() {
         </Text>
       </View>
 
-      {/* Player level info */}
+  {/* Player level info */}
       <View style={styles.infoBox}>
         <Text style={styles.infoTitle}>📈 Player Levels</Text>
         <Text style={styles.infoText}>Beginner: 0–400 games</Text>

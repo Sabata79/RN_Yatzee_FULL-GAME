@@ -1,4 +1,4 @@
-import React from 'react';
+// components/GameRules.js
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { rulesTextContent, combinationsData, SCORE_COMPARSION_TEXT } from '../constants/Game';

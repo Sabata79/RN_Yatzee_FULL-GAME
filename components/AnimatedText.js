@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Text, Animated } from 'react-native';
 
+// Animated glowing text component
 export default function GlowingText({ children }) {
     const [glowAnim] = useState(new Animated.Value(0)); 
 
+    // Looping glow animation
     useEffect(() => {
         Animated.loop(
             Animated.sequence([
@@ -21,6 +23,7 @@ export default function GlowingText({ children }) {
         ).start();
     }, [glowAnim]);
 
+    // Animated style for glowing effect
     const glowStyle = {
         color: 'gold',
         textAlign: 'center',

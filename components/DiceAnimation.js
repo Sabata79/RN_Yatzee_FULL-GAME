@@ -1,6 +1,7 @@
-import React, { useEffect } from 'react';
+import { useEffect }  from 'react';
 import { Animated, Image, TouchableOpacity, View, StyleSheet,Easing } from 'react-native';
 
+// Dice animation component for rolling dice
 const DiceAnimation = ({ diceName, isSelected, onSelect, animationValue, color, isRolling }) => {
     const CONTAINER_SIZE = 45;
 
@@ -16,11 +17,13 @@ const DiceAnimation = ({ diceName, isSelected, onSelect, animationValue, color, 
 
     const extraOffset = 0;
 
+    // Interpolate the Y translation based on the animation value
     const translateY = animationValue.interpolate({
         inputRange: [0, totalFrames - 1],
         outputRange: [extraOffset, -CONTAINER_SIZE * (totalFrames - 1) + extraOffset],
     });
 
+    // Start the rolling animation if isRolling is true
     useEffect(() => {
         if (isRolling) {
             const loopAnimation = Animated.loop(
@@ -40,6 +43,7 @@ const DiceAnimation = ({ diceName, isSelected, onSelect, animationValue, color, 
         }
     }, [isRolling, animationValue, totalFrames]);
 
+    // Render dice: animated sprite when rolling, static image otherwise
     return (
         <View style={styles.container}>
             <TouchableOpacity onPress={onSelect} activeOpacity={0.2}>

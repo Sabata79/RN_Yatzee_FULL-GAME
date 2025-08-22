@@ -1,5 +1,5 @@
 // EnergyTokenSystem.js
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { View, Text, Modal, Pressable } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { ProgressBar } from 'react-native-paper';
@@ -10,14 +10,16 @@ import { useGame } from './GameContext';
 import { database } from './Firebase';
 
 const db = database();
+
+// Token regeneration interval (2.4 hours)
 const REGEN_INTERVAL = 2.4 * 60 * 60 * 1000;
 
+// Energy token regeneration system
 const EnergyTokenSystem = () => {
   const {
     playerId,
     tokens,
     setTokens,
-    // HUOM: videoTokens/setVideoTokens POISTETTU KÄYTÖSTÄ
     energyModalVisible,
     setEnergyModalVisible,
   } = useGame();
@@ -29,6 +31,7 @@ const EnergyTokenSystem = () => {
   // Ref to keep track of previous token count
   const prevTokensRef = useRef(tokens);
 
+  // Update nextTokenTime in Firebase
   const updateNextTokenTimeInFirebase = async (time) => {
     if (playerId) {
       try {
@@ -40,6 +43,7 @@ const EnergyTokenSystem = () => {
     }
   };
 
+  // Load saved data from AsyncStorage and Firebase
   useEffect(() => {
     const loadSavedData = async () => {
       try {
@@ -88,6 +92,7 @@ const EnergyTokenSystem = () => {
     loadSavedData();
   }, [setTokens, playerId]);
 
+  // Save data to AsyncStorage and Firebase
   useEffect(() => {
     const saveData = async () => {
       try {
@@ -106,6 +111,7 @@ const EnergyTokenSystem = () => {
     saveData();
   }, [tokens, nextTokenTime, playerId]);
 
+  // Reset nextTokenTime if tokens decrease
   useEffect(() => {
     if (!dataLoaded) return;
     if (tokens < prevTokensRef.current) {
@@ -120,6 +126,8 @@ const EnergyTokenSystem = () => {
     prevTokensRef.current = tokens;
   }, [tokens, dataLoaded, playerId]);
 
+
+  // Token regeneration interval (2.4 hours)
   useEffect(() => {
     const interval = setInterval(() => {
       if (tokens < MAX_TOKENS && nextTokenTime instanceof Date && !isNaN(nextTokenTime.getTime())) {
@@ -161,6 +169,7 @@ const EnergyTokenSystem = () => {
 
   const progress = tokens ? tokens / MAX_TOKENS : 0;
 
+  // Render the energy container
   return (
     <View style={styles.energyContainer}>
       <View style={styles.progressWrap}>

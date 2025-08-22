@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Dimensions, useWindowDimensions, ImageBackground, View } from 'react-native';
 import { TabView, SceneMap, TabBar } from 'react-native-tab-view';
 import GameRules from './GameRules';
 import AccountLinking from './AccountLinking';
 import InterfaceGuide from './InterfaceGuide';
-import styles from '../styles/styles'; // vain background tässä, tai poista kokonaan jos hoidat suoraan alla
+// Multi-tab rules/help screen for the game (Rules, Account Linking, Guide)
+import styles from '../styles/styles';
 
 const initialLayout = { width: Dimensions.get('window').width };
 

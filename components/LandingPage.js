@@ -1,5 +1,5 @@
-// screens/LandingPage.js
-import React, { useState, useEffect, useRef } from "react";
+// LandingPage screen: handles app boot, progress, and remote config
+import { useState, useEffect, useRef } from "react";
 import { View, Text, Image, Animated, Alert, Linking } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { signInAnon, dbGet } from "../components/Firebase";
@@ -12,19 +12,19 @@ import { avatars } from "../constants/AvatarPaths";
 import { PlayercardBg } from "../constants/PlayercardBg";
 import { additionalImages } from "../constants/AdditionalImages";
 import { fetchRemoteConfig } from "../services/RemoteConfigService";
-import { Animation, Animations } from "../constants/AnimationPaths";
+import { Animations } from "../constants/AnimationPaths";
 
 export default function LandingPage({ navigation }) {
   const [fadeAnim] = useState(new Animated.Value(0));
   const [loadingProgress, setLoadingProgress] = useState(0); // 0..100
-  const [bootDone, setBootDone] = useState(false); // kaikki boot-työt valmiit
+  const [bootDone, setBootDone] = useState(false); // all boot tasks done
   const [remoteBlock, setRemoteBlock] = useState(false);
 
-  const rafRef = useRef(null); // progress-animaation rAF
+  const rafRef = useRef(null); // progress animation rAF
   const alertShownRef = useRef(false);
-  const bootStartedRef = useRef(false); // estä tuplasuoritukset Strict Modessa
+  const bootStartedRef = useRef(false); // prevent double execution in Strict Mode
 
-  // Smart progressin tilan seurannat
+  // Smart progress state tracking
   const bootDoneRef = useRef(false);
   const remoteBlockRef = useRef(false);
 
@@ -74,8 +74,6 @@ export default function LandingPage({ navigation }) {
   };
 
   // ---- SMART PROGRESS ----
-  // 0 -> holdAt (esim. 92%) minMs-ajassa, sitten odottaa kunnes bootDone tai remoteBlock,
-  // ja viimeistelee finishMs-ajassa 100%:iin (smooth).
   const startSmartProgress = (minMs = 2500, holdAt = 0.92, finishMs = 400) => {
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
 
@@ -87,10 +85,10 @@ export default function LandingPage({ navigation }) {
       const now = Date.now();
       const elapsed = now - start;
 
-      // peruskulku kohti holdAt
+      // base progress
       const base = Math.min(elapsed / minMs, 1) * holdAt;
 
-      // kun boot valmis TAI remoteBlock laukeaa, aloita finalisointi
+      // when boot is done OR remoteBlock is triggered, start finalization
       if ((bootDoneRef.current || remoteBlockRef.current) && !finishing) {
         finishing = true;
         finishStart = now;
@@ -115,13 +113,12 @@ export default function LandingPage({ navigation }) {
 
     rafRef.current = requestAnimationFrame(tick);
   };
-  // ------------------------
 
   const cacheImages = (images) => {
     return images.map((img) => Asset.fromModule(img.display).downloadAsync());
   };
 
-  // --- Auth (modular) ---
+  // Anonymous sign-in
   const doSignInAnonymously = async () => {
     try {
       const { user } = await signInAnon();
@@ -146,7 +143,7 @@ export default function LandingPage({ navigation }) {
     }
   };
 
-  // --- Database (modular) ---
+  // Check if user exists in the database
   const checkExistingUser = async (userId) => {
     try {
       const snapshot = await dbGet(`players/${userId}`);
@@ -166,10 +163,11 @@ export default function LandingPage({ navigation }) {
     }
   };
 
+  // Check for remote config updates
   const checkRemoteUpdate = async () => {
     try {
       const config = await fetchRemoteConfig();
-        console.log('[RC] fetched', config);
+      console.log('[RC] fetched', config);
       if (!config) return false;
 
       const currentVersion = Constants.expoConfig?.version ?? "0.0.0";
@@ -197,7 +195,7 @@ export default function LandingPage({ navigation }) {
     }
   };
 
-  // pidä refit synkassa statejen kanssa (smart progress)
+  // Load all assets and initialize the app
   useEffect(() => {
     bootDoneRef.current = bootDone;
   }, [bootDone]);
@@ -207,7 +205,7 @@ export default function LandingPage({ navigation }) {
   }, [remoteBlock]);
 
   useEffect(() => {
-    // estä tuplasuoritus devissä
+    // prevent double execution in Strict Mode
     if (bootStartedRef.current) return;
     bootStartedRef.current = true;
 
@@ -222,34 +220,32 @@ export default function LandingPage({ navigation }) {
 
     const loadAllAssets = async () => {
       try {
-        // Käynnistä älykäs progress: 0 -> 92% ~2.5s, sitten finalisoi 400ms kun valmis
+        // Start smart progress: 0 -> 92% ~2.5s, then finalize in 400ms when ready
         startSmartProgress(2500, 0.92, 400);
 
-        // Remote update tarkistus rinnalla (ei estä navigointia)
+        // Remote update check in parallel (does not block navigation)
         fire("Remote update check (non-blocking)", checkRemoteUpdate);
 
-        // Lataa assetit
-        await step("Esiladataan kuvat", async () => {
+        // Load assets
+        await step("Preloading images", async () => {
           const allImages = [...avatars, ...PlayercardBg, ...additionalImages, ...Animations];
-          console.log(`[BOOT] Kuvia yhteensä: ${allImages.length}`);
           const imageAssets = cacheImages(allImages);
           await Promise.all(imageAssets);
         });
 
-        // Hae käyttäjä
-        const userId = await step("Haetaan/luodaan userId", async () => {
+        // Get or create user ID
+        const userId = await step("Get or create user ID", async () => {
           const id = await getOrCreateUserId();
-          console.log(`[BOOT] getOrCreateUserId -> ${id}`);
           return id;
         });
 
         if (userId) {
           setPlayerId(userId);
-          await step("Tarkistetaan käyttäjän olemassaolo", async () => {
+          await step("Check if user exists", async () => {
             await checkExistingUser(userId);
           });
         } else {
-          console.warn("[BOOT] userId puuttuu -> navigate('MainApp')");
+          console.warn("[BOOT] userId is missing -> navigate('MainApp')");
           setUserRecognized(false);
           navigation.navigate("MainApp");
           return;
@@ -258,7 +254,7 @@ export default function LandingPage({ navigation }) {
         // Kaikki boot-työt valmiit
         setBootDone(true);
       } catch (error) {
-        console.error("Assettien esilataus epäonnistui:", error);
+        console.error("Asset loading failed:", error);
       }
     };
 
@@ -269,7 +265,7 @@ export default function LandingPage({ navigation }) {
     };
   }, []);
 
-  // Navigoi vasta kun progress = 100, bootDone = true, eikä pakotettua päivitystä
+  // Navigate only when progress = 100, bootDone = true, and no forced update
   useEffect(() => {
     if (!remoteBlock && loadingProgress === 100 && bootDone) {
       const t = setTimeout(() => {
@@ -292,7 +288,7 @@ export default function LandingPage({ navigation }) {
         />
       </View>
 
-      {/* ProgressBar + prosentti overlayna keskelle */}
+      {/* ProgressBar + % overlay text */}
       <View style={{ position: "relative" }}>
         <ProgressBar
           progress={loadingProgress / 100}

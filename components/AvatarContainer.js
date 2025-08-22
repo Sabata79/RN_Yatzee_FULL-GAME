@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Modal, View, Text, Pressable, Image, StyleSheet, Dimensions, ScrollView } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 
@@ -8,6 +8,7 @@ const avatarSize = isFoldScreen ? 65 : 70;
 
 const levelOrder = ['beginner', 'basic', 'advanced', 'elite', 'legendary', 'turhapuro'];
 
+// Modal component for selecting player avatar
 const AvatarContainer = ({ isVisible, onClose, avatars, handleAvatarSelect, playerLevel }) => {
 
   const tabs = ['Beginner', 'Basic', 'Advanced', 'Elite', 'Legendary'];
@@ -16,6 +17,7 @@ const AvatarContainer = ({ isVisible, onClose, avatars, handleAvatarSelect, play
 
   const effectivePlayerLevel = (playerLevel || 'beginner').toLowerCase();
 
+  // Show Turhapuro tab only for special player level
   useEffect(() => {
     if (effectivePlayerLevel === 'turhapuro') {
       setShowTurhapuroTab(true);
@@ -26,11 +28,13 @@ const AvatarContainer = ({ isVisible, onClose, avatars, handleAvatarSelect, play
     }
   }, [effectivePlayerLevel]);
 
+  // Filter avatars by selected tab/level
   const filteredAvatars = avatars.filter(
     avatar => avatar.level && avatar.level.toLowerCase() === selectedTab.toLowerCase()
   );
 
   return (
+    // Modal for avatar selection, with tabs and avatar grid
     <Modal
       animationType="slide"
       transparent={true}
@@ -111,8 +115,8 @@ const AvatarContainer = ({ isVisible, onClose, avatars, handleAvatarSelect, play
                       avatar.level === 'Beginner'
                         ? styles.beginnerAvatar
                         : avatar.level === 'Advanced'
-                        ? styles.advancedAvatar
-                        : styles.defaultAvatar
+                          ? styles.advancedAvatar
+                          : styles.defaultAvatar
                     ]}
                     source={avatar.display}
                   />
@@ -215,27 +219,22 @@ const styles = StyleSheet.create({
     height: avatarSize,
     borderRadius: avatarSize / 2,
     margin: 5,
-    resizeMode: 'cover', // Oletus kaikille avatareille
+    resizeMode: 'cover',
   },
-
-  // Tyyli Beginner-tason lipuille
   beginnerAvatar: {
     borderRadius: 0,
-    width: 50, // Pienennä leveyttä
-    height: 35, // Pienennä korkeutta
-    resizeMode: 'cover', // Venytä kuva
+    width: 50,
+    height: 35,
+    resizeMode: 'cover',
     margin: 5,
     borderWidth: 1,
     borderColor: '#4f4c4c36',
   },
-
   advancedAvatar: {
     borderRadius: 0,
   },
-
-  // Tyyli muille avatareille (jotka ovat jo valmiiksi pyöreitä)
   defaultAvatar: {
-    borderRadius: avatarSize / 2, // Täysin pyöreä
+    borderRadius: avatarSize / 2,
   },
   turhapuroTabWrapper: {
     flexDirection: 'row',

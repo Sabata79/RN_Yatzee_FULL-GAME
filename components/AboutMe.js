@@ -1,4 +1,4 @@
-import React from 'react';
+// components/AboutMe.js
 import {
   ScrollView,
   View,
@@ -9,21 +9,21 @@ import {
   StyleSheet,
 } from 'react-native';
 import {
-  aboutTitle,
   aboutTextContent,
   aboutFeatures,
-  aboutContact,
 } from '../constants/AboutContent';
 import { useGame } from '../components/GameContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 
+// About screen component: shows app info, features, and contact links
 export default function AboutMe() {
   const { gameVersion } = useGame();
   const insets = useSafeAreaInsets();
   const tabBarHeight = useBottomTabBarHeight();
 
   return (
+    // Main background image and overlay for the About screen
     <ImageBackground
       source={require('../assets/diceBackground.webp')}
       style={styles.background}
@@ -31,6 +31,7 @@ export default function AboutMe() {
     >
       <View style={styles.overlay}>
         <ScrollView
+          // Scrollable content for About screen
           contentContainerStyle={[
             styles.container,
             {
@@ -40,7 +41,7 @@ export default function AboutMe() {
           ]}
           showsVerticalScrollIndicator={false}
         >
-          {/* Profiilikuva + otsikko */}
+          {/* Profile image and title section */}
           <View style={styles.headerInfoBox}>
             <Image
               source={require('../assets/profile.webp')}
@@ -54,7 +55,7 @@ export default function AboutMe() {
             </View>
           </View>
 
-          {/* Info-kappaleet */}
+          {/* Info paragraphs from AboutContent */}
           <View style={styles.infoBox}>
             {aboutTextContent.trim().split('\n\n').map((paragraph, index) => (
               <Text key={index} style={styles.infoText}>
@@ -64,13 +65,13 @@ export default function AboutMe() {
           </View>
 
           <Text style={styles.boxTitle}>Features</Text>
-          {/* Featuret */}
+          {/* Features section */}
           <View style={styles.infoBox}>
             <Text style={styles.infoText}>{aboutFeatures}</Text>
           </View>
 
           <Text style={styles.boxTitle}>Contact</Text>
-          {/* Linkit */}
+          {/* Contact and external links */}
           <View style={styles.infoBox}>
             <Text
               style={styles.linkText}
@@ -104,7 +105,7 @@ export default function AboutMe() {
             </Text>
           </View>
 
-          {/* Footer */}
+          {/* Footer: version and copyright */}
           <View style={styles.footer}>
             <Text style={styles.footerText}>Version: {gameVersion}</Text>
             <Text style={styles.footerText}>© 2025 SMR Yatzy</Text>

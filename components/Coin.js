@@ -1,6 +1,5 @@
 // components/Coin.js
-import React from 'react';
-import { Animated, StyleSheet, Image } from 'react-native';
+import { Animated, StyleSheet } from 'react-native';
 
 const coinImage = require('../assets/coins/coin.webp');
 

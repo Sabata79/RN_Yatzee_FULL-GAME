@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { View, Text, Modal, Pressable, Image } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useGame } from '../components/GameContext';
 import styles from '../styles/playerCardStyles';
-import { dbOnValue, dbOff, dbGet, dbSet, dbUpdate } from '../components/Firebase';
+import { dbOnValue, dbOff, dbGet, dbUpdate } from '../components/Firebase';
 import { avatars } from '../constants/AvatarPaths';
 import AvatarContainer from '../components/AvatarContainer';
 import { NBR_OF_SCOREBOARD_ROWS } from '../constants/Game';
@@ -29,7 +29,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
   const [weeklyRank, setWeeklyRank] = useState('--');
   const [isAvatarModalVisible, setIsAvatarModalVisible] = useState(false);
   const [topScores, setTopScores] = useState([]);
-  const [isModalModalVisible, setModalModalVisible] = useState(false); // (säilytetty muuttuja)
+  const [isModalModalVisible, setModalModalVisible] = useState(false); // (legacy variable, kept for compatibility)
   const [playedGames, setPlayedGames] = useState(0);
   const [avgPoints, setAvgPoints] = useState(0);
   const [avgDuration, setAvgDuration] = useState(0);
@@ -42,8 +42,8 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
   const currentYear = new Date().getFullYear();
 
   const monthNames = [
-    'Jan','Feb','Mar','Apr','May','Jun',
-    'Jul','Aug','Sep','Oct','Nov','Dec'
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
   ];
 
   const idToUse = viewingPlayerId || playerId;
@@ -105,8 +105,8 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
 
     if (games >= 2000) computed = { level: 'legendary', min: 2000, max: 2000 };
     else if (games >= 1201) computed = { level: 'elite', min: 1201, max: 2000 };
-    else if (games >= 801)  computed = { level: 'advanced', min: 801, max: 1200 };
-    else if (games >= 401)  computed = { level: 'basic', min: 401, max: 800 };
+    else if (games >= 801) computed = { level: 'advanced', min: 801, max: 1200 };
+    else if (games >= 401) computed = { level: 'basic', min: 401, max: 800 };
 
     const progress = computed.max === computed.min ? 1 : (games - computed.min) / (computed.max - computed.min);
     computed = { ...computed, progress: Math.min(progress, 1) };
@@ -121,7 +121,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
         return { level: storedLevel, progress: 1, min: computed.min, max: computed.max };
       }
       if (computedIdx > storedIdx) {
-        // Päivitä ylöspäin jos laskettu taso on korkeampi
+        // Update upwards if the calculated level is higher
         dbUpdate(`players/${idToUse}`, { level: computed.level })
           .then(() => console.log('Level updated to computed level'))
           .catch(err => console.error('Error updating level', err));
@@ -129,7 +129,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
       }
       if (computedIdx === storedIdx) return computed;
 
-      // Jos tietokannassa on "korkeampi" custom-taso kuin laskettu
+      // If the database has a "higher" custom level than calculated
       return { level: storedLevel, progress: 1, min: computed.min, max: computed.max };
     }
 
@@ -139,7 +139,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
   const previousMonthRank = currentMonth > 0 ? monthlyRanks[currentMonth - 1] : '--';
   const levelInfo = getPlayerLevelInfo();
 
-  // ----- EFFECT: attach/detach kaikki listenerit kun modal auki -----
+  // ----- EFFECT: attach/detach all listeners when modal is open -----
   useEffect(() => {
     if (!isModalVisible || !idToUse) return;
 
@@ -162,7 +162,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     dbOnValue(topScoresPath, topScoresCb);
     subs.push({ path: topScoresPath, cb: topScoresCb });
 
-    // MONTHLY RANKS (koko vuoden)
+    // MONTHLY RANKS (whole year)
     const playersPath = 'players';
     const monthlyCb = (snapshot) => {
       if (!snapshot.exists()) {
@@ -205,7 +205,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     dbOnValue(playersPath, monthlyCb);
     subs.push({ path: playersPath, cb: monthlyCb });
 
-    // WEEKLY RANK (viime viikko)
+    // WEEKLY RANK (last week)
     const weeklyRankCb = (snapshot) => {
       if (!snapshot.exists()) {
         setWeeklyRank('--');
@@ -250,7 +250,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     dbOnValue(playersPath, weeklyRankCb);
     subs.push({ path: playersPath, cb: weeklyRankCb });
 
-    // WEEKLY WINS (vuoden sisällä)
+    // WEEKLY WINS (within the year)
     const weeklyWinsCb = (snapshot) => {
       if (!snapshot.exists()) {
         setWeeklyWins(0);
@@ -320,7 +320,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
       setAvgPoints(gamesCount > 0 ? (totalPointsCalc / gamesCount).toFixed(0) : 0);
       setAvgDuration(gamesCount > 0 ? (totalDurationCalc / gamesCount).toFixed(0) : 0);
 
-      // progressPoints init jos puuttuu
+      // progressPoints init if missing
       const pSnap = await dbGet(`players/${idToUse}`);
       const pData = pSnap.val();
       if (!pData || pData.progressPoints === undefined) {
@@ -369,7 +369,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     dbOnValue(linkedPath, linkedCb);
     subs.push({ path: linkedPath, cb: linkedCb });
 
-    // Stored level (koko player-obj)
+    // Stored level (whole player object)
     const levelPath = `players/${idToUse}`;
     const levelCb = (snapshot) => {
       const data = snapshot.val();
@@ -390,6 +390,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     }
   }, [isModalVisible, resetViewingPlayer]);
 
+  // Get trophy for specific month
   const getTrophyForMonth = (monthIndex) => {
     const rank = monthlyRanks[monthIndex];
     if (rank === '--') return <Text style={styles.emptySlotText}>--</Text>;

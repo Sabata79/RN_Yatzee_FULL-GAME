@@ -1,4 +1,4 @@
-// Desc: This file contains the paths to the avatars that are used in the app.
+// Avatar paths for the game
 export const avatars = [
 
     // Beginner avatars (EU flags)
@@ -79,7 +79,6 @@ export const avatars = [
     { path: '../assets/avatars/testAvatar21.webp', display: require('../assets/avatars/testAvatar21.webp'), level: 'Basic' },
 
     // Advanced avatars
-
     {path: '../assets/advancedAvatars/Advanced1.webp', display: require('../assets/advancedAvatars/Advanced1.webp'), level: 'Advanced' },
     {path: '../assets/advancedAvatars/Advanced2.webp', display: require('../assets/advancedAvatars/Advanced2.webp'), level: 'Advanced' },
     {path: '../assets/advancedAvatars/Advanced3.webp', display: require('../assets/advancedAvatars/Advanced3.webp'), level: 'Advanced' },

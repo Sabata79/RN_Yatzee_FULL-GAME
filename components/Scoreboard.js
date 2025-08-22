@@ -1,6 +1,6 @@
-// screens/Scoreboard.js
-import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, ImageBackground, TouchableOpacity, Modal, Image } from 'react-native';
+// Scoreboard screen: shows player rankings (all time, monthly, weekly) and allows viewing player cards
+import { useState, useEffect } from 'react';
+import { View, Text, ScrollView, ImageBackground, TouchableOpacity, Image } from 'react-native';
 import { DataTable } from 'react-native-paper';
 import { FontAwesome5 } from '@expo/vector-icons';
 import styles from '../styles/styles';
@@ -28,7 +28,7 @@ export default function Scoreboard() {
 
 
   useEffect(() => {
-    // hae oma userId
+  // Fetch userId from secure storage
     SecureStore.getItemAsync('user_id').then((storedUserId) => {
       if (storedUserId) setUserId(storedUserId);
     });
@@ -111,15 +111,16 @@ export default function Scoreboard() {
     };
   }, [scoreType]);
 
-  // ISO-viikkonumero (ma–su)
+  // ISO week number (Mon–Sun)
   function getWeekNumber(date) {
     const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-    const dayNum = d.getUTCDay() || 7; // su=7
+  const dayNum = d.getUTCDay() || 7; // Sunday=7
     d.setUTCDate(d.getUTCDate() + 4 - dayNum);
     const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
     return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
   }
 
+  // Handle player card selection
   const handlePlayerCard = (playerId, playerName, playerScores) => {
     const player = { playerId, playerName, playerScores };
     setSelectedPlayer(player);
@@ -128,13 +129,7 @@ export default function Scoreboard() {
     requestAnimationFrame(() => setModalVisible(true));
   };
 
-  const closeModal = () => {
-    setModalVisible(false);
-    setSelectedPlayer(null);
-    setViewingPlayerId('');
-    setViewingPlayerName('');
-  };
-
+  // Get avatar style based on player level
   const getAvatarStyle = (avatarPath) => {
     const avatar = avatars.find((av) => av.path === avatarPath);
     if (!avatar) return styles.defaultAvatarIcon;
@@ -152,9 +147,9 @@ export default function Scoreboard() {
         <ScrollView
           style={styles.container}
           contentContainerStyle={{
-            // riittävä pohjatila: safe area + tabbar + pieni buffer
+            // Enough bottom padding: safe area + tabbar + small buffer
             paddingBottom: insets.bottom + tabBarHeight + 16,
-            // halutessa kevyt yläpaddi:
+            // Optional: add top padding if needed
             // paddingTop: 8,
           }}
           showsVerticalScrollIndicator={false}

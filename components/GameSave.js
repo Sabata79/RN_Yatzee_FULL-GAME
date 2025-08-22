@@ -1,4 +1,4 @@
-// components/GameSave.js
+// GameSave utility for saving player scores
 import * as SecureStore from 'expo-secure-store';
 import { useGame } from './GameContext';
 import { dbGet, dbSet, dbRef, push } from './Firebase';
@@ -7,7 +7,7 @@ import { TOPSCORELIMIT } from '../constants/Game';
 const GameSave = ({ totalPoints }) => {
   const { playerId, elapsedTime, saveGame } = useGame();
 
-  // Fallback: jos contextista puuttuu playerId, haetaan SecureStoresta
+  // Fallback: if playerId is missing from context, fetch from SecureStore
   const resolvePlayerId = async () => {
     if (playerId) return playerId;
     try {
@@ -30,7 +30,7 @@ const GameSave = ({ totalPoints }) => {
     }
 
     try {
-      // Hae pelaajan data
+  // Fetch player data
       const snap = await dbGet(`players/${uid}`);
       const playerData = snap.val();
 
@@ -39,7 +39,7 @@ const GameSave = ({ totalPoints }) => {
         return false;
       }
 
-      // Luo uusi avain scorelle
+  // Create a new key for the score
       const scoresPath = `players/${uid}/scores`;
       const newRef = push(dbRef(scoresPath));
       const newKey = newRef.key;
@@ -55,12 +55,12 @@ const GameSave = ({ totalPoints }) => {
         duration: elapsedTime,
       };
 
-      // Päivitä top-lista (yhdistä vanhat + uusi → järjestä → rajaa)
+  // Update top scores (merge old + new, sort, limit)
       const prevScores = playerData.scores ? Object.values(playerData.scores) : [];
       const updatedScores = [...prevScores, playerPoints].sort((a, b) => b.points - a.points);
       const topScores = updatedScores.slice(0, TOPSCORELIMIT);
 
-      // Kirjoita takaisin objektina avaimilla
+  // Write back as an object with keys
       const scoresObj = topScores.reduce((acc, s) => {
         acc[s.key] = s;
         return acc;
@@ -68,7 +68,7 @@ const GameSave = ({ totalPoints }) => {
 
       await dbSet(scoresPath, scoresObj);
 
-      // merkkaa pelin tallennetuksi
+  // Mark the game as saved
       if (typeof saveGame === 'function') saveGame();
 
       return true;

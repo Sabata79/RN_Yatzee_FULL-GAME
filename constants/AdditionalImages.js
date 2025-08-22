@@ -1,3 +1,4 @@
+// Additional images for the game
 // constants/AdditionalImages.js
 
 export const additionalImages = [

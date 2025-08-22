@@ -1,10 +1,11 @@
-import React from 'react';
+// Account linking info screen component
 import { ScrollView, View, Text, StyleSheet } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { linkingText } from '../constants/AboutContent';
 
 export default function AccountLinking() {
   return (
+    // Scrollable view for account linking info
     <ScrollView contentContainerStyle={styles.container}>
       
       <View style={styles.sectionHeader}>
