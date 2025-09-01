@@ -1,3 +1,11 @@
+/**
+ * AvatarPaths - Avatar image paths and definitions for the game.
+ *
+ * JSDoc comments and inline code comments must always be in English.
+ * This file defines all avatar image paths and their properties for the game.
+ * @author Sabata79
+ * @since 2025-08-29
+ */
 // Avatar paths for the game
 
 export const avatars = [

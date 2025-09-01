@@ -1,3 +1,11 @@
+/**
+ * AboutContent - About screen content and text constants.
+ *
+ * JSDoc comments and inline code comments must always be in English.
+ * This file defines the about screen text and related content for the game.
+ * @author Sabata79
+ * @since 2025-08-29
+ */
 export const aboutTitle = 'About';
 export const aboutTextContent = `
 Welcome to this React Native Yatzy Game!

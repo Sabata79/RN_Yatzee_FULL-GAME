@@ -1,3 +1,11 @@
+/**
+ * AdditionalImages - Additional image paths for the game.
+ *
+ * JSDoc comments and inline code comments must always be in English.
+ * This file defines additional image paths used throughout the game.
+ * @author Sabata79
+ * @since 2025-08-29
+ */
 // Additional images for the game
 // constants/AdditionalImages.js
 
