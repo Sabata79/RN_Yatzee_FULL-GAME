@@ -1,3 +1,9 @@
+/**
+ * headerStyles - Styles for the Header component, including layout, sections, and avatar images.
+ * Used to style the app's header bar and related UI elements.
+ * JSDoc comments and inline code comments must always be in English.
+ * @module styles/headerStyles
+ */
 // NOTICE: These styles are made whit section flex and flexDirection row. The styles are used in the Header.js component
 
 import { StyleSheet, Dimensions, StatusBar, Platform } from 'react-native';

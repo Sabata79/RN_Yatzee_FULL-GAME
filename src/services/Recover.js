@@ -7,7 +7,8 @@
  * @since 2025-08-29
  */
 import { useState } from 'react';
-import { StyleSheet, Modal, View, Text, TextInput, Pressable, TouchableOpacity } from 'react-native';
+import { Modal, View, Text, TextInput, Pressable, TouchableOpacity } from 'react-native';
+import { recoverStyles } from '../styles/recoverStyles';
 import { FontAwesome5 } from '@expo/vector-icons';
 import * as SecureStore from 'expo-secure-store';
 import {
@@ -47,26 +48,26 @@ const Recover = ({ isVisible, onClose }) => {
       const auth = getAuth();
       const oldUid = playerId;
 
-      // Kirjaa ulos mahdollinen aiempi käyttäjä
+      // Sign out anonymous user if any
       if (auth.currentUser) {
         await signOut(auth);
       }
 
-      // Kirjaudu sisään email+password
+      // Sign in with email/password
       const result = await signInWithEmailAndPassword(auth, email.trim(), password);
       const currentUser = result.user;
       const newUid = currentUser.uid;
       console.log('Recovered account, UID:', newUid);
 
       if (oldUid && oldUid !== newUid) {
-        // Migroi vanhan UID:n data uuteen
+        // Migrate old UID's data to new
         const oldSnap = await dbGet(`players/${oldUid}`);
         const oldData = oldSnap.val() || {};
 
         await dbUpdate(`players/${newUid}`, { ...oldData, isLinked: true });
         await dbRemove(dbRef(`players/${oldUid}`));
       } else {
-        // Merkitse linkitetyksi
+        // Mark as linked
         await dbUpdate(`players/${newUid}`, { isLinked: true });
       }
 
@@ -115,49 +116,49 @@ const Recover = ({ isVisible, onClose }) => {
     <>
       {/* Recover Modal */}
       <Modal transparent={true} animationType="slide" visible={isVisible} onRequestClose={onClose}>
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>
+        <View style={recoverStyles.modalContainer}>
+          <View style={recoverStyles.modalContent}>
+            <Text style={recoverStyles.modalTitle}>
               Recover <FontAwesome5 name="link" size={20} color="gold" /> Account
             </Text>
             {isResetMode ? (
               <>
-                <Text style={styles.modalText}>Enter your email to reset your password.</Text>
+                <Text style={recoverStyles.modalText}>Enter your email to reset your password.</Text>
                 <TextInput
-                  style={styles.input}
+                  style={recoverStyles.input}
                   placeholder="Enter your email"
                   autoCapitalize="none"
                   keyboardType="email-address"
                   value={email}
                   onChangeText={setEmail}
                 />
-                {resetMessage && <Text style={styles.resetMessage}>{resetMessage}</Text>}
+                {resetMessage && <Text style={recoverStyles.resetMessage}>{resetMessage}</Text>}
                 <Pressable
-                  style={({ pressed }) => [styles.actionButton, pressed && styles.buttonPressed]}
+                  style={({ pressed }) => [recoverStyles.actionButton, pressed && recoverStyles.buttonPressed]}
                   onPress={handleResetPassword}
                 >
-                  <Text style={styles.buttonText}>SEND!</Text>
+                  <Text style={recoverStyles.buttonText}>SEND!</Text>
                 </Pressable>
                 <TouchableOpacity onPress={() => setIsResetMode(false)}>
-                  <Text style={styles.forgotPassword}>Back</Text>
+                  <Text style={recoverStyles.forgotPassword}>Back</Text>
                 </TouchableOpacity>
               </>
             ) : (
               <>
-                <Text style={styles.modalText}>
+                <Text style={recoverStyles.modalText}>
                   Enter your email and password to recover your linked account.
                 </Text>
                 <TextInput
-                  style={styles.input}
+                  style={recoverStyles.input}
                   placeholder="Enter your email"
                   autoCapitalize="none"
                   keyboardType="email-address"
                   value={email}
                   onChangeText={handleEmailChange}
                 />
-                <View style={styles.passwordContainer}>
+                <View style={recoverStyles.passwordContainer}>
                   <TextInput
-                    style={styles.passwordInput}
+                    style={recoverStyles.passwordInput}
                     placeholder="Enter your password"
                     secureTextEntry={!showPassword}
                     value={password}
@@ -168,20 +169,20 @@ const Recover = ({ isVisible, onClose }) => {
                   </TouchableOpacity>
                 </View>
                 <Pressable
-                  style={({ pressed }) => [styles.actionButton, pressed && styles.buttonPressed]}
+                  style={({ pressed }) => [recoverStyles.actionButton, pressed && recoverStyles.buttonPressed]}
                   onPress={handleRecoverAccount}
                 >
-                  <Text style={styles.buttonText}>Recover Account</Text>
+                  <Text style={recoverStyles.buttonText}>Recover Account</Text>
                   <FontAwesome5 name="redo" size={20} color="gold" />
                 </Pressable>
                 <TouchableOpacity onPress={() => setIsResetMode(true)}>
-                  <Text style={styles.forgotPassword}>Forgot Password?</Text>
+                  <Text style={recoverStyles.forgotPassword}>Forgot Password?</Text>
                 </TouchableOpacity>
                 <Pressable
-                  style={({ pressed }) => [styles.closeButton, pressed && styles.buttonPressed]}
+                  style={({ pressed }) => [recoverStyles.closeButton, pressed && recoverStyles.buttonPressed]}
                   onPress={onClose}
                 >
-                  <Text style={styles.buttonText}>Cancel</Text>
+                  <Text style={recoverStyles.buttonText}>Cancel</Text>
                 </Pressable>
               </>
             )}
@@ -197,12 +198,12 @@ const Recover = ({ isVisible, onClose }) => {
           visible={errorModalVisible}
           onRequestClose={() => setErrorModalVisible(false)}
         >
-          <View style={styles.notificationContainer}>
-            <View style={styles.notificationContent}>
-              <Text style={styles.notificationTitle}>{errorModalTitle}</Text>
-              <Text style={styles.notificationMessage}>{errorModalMessage}</Text>
-              <Pressable style={styles.notificationButton} onPress={() => setErrorModalVisible(false)}>
-                <Text style={styles.notificationButtonText}>Close</Text>
+          <View style={recoverStyles.notificationContainer}>
+            <View style={recoverStyles.notificationContent}>
+              <Text style={recoverStyles.notificationTitle}>{errorModalTitle}</Text>
+              <Text style={recoverStyles.notificationMessage}>{errorModalMessage}</Text>
+              <Pressable style={recoverStyles.notificationButton} onPress={() => setErrorModalVisible(false)}>
+                <Text style={recoverStyles.notificationButtonText}>Close</Text>
               </Pressable>
             </View>
           </View>
@@ -217,12 +218,12 @@ const Recover = ({ isVisible, onClose }) => {
           visible={successModalVisible}
           onRequestClose={handleSuccessClose}
         >
-          <View style={styles.notificationContainer}>
-            <View style={styles.notificationContent}>
-              <Text style={styles.notificationTitle}>Success</Text>
-              <Text style={styles.notificationMessage}>Account recovered successfully!</Text>
-              <Pressable style={styles.notificationButton} onPress={handleSuccessClose}>
-                <Text style={styles.notificationButtonText}>Close</Text>
+          <View style={recoverStyles.notificationContainer}>
+            <View style={recoverStyles.notificationContent}>
+              <Text style={recoverStyles.notificationTitle}>Success</Text>
+              <Text style={recoverStyles.notificationMessage}>Account recovered successfully!</Text>
+              <Pressable style={recoverStyles.notificationButton} onPress={handleSuccessClose}>
+                <Text style={recoverStyles.notificationButtonText}>Close</Text>
               </Pressable>
             </View>
           </View>
@@ -231,27 +232,5 @@ const Recover = ({ isVisible, onClose }) => {
     </>
   );
 };
-
-const styles = StyleSheet.create({
-  modalContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0, 0, 0, 0.5)' },
-  modalContent: { backgroundColor: '#fff', width: '80%', borderRadius: 10, padding: 20, alignItems: 'center' },
-  modalTitle: { fontSize: 24, fontWeight: 'bold', marginBottom: 10, color: '#333' },
-  modalText: { fontSize: 16, color: '#555', marginBottom: 20, textAlign: 'center' },
-  input: { width: '100%', padding: 12, borderColor: '#ccc', borderWidth: 1, borderRadius: 5, marginBottom: 20, fontSize: 16, color: '#333' },
-  forgotPassword: { color: 'blue', fontSize: 14, marginBottom: 10, alignSelf: 'flex-start', textDecorationLine: 'underline' },
-  resetMessage: { color: 'green', fontSize: 14, marginBottom: 10, textAlign: 'center' },
-  passwordContainer: { flexDirection: 'row', alignItems: 'center', width: '100%', borderColor: '#ccc', borderWidth: 1, borderRadius: 5, padding: 12, marginBottom: 20 },
-  passwordInput: { flex: 1, fontSize: 16, color: '#333' },
-  actionButton: { backgroundColor: '#62a346', padding: 12, borderRadius: 5, width: '100%', alignItems: 'center', marginBottom: 10, flexDirection: 'row', justifyContent: 'center' },
-  closeButton: { backgroundColor: '#999', padding: 12, borderRadius: 5, width: '100%', alignItems: 'center' },
-  buttonText: { color: '#fff', fontSize: 16, fontWeight: 'bold', marginRight: 8 },
-  buttonPressed: { opacity: 0.7 },
-  notificationContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' },
-  notificationContent: { backgroundColor: '#fff', padding: 20, borderRadius: 10, width: '80%', alignItems: 'center' },
-  notificationTitle: { fontSize: 20, fontWeight: 'bold', marginBottom: 10 },
-  notificationMessage: { fontSize: 16, textAlign: 'center', marginBottom: 20 },
-  notificationButton: { backgroundColor: '#62a346', padding: 12, borderRadius: 5, width: '100%', alignItems: 'center' },
-  notificationButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
-});
 
 export default Recover;

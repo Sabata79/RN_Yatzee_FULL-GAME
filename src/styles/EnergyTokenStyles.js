@@ -1,3 +1,9 @@
+/**
+ * EnergyTokenStyles - Styles for the energy token system, including progress bars, modals, and icons.
+ * Used to style the energy token UI elements and modal dialogs.
+ * JSDoc comments and inline code comments must always be in English.
+ * @module styles/EnergyTokenStyles
+ */
 import { StyleSheet } from 'react-native';
 
 const styles = StyleSheet.create({
@@ -5,7 +11,7 @@ const styles = StyleSheet.create({
     height: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    pointerEvents: 'none',   // ei interaktiota (halusit passiivisen palkin)
+  pointerEvents: 'none',   // No interaction (for passive bar)
     left: 0,
   },
   energyIcon: {

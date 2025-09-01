@@ -1,3 +1,9 @@
+/**
+ * landingPageStyles - Styles for the landing page, including container, logo, progress bar, and buttons.
+ * Used to style the app's landing and loading screens.
+ * JSDoc comments and inline code comments must always be in English.
+ * @module styles/landingPageStyles
+ */
 import { StyleSheet, Dimensions } from 'react-native';
 
 const { width, height } = Dimensions.get("window");
@@ -8,7 +14,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: '#2c3e50', // Tummempi ja pehmeämpi tausta
+   backgroundColor: '#2c3e50', // Darker and softer background
     padding: 20,
   },
   logoContainer: {
@@ -27,7 +33,7 @@ const styles = StyleSheet.create({
     height: 20,
     marginHorizontal: 20,
     borderRadius: 5,
-    backgroundColor: "rgba(245,245,245,0.3)", // Pehmeä vaaleanharmaa taustaksi progressBarille
+   backgroundColor: "rgba(245,245,245,0.3)", // Soft light gray background for progress bar
     overflow: "hidden",
   },
   progressText: {

@@ -24,7 +24,7 @@ export const fetchRemoteConfig = async () => {
       minimumFetchIntervalMillis: __DEV__ ? 0 : 6 * 60 * 60 * 1000, // 6 hours
     });
 
-    // Anna oletus molemmille nimille
+    // Set default values
     await setDefaults(rc, {
       forceUpdate: false,
       force_update: false,
@@ -34,7 +34,7 @@ export const fetchRemoteConfig = async () => {
 
     await fetchAndActivate(rc);
 
-    // Lue molemmat, snake voittaa jos olemassa
+    // Read both, snake wins if exists
     const forceSnake = getValue(rc, 'force_update').asBoolean();
     const forceCamel = getValue(rc, 'forceUpdate').asBoolean();
     const forceUpdate = forceSnake || forceCamel;
@@ -42,7 +42,7 @@ export const fetchRemoteConfig = async () => {
     const minimum_supported_version = getValue(rc, 'minimum_supported_version').asString();
     const update_message = getValue(rc, 'update_message').asString();
 
-    // Debug-loki auttaa varmistamaan mitä avainta käytettiin
+    // Debug log helps ensure which key was used
     console.log('[RC] raw', {
       force_update: forceSnake,
       forceUpdate: forceCamel,

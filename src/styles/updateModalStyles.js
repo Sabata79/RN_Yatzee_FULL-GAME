@@ -1,3 +1,9 @@
+/**
+ * updateModalStyles - Styles for the update modal overlay, content, buttons, and text.
+ * Used to style the modal that prompts users to update the app.
+ * JSDoc comments and inline code comments must always be in English.
+ * @module styles/updateModalStyles
+ */
 export default updateModalStyles = {
   updateModalOverlay: {
     flex: 1,

@@ -1,3 +1,9 @@
+/**
+ * playerCardStyles - Styles for the PlayerCard component, including modal, avatar, trophy, and score display.
+ * Used to style player profile cards and related UI elements.
+ * JSDoc comments and inline code comments must always be in English.
+ * @module styles/playerCardStyles
+ */
 
 import { StyleSheet } from 'react-native';
 import { Dimensions } from 'react-native';

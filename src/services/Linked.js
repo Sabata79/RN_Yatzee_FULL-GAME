@@ -73,7 +73,6 @@ const Linked = ({ isVisible, onClose }) => {
       ]);
     } catch (error) {
       console.log('[Link] Error:', error);
-      // Näytä yleiset Firebase-virheet ihmiselle järkevämmin
       let msg = error?.message ?? String(error);
       if (error?.code === 'auth/email-already-in-use') {
         msg = 'This email is already in use. Try recovering the account instead.';
@@ -146,30 +145,82 @@ const Linked = ({ isVisible, onClose }) => {
 // Styles
 const styles = StyleSheet.create({
   modalContainer: {
-    flex: 1, justifyContent: 'center', alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContent: {
-    backgroundColor: '#fff', width: '80%', borderRadius: 10, padding: 20, alignItems: 'center',
+    backgroundColor: '#fff',
+    width: '80%',
+    borderRadius: 10,
+    padding: 20,
+    alignItems: 'center',
   },
-  modalTitle: { fontSize: 24, fontWeight: 'bold', marginBottom: 10, color: '#333' },
-  modalText: { fontSize: 16, color: '#555', marginBottom: 20, textAlign: 'center' },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    color: '#333',
+  },
+  modalText: {
+    fontSize: 16,
+    color: '#555',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
   input: {
-    width: '100%', padding: 12, borderColor: '#ccc', borderWidth: 1,
-    borderRadius: 5, marginBottom: 20, fontSize: 16, color: '#333',
+    width: '100%',
+    padding: 12,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 5,
+    marginBottom: 20,
+    fontSize: 16,
+    color: '#333',
   },
   passwordContainer: {
-    flexDirection: 'row', alignItems: 'center', width: '100%',
-    borderColor: '#ccc', borderWidth: 1, borderRadius: 5, padding: 12, marginBottom: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 5,
+    padding: 12,
+    marginBottom: 20,
   },
-  passwordInput: { flex: 1, fontSize: 16, color: '#333' },
+  passwordInput: {
+    flex: 1,
+    fontSize: 16,
+    color: '#333',
+  },
   linkButton: {
-    backgroundColor: '#62a346', padding: 12, borderRadius: 5,
-    width: '100%', alignItems: 'center', marginBottom: 10, flexDirection: 'row', justifyContent: 'center', gap: 8,
+    backgroundColor: '#62a346',
+    padding: 12,
+    borderRadius: 5,
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: 10,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
   },
-  buttonPressed: { opacity: 0.7 },
-  closeButton: { backgroundColor: '#999', padding: 12, borderRadius: 5, width: '100%', alignItems: 'center' },
-  buttonText: { color: '#fff', fontSize: 16, fontWeight: 'bold', marginRight: 8 },
+  buttonPressed: {
+    opacity: 0.7,
+  },
+  closeButton: {
+    backgroundColor: '#999',
+    padding: 12,
+    borderRadius: 5,
+    width: '100%',
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginRight: 8,
+  },
 });
 
 export default Linked;

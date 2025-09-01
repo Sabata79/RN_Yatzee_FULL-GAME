@@ -1,3 +1,9 @@
+/**
+ * styles - Main global styles for the application, including containers, backgrounds, overlays, and UI elements.
+ * Used throughout the app for layout and visual consistency.
+ * JSDoc comments and inline code comments must always be in English.
+ * @module styles/styles
+ */
 import { Dimensions, StyleSheet } from 'react-native';
 
 const { width, height } = Dimensions.get('window');

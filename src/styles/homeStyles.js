@@ -1,3 +1,9 @@
+/**
+ * homeStyles - Styles for the home screen, including overlays, rules, buttons, and images.
+ * Used to style the main home screen and its UI elements.
+ * JSDoc comments and inline code comments must always be in English.
+ * @module styles/homeStyles
+ */
 import { StyleSheet, Dimensions } from 'react-native';
 
 const { width } = Dimensions.get('window');
@@ -8,7 +14,7 @@ const styles = StyleSheet.create({
   },
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)', // pehmeä tumma overlay
+   backgroundColor: 'rgba(0, 0, 0, 0.7)', // Soft dark overlay
     padding: 20,
     justifyContent: 'center',
     alignItems: 'center',
@@ -16,7 +22,7 @@ const styles = StyleSheet.create({
   rulesContainer: {
     width: '100%',
     padding: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)', // yhtenäinen tumma sävy
+   backgroundColor: 'rgba(0, 0, 0, 0.6)', // Uniform dark shade
     borderRadius: 10,
     alignItems: 'center',
   },
