@@ -1,3 +1,11 @@
+/**
+ * RemoteConfigService - Utility for fetching and handling remote config values.
+ *
+ * JSDoc comments and inline code comments must always be in English.
+ * This file provides functions for fetching and using remote config from Firebase.
+ * @author Sabata79
+ * @since 2025-08-29
+ */
 import { getApp } from '@react-native-firebase/app';
 import {
   getRemoteConfig,

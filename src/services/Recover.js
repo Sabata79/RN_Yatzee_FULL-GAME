@@ -1,3 +1,11 @@
+/**
+ * Recover - Modal component for account recovery and password reset.
+ *
+ * JSDoc comments and inline code comments must always be in English.
+ * This file provides UI and logic for account recovery and password reset.
+ * @author Sabata79
+ * @since 2025-08-29
+ */
 import { useState } from 'react';
 import { StyleSheet, Modal, View, Text, TextInput, Pressable, TouchableOpacity } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';

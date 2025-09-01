@@ -1,3 +1,11 @@
+/**
+ * Linked - Modal component for linking anonymous account to email/password.
+ *
+ * JSDoc comments and inline code comments must always be in English.
+ * This file provides UI and logic for linking an anonymous account to an email/password.
+ * @author Sabata79
+ * @since 2025-08-29
+ */
 import { useState } from 'react';
 import { StyleSheet, Modal, View, Text, TextInput, Pressable, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
@@ -25,10 +33,10 @@ const Linked = ({ isVisible, onClose }) => {
       setBusy(true);
       const auth = getAuth();
 
-      // Varmista että currentUser on olemassa (anon fallback)
+      // Ensure currentUser exists (anonymous fallback)
       if (!auth.currentUser) {
         console.log('[Link] No currentUser → signInAnon fallback');
-        const res = await signInAnon(); 
+        const res = await signInAnon();
         console.log('[Link] Signed in anonymously, uid:', res?.user?.uid);
       }
 
@@ -44,7 +52,7 @@ const Linked = ({ isVisible, onClose }) => {
       const newUid = currentUser.uid;
       console.log('[Link] Link success, uid (same):', newUid);
 
-      // Migraatio jos id vaihtuu (yleensä EI linkityksessä)
+      // Migrate data if id changes (usually does NOT happen in linking)
       const oldUuid = playerId;
       if (oldUuid && oldUuid !== newUid) {
         console.log('[Link] Migrating data from', oldUuid, '→', newUid);

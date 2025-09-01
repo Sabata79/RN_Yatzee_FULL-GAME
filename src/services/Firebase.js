@@ -1,3 +1,11 @@
+/**
+ * Firebase - Centralized Firebase utility for authentication, database, and remote config.
+ *
+ * JSDoc comments and inline code comments must always be in English.
+ * This file provides modular access to Firebase services for the app.
+ * @author Sabata79
+ * @since 2025-08-29
+ */
 // components/Firebase.js (modular, centralized)
 import { getApp } from '@react-native-firebase/app';
 
@@ -59,7 +67,6 @@ export const dbOff = (path, cb) => {
   const r = dbRef(path);
   return r.off('value', cb);
 };
-
 
 // RC helpers
 export const rcSetDefaults = (defaults) => setDefaults(getRemoteConfig(), defaults);
