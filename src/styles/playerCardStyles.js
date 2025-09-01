@@ -7,6 +7,9 @@
 
 import { StyleSheet } from 'react-native';
 import { Dimensions } from 'react-native';
+import COLORS from '../constants/colors';
+import TYPOGRAPHY from '../constants/typography';
+import SPACING from '../constants/spacing';
 
 const { width, height } = Dimensions.get('window');
 const isFoldScreen = width < 800;

@@ -5,6 +5,9 @@
  * @module styles/EnergyTokenStyles
  */
 import { StyleSheet } from 'react-native';
+import COLORS from '../constants/colors';
+import TYPOGRAPHY from '../constants/typography';
+import SPACING from '../constants/spacing';
 
 const styles = StyleSheet.create({
   energyContainer: {

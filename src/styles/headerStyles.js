@@ -7,6 +7,9 @@
 // NOTICE: These styles are made whit section flex and flexDirection row. The styles are used in the Header.js component
 
 import { StyleSheet, Dimensions, StatusBar, Platform } from 'react-native';
+import COLORS from '../constants/colors';
+import TYPOGRAPHY from '../constants/typography';
+import SPACING from '../constants/spacing';
 
 const { height, width } = Dimensions.get('window');
 const isSmallScreen = height < 650;

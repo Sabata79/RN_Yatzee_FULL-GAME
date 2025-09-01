@@ -6,6 +6,9 @@
  */
 
 import { StyleSheet } from 'react-native';
+import COLORS from '../constants/colors';
+import TYPOGRAPHY from '../constants/typography';
+import SPACING from '../constants/spacing';
 
 export const recoverStyles = StyleSheet.create({
 

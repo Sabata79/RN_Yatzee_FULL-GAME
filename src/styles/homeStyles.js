@@ -5,6 +5,9 @@
  * @module styles/homeStyles
  */
 import { StyleSheet, Dimensions } from 'react-native';
+import COLORS from '../constants/colors';
+import TYPOGRAPHY from '../constants/typography';
+import SPACING from '../constants/spacing';
 
 const { width } = Dimensions.get('window');
 
