@@ -29,7 +29,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
   const [weeklyRank, setWeeklyRank] = useState('--');
   const [isAvatarModalVisible, setIsAvatarModalVisible] = useState(false);
   const [topScores, setTopScores] = useState([]);
-  const [isModalModalVisible, setModalModalVisible] = useState(false); // (legacy variable, kept for compatibility)
+  const [isModalModalVisible, setModalModalVisible] = useState(false);
   const [playedGames, setPlayedGames] = useState(0);
   const [avgPoints, setAvgPoints] = useState(0);
   const [avgDuration, setAvgDuration] = useState(0);
@@ -98,6 +98,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     return bg ? bg.display : require('../../assets/playerCardBg/BeginnerBG.webp');
   };
 
+
   // ----- LEVEL COMPUTATION -----
   const getPlayerLevelInfo = () => {
     const games = playedGames;
@@ -138,6 +139,10 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
 
   const previousMonthRank = currentMonth > 0 ? monthlyRanks[currentMonth - 1] : '--';
   const levelInfo = getPlayerLevelInfo();
+
+  // Tumman taustan tunnistus
+  const bgInfo = PlayercardBg.find(bg => bg.level.toLowerCase() === levelInfo.level.toLowerCase());
+  const isDarkBg = bgInfo?.isDark;
 
   // ----- EFFECT: attach/detach all listeners when modal is open -----
   useEffect(() => {
@@ -422,7 +427,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
       <Text
         style={[
           styles.playerCardMonthText,
-          { fontWeight: 'bold', marginTop: 20, fontSize: 18, backgroundColor: '#00000000' },
+          { fontWeight: 'bold', marginTop: '40%', fontSize: 18, backgroundColor: '#00000000' },
         ]}
       >
         {rank}.
@@ -440,11 +445,11 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
       >
         <View style={styles.playerCardModalBackground}>
           <View
-            style={styles.playerCardModalContainer}
+            style={[styles.playerCardModalContainer, isDarkBg && styles.playerCardModalContainerDark]}
             onLayout={(event) => setModalHeight(event.nativeEvent.layout.height)}
           >
             <Image source={getPlayerCardBackground(levelInfo.level)} style={styles.avatarModalBackgroundImage} />
-            <CoinLayer weeklyWins={weeklyWins} modalHeight={modalHeight} />
+            <CoinLayer weeklyWins={weeklyWins} modalHeight={modalHeight -2} />
 
             {/* HEADER */}
             <View style={styles.playerCardHeaderCentered}>
@@ -454,7 +459,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
                     <FontAwesome5 name="link" size={10} color="gold" />
                   </View>
                 )}
-                <Text style={styles.playerCardNameTextCentered}>{nameToUse}</Text>
+                <Text style={[styles.playerCardNameTextCentered, isDarkBg && styles.playerCardNameTextCenteredDark]}>{nameToUse}</Text>
               </View>
               <Pressable
                 style={styles.playerCardCloseButton}
@@ -463,7 +468,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
                   setModalVisible(false);
                 }}
               >
-                <Text style={styles.playerCardCloseText}>X</Text>
+                <Text style={[styles.playerCardCloseText, isDarkBg && styles.playerCardCloseTextDark]}>X</Text>
               </Pressable>
             </View>
 
@@ -486,38 +491,46 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
                 )}
               </View>
 
-              <View style={styles.playerTextContainer}>
-                <Text style={styles.playerStat}>Level: {levelInfo.level}</Text>
+              <View style={[styles.playerTextContainer, isDarkBg && styles.playerTextContainerDark]}>
+                <Text style={[styles.playerStat, isDarkBg && styles.playerCardTextDark]}>Level: {levelInfo.level}</Text>
                 <View style={styles.progressBar}>
                   <View style={[styles.progressFill, { width: `${levelInfo.progress * 100}%` }]} />
-                  <Text style={styles.progressPercentageText}>{Math.floor(levelInfo.progress * 100)}%</Text>
+                  <Text style={[styles.progressPercentageText, isDarkBg && styles.playerCardTextDark]}>{Math.floor(levelInfo.progress * 100)}%</Text>
                 </View>
                 <View style={styles.playerStatsContainer}>
-                  <Text style={styles.playerStat}>All Time Rank: {viewingAllTimeRank}</Text>
-                  <Text style={styles.playerStat}>Weekly Wins: {weeklyWins}</Text>
-                  <Text style={styles.playerStat}>Played Games: {playedGames}</Text>
-                  <Text style={styles.playerStat}>Avg. Points/Game: {avgPoints}</Text>
-                  <Text style={styles.playerStat}>Avg Duration/Game: {avgDuration} s</Text>
+                  <Text style={[styles.playerStat, isDarkBg && styles.playerCardTextDark]}>All Time Rank: {viewingAllTimeRank}</Text>
+                  <Text style={[styles.playerStat, isDarkBg && styles.playerCardTextDark]}>Weekly Wins: {weeklyWins}</Text>
+                  <Text style={[styles.playerStat, isDarkBg && styles.playerCardTextDark]}>Played Games: {playedGames}</Text>
+                  <Text style={[styles.playerStat, isDarkBg && styles.playerCardTextDark]}>Avg. Points/Game: {avgPoints}</Text>
+                  <Text style={[styles.playerStat, isDarkBg && styles.playerCardTextDark]}>Avg Duration/Game: {avgDuration} s</Text>
                 </View>
               </View>
             </View>
 
             {/* TOP SCORES */}
-            <Text style={styles.playerCardScoresTitle}>TOP 5 SCORES</Text>
+            <Text style={[styles.playerCardScoresTitle, isDarkBg && styles.playerCardTextDark]}>TOP 5 SCORES</Text>
             <View style={styles.playerCardScoresContainer} contentContainerStyle={{ paddingTop: 2, paddingBottom: 5, flexGrow: 0 }}>
               {getTopScoresWithEmptySlots().map((score, index) => (
-                <View key={index} style={[styles.scoreRow, index % 2 === 0 ? styles.evenRow : styles.oddRow]}>
-                  <Text style={styles.playerCardScoreItem}>
+                <View
+                  key={index}
+                  style={[
+                    styles.scoreRow,
+                    index % 2 === 0
+                      ? [styles.evenRow, isDarkBg && styles.evenRowDark]
+                      : [styles.oddRow, isDarkBg && styles.oddRowDark]
+                  ]}
+                >
+                  <Text style={[styles.playerCardScoreItem, isDarkBg && styles.playerCardTextDark]}>
                     {index + 1}. {score.points} points in {score.duration} sec
                   </Text>
-                  <Text style={styles.playerCardScoreDate}>{score.date}</Text>
+                  <Text style={[styles.playerCardScoreDate, isDarkBg && styles.playerCardTextDark]}>{score.date}</Text>
                 </View>
               ))}
             </View>
 
             {/* TROPHIES */}
             <View style={styles.playerCardTrophyCase}>
-              <Text style={styles.playerCardTrophyCaseTitle}>TROPHIES {currentYear}</Text>
+              <Text style={[styles.playerCardTrophyCaseTitle, isDarkBg && styles.playerCardTextDark]}>TROPHIES {currentYear}</Text>
               <View style={styles.playerCardMonthsContainer}>
                 {Array(12).fill(null).map((_, index) => (
                   <View
@@ -525,6 +538,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
                     style={[
                       styles.playerCardMonth,
                       index === currentMonth ? styles.playerCardOngoingMonth : null,
+                      isDarkBg && styles.playerCardMonthDark,
                     ]}
                   >
                     <Text style={styles.playerCardMonthText}>{monthNames[index]}</Text>

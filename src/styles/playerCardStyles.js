@@ -1,3 +1,4 @@
+
 import { StyleSheet } from 'react-native';
 import { Dimensions } from 'react-native';
 
@@ -7,6 +8,9 @@ const avatarSize = isFoldScreen ? 75 : 80;
 
 
 export default styles = StyleSheet.create({
+    playerCardMonthDark: {
+        borderColor: '#F5F5F5',
+    },
 
     // PlayerCard Styles
     playerCardContainer: {
@@ -38,7 +42,10 @@ export default styles = StyleSheet.create({
         marginBottom: 5,
         marginTop: 20,
         borderRadius: 3,
-        backgroundColor: '#00000030',
+        backgroundColor: '#99949430',
+    },
+    playerTextContainerDark: {
+        backgroundColor: '#574e4e55',
     },
     playerCardModalBackground: {
         flex: 1,
@@ -58,6 +65,10 @@ export default styles = StyleSheet.create({
         alignItems: 'center',
         position: 'relative',
         overflow: 'hidden',
+    },
+    playerCardModalContainerDark: {
+        borderWidth: 0.5,
+        borderColor: '#6d6161',
     },
     avatarModalBackgroundImage: {
         position: 'absolute',
@@ -92,7 +103,7 @@ export default styles = StyleSheet.create({
         color: 'black',
         fontSize: 9,
         fontWeight: 'bold',
-        backgroundColor: '#f3f3f3',
+        backgroundColor: '#F5F5F5',
     },
     // Avatar Styles
     avatarContainer: {
@@ -108,7 +119,7 @@ export default styles = StyleSheet.create({
         marginTop: 10,
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: '#ffffff00',
+        backgroundColor: '#4f4d4d57',
     },
     avatarModalBackground: {
         flex: 1,
@@ -219,11 +230,17 @@ export default styles = StyleSheet.create({
         height: 90,
     },
     evenRow: {
-        backgroundColor: '#ffffff00', // tai läpinäkyvä
+        backgroundColor: '#ffffff00', 
+    },
+    evenRowDark: {
+        backgroundColor: '#a9a6a658',
     },
 
     oddRow: {
-        backgroundColor: '#00000010', // kevyt tumma korostus, voit säätää
+        backgroundColor: '#00000010', 
+    },
+    oddRowDark: {
+        backgroundColor: '#4543438f',
     },
     playerCardScoresTitle: {
         marginTop: 10,
@@ -294,6 +311,7 @@ export default styles = StyleSheet.create({
 
     playerCardMonthText: {
         fontSize: 11,
+        width: '100%',
         fontWeight: 'bold',
         textAlign: 'center',
         color: '#000',
@@ -302,7 +320,6 @@ export default styles = StyleSheet.create({
         marginBottom: 10,
         zIndex: 2,
         backgroundColor: '#ffffff8e',
-        width: 56,
         borderTopLeftRadius: 3,
         borderTopRightRadius: 3,
     },
@@ -327,6 +344,9 @@ export default styles = StyleSheet.create({
         fontWeight: 'bold',
         zIndex: 10,
         padding: 5,
+    },
+    playerCardCloseTextDark: {
+        color: '#F5F5F5',
     },
     nameAndLinkContainer: {
         flexDirection: 'row',
@@ -360,7 +380,7 @@ export default styles = StyleSheet.create({
         height: 15,
         marginLeft: 5,
         marginRight: 5,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: '#F5F5F5',
         borderRadius: 2,
         marginVertical: 2,
         position: 'relative',
@@ -426,6 +446,16 @@ export default styles = StyleSheet.create({
         fontWeight: 'bold',
         color: '#000',
         textAlign: 'center',
+    },
+    playerCardNameTextCenteredDark: {
+        color: '#F5F5F5',
+    },
+
+    playerCardTextDark: {
+        color: '#F5F5F5',
+        textShadowColor: '#000',
+        textShadowOffset: { width: 1, height: 1 },
+        textShadowRadius: 2,
     },
 
     playerCardCloseButton: {
