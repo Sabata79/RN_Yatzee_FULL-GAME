@@ -1,3 +1,11 @@
+/**
+ * RulesScreen - Multi-tab screen for game rules, account linking, and interface guide.
+ *
+ * JSDoc comments and inline code comments must always be in English.
+ * This file displays the rules, account linking info, and interface guide in tabs.
+ * @author Sabata79
+ * @since 2025-08-29
+ */
 import { useState } from 'react';
 import { Dimensions, useWindowDimensions, ImageBackground, View } from 'react-native';
 import { TabView, SceneMap, TabBar } from 'react-native-tab-view';

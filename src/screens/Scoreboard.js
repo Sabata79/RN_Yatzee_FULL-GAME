@@ -1,3 +1,11 @@
+/**
+ * Scoreboard - Screen for displaying player rankings and player cards.
+ *
+ * JSDoc comments and inline code comments must always be in English.
+ * This file displays the leaderboard and allows viewing player cards.
+ * @author Sabata79
+ * @since 2025-08-29
+ */
 // Scoreboard screen: shows player rankings (all time, monthly, weekly) and allows viewing player cards
 import { useState, useEffect } from 'react';
 import { View, Text, ScrollView, ImageBackground, TouchableOpacity, Image } from 'react-native';

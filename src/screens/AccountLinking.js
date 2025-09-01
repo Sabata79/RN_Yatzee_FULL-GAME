@@ -1,3 +1,11 @@
+/**
+ * AccountLinking - Screen for displaying account linking information.
+ *
+ * JSDoc comments and inline code comments must always be in English.
+ * This file displays information and instructions for linking a user account.
+ * @author Sabata79
+ * @since 2025-08-29
+ */
 // Account linking info screen component
 import { ScrollView, View, Text, StyleSheet } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';

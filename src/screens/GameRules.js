@@ -1,3 +1,11 @@
+/**
+ * GameRules - Screen for displaying gameplay rules and combinations.
+ *
+ * JSDoc comments and inline code comments must always be in English.
+ * This file displays the rules and scoring combinations for the game.
+ * @author Sabata79
+ * @since 2025-08-29
+ */
 // components/GameRules.js
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';

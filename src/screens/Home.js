@@ -1,3 +1,11 @@
+/**
+ * Home - Main screen for player login, linking, recovery, and welcome video.
+ *
+ * JSDoc comments and inline code comments must always be in English.
+ * This file handles player login, account linking, recovery, and welcome video.
+ * @author Sabata79
+ * @since 2025-08-29
+ */
 import { useState, useEffect, useRef } from "react";
 import { View, Text, TextInput, Pressable, Alert, ImageBackground, Image, Animated } from "react-native";
 import * as SecureStore from "expo-secure-store";

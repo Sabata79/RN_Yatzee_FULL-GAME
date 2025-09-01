@@ -1,3 +1,11 @@
+/**
+ * Header - App header component with logo, avatar, and energy tokens.
+ *
+ * JSDoc comments and inline code comments must always be in English.
+ * This file displays the app header, logo, avatar, and energy token system.
+ * @author Sabata79
+ * @since 2025-08-29
+ */
 import { useState } from 'react';
 import { View, Text, Pressable, Image, Modal } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';

@@ -1,3 +1,11 @@
+/**
+ * Gameboard - Main game screen for playing Yatzy.
+ *
+ * JSDoc comments and inline code comments must always be in English.
+ * This file contains the main gameplay logic, dice, and scoreboard for Yatzy.
+ * @author Sabata79
+ * @since 2025-08-29
+ */
 import { useState, useEffect } from 'react';
 import { FlatList, Text, View, Pressable, ImageBackground, Animated, Dimensions } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';

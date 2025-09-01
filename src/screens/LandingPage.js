@@ -1,3 +1,11 @@
+/**
+ * LandingPage - Screen for app boot, progress, and remote config loading.
+ *
+ * JSDoc comments and inline code comments must always be in English.
+ * This file handles the app's initial loading, progress bar, and remote config fetch.
+ * @author Sabata79
+ * @since 2025-08-29
+ */
 // LandingPage screen: handles app boot, progress, and remote config
 import { useState, useEffect, useRef } from "react";
 import { View, Text, Image, Animated, Alert, Linking } from "react-native";

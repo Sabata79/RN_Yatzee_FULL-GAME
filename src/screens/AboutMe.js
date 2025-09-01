@@ -1,3 +1,11 @@
+/**
+ * AboutMe - Screen for displaying app info, features, and contact links.
+ *
+ * JSDoc comments and inline code comments must always be in English.
+ * This file displays information about the app, its features, and contact details.
+ * @author Sabata79
+ * @since 2025-08-29
+ */
 // components/AboutMe.js
 import {
   ScrollView,
