@@ -4,7 +4,12 @@
  * JSDoc comments and inline code comments must always be in English.
  * @module styles/updateModalStyles
  */
-export default updateModalStyles = {
+import { StyleSheet } from 'react-native';
+import COLORS from '../constants/colors';
+import TYPOGRAPHY from '../constants/typography';
+import SPACING from '../constants/spacing';
+
+export default updateModalStyles = StyleSheet.create({
   updateModalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -57,5 +62,5 @@ export default updateModalStyles = {
     color: 'white',
     fontWeight: 'bold',
   },
-};
+});
 
