@@ -1,3 +1,11 @@
+/**
+ * DicePaths - Dice face image paths for the game.
+ *
+ * JSDoc comments and inline code comments must always be in English.
+ * This file defines the image paths for each dice face used in the game.
+ * @author Sabata79
+ * @since 2025-08-29
+ */
 // Dice face paths for the game
 export const dicefaces = [
     { path: '../../assets/dicesides/1-dice.webp', display: require('../../assets/dicesides/1-dice.webp') },

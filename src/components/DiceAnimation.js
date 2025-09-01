@@ -1,3 +1,11 @@
+/**
+ * DiceAnimation - Dice animation component for rolling dice.
+ *
+ * JSDoc comments and inline code comments must always be in English.
+ * This file animates dice rolling using a sprite sheet for the game UI.
+ * @author Sabata79
+ * @since 2025-08-29
+ */
 import { useEffect }  from 'react';
 import { Animated, Image, TouchableOpacity, View, StyleSheet,Easing } from 'react-native';
 

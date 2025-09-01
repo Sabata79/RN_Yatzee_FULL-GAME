@@ -1,3 +1,11 @@
+/**
+ * CoinLayer - Animated layer for displaying falling coins based on weekly wins.
+ *
+ * JSDoc comments and inline code comments must always be in English.
+ * This file animates coins falling in the player card modal based on the number of weekly wins.
+ * @author Sabata79
+ * @since 2025-08-29
+ */
 import { useEffect, useState } from 'react';
 import { View, Animated, StyleSheet, Dimensions, Easing } from 'react-native';
 import Coin, { COIN_SIZE } from './Coin';

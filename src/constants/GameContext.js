@@ -1,3 +1,11 @@
+/**
+ * GameContext - Context provider for global game state management.
+ *
+ * JSDoc comments and inline code comments must always be in English.
+ * This file provides the React context for sharing game state across components.
+ * @author Sabata79
+ * @since 2025-08-29
+ */
 // Game context provider for global state management
 import { createContext, useState, useContext, useEffect } from 'react';
 import { dbOnValue, dbOff, dbGet, dbSet } from '../services/Firebase';

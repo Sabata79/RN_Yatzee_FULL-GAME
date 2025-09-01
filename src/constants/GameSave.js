@@ -1,3 +1,11 @@
+/**
+ * GameSave - Utility for saving player scores and game progress.
+ *
+ * JSDoc comments and inline code comments must always be in English.
+ * This file provides functions for saving player scores to the database and secure storage.
+ * @author Sabata79
+ * @since 2025-08-29
+ */
 // GameSave utility for saving player scores
 import * as SecureStore from 'expo-secure-store';
 import { useGame } from './GameContext';
@@ -30,7 +38,7 @@ const GameSave = ({ totalPoints }) => {
     }
 
     try {
-  // Fetch player data
+      // Fetch player data
       const snap = await dbGet(`players/${uid}`);
       const playerData = snap.val();
 
@@ -39,7 +47,7 @@ const GameSave = ({ totalPoints }) => {
         return false;
       }
 
-  // Create a new key for the score
+      // Create a new key for the score
       const scoresPath = `players/${uid}/scores`;
       const newRef = push(dbRef(scoresPath));
       const newKey = newRef.key;
@@ -55,12 +63,12 @@ const GameSave = ({ totalPoints }) => {
         duration: elapsedTime,
       };
 
-  // Update top scores (merge old + new, sort, limit)
+      // Update top scores (merge old + new, sort, limit)
       const prevScores = playerData.scores ? Object.values(playerData.scores) : [];
       const updatedScores = [...prevScores, playerPoints].sort((a, b) => b.points - a.points);
       const topScores = updatedScores.slice(0, TOPSCORELIMIT);
 
-  // Write back as an object with keys
+      // Write back as an object with keys
       const scoresObj = topScores.reduce((acc, s) => {
         acc[s.key] = s;
         return acc;
@@ -68,7 +76,7 @@ const GameSave = ({ totalPoints }) => {
 
       await dbSet(scoresPath, scoresObj);
 
-  // Mark the game as saved
+      // Mark the game as saved
       if (typeof saveGame === 'function') saveGame();
 
       return true;

@@ -1,3 +1,11 @@
+/**
+ * Coin - Animated coin component for use in CoinLayer.
+ *
+ * JSDoc comments and inline code comments must always be in English.
+ * This file renders a single animated coin image.
+ * @author Sabata79
+ * @since 2025-08-29
+ */
 // components/Coin.js
 import { Animated, StyleSheet } from 'react-native';
 

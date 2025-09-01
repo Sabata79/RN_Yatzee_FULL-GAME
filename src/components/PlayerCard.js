@@ -1,3 +1,11 @@
+/**
+ * PlayerCard - Modal component for displaying player profile, stats, and trophies.
+ *
+ * JSDoc comments and inline code comments must always be in English.
+ * This file displays the player's card with avatar, stats, top scores, and trophies.
+ * @author Sabata79
+ * @since 2025-08-29
+ */
 import { useState, useEffect } from 'react';
 import { View, Text, Modal, Pressable, Image } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';

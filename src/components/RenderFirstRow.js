@@ -1,3 +1,11 @@
+/**
+ * RenderFirstRow - Renders the top row of the game UI, including timer and category labels.
+ *
+ * JSDoc comments and inline code comments must always be in English.
+ * This file displays the timer and category labels at the top of the game screen.
+ * @author Sabata79
+ * @since 2025-08-29
+ */
 import { useEffect, useState } from 'react';
 import { View, Text, Animated } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';

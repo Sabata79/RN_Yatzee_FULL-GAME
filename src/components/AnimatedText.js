@@ -1,3 +1,11 @@
+/**
+ * GlowingText - Animated glowing text component.
+ *
+ * JSDoc comments and inline code comments must always be in English.
+ * This file displays animated glowing text for highlights or effects.
+ * @author Sabata79
+ * @since 2025-08-29
+ */
 import { useState, useEffect } from 'react';
 import { Animated } from 'react-native';
 

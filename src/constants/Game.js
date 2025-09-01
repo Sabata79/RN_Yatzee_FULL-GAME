@@ -1,3 +1,11 @@
+/**
+ * Game - Game constants and rules definitions.
+ *
+ * JSDoc comments and inline code comments must always be in English.
+ * This file defines the main constants and rules for the Yatzy game.
+ * @author Sabata79
+ * @since 2025-08-29
+ */
 // Game constants
 // Description: These constants define the rules and limits for the game.
 
