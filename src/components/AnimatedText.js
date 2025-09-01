@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Text, Animated } from 'react-native';
+import { Animated } from 'react-native';
 
 // Animated glowing text component
 export default function GlowingText({ children }) {
