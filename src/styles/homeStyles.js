@@ -17,7 +17,7 @@ const styles = StyleSheet.create({
   },
   overlay: {
     flex: 1,
-   backgroundColor: 'rgba(0, 0, 0, 0.7)', // Soft dark overlay
+    backgroundColor: COLORS.overlayDark, // Soft dark overlay
     padding: 20,
     justifyContent: 'center',
     alignItems: 'center',

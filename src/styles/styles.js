@@ -498,12 +498,6 @@ export default styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'center',
     },
-    rulesContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        textAlign: 'center',
-    },
     rulesContent: {
         justifyContent: 'center',
         alignItems: 'center',

@@ -32,7 +32,8 @@
  * @property {string} background      - Default background color (#f5f6fa)
  * @property {string} backgroundDark  - Slightly darker background (#d1d8e0)
  * @property {string} text            - Main text color (#222f3e)
- * @property {string} textLight       - Light text for dark backgrounds (#8395a7)
+ * @property {string} textLight       - Light text for dark backgrounds (#F5F5F5)
+ * @property {string} textDark        - Dark text for light backgrounds (#000000)
  * @property {string} info            - Informational color (#2980b9)
  * @property {string} disabled        - Disabled state color (#b2bec3)
  * @property {string} border          - Border color (#dfe4ea)
@@ -61,8 +62,12 @@ export const COLORS = {
   background: '#f5f6fa',
   backgroundDark: '#d1d8e0',
 
+  overlayDark: 'rgba(0, 0, 0, 0.7)',      // For dark overlays
+  overlayLight: 'rgba(255, 255, 255, 0.1)', // For light overlays
+
   text: '#222f3e',
-  textLight: '#8395a7',
+  textLight: '#F5F5F5',
+  textDark: '#000000',
 
   info: '#2980b9',
   disabled: '#b2bec3',
