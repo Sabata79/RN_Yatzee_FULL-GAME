@@ -1,42 +1,92 @@
-
 /**
  * colors.js - Global color palette for BubbleApp
  *
  * Centralizes all main color definitions, including dark and light shades, for easy theme management and consistency.
  * Import COLORS to use e.g. COLORS.primary, COLORS.secondary, etc. throughout the app.
- * shadow usage ...Colors.shadow in styleSheets
+ * shadow usage ...COLORS.shadow in styleSheets
  * @author Sabata79
  * @since 2025-08-29
+ *
+ * Common usage:
+ *  - COLORS.primary, COLORS.primaryLight, COLORS.primaryDark
+ *  - COLORS.secondary, COLORS.secondaryLight, COLORS.secondaryDark
+ *  - COLORS.accent, COLORS.accentLight, COLORS.accentDark
+ *  - COLORS.background, COLORS.backgroundDark
+ *  - COLORS.text, COLORS.textLight
+ *  - COLORS.info, COLORS.disabled, COLORS.border
+ *  - COLORS.error, COLORS.warning, COLORS.success
+ *  - COLORS.shadow, COLORS.whiteShadow
  */
 
 /**
  * @typedef {Object} COLORS
- * @property {string} primary   - Main brand color (#3498db)
- * @property {string} secondary - Secondary accent color (#2ecc71)
- * @property {string} accent    - Highlight/accent color (#e67e22)
- * @property {string} background - Default background color (#f5f6fa)
- * @property {string} text      - Main text color (#222f3e)
- * @property {string} white     - White color (#ffffff)
- * @property {string} black     - Black color (#000000)
- * @property {string} error     - Error color (#e74c3c)
- * @property {string} warning   - Warning color (#f1c40f)
- * @property {string} success   - Success color (#27ae60)
+ * @property {string} primary         - Main brand color (#3498db)
+ * @property {string} primaryLight    - Lighter shade of primary (#5dade2)
+ * @property {string} primaryDark     - Darker shade of primary (#21618c)
+ * @property {string} secondary       - Secondary accent color (#2ecc71)
+ * @property {string} secondaryLight  - Lighter shade of secondary (#58d68d)
+ * @property {string} secondaryDark   - Darker shade of secondary (#239b56)
+ * @property {string} accent          - Highlight/accent color (#e67e22)
+ * @property {string} accentLight     - Lighter shade of accent (#ffb366)
+ * @property {string} accentDark      - Darker shade of accent (#a04000)
+ * @property {string} background      - Default background color (#f5f6fa)
+ * @property {string} backgroundDark  - Slightly darker background (#d1d8e0)
+ * @property {string} text            - Main text color (#222f3e)
+ * @property {string} textLight       - Light text for dark backgrounds (#8395a7)
+ * @property {string} info            - Informational color (#2980b9)
+ * @property {string} disabled        - Disabled state color (#b2bec3)
+ * @property {string} border          - Border color (#dfe4ea)
+ * @property {string} white           - White color (#ffffff)
+ * @property {string} black           - Black color (#000000)
+ * @property {string} error           - Error color (#e74c3c)
+ * @property {string} warning         - Warning color (#f1c40f)
+ * @property {string} success         - Success color (#27ae60)
+ * @property {string} shadow          - Shadow color (#000000)
+ * @property {Object} shadowStyle     - Shadow style object for dark backgrounds
+ * @property {Object} whiteShadow     - Shadow style object for light backgrounds
  */
 export const COLORS = {
   primary: '#3498db',
+  primaryLight: '#5dade2',
+  primaryDark: '#21618c',
+
   secondary: '#2ecc71',
+  secondaryLight: '#58d68d',
+  secondaryDark: '#239b56',
+
   accent: '#e67e22',
+  accentLight: '#ffb366',
+  accentDark: '#a04000',
+
   background: '#f5f6fa',
+  backgroundDark: '#d1d8e0',
+
   text: '#222f3e',
+  textLight: '#8395a7',
+
+  info: '#2980b9',
+  disabled: '#b2bec3',
+  border: '#dfe4ea',
+
   white: '#ffffff',
   black: '#000000',
+
   error: '#e74c3c',
   warning: '#f1c40f',
   success: '#27ae60',
-  // shadow
+
+  // shadow for dark backgrounds
   shadow: '#000000',
   shadowStyle: {
-    shadowColor: '#00000',
+    shadowColor: '#000000',
+    shadowOpacity: 0.14,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
+  },
+  // white shadow style for light backgrounds
+  whiteShadow: {
+    shadowColor: '#ffffff',
     shadowOpacity: 0.14,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 2 },
