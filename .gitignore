@@ -5,6 +5,7 @@ eas.config.js
 babel.config.js
 checkfonts.js
 metro.config.js
+.github
 # Editor settings
 .vscode/
 
