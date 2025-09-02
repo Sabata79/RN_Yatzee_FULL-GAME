@@ -19,7 +19,7 @@ import About from './src/screens/AboutMe';
 import Rules from './src/screens/Rules';
 import Header from './src/screens/Header';
 
-import updateModalStyles from './src/styles/updateModalStyles';
+import updateModalStyles from './src/styles/UpdateModalStyles';
 
 const { height } = Dimensions.get('window');
 const isSmallScreen = height < 720;
@@ -260,6 +260,16 @@ function AppShell() {
 export default function App() {
   const [loaded] = useFonts({
     AntonRegular: require('./assets/fonts/Anton-Regular.ttf'),
+    BangersRegular: require('./assets/fonts/Bangers-Regular.ttf'),
+    MontserratBlack: require('./assets/fonts/Montserrat-Black.ttf'),
+    MontserratExtraBold: require('./assets/fonts/Montserrat-ExtraBold.ttf'),
+    MontserratBold: require('./assets/fonts/Montserrat-Bold.ttf'),
+    MontserratSemiBold: require('./assets/fonts/Montserrat-SemiBold.ttf'),
+    MontserratMedium: require('./assets/fonts/Montserrat-Medium.ttf'),
+    MontserratRegular: require('./assets/fonts/Montserrat-Regular.ttf'),
+    MontserratLight: require('./assets/fonts/Montserrat-Light.ttf'),
+    MontserratExtraLight: require('./assets/fonts/Montserrat-ExtraLight.ttf'),
+    MontserratThin: require('./assets/fonts/Montserrat-Thin.ttf'),
   });
 
   if (!loaded) return null;

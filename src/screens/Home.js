@@ -7,11 +7,12 @@
  * @since 2025-08-29
  */
 import { useState, useEffect, useRef } from "react";
-import { View, Text, TextInput, Pressable, Alert, ImageBackground, Image, Animated } from "react-native";
+import { View, Text, TextInput, Pressable, Alert, ImageBackground, Image, Animated, SafeAreaView } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { FontAwesome5 } from '@expo/vector-icons';
 import { VideoView, useVideoPlayer } from 'expo-video';
-import styles from '../styles/homeStyles';
+import styles from '../styles/styles';
+import homeStyles from '../styles/HomeStyles';
 import { dbGet, dbSet } from '../services/Firebase';
 import uuid from 'react-native-uuid';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
@@ -19,6 +20,7 @@ import { useGame } from '../constants/GameContext';
 import Linked from "../services/Linked";
 import Recover from "../services/Recover";
 import PlayerCard from "../components/PlayerCard";
+import HomeScreenButton from "../components/HomeScreenButton";
 
 // Home screen component: handles player login, linking, recovery, and welcome video
 export default function Home({ setPlayerId }) {
@@ -173,45 +175,39 @@ export default function Home({ setPlayerId }) {
   const handleLinkAccount = () => setIsLinkModalVisible(true);
 
   return (
-    <ImageBackground source={require("../../assets/diceBackground.webp")} style={styles.background}>
-      <View style={styles.overlay}>
+    <ImageBackground style={styles.homeBackground}>
+      <SafeAreaView style={{ flex: 1 }}>
+        <View style={styles.overlay}>
         {!userRecognized ? (
-          <View style={styles.rulesContainer}>
+          <View style={homeStyles.rulesContainer}>
             <Text style={styles.rulesText}>Hi, Stranger! Can you tell your nickname?</Text>
             <Text style={styles.rulesAuxillaryText}>(Nickname must be 3-10 characters long.)</Text>
             <Image source={require("../../assets/register.webp")} style={styles.registerImage} />
             <TextInput
               ref={inputRef}
-              style={styles.input}
+              style={homeStyles.input}
               placeholder="Enter your nickname"
               placeholderTextColor={"white"}
               value={localName}
               onChangeText={(text) => setLocalName(sanitizeInput(text))}
             />
-            <Pressable
-              style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
-              onPressOut={handlePress}
-            >
-              <Text style={styles.buttonText}>OK</Text>
-            </Pressable>
-            <Pressable
-              style={({ pressed }) => [
-                styles.button,
-                pressed && styles.buttonPressed,
-                styles.fullWidthButton,
-              ]}
-              onPressOut={() => setIsRecoverModalVisible(true)}
-            >
-              <Text style={styles.buttonText}>Recover linked player</Text>
-              <FontAwesome5 name="redo" size={30} color="black" style={{ marginLeft: 'auto' }} />
-            </Pressable>
+            <HomeScreenButton
+              label="OK"
+              icon={<FontAwesome5 name="check" size={30} color="black" style={{ marginLeft: 8 }} />}
+              onPress={handlePress}
+            />
+            <HomeScreenButton
+              label="Recover linked player"
+              icon={<FontAwesome5 name="redo" size={30} color="black" style={{ marginLeft: 8 }} />}
+              onPress={() => setIsRecoverModalVisible(true)}
+            />
             <Recover
               isVisible={isRecoverModalVisible}
               onClose={() => setIsRecoverModalVisible(false)}
             />
           </View>
         ) : (
-          <View style={styles.rulesContainer}>
+          <View style={homeStyles.rulesContainer}>
             <Text style={styles.rulesText}>Hi {playerName}, let's roll the dice!</Text>
 
             {!videoError ? (
@@ -233,46 +229,27 @@ export default function Home({ setPlayerId }) {
               <Image source={require("../../assets/hiThere.webp")} style={styles.hiThereImage} />
             )}
 
-            <Pressable
-              style={({ pressed }) => [
-                styles.button,
-                pressed && styles.buttonPressed,
-                styles.fullWidthButton,
-              ]}
-              onPressOut={handlePlay}
-            >
-              <Text style={styles.buttonText}>PLAY</Text>
-              <FontAwesome5 name="play" size={30} color="black" style={{ marginLeft: 'auto' }} />
-            </Pressable>
-            <Pressable
-              style={({ pressed }) => [
-                styles.button,
-                pressed && styles.buttonPressed,
-                styles.fullWidthButton,
-              ]}
-              onPressOut={handleViewPlayerCard}
-            >
-              <Text style={styles.buttonText}>View Player Card</Text>
-              <FontAwesome5 name="id-card" size={30} color="black" style={{ marginLeft: 'auto' }} />
-            </Pressable>
-            <Pressable
-              style={({ pressed }) => [
-                styles.button,
-                pressed && styles.buttonPressed,
-                styles.fullWidthButton,
-              ]}
-              onPressOut={handleChangeName}
-            >
-              <Text style={styles.buttonText}>Change name</Text>
-              <FontAwesome5 name="user-edit" size={30} color="black" style={{ marginLeft: 'auto' }} />
-            </Pressable>
+            <HomeScreenButton
+              label="PLAY"
+              icon={<FontAwesome5 name="play" size={30} color="black" style={{ marginLeft: 8 }} />}
+              onPress={handlePlay}
+            />
+            <HomeScreenButton
+              label="View Player Card"
+              icon={<FontAwesome5 name="id-card" size={30} color="black" style={{ marginLeft: 8 }} />}
+              onPress={handleViewPlayerCard}
+            />
+            <HomeScreenButton
+              label="Change name"
+              icon={<FontAwesome5 name="user-edit" size={30} color="black" style={{ marginLeft: 8 }} />}
+              onPress={handleChangeName}
+            />
             {!isLinked && (
-              <Pressable
-                style={({ pressed }) => [styles.homeButton, pressed && styles.homeButtonPressed]}
-                onPressOut={handleLinkAccount}
-              >
-                <Text style={styles.buttonText}>Link your account</Text>
-              </Pressable>
+              <HomeScreenButton
+                label="Link your account"
+                icon={<FontAwesome5 name="link" size={30} color="black" style={{ marginLeft: 8 }} />}
+                onPress={handleLinkAccount}
+              />
             )}
             <Linked
               isVisible={isLinkModalVisible}
@@ -289,7 +266,8 @@ export default function Home({ setPlayerId }) {
             setModalVisible={setModalVisible}
           />
         )}
-      </View>
+        </View>
+      </SafeAreaView>
     </ImageBackground>
   );
 }

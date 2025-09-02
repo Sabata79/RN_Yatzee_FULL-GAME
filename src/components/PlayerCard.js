@@ -10,7 +10,7 @@ import { useState, useEffect } from 'react';
 import { View, Text, Modal, Pressable, Image } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useGame } from '../constants/GameContext';
-import styles from '../styles/playerCardStyles';
+import styles from '../styles/PlayerCardStyles';
 import { dbOnValue, dbOff, dbGet, dbUpdate } from '../services/Firebase';
 import { avatars } from '../constants/AvatarPaths';
 import AvatarContainer from '../constants/AvatarContainer';

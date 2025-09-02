@@ -13,7 +13,7 @@ import * as SecureStore from "expo-secure-store";
 import { signInAnon, dbGet } from "../services/Firebase";
 import { useGame } from "../constants/GameContext";
 import { ProgressBar } from "react-native-paper";
-import styles from "../styles/landingPageStyles";
+import styles from "../styles/LandingPageStyles";
 import Constants from "expo-constants";
 import { Asset } from "expo-asset";
 import { avatars } from "../constants/AvatarPaths";

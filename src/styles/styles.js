@@ -26,6 +26,14 @@ export default styles = StyleSheet.create({
         height: '100%',
         resizeMode: 'cover',
     },
+    homeBackground: {
+        flex: 1,
+        justifyContent: 'flex-start',
+        width: '100%',
+        height: '100%',
+        resizeMode: 'cover',
+        backgroundColor: '#000000',
+    },
     safeAreaView: {
         flex: 1,
     },
@@ -35,6 +43,8 @@ export default styles = StyleSheet.create({
         backgroundColor: 'rgba(0, 0, 0, 0.537)',
         maxWidth: 420,
         alignSelf: 'center',
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     titleContainer: {
         flexDirection: 'row',
@@ -49,17 +59,7 @@ export default styles = StyleSheet.create({
         flex: 1,
         right: 10,
     },
-    input: {
-        padding: 10,
-        width: "50%",
-        maxWidth: 250,
-        justifyContent: 'center',
-        textAlign: 'center',
-        fontFamily: 'AntonRegular',
-        color: 'white',
-        backgroundColor: '#6c6b6b',
-        borderRadius: 5,
-    },
+
     inputIndexShown: {
         fontSize: isSmallScreen ? 16 : isBigScreen ? 20 : 18,
         fontFamily: 'AntonRegular',
@@ -237,7 +237,7 @@ export default styles = StyleSheet.create({
         flexDirection: 'row',
         paddingLeft: 10,
         paddingRight: 10,
-        backgroundColor:'#c28d1af5',
+        backgroundColor: '#c28d1af5',
         borderWidth: 3,
         borderColor: '#ff4500',
         width: isSmallScreen ? '32%' : isBigScreen ? '45%' : '39%',
@@ -746,7 +746,7 @@ export default styles = StyleSheet.create({
         width: '100%',
         backgroundColor: 'rgba(0, 0, 0, 0.6)',
         padding: 5,
-        marginTop: 0, 
+        marginTop: 0,
     },
     tabText: {
         flex: 1,

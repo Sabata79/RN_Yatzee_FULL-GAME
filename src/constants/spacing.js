@@ -10,6 +10,7 @@
 
 /**
  * @typedef {Object} SPACING
+ * @property {number} xxs - Double extra small spacing (2)
  * @property {number} xs  - Extra small spacing (4)
  * @property {number} sm  - Small spacing (8)
  * @property {number} md  - Medium spacing (16)
@@ -18,6 +19,7 @@
  * @property {number} xxl - Double extra large spacing (40)
  */
 export const SPACING = {
+  xxs: 2,
   xs: 4,
   sm: 8,
   md: 16,

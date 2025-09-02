@@ -11,7 +11,7 @@ import { View, Text, Pressable, Image, Modal } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import PlayerCard from '../components/PlayerCard';
 import EnergyTokenSystem from '../components/EnergyTokenSystem';
-import headerStyles from '../styles/headerStyles';
+import headerStyles from '../styles/HeaderStyles';
 import { useGame } from '../constants/GameContext';
 import { avatars } from '../constants/AvatarPaths';
 

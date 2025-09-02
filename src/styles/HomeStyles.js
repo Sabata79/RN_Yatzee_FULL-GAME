@@ -12,22 +12,32 @@ import SPACING from '../constants/spacing';
 const { width } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-  },
-  overlay: {
-    flex: 1,
-    backgroundColor: COLORS.overlayDark, // Soft dark overlay
-    padding: 20,
+  // Only home-specific styles left here
+  input: {
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    width: '80%',
+    maxWidth: 400,
+    minHeight: 48,
     justifyContent: 'center',
-    alignItems: 'center',
+    textAlign: 'center',
+    fontFamily: 'BangersRegular',
+    fontSize: 20,
+    color: '#222',
+    backgroundColor: '#f5e9c6',
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: 'orange',
+    marginBottom: 18,
+    alignSelf: 'center',
+    letterSpacing: 1,
   },
+
   rulesContainer: {
     width: '100%',
-    padding: 20,
-   backgroundColor: 'rgba(0, 0, 0, 0.6)', // Uniform dark shade
-    borderRadius: 10,
     alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.982)',
+    borderRadius: 10,
   },
   rulesText: {
     fontSize: 20,
@@ -35,6 +45,8 @@ const styles = StyleSheet.create({
     fontFamily: 'AntonRegular',
     textAlign: 'center',
     marginBottom: 10,
+    padding: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.742)',
   },
   rulesAuxillaryText: {
     fontSize: 14,
@@ -48,18 +60,6 @@ const styles = StyleSheet.create({
     height: width * 0.65,
     resizeMode: 'contain',
     marginBottom: -20,
-  },
-  input: {
-    width: '80%',
-    borderColor: 'gold',
-    borderWidth: 1,
-    borderRadius: 5,
-    padding: 10,
-    fontSize: 16,
-    color: 'white',
-    marginBottom: 20,
-    fontFamily: 'Roboto',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
   },
   homeButton: {
     backgroundColor: '#eeac1ef5',
@@ -75,37 +75,11 @@ const styles = StyleSheet.create({
   homeButtonPressed: {
     opacity: 0.8,
   },
-  button: {
-    backgroundColor: '#eeac1ef5',
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-    borderRadius: 5,
-    marginBottom: 15,
-    width: '80%',
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'center',
-    borderWidth: 3,
-    borderColor: 'orange',
-  },
-  buttonPressed: {
-    opacity: 0.8,
-  },
-  fullWidthButton: {
-    width: '80%',
-  },
-  buttonText: {
-    color: 'black',
-    fontSize: 16,
-    fontFamily: 'AntonRegular',
-    textAlign: 'center',
-    marginRight: 10,
-  },
   hiThereImage: {
     width: width * 0.65,
     height: width * 0.65,
     resizeMode: 'contain',
-    marginVertical: -8,
+    backgroundColor: 'transparent',
   },
 });
 

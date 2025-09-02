@@ -8,7 +8,7 @@
  */
 import { useState } from 'react';
 import { Modal, View, Text, TextInput, Pressable, TouchableOpacity } from 'react-native';
-import { recoverStyles } from '../styles/recoverStyles';
+import { recoverStyles } from '../styles/RecoverStyles';
 import { FontAwesome5 } from '@expo/vector-icons';
 import * as SecureStore from 'expo-secure-store';
 import {
