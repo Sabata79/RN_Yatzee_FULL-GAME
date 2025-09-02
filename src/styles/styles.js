@@ -780,7 +780,7 @@ export default styles = StyleSheet.create({
         height: height * 0.4,
         maxWidth: 400,
         maxHeight: 400,
-        marginBottom: -30,
+        marginBottom: -60,
     },
     hiThereImage: {
         width: width * 1,

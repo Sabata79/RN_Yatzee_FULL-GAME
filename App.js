@@ -7,7 +7,7 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
 
 import { GameProvider } from './src/constants/GameContext';
@@ -210,8 +210,8 @@ function AppShell() {
   };
 
   return (
-    // Main app view, includes update modal and navigation
-    <View style={{ flex: 1, backgroundColor: '#000' }}>
+    // Main app view, now wrapped in SafeAreaView for edge-to-edge support
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#000' }} edges={['top', 'bottom', 'left', 'right']}>
       {/* Update modal */}
       <Modal
         visible={updateModalVisible}
@@ -239,7 +239,7 @@ function AppShell() {
               headerShown: true,
               swipeEnabled: false,
               header: () => (
-                <View style={{ paddingTop: insets.top, backgroundColor: '#000' }}>
+                <View style={{ backgroundColor: '#000' }}>
                   <Header isUserRecognized={isUserRecognized} name={name} playerId={playerId} />
                 </View>
               ),
@@ -252,7 +252,7 @@ function AppShell() {
 
       {/* Edge-to-edge: translucent so content can draw behind, we pad only where needed */}
       <StatusBar style="light" translucent backgroundColor="transparent" />
-    </View>
+    </SafeAreaView>
   );
 }
 

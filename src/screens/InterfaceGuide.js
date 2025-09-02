@@ -9,7 +9,7 @@
 // IntefaceGuide.js
 import { ScrollView, View, Text, StyleSheet, Image } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 
 export default function InterfaceGuide() {
@@ -17,15 +17,16 @@ export default function InterfaceGuide() {
   const tabBarHeight = useBottomTabBarHeight();
 
   return (
-        <ScrollView
-      contentContainerStyle={[
-        styles.container,
-        { paddingBottom: insets.bottom + tabBarHeight + 16 },
-      ]}
-      showsVerticalScrollIndicator={false}
-    >
-  {/* Title and icon */}
-      <View style={styles.sectionHeader}>
+    <SafeAreaView style={{ flex: 1 }}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.container,
+          { paddingBottom: insets.bottom + tabBarHeight + 16 },
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Title and icon */}
+        <View style={styles.sectionHeader}>
         <MaterialCommunityIcons name="compass-outline" size={24} color="gold" />
         <Text style={styles.sectionTitle}>Interface Guide</Text>
       </View>
@@ -102,8 +103,9 @@ export default function InterfaceGuide() {
         <Text style={styles.infoText}>Elite: 1201–2000 games</Text>
         <Text style={styles.infoText}>Legendary: 2000+ games</Text>
       </View>
-      <View style={{ height: 80 }} />
-    </ScrollView >
+        <View style={{ height: 80 }} />
+      </ScrollView >
+    </SafeAreaView>
   );
 }
 

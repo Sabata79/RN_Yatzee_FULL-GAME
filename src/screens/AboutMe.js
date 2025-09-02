@@ -21,7 +21,7 @@ import {
   aboutFeatures,
 } from '../constants/AboutContent';
 import { useGame } from '../constants/GameContext';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 
 // About screen component: shows app info, features, and contact links
@@ -31,26 +31,27 @@ export default function AboutMe() {
   const tabBarHeight = useBottomTabBarHeight();
 
   return (
-    // Main background image and overlay for the About screen
-    <ImageBackground
-      source={require('../../assets/diceBackground.webp')}
-      style={styles.background}
-      resizeMode="cover"
-    >
-      <View style={styles.overlay}>
-        <ScrollView
-          // Scrollable content for About screen
-          contentContainerStyle={[
-            styles.container,
-            {
-              // riittävä pohjatila navipalkin ylle
-              paddingBottom: insets.bottom + tabBarHeight + 16,
-            },
-          ]}
-          showsVerticalScrollIndicator={false}
-        >
-          {/* Profile image and title section */}
-          <View style={styles.headerInfoBox}>
+    <SafeAreaView style={{ flex: 1 }}>
+      {/* Main background image and overlay for the About screen */}
+      <ImageBackground
+        source={require('../../assets/diceBackground.webp')}
+        style={styles.background}
+        resizeMode="cover"
+      >
+        <View style={styles.overlay}>
+          <ScrollView
+            // Scrollable content for About screen
+            contentContainerStyle={[
+              styles.container,
+              {
+                // riittävä pohjatila navipalkin ylle
+                paddingBottom: insets.bottom + tabBarHeight + 16,
+              },
+            ]}
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Profile image and title section */}
+            <View style={styles.headerInfoBox}>
             <Image
               source={require('../../assets/profile.webp')}
               style={styles.profileImageLarge}
@@ -119,8 +120,9 @@ export default function AboutMe() {
             <Text style={styles.footerText}>© 2025 SMR Yatzy</Text>
           </View>
         </ScrollView>
-      </View>
-    </ImageBackground>
+        </View>
+      </ImageBackground>
+    </SafeAreaView>
   );
 }
 

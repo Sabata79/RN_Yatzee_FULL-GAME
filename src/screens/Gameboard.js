@@ -1,3 +1,4 @@
+import { SafeAreaView } from 'react-native-safe-area-context';
 /**
  * Gameboard - Main game screen for playing Yatzy.
  *
@@ -874,42 +875,44 @@ export default function Gameboard({ route, navigation }) {
         }
     };
     // Remove ImageBackground (if needed)
-    return (
-        <ImageBackground source={require('../../assets/diceBackground.webp')} style={styles.background}>
-            {isLayerVisible && (
-                <Pressable
-                    onPress={() => {
-                        if (!gameStarted && rounds === MAX_SPOTS) {
-                            handleStartGame();
-                        }
-                    }}
-                    style={styles.filterLayer}
-                >
-                    <GlowingText style={styles.centeredText}>
-                        START GAME
-                    </GlowingText>
-                </Pressable>
-            )}
+        return (
+            <SafeAreaView style={{ flex: 1 }}>
+                <ImageBackground source={require('../../assets/diceBackground.webp')} style={styles.background}>
+                    {isLayerVisible && (
+                        <Pressable
+                            onPress={() => {
+                                if (!gameStarted && rounds === MAX_SPOTS) {
+                                    handleStartGame();
+                                }
+                            }}
+                            style={styles.filterLayer}
+                        >
+                            <GlowingText style={styles.centeredText}>
+                                START GAME
+                            </GlowingText>
+                        </Pressable>
+                    )}
 
-            <View style={styles.overlay}>
-                <FlatList
-                    data={data}
-                    renderItem={({ item, index }) =>
-                        renderGrid({ item, index, scoringCategories, totalPoints, minorPoints })}
-                    numColumns={4}
-                    keyExtractor={(item) => item.key}
-                    contentContainerStyle={styles.container}
-                    ListHeaderComponent={<RenderFirstRow />}
-                    ListEmptyComponent={renderGrid}
-                    ListFooterComponent={renderDices}
-                />
-            </View>
+                    <View style={styles.overlay}>
+                        <FlatList
+                            data={data}
+                            renderItem={({ item, index }) =>
+                                renderGrid({ item, index, scoringCategories, totalPoints, minorPoints })}
+                            numColumns={4}
+                            keyExtractor={(item) => item.key}
+                            contentContainerStyle={styles.container}
+                            ListHeaderComponent={<RenderFirstRow />}
+                            ListEmptyComponent={renderGrid}
+                            ListFooterComponent={renderDices}
+                        />
+                    </View>
 
-            <ModalAlert
-                visible={modalVisible}
-                message={modalMessage}
-                onClose={() => setModalVisible(false)}
-            />
-        </ImageBackground>
-    );
+                    <ModalAlert
+                        visible={modalVisible}
+                        message={modalMessage}
+                        onClose={() => setModalVisible(false)}
+                    />
+                </ImageBackground>
+            </SafeAreaView>
+        );
 }

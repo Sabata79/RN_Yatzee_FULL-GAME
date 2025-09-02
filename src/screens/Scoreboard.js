@@ -18,7 +18,7 @@ import PlayerCard from '../components/PlayerCard';
 import { useGame } from '../constants/GameContext';
 import { avatars } from '../constants/AvatarPaths';
 import { dbOnValue } from '../services/Firebase';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 
 
@@ -147,22 +147,23 @@ export default function Scoreboard() {
   };
 
   return (
-    <ImageBackground
-      source={require('../../assets/diceBackground.webp')}
-      style={styles.background}
-    >
-      <View style={styles.overlay}>
-        <ScrollView
-          style={styles.container}
-          contentContainerStyle={{
-            // Enough bottom padding: safe area + tabbar + small buffer
-            paddingBottom: insets.bottom + tabBarHeight + 16,
-            // Optional: add top padding if needed
-            // paddingTop: 8,
-          }}
-          showsVerticalScrollIndicator={false}
-        >
-          <View style={styles.tabContainer}>
+    <SafeAreaView style={{ flex: 1 }}>
+      <ImageBackground
+        source={require('../../assets/diceBackground.webp')}
+        style={styles.background}
+      >
+        <View style={styles.overlay}>
+          <ScrollView
+            style={styles.container}
+            contentContainerStyle={{
+              // Enough bottom padding: safe area + tabbar + small buffer
+              paddingBottom: insets.bottom + tabBarHeight + 16,
+              // Optional: add top padding if needed
+              // paddingTop: 8,
+            }}
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={styles.tabContainer}>
             <TouchableOpacity
               style={scoreType === 'allTime' ? styles.activeTab : styles.inactiveTab}
               onPress={() => setScoreType('allTime')}
@@ -281,7 +282,8 @@ export default function Scoreboard() {
             }}
           />
         )}
-      </View>
-    </ImageBackground>
+        </View>
+      </ImageBackground>
+    </SafeAreaView>
   );
 }

@@ -175,19 +175,19 @@ export default function Home({ setPlayerId }) {
   const handleLinkAccount = () => setIsLinkModalVisible(true);
 
   return (
-    <ImageBackground style={styles.homeBackground}>
-      <SafeAreaView style={{ flex: 1 }}>
-        <View style={styles.overlay}>
+    <ImageBackground style={homeStyles.homeBackground}>
+  <View style={styles.overlay}>
         {!userRecognized ? (
-          <View style={homeStyles.rulesContainer}>
-            <Text style={styles.rulesText}>Hi, Stranger! Can you tell your nickname?</Text>
-            <Text style={styles.rulesAuxillaryText}>(Nickname must be 3-10 characters long.)</Text>
+          <View style={homeStyles.homeContainer}>
+            <Text style={homeStyles.homeText}>Hi, Stranger!</Text>
+            <Text style={homeStyles.homeText}>Can you tell your nickname?</Text>
+            <Text style={homeStyles.homeAuxillaryText}>(Nickname must be 3-10 characters long.)</Text>
             <Image source={require("../../assets/register.webp")} style={styles.registerImage} />
             <TextInput
               ref={inputRef}
               style={homeStyles.input}
               placeholder="Enter your nickname"
-              placeholderTextColor={"white"}
+              placeholderTextColor={"#222f3e"}
               value={localName}
               onChangeText={(text) => setLocalName(sanitizeInput(text))}
             />
@@ -207,13 +207,13 @@ export default function Home({ setPlayerId }) {
             />
           </View>
         ) : (
-          <View style={homeStyles.rulesContainer}>
-            <Text style={styles.rulesText}>Hi {playerName}, let's roll the dice!</Text>
-
+          <View style={homeStyles.homeContainer}>
+            <Text style={homeStyles.homeText}>Hi {playerName},</Text>
+            <Text style={homeStyles.homeText}>Ready to roll the dice?</Text>
             {!videoError ? (
               <VideoView
                 player={videoPlayer}
-                style={styles.hiThereImage}
+                style={homeStyles.hiThereImage}
                 contentFit="contain"
                 nativeControls={false}
                 allowsFullscreen={false}
@@ -266,8 +266,7 @@ export default function Home({ setPlayerId }) {
             setModalVisible={setModalVisible}
           />
         )}
-        </View>
-      </SafeAreaView>
+  </View>
     </ImageBackground>
   );
 }

@@ -1,3 +1,4 @@
+import { SafeAreaView } from 'react-native-safe-area-context';
 /**
  * LandingPage - Screen for app boot, progress, and remote config loading.
  *
@@ -285,8 +286,9 @@ export default function LandingPage({ navigation }) {
   }, [remoteBlock, loadingProgress, bootDone, navigation]);
 
   return (
-    <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
-      <View style={styles.versionContainer}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#253445' }}>
+      <Animated.View style={[styles.container, { opacity: fadeAnim, flex: 1, backgroundColor: '#253445' }]}> 
+        <View style={styles.versionContainer}>
         <Text style={styles.versionText}>Version: {gameVersion}</Text>
       </View>
 
@@ -314,6 +316,7 @@ export default function LandingPage({ navigation }) {
       <Text style={styles.progressText}>
         {loadingProgress < 100 ? "Checking player data..." : "Complete!"}
       </Text>
-    </Animated.View>
+      </Animated.View>
+    </SafeAreaView>
   );
 }
