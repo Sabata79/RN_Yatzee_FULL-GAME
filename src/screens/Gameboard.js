@@ -11,6 +11,7 @@ import { useState, useEffect } from 'react';
 import { FlatList, Text, View, Pressable, ImageBackground, Animated, Dimensions } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import styles from '../styles/styles';
+import gameboardstyles from '../styles/GameboardScreenStyles';
 import { NBR_OF_THROWS, NBR_OF_DICES, MAX_SPOTS, BONUS_POINTS, BONUS_POINTS_LIMIT } from '../constants/Game';
 import DiceAnimation from '../components/DiceAnimation';
 import ModalAlert from '../constants/ModalAlert';
@@ -19,6 +20,7 @@ import RenderFirstRow from '../components/RenderFirstRow';
 import GlowingText from '../components/AnimatedText';
 import GameSave from '../constants/GameSave';
 import { dicefaces } from '../constants/DicePaths';
+import GameboardButtons from '../components/GameboardButtons';
 
 const { width, height } = Dimensions.get('window');
 const isSmallScreen = height < 720;
@@ -195,8 +197,6 @@ export default function Gameboard({ route, navigation }) {
     const [data, setData] = useState([
         ...Array.from({ length: 32 }, (_, index) => ({ key: String(index + 2) })),
     ]);
-
-
 
     const handleBonus = () => {
         if (!hasAppliedBonus && minorPoints >= BONUS_POINTS_LIMIT) {
@@ -434,22 +434,22 @@ export default function Gameboard({ route, navigation }) {
         const currentCategory = scoringCategories.find(category => category.index === index);
 
     // Style for the field
-        const fieldStyle = currentCategory && currentCategory.locked ? styles.lockedField : styles.selectScore;
+        const fieldStyle = currentCategory && currentCategory.locked ? gameboardstyles.lockedField : gameboardstyles.selectScore;
 
 
     // Indexes of the grid
         if (index === 0) {
             return (
-                <View style={styles.item}>
-                    <MaterialCommunityIcons name="dice-1" size={isSmallScreen ? 40 : 45} style={styles.icon} />
+                <View style={gameboardstyles.item}>
+                    <MaterialCommunityIcons name="dice-1" size={isSmallScreen ? 40 : 45} style={gameboardstyles.icon} />
                 </View>
             );
             // Sum of ones
         } else if (index === 1) {
             return (
                 <Pressable onPress={() => handlePressField(index)} disabled={isLocked('ones')}>
-                    <View style={[styles.item, isSelected ? styles.selectScorePressed : fieldStyle]}>
-                        <Text style={styles.inputIndexShown}>
+                    <View style={[gameboardstyles.item, isSelected ?gameboardstyles.selectScorePressed : fieldStyle]}>
+                        <Text style={gameboardstyles.inputIndexShown}>
                             {isLocked('ones') ? currentCategory.points : currentCategory.calculateScore(rolledDices)}
                         </Text>
                     </View>
@@ -457,15 +457,15 @@ export default function Gameboard({ route, navigation }) {
             );
         } else if (index === 2) {
             return (
-                <View style={styles.item}>
-                    <Text style={styles.gridTxt}>2X</Text>
+                <View style={gameboardstyles.item}>
+                    <Text style={gameboardstyles.gridTxt}>2X</Text>
                 </View>
             );
         } else if (index === 3) {
             return (
                 <Pressable onPress={() => handlePressField(index)} disabled={isLocked('twoOfKind')}>
-                    <View style={[styles.item, isSelected ? styles.selectScorePressed : fieldStyle]}>
-                        <Text style={styles.inputIndexShown}>
+                    <View style={[gameboardstyles.item, isSelected ?gameboardstyles.selectScorePressed : fieldStyle]}>
+                        <Text style={gameboardstyles.inputIndexShown}>
                             {isLocked('twoOfKind') ? currentCategory.points : currentCategory.calculateScore(rolledDices)}
                         </Text>
                     </View>
@@ -473,16 +473,16 @@ export default function Gameboard({ route, navigation }) {
             );
         } else if (index === 6) {
             return (
-                <View style={styles.item}>
-                    <Text style={styles.gridTxt}>3X</Text>
+                <View style={gameboardstyles.item}>
+                    <Text style={gameboardstyles.gridTxt}>3X</Text>
                 </View>
             );
             // Sum of Triples and more
         } else if (index === 7) {
             return (
                 <Pressable onPress={() => handlePressField(index)} disabled={isLocked('threeOfAKind')}>
-                    <View style={[styles.item, isSelected ? styles.selectScorePressed : fieldStyle]}>
-                        <Text style={styles.inputIndexShown}>
+                    <View style={[gameboardstyles.item, isSelected ?gameboardstyles.selectScorePressed : fieldStyle]}>
+                        <Text style={gameboardstyles.inputIndexShown}>
                             {isLocked('threeOfAKind') ? currentCategory.points : currentCategory.calculateScore(rolledDices)}
                         </Text>
                     </View>
@@ -490,16 +490,16 @@ export default function Gameboard({ route, navigation }) {
             );
         } else if (index === 4) {
             return (
-                <View style={styles.item}>
-                    <MaterialCommunityIcons name="dice-2" size={isSmallScreen ? 40 : 45} style={styles.icon} />
+                <View style={gameboardstyles.item}>
+                    <MaterialCommunityIcons name="dice-2" size={isSmallScreen ? 40 : 45} style={gameboardstyles.icon} />
                 </View>
             );
             // Sum of twos
         } else if (index === 5) {
             return (
                 <Pressable onPress={() => handlePressField(index)} disabled={isLocked('twos')}>
-                    <View style={[styles.item, isSelected ? styles.selectScorePressed : fieldStyle]}>
-                        <Text style={styles.inputIndexShown}>
+                    <View style={[gameboardstyles.item, isSelected ?gameboardstyles.selectScorePressed : fieldStyle]}>
+                        <Text style={gameboardstyles.inputIndexShown}>
                             {isLocked('twos') ? currentCategory.points : currentCategory.calculateScore(rolledDices)}
                         </Text>
                     </View>
@@ -507,16 +507,16 @@ export default function Gameboard({ route, navigation }) {
             );
         } else if (index === 10) {
             return (
-                <View style={styles.item}>
-                    <Text style={styles.gridTxt}>4X</Text>
+                <View style={gameboardstyles.item}>
+                    <Text style={gameboardstyles.gridTxt}>4X</Text>
                 </View>
             );
             // Sum of Fours and more
         } else if (index === 11) {
             return (
                 <Pressable onPress={() => handlePressField(index)} disabled={isLocked('fourOfAKind')}>
-                    <View style={[styles.item, isSelected ? styles.selectScorePressed : fieldStyle]}>
-                        <Text style={styles.inputIndexShown}>
+                    <View style={[gameboardstyles.item, isSelected ?gameboardstyles.selectScorePressed : fieldStyle]}>
+                        <Text style={gameboardstyles.inputIndexShown}>
                             {isLocked('fourOfAKind') ? currentCategory.points : currentCategory.calculateScore(rolledDices)}
                         </Text>
                     </View>
@@ -524,16 +524,16 @@ export default function Gameboard({ route, navigation }) {
             );
         } else if (index === 8) {
             return (
-                <View style={styles.item}>
-                    <MaterialCommunityIcons name="dice-3" size={isSmallScreen ? 40 : 45} style={styles.icon} />
+                <View style={gameboardstyles.item}>
+                    <MaterialCommunityIcons name="dice-3" size={isSmallScreen ? 40 : 45} style={gameboardstyles.icon} />
                 </View>
             );
             // Sum of Threes
         } else if (index === 9) {
             return (
                 <Pressable onPress={() => handlePressField(index)} disabled={isLocked('threes')}>
-                    <View style={[styles.item, isSelected ? styles.selectScorePressed : fieldStyle]}>
-                        <Text style={styles.inputIndexShown}>
+                    <View style={[gameboardstyles.item, isSelected ?gameboardstyles.selectScorePressed : fieldStyle]}>
+                        <Text style={gameboardstyles.inputIndexShown}>
                             {isLocked('threes') ? currentCategory.points : currentCategory.calculateScore(rolledDices)}
                         </Text>
                     </View>
@@ -542,16 +542,16 @@ export default function Gameboard({ route, navigation }) {
             // Fullhouse
         } else if (index === 14) {
             return (
-                <View style={styles.item}>
-                    <MaterialCommunityIcons name="home" size={isSmallScreen ? 22 : 25} style={styles.icon} />
+                <View style={gameboardstyles.item}>
+                    <MaterialCommunityIcons name="home" size={isSmallScreen ? 22 : 25} style={gameboardstyles.icon} />
                     <Text style={{ fontSize: 10, color: 'white' }}>FullHouse</Text>
                 </View>
             );
         } else if (index === 15) {
             return (
                 <Pressable onPress={() => handlePressField(index)} disabled={isLocked('fullHouse')}>
-                    <View style={[styles.item, isSelected ? styles.selectScorePressed : fieldStyle]}>
-                        <Text style={styles.inputIndexShown}>
+                    <View style={[gameboardstyles.item, isSelected ?gameboardstyles.selectScorePressed : fieldStyle]}>
+                        <Text style={gameboardstyles.inputIndexShown}>
                             {isLocked('fullHouse') ? currentCategory.points : currentCategory.calculateScore(rolledDices)}
                         </Text>
                     </View>
@@ -560,15 +560,15 @@ export default function Gameboard({ route, navigation }) {
             // Four of a kind
         } else if (index === 12) {
             return (
-                <View style={styles.item}>
-                    <MaterialCommunityIcons name="dice-4" size={isSmallScreen ? 40 : 45} style={styles.icon} />
+                <View style={gameboardstyles.item}>
+                    <MaterialCommunityIcons name="dice-4" size={isSmallScreen ? 40 : 45} style={gameboardstyles.icon} />
                 </View>
             );
         } else if (index === 13) {
             return (
                 <Pressable onPress={() => handlePressField(index)} disabled={isLocked('fours')}>
-                    <View style={[styles.item, isSelected ? styles.selectScorePressed : fieldStyle]}>
-                        <Text style={styles.inputIndexShown}>
+                    <View style={[gameboardstyles.item, isSelected ?gameboardstyles.selectScorePressed : fieldStyle]}>
+                        <Text style={gameboardstyles.inputIndexShown}>
                             {isLocked('fours') ? currentCategory.points : currentCategory.calculateScore(rolledDices)}
                         </Text>
                     </View>
@@ -576,8 +576,8 @@ export default function Gameboard({ route, navigation }) {
             );
         } else if (index === 18) {
             return (
-                <View style={styles.item}>
-                    <MaterialCommunityIcons name="cards-outline" size={isSmallScreen ? 22 : 25} style={styles.icon} />
+                <View style={gameboardstyles.item}>
+                    <MaterialCommunityIcons name="cards-outline" size={isSmallScreen ? 22 : 25} style={gameboardstyles.icon} />
                     <Text style={{ fontSize: 10, color: 'white' }}>small</Text>
                 </View>
             );
@@ -585,8 +585,8 @@ export default function Gameboard({ route, navigation }) {
         } else if (index === 19) {
             return (
                 <Pressable onPress={() => handlePressField(index)} disabled={isLocked('smallStraight')}>
-                    <View style={[styles.item, isSelected ? styles.selectScorePressed : fieldStyle]}>
-                        <Text style={styles.inputIndexShown}>
+                    <View style={[gameboardstyles.item, isSelected ?gameboardstyles.selectScorePressed : fieldStyle]}>
+                        <Text style={gameboardstyles.inputIndexShown}>
                             {isLocked('smallStraight') ? currentCategory.points : currentCategory.calculateScore(rolledDices)}
                         </Text>
                     </View>
@@ -594,16 +594,16 @@ export default function Gameboard({ route, navigation }) {
             );
         } else if (index === 16) {
             return (
-                <View style={styles.item}>
-                    <MaterialCommunityIcons name="dice-5" size={isSmallScreen ? 40 : 45} style={styles.icon} />
+                <View style={gameboardstyles.item}>
+                    <MaterialCommunityIcons name="dice-5" size={isSmallScreen ? 40 : 45} style={gameboardstyles.icon} />
                 </View>
             );
             // Sum of Fives
         } else if (index === 17) {
             return (
                 <Pressable onPress={() => handlePressField(index)} disabled={isLocked('fives')}>
-                    <View style={[styles.item, isSelected ? styles.selectScorePressed : fieldStyle]}>
-                        <Text style={styles.inputIndexShown}>
+                    <View style={[gameboardstyles.item, isSelected ?gameboardstyles.selectScorePressed : fieldStyle]}>
+                        <Text style={gameboardstyles.inputIndexShown}>
                             {isLocked('fives') ? currentCategory.points : currentCategory.calculateScore(rolledDices)}
                         </Text>
                     </View>
@@ -611,8 +611,8 @@ export default function Gameboard({ route, navigation }) {
             );
         } else if (index === 22) {
             return (
-                <View style={styles.item}>
-                    <MaterialCommunityIcons name="cards-outline" size={isSmallScreen ? 22 : 25} style={styles.icon} />
+                <View style={gameboardstyles.item}>
+                    <MaterialCommunityIcons name="cards-outline" size={isSmallScreen ? 22 : 25} style={gameboardstyles.icon} />
                     <Text style={{ fontSize: 10, color: 'white' }}>large</Text>
                 </View>
             );
@@ -620,8 +620,8 @@ export default function Gameboard({ route, navigation }) {
         } else if (index === 23) {
             return (
                 <Pressable onPress={() => handlePressField(index)} disabled={isLocked('largeStraight')}>
-                    <View style={[styles.item, isSelected ? styles.selectScorePressed : fieldStyle]}>
-                        <Text style={styles.inputIndexShown}>
+                    <View style={[gameboardstyles.item, isSelected ?gameboardstyles.selectScorePressed : fieldStyle]}>
+                        <Text style={gameboardstyles.inputIndexShown}>
                             {isLocked('largeStraight') ? currentCategory.points : currentCategory.calculateScore(rolledDices)}
                         </Text>
                     </View>
@@ -629,16 +629,16 @@ export default function Gameboard({ route, navigation }) {
             );
         } else if (index === 20) {
             return (
-                <View style={styles.item}>
-                    <MaterialCommunityIcons name="dice-6" size={isSmallScreen ? 40 : 45} style={styles.icon} />
+                <View style={gameboardstyles.item}>
+                    <MaterialCommunityIcons name="dice-6" size={isSmallScreen ? 40 : 45} style={gameboardstyles.icon} />
                 </View>
             );
             // Sum of Sixes
         } else if (index === 21) {
             return (
                 <Pressable onPress={() => handlePressField(index)} disabled={isLocked('sixes')}>
-                    <View style={[styles.item, isSelected ? styles.selectScorePressed : fieldStyle]}>
-                        <Text style={styles.inputIndexShown}>
+                    <View style={[gameboardstyles.item, isSelected ?gameboardstyles.selectScorePressed : fieldStyle]}>
+                        <Text style={gameboardstyles.inputIndexShown}>
                             {isLocked('sixes') ? currentCategory.points : currentCategory.calculateScore(rolledDices)}
                         </Text>
                     </View>
@@ -646,8 +646,8 @@ export default function Gameboard({ route, navigation }) {
             );
         } else if (index === 26) {
             return (
-                <View style={styles.item}>
-                    <MaterialCommunityIcons name="star-outline" size={isSmallScreen ? 22 : 25} style={styles.icon} />
+                <View style={gameboardstyles.item}>
+                    <MaterialCommunityIcons name="star-outline" size={isSmallScreen ? 22 : 25} style={gameboardstyles.icon} />
                     <Text style={{ fontSize: 10, color: 'white' }}>Yatzy</Text>
                 </View>
             );
@@ -655,8 +655,8 @@ export default function Gameboard({ route, navigation }) {
         } else if (index === 27) {
             return (
                 <Pressable onPress={() => handlePressField(index)} disabled={isLocked('yatzy')}>
-                    <View style={[styles.item, isSelected ? styles.selectScorePressed : fieldStyle]}>
-                        <Text style={styles.inputIndexShown}>
+                    <View style={[gameboardstyles.item, isSelected ?gameboardstyles.selectScorePressed : fieldStyle]}>
+                        <Text style={gameboardstyles.inputIndexShown}>
                             {isLocked('yatzy')
                                 ? currentCategory.points
                                 : currentCategory.points + currentCategory.calculateScore(rolledDices)
@@ -669,25 +669,25 @@ export default function Gameboard({ route, navigation }) {
             const isSectionMinorAchieved = minorPoints >= BONUS_POINTS_LIMIT;
 
             return (
-                <View style={styles.item}>
-                    <View style={isSectionMinorAchieved ? styles.sectionContainerAchieved : styles.sectionContainer}>
-                        <Text style={styles.sectionBonusTxt}>Section Bonus</Text>
-                        <Text style={styles.sectionBonusTxt}>+35</Text>
+                <View style={gameboardstyles.item}>
+                    <View style={isSectionMinorAchieved ?gameboardstyles.sectionContainerAchieved :gameboardstyles.sectionContainer}>
+                        <Text style={gameboardstyles.sectionBonusTxt}>Section Bonus</Text>
+                        <Text style={gameboardstyles.sectionBonusTxt}>+35</Text>
                     </View>
                 </View>
             );
             // Minor points
         } else if (index === 25) {
             return (
-                <View style={styles.item}>
-                    <Text style={styles.scoreText}>
+                <View style={gameboardstyles.item}>
+                    <Text style={gameboardstyles.scoreText}>
                         {minorPoints} / {BONUS_POINTS_LIMIT}</Text>
                 </View>
             );
         } else if (index === 30) {
             return (
-                <View style={styles.item}>
-                    <MaterialCommunityIcons name="account-question-outline" size={isSmallScreen ? 22 : 25} style={styles.icon} />
+                <View style={gameboardstyles.item}>
+                    <MaterialCommunityIcons name="account-question-outline" size={isSmallScreen ? 22 : 25} style={gameboardstyles.icon} />
                     <Text style={{ fontSize: 10, color: 'white' }}>Change</Text>
                 </View>
             );
@@ -695,8 +695,8 @@ export default function Gameboard({ route, navigation }) {
         } else if (index === 31) {
             return (
                 <Pressable onPress={() => handlePressField(index)} disabled={isLocked('chance')}>
-                    <View style={[styles.item, isSelected ? styles.selectScorePressed : fieldStyle]}>
-                        <Text style={styles.inputIndexShown}>
+                    <View style={[gameboardstyles.item, isSelected ?gameboardstyles.selectScorePressed : fieldStyle]}>
+                        <Text style={gameboardstyles.inputIndexShown}>
                             {isLocked('chance') ? currentCategory.points : currentCategory.calculateScore(rolledDices)}
                         </Text>
                     </View>
@@ -704,13 +704,13 @@ export default function Gameboard({ route, navigation }) {
             );
         } else if (index === 29) {
             return (
-                <View style={styles.item}>
-                    <Text style={styles.scoreText}>Total: {totalPoints}</Text>
+                <View style={gameboardstyles.item}>
+                    <Text style={gameboardstyles.scoreText}>Total: {totalPoints}</Text>
                 </View>
             );
         } else {
             return (
-                <View style={styles.item}>
+                <View style={gameboardstyles.item}>
                     <Text style={styles.text}></Text>
                 </View>
             );
@@ -788,78 +788,32 @@ export default function Gameboard({ route, navigation }) {
         }, [rounds]);
 
         return (
-            <View style={styles.gameboard}>
+            <View style={gameboardstyles.gameboard}>
                 <Text style={styles.status}>{status}</Text>
-                <View style={styles.diceBorder}>
-                    <View style={styles.flex}>{diceRow}</View>
+                <View style={gameboardstyles.diceBorder}>
+                    <View style={gameboardstyles.gameboardContainer}>{diceRow}</View>
                 </View>
-                <View style={styles.buttonContainer}>
-                    {rounds === 0 ? (
-                        <><Pressable
-                            style={({ pressed }) => [
-                                styles.button,
-                                pressed && styles.buttonPressed,
-                                { width: '80%' },
-                            ]}
-                            onPress={async () => {
-                                const ok = await savePlayerPoints();
-                                if (ok) {
-                                    resetGame();
-                                    navigation.navigate('Scoreboard');
-                                }
-                            }}
-                        >
-                            <Text style={styles.buttonText}>Game Over, Save Your Score</Text>
-                            <MaterialCommunityIcons name="scoreboard-outline" size={24} color="black" />
-                        </Pressable>
-
-                        </>
-                    ) : (
-                        <>
-                            <Pressable
-                                disabled={nbrOfThrowsLeft <= 0}
-                                style={({ pressed }) => [
-                                    styles.button,
-                                    pressed && styles.buttonPressed,
-                                    { width: '39%' },
-                                ]}
-                                onPress={() => {
-                                    if (rounds === MAX_SPOTS && nbrOfThrowsLeft === 3) {
-                                        startGame();
-                                    }
-                                    throwDices();
-                                }}
-                            >
-                                <Text style={styles.buttonText}>Roll Dices</Text>
-                                <View style={styles.nbrThrowsTextContainer}>
-                                    {rounds > 0 && <Text style={styles.nbrThrowsText}>{nbrOfThrowsLeft}</Text>}
-                                </View>
-                            </Pressable>
-                            <Pressable
-                                disabled={!selectedField}
-                                style={({ pressed }) => [
-                                    styles.button,
-                                    pressed && styles.buttonPressed,
-                                ]}
-                                onPress={() => {
-                                    handleSetPoints();
-                                    setNbrOfThrowsLeft(NBR_OF_THROWS);
-                                    resetDiceSelection();
-                                    const selectedCategory = scoringCategories.find(category => category.index === selectedField);
-                                    if (!selectedCategory || selectedCategory.name !== 'yatzy' || selectedCategory.points === 0) {
-                                        console.log('Decreasing rounds. Current rounds:', rounds);
-                                        setRounds(prevRounds => prevRounds - 1);
-                                    } else {
-                                        console.log('Rounds not decreased. Current rounds:', rounds);
-                                    }
-                                }}
-                            >
-                                <Text style={styles.buttonText}>Set Points</Text>
-                                <MaterialCommunityIcons name="beaker-plus" size={25} color="black" />
-                            </Pressable>
-                        </>
-                    )}
-                </View>
+                <GameboardButtons
+                    status={status}
+                    rounds={rounds}
+                    nbrOfThrowsLeft={nbrOfThrowsLeft}
+                    savePlayerPoints={savePlayerPoints}
+                    resetGame={resetGame}
+                    navigation={navigation}
+                    startGame={startGame}
+                    throwDices={throwDices}
+                    selectedField={selectedField}
+                    handleSetPoints={handleSetPoints}
+                    setNbrOfThrowsLeft={setNbrOfThrowsLeft}
+                    resetDiceSelection={resetDiceSelection}
+                    scoringCategories={scoringCategories}
+                    setRounds={setRounds}
+                    MAX_SPOTS={MAX_SPOTS}
+                    NBR_OF_THROWS={NBR_OF_THROWS}
+                    styles={styles}
+                    gameboardstyles={gameboardstyles}
+                    MaterialCommunityIcons={MaterialCommunityIcons}
+                />
             </View>
         );
     };
@@ -876,7 +830,6 @@ export default function Gameboard({ route, navigation }) {
     };
     // Remove ImageBackground (if needed)
         return (
-            <SafeAreaView style={{ flex: 1 }}>
                 <ImageBackground source={require('../../assets/diceBackground.webp')} style={styles.background}>
                     {isLayerVisible && (
                         <Pressable
@@ -885,9 +838,9 @@ export default function Gameboard({ route, navigation }) {
                                     handleStartGame();
                                 }
                             }}
-                            style={styles.filterLayer}
+                            style={gameboardstyles.filterLayer}
                         >
-                            <GlowingText style={styles.centeredText}>
+                            <GlowingText style={gameboardstyles.centeredText}>
                                 START GAME
                             </GlowingText>
                         </Pressable>
@@ -900,7 +853,7 @@ export default function Gameboard({ route, navigation }) {
                                 renderGrid({ item, index, scoringCategories, totalPoints, minorPoints })}
                             numColumns={4}
                             keyExtractor={(item) => item.key}
-                            contentContainerStyle={styles.container}
+                            contentContainerStyle={gameboardstyles.gameboardContainer}
                             ListHeaderComponent={<RenderFirstRow />}
                             ListEmptyComponent={renderGrid}
                             ListFooterComponent={renderDices}
@@ -912,7 +865,6 @@ export default function Gameboard({ route, navigation }) {
                         message={modalMessage}
                         onClose={() => setModalVisible(false)}
                     />
-                </ImageBackground>
-            </SafeAreaView>
+                </ImageBackground>     
         );
 }
