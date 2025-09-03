@@ -1,3 +1,19 @@
+/**
+ * GameboardScreenButtonStyles.js - Styles for Gameboard screen actions (buttons, badge, shadows)
+ *
+ * Contains all styles for the Gameboard screen action buttons and related elements.
+ *
+ * Usage:
+ *   import gameboardBtnstyles from '../styles/GameboardScreenButtonStyles';
+ *   ...
+ *   <Pressable style={gameboardBtnstyles.button}>...</Pressable>
+ *
+ * Note! All fonts and colors are centralized in the constants folder.
+ *
+ * @author Sabata79
+ * @since 2025-09-03
+ */
+
 import { Dimensions, StyleSheet } from 'react-native';
 import COLORS from '../constants/colors';
 import TYPOGRAPHY from '../constants/typography';
@@ -42,11 +58,10 @@ const styles = StyleSheet.create({
         height: 45,
         backgroundColor: 'rgba(255, 255, 255, 0.635)',
         borderRadius: 4,
-        zIndex: 0,
     },
     iconContainer: {
         marginBottom: 5,
-        marginLeft: 25,
+        marginLeft: SPACING.lg,
         alignSelf: 'flex-end',
         color: 'black',
     },
@@ -62,14 +77,14 @@ const styles = StyleSheet.create({
     },
     buttonText: {
         color: 'black',
-        fontSize: 20,
+        fontSize: TYPOGRAPHY.fontSize.lg,
         textAlign: 'center',
         fontFamily: TYPOGRAPHY.fontFamily.bangers,
     },
     nbrThrowsTextContainer: {
         alignSelf: 'flex-end',
         marginBottom: 5,
-        marginLeft: 25,
+        marginLeft: SPACING.lg,
     },
     nbrThrowsText: {
         width: 30,
@@ -81,7 +96,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     nbrThrowsTextValue: {
-        fontSize: 24,
+        fontSize: TYPOGRAPHY.fontSize.xl,
         fontFamily: TYPOGRAPHY.fontFamily.bangers,
         color: 'black',
         textAlign: 'center',
