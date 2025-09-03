@@ -67,7 +67,7 @@ function AppShell() {
   // Bottom tab navigator for main app screens
   const TabNavigator = () => {
     const baseHeight = isSmallScreen ? 56 : isBigScreen ? 84 : 68;
-    const bottomPad = Math.max(insets.bottom, 8);
+    const bottomPad = insets.bottom > 8 ? insets.bottom : 0;
 
     return (
       // Tab navigator with custom icons and styles
@@ -211,7 +211,7 @@ function AppShell() {
 
   return (
     // Main app view, now wrapped in SafeAreaView for edge-to-edge support
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#000' }} edges={['top', 'bottom', 'left', 'right']}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#000' }} edges={['top', 'left', 'right']}>
       {/* Update modal */}
       <Modal
         visible={updateModalVisible}

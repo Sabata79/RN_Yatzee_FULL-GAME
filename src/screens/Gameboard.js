@@ -198,12 +198,12 @@ export default function Gameboard({ route, navigation }) {
         ...Array.from({ length: 32 }, (_, index) => ({ key: String(index + 2) })),
     ]);
 
-    const handleBonus = () => {
-        if (!hasAppliedBonus && minorPoints >= BONUS_POINTS_LIMIT) {
-            setTotalPoints(totalPoints + BONUS_POINTS);
-            setHasAppliedBonus(true);
-        }
-    };
+    // const handleBonus = () => {
+    //     if (!hasAppliedBonus && minorPoints >= BONUS_POINTS_LIMIT) {
+    //         setTotalPoints(totalPoints + BONUS_POINTS);
+    //         setHasAppliedBonus(true);
+    //     }
+    // };
 
     const handleSetPoints = () => {
         if (selectedField === null) return;
@@ -421,23 +421,23 @@ export default function Gameboard({ route, navigation }) {
             }
         };
 
-    // Is field selected
+        // Is field selected
         const isSelected = selectedField === index;
 
-    // Is category locked
+        // Is category locked
         const isLocked = (categoryName) => {
             const category = scoringCategories.find(category => category.name === categoryName);
             return category ? category.locked : false;
         };
 
-    // Get the current category
+        // Get the current category
         const currentCategory = scoringCategories.find(category => category.index === index);
 
-    // Style for the field
+        // Style for the field
         const fieldStyle = currentCategory && currentCategory.locked ? gameboardstyles.lockedField : gameboardstyles.selectScore;
 
 
-    // Indexes of the grid
+        // Indexes of the grid
         if (index === 0) {
             return (
                 <View style={gameboardstyles.item}>
@@ -448,7 +448,7 @@ export default function Gameboard({ route, navigation }) {
         } else if (index === 1) {
             return (
                 <Pressable onPress={() => handlePressField(index)} disabled={isLocked('ones')}>
-                    <View style={[gameboardstyles.item, isSelected ?gameboardstyles.selectScorePressed : fieldStyle]}>
+                    <View style={[gameboardstyles.item, isSelected ? gameboardstyles.selectScorePressed : fieldStyle]}>
                         <Text style={gameboardstyles.inputIndexShown}>
                             {isLocked('ones') ? currentCategory.points : currentCategory.calculateScore(rolledDices)}
                         </Text>
@@ -464,7 +464,7 @@ export default function Gameboard({ route, navigation }) {
         } else if (index === 3) {
             return (
                 <Pressable onPress={() => handlePressField(index)} disabled={isLocked('twoOfKind')}>
-                    <View style={[gameboardstyles.item, isSelected ?gameboardstyles.selectScorePressed : fieldStyle]}>
+                    <View style={[gameboardstyles.item, isSelected ? gameboardstyles.selectScorePressed : fieldStyle]}>
                         <Text style={gameboardstyles.inputIndexShown}>
                             {isLocked('twoOfKind') ? currentCategory.points : currentCategory.calculateScore(rolledDices)}
                         </Text>
@@ -481,7 +481,7 @@ export default function Gameboard({ route, navigation }) {
         } else if (index === 7) {
             return (
                 <Pressable onPress={() => handlePressField(index)} disabled={isLocked('threeOfAKind')}>
-                    <View style={[gameboardstyles.item, isSelected ?gameboardstyles.selectScorePressed : fieldStyle]}>
+                    <View style={[gameboardstyles.item, isSelected ? gameboardstyles.selectScorePressed : fieldStyle]}>
                         <Text style={gameboardstyles.inputIndexShown}>
                             {isLocked('threeOfAKind') ? currentCategory.points : currentCategory.calculateScore(rolledDices)}
                         </Text>
@@ -498,7 +498,7 @@ export default function Gameboard({ route, navigation }) {
         } else if (index === 5) {
             return (
                 <Pressable onPress={() => handlePressField(index)} disabled={isLocked('twos')}>
-                    <View style={[gameboardstyles.item, isSelected ?gameboardstyles.selectScorePressed : fieldStyle]}>
+                    <View style={[gameboardstyles.item, isSelected ? gameboardstyles.selectScorePressed : fieldStyle]}>
                         <Text style={gameboardstyles.inputIndexShown}>
                             {isLocked('twos') ? currentCategory.points : currentCategory.calculateScore(rolledDices)}
                         </Text>
@@ -515,7 +515,7 @@ export default function Gameboard({ route, navigation }) {
         } else if (index === 11) {
             return (
                 <Pressable onPress={() => handlePressField(index)} disabled={isLocked('fourOfAKind')}>
-                    <View style={[gameboardstyles.item, isSelected ?gameboardstyles.selectScorePressed : fieldStyle]}>
+                    <View style={[gameboardstyles.item, isSelected ? gameboardstyles.selectScorePressed : fieldStyle]}>
                         <Text style={gameboardstyles.inputIndexShown}>
                             {isLocked('fourOfAKind') ? currentCategory.points : currentCategory.calculateScore(rolledDices)}
                         </Text>
@@ -532,7 +532,7 @@ export default function Gameboard({ route, navigation }) {
         } else if (index === 9) {
             return (
                 <Pressable onPress={() => handlePressField(index)} disabled={isLocked('threes')}>
-                    <View style={[gameboardstyles.item, isSelected ?gameboardstyles.selectScorePressed : fieldStyle]}>
+                    <View style={[gameboardstyles.item, isSelected ? gameboardstyles.selectScorePressed : fieldStyle]}>
                         <Text style={gameboardstyles.inputIndexShown}>
                             {isLocked('threes') ? currentCategory.points : currentCategory.calculateScore(rolledDices)}
                         </Text>
@@ -550,7 +550,7 @@ export default function Gameboard({ route, navigation }) {
         } else if (index === 15) {
             return (
                 <Pressable onPress={() => handlePressField(index)} disabled={isLocked('fullHouse')}>
-                    <View style={[gameboardstyles.item, isSelected ?gameboardstyles.selectScorePressed : fieldStyle]}>
+                    <View style={[gameboardstyles.item, isSelected ? gameboardstyles.selectScorePressed : fieldStyle]}>
                         <Text style={gameboardstyles.inputIndexShown}>
                             {isLocked('fullHouse') ? currentCategory.points : currentCategory.calculateScore(rolledDices)}
                         </Text>
@@ -567,7 +567,7 @@ export default function Gameboard({ route, navigation }) {
         } else if (index === 13) {
             return (
                 <Pressable onPress={() => handlePressField(index)} disabled={isLocked('fours')}>
-                    <View style={[gameboardstyles.item, isSelected ?gameboardstyles.selectScorePressed : fieldStyle]}>
+                    <View style={[gameboardstyles.item, isSelected ? gameboardstyles.selectScorePressed : fieldStyle]}>
                         <Text style={gameboardstyles.inputIndexShown}>
                             {isLocked('fours') ? currentCategory.points : currentCategory.calculateScore(rolledDices)}
                         </Text>
@@ -585,7 +585,7 @@ export default function Gameboard({ route, navigation }) {
         } else if (index === 19) {
             return (
                 <Pressable onPress={() => handlePressField(index)} disabled={isLocked('smallStraight')}>
-                    <View style={[gameboardstyles.item, isSelected ?gameboardstyles.selectScorePressed : fieldStyle]}>
+                    <View style={[gameboardstyles.item, isSelected ? gameboardstyles.selectScorePressed : fieldStyle]}>
                         <Text style={gameboardstyles.inputIndexShown}>
                             {isLocked('smallStraight') ? currentCategory.points : currentCategory.calculateScore(rolledDices)}
                         </Text>
@@ -602,7 +602,7 @@ export default function Gameboard({ route, navigation }) {
         } else if (index === 17) {
             return (
                 <Pressable onPress={() => handlePressField(index)} disabled={isLocked('fives')}>
-                    <View style={[gameboardstyles.item, isSelected ?gameboardstyles.selectScorePressed : fieldStyle]}>
+                    <View style={[gameboardstyles.item, isSelected ? gameboardstyles.selectScorePressed : fieldStyle]}>
                         <Text style={gameboardstyles.inputIndexShown}>
                             {isLocked('fives') ? currentCategory.points : currentCategory.calculateScore(rolledDices)}
                         </Text>
@@ -620,7 +620,7 @@ export default function Gameboard({ route, navigation }) {
         } else if (index === 23) {
             return (
                 <Pressable onPress={() => handlePressField(index)} disabled={isLocked('largeStraight')}>
-                    <View style={[gameboardstyles.item, isSelected ?gameboardstyles.selectScorePressed : fieldStyle]}>
+                    <View style={[gameboardstyles.item, isSelected ? gameboardstyles.selectScorePressed : fieldStyle]}>
                         <Text style={gameboardstyles.inputIndexShown}>
                             {isLocked('largeStraight') ? currentCategory.points : currentCategory.calculateScore(rolledDices)}
                         </Text>
@@ -637,7 +637,7 @@ export default function Gameboard({ route, navigation }) {
         } else if (index === 21) {
             return (
                 <Pressable onPress={() => handlePressField(index)} disabled={isLocked('sixes')}>
-                    <View style={[gameboardstyles.item, isSelected ?gameboardstyles.selectScorePressed : fieldStyle]}>
+                    <View style={[gameboardstyles.item, isSelected ? gameboardstyles.selectScorePressed : fieldStyle]}>
                         <Text style={gameboardstyles.inputIndexShown}>
                             {isLocked('sixes') ? currentCategory.points : currentCategory.calculateScore(rolledDices)}
                         </Text>
@@ -655,7 +655,7 @@ export default function Gameboard({ route, navigation }) {
         } else if (index === 27) {
             return (
                 <Pressable onPress={() => handlePressField(index)} disabled={isLocked('yatzy')}>
-                    <View style={[gameboardstyles.item, isSelected ?gameboardstyles.selectScorePressed : fieldStyle]}>
+                    <View style={[gameboardstyles.item, isSelected ? gameboardstyles.selectScorePressed : fieldStyle]}>
                         <Text style={gameboardstyles.inputIndexShown}>
                             {isLocked('yatzy')
                                 ? currentCategory.points
@@ -670,7 +670,7 @@ export default function Gameboard({ route, navigation }) {
 
             return (
                 <View style={gameboardstyles.item}>
-                    <View style={isSectionMinorAchieved ?gameboardstyles.sectionContainerAchieved :gameboardstyles.sectionContainer}>
+                    <View style={isSectionMinorAchieved ? gameboardstyles.sectionContainerAchieved : gameboardstyles.sectionContainer}>
                         <Text style={gameboardstyles.sectionBonusTxt}>Section Bonus</Text>
                         <Text style={gameboardstyles.sectionBonusTxt}>+35</Text>
                     </View>
@@ -695,7 +695,7 @@ export default function Gameboard({ route, navigation }) {
         } else if (index === 31) {
             return (
                 <Pressable onPress={() => handlePressField(index)} disabled={isLocked('chance')}>
-                    <View style={[gameboardstyles.item, isSelected ?gameboardstyles.selectScorePressed : fieldStyle]}>
+                    <View style={[gameboardstyles.item, isSelected ? gameboardstyles.selectScorePressed : fieldStyle]}>
                         <Text style={gameboardstyles.inputIndexShown}>
                             {isLocked('chance') ? currentCategory.points : currentCategory.calculateScore(rolledDices)}
                         </Text>
@@ -791,7 +791,9 @@ export default function Gameboard({ route, navigation }) {
             <View style={gameboardstyles.gameboard}>
                 <Text style={styles.status}>{status}</Text>
                 <View style={gameboardstyles.diceBorder}>
-                    <View style={gameboardstyles.gameboardContainer}>{diceRow}</View>
+                    <View style={[gameboardstyles.gameboardContainer, { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }]}>
+                        {diceRow}
+                    </View>
                 </View>
                 <GameboardButtons
                     status={status}
@@ -829,42 +831,42 @@ export default function Gameboard({ route, navigation }) {
         }
     };
     // Remove ImageBackground (if needed)
-        return (
-                <ImageBackground source={require('../../assets/diceBackground.webp')} style={styles.background}>
-                    {isLayerVisible && (
-                        <Pressable
-                            onPress={() => {
-                                if (!gameStarted && rounds === MAX_SPOTS) {
-                                    handleStartGame();
-                                }
-                            }}
-                            style={gameboardstyles.filterLayer}
-                        >
-                            <GlowingText style={gameboardstyles.centeredText}>
-                                START GAME
-                            </GlowingText>
-                        </Pressable>
-                    )}
+    return (
+        <ImageBackground source={require('../../assets/diceBackground.webp')} style={styles.background}>
+            {isLayerVisible && (
+                <Pressable
+                    onPress={() => {
+                        if (!gameStarted && rounds === MAX_SPOTS) {
+                            handleStartGame();
+                        }
+                    }}
+                    style={gameboardstyles.filterLayer}
+                >
+                    <GlowingText style={gameboardstyles.centeredText}>
+                        START GAME
+                    </GlowingText>
+                </Pressable>
+            )}
 
-                    <View style={styles.overlay}>
-                        <FlatList
-                            data={data}
-                            renderItem={({ item, index }) =>
-                                renderGrid({ item, index, scoringCategories, totalPoints, minorPoints })}
-                            numColumns={4}
-                            keyExtractor={(item) => item.key}
-                            contentContainerStyle={gameboardstyles.gameboardContainer}
-                            ListHeaderComponent={<RenderFirstRow />}
-                            ListEmptyComponent={renderGrid}
-                            ListFooterComponent={renderDices}
-                        />
-                    </View>
+            <View style={styles.overlay}>
+                <FlatList
+                    data={data}
+                    renderItem={({ item, index }) =>
+                        renderGrid({ item, index, scoringCategories, totalPoints, minorPoints })}
+                    numColumns={4}
+                    keyExtractor={(item) => item.key}
+                    contentContainerStyle={gameboardstyles.gameboardContainer}
+                    ListHeaderComponent={<RenderFirstRow />}
+                    ListEmptyComponent={renderGrid}
+                    ListFooterComponent={renderDices}
+                />
+            </View>
 
-                    <ModalAlert
-                        visible={modalVisible}
-                        message={modalMessage}
-                        onClose={() => setModalVisible(false)}
-                    />
-                </ImageBackground>     
-        );
+            <ModalAlert
+                visible={modalVisible}
+                message={modalMessage}
+                onClose={() => setModalVisible(false)}
+            />
+        </ImageBackground>
+    );
 }

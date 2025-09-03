@@ -9,7 +9,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: COLORS.accent,
-    borderColor: 'orange',
+    borderColor: COLORS.accentLight,
     borderWidth: 3,
     borderRadius: 5,
     paddingVertical: SPACING.sm,
@@ -26,7 +26,7 @@ const styles = StyleSheet.create({
     width: '80%',
     height: 72,
     backgroundColor: 'rgba(255, 255, 255, 0.635)',
-    borderRadius: 8,
+    borderRadius: 7,
     zIndex: 1,
   },
   iconContainer: {

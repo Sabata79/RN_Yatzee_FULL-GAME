@@ -1,6 +1,7 @@
 // GameboardScreenStyles.js
 // Styles for the Gameboard screen only
 import { StyleSheet, Dimensions } from 'react-native';
+import COLORS from '../constants/colors';
 const { width, height } = Dimensions.get('window');
 const isSmallScreen = height < 650;
 const isBigScreen = height >= 1050;
@@ -55,14 +56,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         marginTop: 3,
         left: -10,
-        shadowColor: '#000000',
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
-        elevation: 10,
+        ...COLORS.shadowStyle
     },
     icon: {
         justifyContent: 'center',
@@ -81,14 +75,7 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: 'white',
         backgroundColor: '#84786c',
-        shadowColor: '#000000',
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
-        elevation: 10,
+        ...COLORS.shadowStyle
     },
     sectionContainerAchieved: {
         width: 72,
@@ -102,14 +89,7 @@ const styles = StyleSheet.create({
         borderWidth: 3,
         borderColor: 'green',
         backgroundColor: '#3ea645b8',
-        shadowColor: '#000000',
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
-        elevation: 5,
+        ...COLORS.whiteShadow
     },
     sectionBonusTxt: {
         fontSize: 12,
@@ -118,22 +98,14 @@ const styles = StyleSheet.create({
         fontFamily: 'AntonRegular',
     },
     diceBorder: {
-        width: isSmallScreen ? '75%' : '80%',
+        width: isSmallScreen ? '80%' : '80%',
         height: isSmallScreen ? 50 : 60,
         borderWidth: 2,
         borderColor: '#ccc9c9',
         borderRadius: 4,
         alignItems: 'center',
-        backgroundColor: 'black',
-        shadowColor: '#000000',
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
-        elevation: 10,
-        marginTop: -100,
+        backgroundColor: '#000000',
+        marginTop: -50,
     },
     inputIndexShown: {
         fontSize: isSmallScreen ? 16 : isBigScreen ? 20 : 18,

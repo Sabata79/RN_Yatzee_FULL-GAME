@@ -87,7 +87,7 @@ export const COLORS = {
     shadowOpacity: 0.14,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 2 },
-    elevation: 3,
+    elevation: 10,
   },
   // white shadow style for light backgrounds
   whiteShadow: {
