@@ -44,7 +44,7 @@ export default function GlowingText({ children }) {
         textShadowColor: COLORS.primary,  
         textShadowOffset: { width: 2, height: 2 },
         textShadowRadius: 5,
-        letterSpacing: 5,
+        letterSpacing: SPACING.xs,
         opacity: glowAnim,
     };
 
