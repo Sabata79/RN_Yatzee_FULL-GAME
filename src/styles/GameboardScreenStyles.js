@@ -59,9 +59,8 @@ const styles = StyleSheet.create({
         padding: 10,
         borderRadius: 100,
         borderWidth: 3,
-        borderColor: 'green',
-        backgroundColor: '#3ea645b8',
-        ...COLORS.whiteShadow
+        borderColor: COLORS.secondaryDark,
+        backgroundColor: COLORS.success,
     },
     diceBorder: {
         width: '80%',
@@ -146,9 +145,9 @@ const styles = StyleSheet.create({
 
     // Text styles
     sectionBonusTxt: {
-        fontSize: TYPOGRAPHY.fontSize.md,
+        fontSize: TYPOGRAPHY.fontSize.sm,
         textAlign: 'center',
-        color: '#222f3e',
+        color: COLORS.textDark,
         fontFamily: TYPOGRAPHY.fontFamily.bangers,
     },
     inputIndexShown: {
@@ -180,9 +179,6 @@ const styles = StyleSheet.create({
         color: 'white',
         fontSize: TYPOGRAPHY.fontSize.lg,
         textAlign: 'center',
-        textShadowColor: COLORS.error,
-        textShadowOffset: { width: 0, height: 0 },
-        textShadowRadius: 10,
         zIndex: 1000,
     },
 

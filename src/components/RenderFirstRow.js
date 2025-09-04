@@ -89,13 +89,13 @@ const RenderFirstRow = () => {
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <MaterialCommunityIcons
             name="timer"
-            size={22}
+            size={24}
             color="#ffffff"
             style={{ marginRight: 5, marginTop: 3 }}
           />
           {/* Animated timer text with glow effect */}
           <Animated.Text style={[firstRowStyles.firstRowCategoryText, { width: 60, textAlign: 'center' }, { transform: [{ scale: glowAnim }] }]}> 
-            {Math.min(totalSeconds, MAX_SECS)}s
+            {Math.min(totalSeconds, MAX_SECS)} s
           </Animated.Text>
         </View>
       </View>
