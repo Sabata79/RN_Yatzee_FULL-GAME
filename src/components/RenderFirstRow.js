@@ -1,7 +1,6 @@
 /**
  * RenderFirstRow - Renders the top row of the game UI, including timer and category labels.
  *
- * JSDoc comments and inline code comments must always be in English.
  * This file displays the timer and category labels at the top of the game screen.
  * @author Sabata79
  * @since 2025-08-29
@@ -12,6 +11,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useGame } from '../constants/GameContext';
 import { useStopwatch } from 'react-timer-hook';
 import styles from '../styles/styles';
+import firstRowStyles from '../styles/FirstRowStyles';
 
 // Renders the top row of the game UI, including timer and category labels
 const RenderFirstRow = () => {
@@ -80,12 +80,12 @@ const RenderFirstRow = () => {
 
   // Render the first row: Minor label, animated timer, Major label
   return (
-    <View style={styles.firstRow}>
-      <View style={styles.firstRowItem}>
-        <Text style={styles.firstRowCategoryText}>Minor</Text>
+    <View style={firstRowStyles.firstRow}>
+      <View style={firstRowStyles.firstRowItem}>
+        <Text style={firstRowStyles.firstRowCategoryText}>Minor</Text>
       </View>
 
-      <View style={styles.firstRowItem}>
+      <View style={firstRowStyles.firstRowItem}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <MaterialCommunityIcons
             name="timer"
@@ -94,14 +94,14 @@ const RenderFirstRow = () => {
             style={{ marginRight: 5, marginTop: 3 }}
           />
           {/* Animated timer text with glow effect */}
-          <Animated.Text style={[styles.firstRowCategoryText, { width: 60, textAlign: 'center' }, { transform: [{ scale: glowAnim }] }]}> 
+          <Animated.Text style={[firstRowStyles.firstRowCategoryText, { width: 60, textAlign: 'center' }, { transform: [{ scale: glowAnim }] }]}> 
             {Math.min(totalSeconds, MAX_SECS)}s
           </Animated.Text>
         </View>
       </View>
 
-      <View style={styles.firstRowItem}>
-        <Text style={styles.firstRowCategoryText}>Major</Text>
+      <View style={firstRowStyles.firstRowItem}>
+        <Text style={firstRowStyles.firstRowCategoryText}>Major</Text>
       </View>
     </View>
   );

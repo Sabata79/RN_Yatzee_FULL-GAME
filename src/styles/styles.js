@@ -109,29 +109,6 @@ export default styles = StyleSheet.create({
         fontFamily: 'AntonRegular',
         color: 'white',
     },
-    firstRowItem: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-        maxWidth: 550,
-        zIndex: 10,
-    },
-
-    firstRowCategoryText: {
-        fontFamily: 'AntonRegular',
-        fontSize: 16,
-        color: '#ffffff',
-        marginVertical: 0,
-    },
-    firstRow: {
-        marginTop: isBigScreen ? '30%' : 0,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: 0,
-        margin: 0,
-        zIndex: 10,
-    },
     lastRow: {
         flexDirection: 'row',
         justifyContent: 'center',
