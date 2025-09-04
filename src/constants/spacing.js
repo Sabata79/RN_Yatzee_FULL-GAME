@@ -20,7 +20,7 @@
  */
 export const SPACING = {
   xxs: 2,
-  xs: 4,
+  xs: 5,
   sm: 8,
   md: 16,
   lg: 24,
