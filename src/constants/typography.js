@@ -43,6 +43,8 @@ export const TYPOGRAPHY = {
     lg: 20,
     xl: 24,
     xxl: 32,
+    xxxl: 40,
+    jumbo: 50,
   },
 };
 

@@ -1,13 +1,17 @@
 /**
  * GlowingText - Animated glowing text component.
  *
- * JSDoc comments and inline code comments must always be in English.
  * This file displays animated glowing text for highlights or effects.
  * @author Sabata79
  * @since 2025-08-29
  */
+
 import { useState, useEffect } from 'react';
 import { Animated } from 'react-native';
+
+import TYPOGRAPHY  from '../constants/typography';
+import SPACING from '../constants/spacing';
+import COLORS from '../constants/colors';
 
 // Animated glowing text component
 export default function GlowingText({ children }) {
@@ -33,13 +37,14 @@ export default function GlowingText({ children }) {
 
     // Animated style for glowing effect
     const glowStyle = {
-        color: 'gold',
+        fontFamily: TYPOGRAPHY.fontFamily.bangers,
+        color: COLORS.accent,
         textAlign: 'center',
-        fontSize: 38,
-        fontWeight: 'bold',
-        textShadowColor: 'rgba(255, 0, 0, 1)',  
+        fontSize: TYPOGRAPHY.fontSize.jumbo,
+        textShadowColor: COLORS.primary,  
         textShadowOffset: { width: 2, height: 2 },
         textShadowRadius: 5,
+        letterSpacing: 5,
         opacity: glowAnim,
     };
 

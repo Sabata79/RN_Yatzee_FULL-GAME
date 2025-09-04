@@ -148,7 +148,6 @@ const styles = StyleSheet.create({
     centeredText: {
         color: 'white',
         fontSize: isBigScreen ? 32 : 20,
-        fontWeight: 'bold',
         textAlign: 'center',
         textShadowColor: '#ff0000',
         textShadowOffset: { width: 0, height: 0 },
