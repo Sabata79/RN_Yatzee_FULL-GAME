@@ -1,8 +1,7 @@
 /**
- * landingPageStyles - Styles for the landing page, including container, logo, progress bar, and buttons.
+ * LandingPageStyles - Styles for the landing page, including container, logo, progress bar, and buttons.
  * Used to style the app's landing and loading screens.
  *
- * @module styles/landingPageStyles
  * @module styles/LandingPageStyles
  * @author Sabata79
  * @since 2025-08-29
@@ -16,51 +15,70 @@ const { width, height } = Dimensions.get("window");
 const isSmallScreen = height < 650;
 
 const styles = StyleSheet.create({
+  versionContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    paddingTop: SPACING.sm,
+    zIndex: 10,
+  },
+  versionText: {
+    color: COLORS.black,
+    fontSize: TYPOGRAPHY.fontSize.sm,
+    fontFamily: TYPOGRAPHY.fontFamily.montserratLight,
+    opacity: 0.9,
+  },
   container: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-   backgroundColor: '#2c3e50', // Darker and softer background
-    padding: 20,
+    backgroundColor: COLORS.accent, // Darker and softer background
+    padding: SPACING.sm,
   },
   logoContainer: {
     alignItems: "center",
+    justifyContent: 'center',
+    alignSelf: 'center',
     marginBottom: isSmallScreen ? 15 : 30,
+    flexShrink: 0,
   },
   logo: {
-    width: width * 1.6,
-    height: width * 1.6,
+    width: width * 0.8,
+    height: width * 0.8,
+    opacity: 0.5,
     maxWidth: 600,
     maxHeight: 600,
-    marginBottom: 5,
+    marginBottom: SPACING.xs,
   },
   progressBar: {
     width: width * 0.8,
     height: 20,
-    marginHorizontal: 20,
+    marginHorizontal: SPACING.lg,
     borderRadius: 5,
-   backgroundColor: "rgba(245,245,245,0.3)", // Soft light gray background for progress bar
+    backgroundColor: COLORS.background,
     overflow: "hidden",
   },
   progressText: {
-    marginTop: 10,
-    fontSize: 16,
-    color: "#ecf0f1",
-    fontFamily: "Roboto",
+    marginTop: SPACING.sm,
+    marginBottom: SPACING.xs,
+    fontSize: TYPOGRAPHY.fontSize.md,
+    color: COLORS.textLight,
+    fontFamily: TYPOGRAPHY.fontFamily.montserratRegular,
     textAlign: "center",
   },
-  // Esimerkkityyli nappeille, mikäli haluat yhtenäistää myös etusivun nappuloita
   button: {
-    backgroundColor: "gold", // Kultaista väriä, joka löytyy myös InterfaceGuiden otsikoista
-    paddingVertical: 10,
-    paddingHorizontal: 20,
+    backgroundColor: "gold",
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.md,
     borderRadius: 5,
-    marginVertical: 5,
+    marginVertical: SPACING.xs,
   },
   buttonText: {
-    color: "black",
-    fontSize: 16,
-    fontFamily: "AntonRegular", // Voit käyttää myös InterfaceGuiden tyylejä
+    color: COLORS.black,
+    fontSize: TYPOGRAPHY.fontSize.md,
+    fontFamily: TYPOGRAPHY.fontFamily.montserratBold,
     textAlign: "center",
   },
   progressOverlay: {
@@ -73,7 +91,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   progressPercentText: {
-    color: '#fff',
+    color: COLORS.textLight,
     fontWeight: '600',
   },
 });

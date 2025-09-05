@@ -1,14 +1,15 @@
-import { SafeAreaView } from 'react-native-safe-area-context';
 /**
  * LandingPage - Screen for app boot, progress, and remote config loading.
  *
  * JSDoc comments and inline code comments must always be in English.
  * This file handles the app's initial loading, progress bar, and remote config fetch.
+ * @module screens/LandingPage
  * @author Sabata79
  * @since 2025-08-29
  */
 // LandingPage screen: handles app boot, progress, and remote config
 import { useState, useEffect, useRef } from "react";
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { View, Text, Image, Animated, Alert, Linking } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { signInAnon, dbGet } from "../services/Firebase";
@@ -25,6 +26,7 @@ import { Animations } from "../constants/AnimationPaths";
 
 
 export default function LandingPage({ navigation }) {
+  const insets = useSafeAreaInsets();
   const [fadeAnim] = useState(new Animated.Value(0));
   const [loadingProgress, setLoadingProgress] = useState(0); // 0..100
   const [bootDone, setBootDone] = useState(false); // all boot tasks done
@@ -284,39 +286,39 @@ export default function LandingPage({ navigation }) {
       return () => clearTimeout(t);
     }
   }, [remoteBlock, loadingProgress, bootDone, navigation]);
+  
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#253445' }}>
-      <Animated.View style={[styles.container, { opacity: fadeAnim, flex: 1, backgroundColor: '#253445' }]}> 
-        <View style={styles.versionContainer}>
+    <Animated.View style={[styles.container, { opacity: fadeAnim, flex: 1, backgroundColor: '#253445', justifyContent: 'center' }]}>
+      <View style={styles.versionContainer}>
         <Text style={styles.versionText}>Version: {gameVersion}</Text>
       </View>
 
       <View style={styles.logoContainer}>
         <Image
-          source={require("../../assets/landingLogo.webp")}
+          source={require("../../assets/coins/coin.webp")}
           style={styles.logo}
         />
       </View>
-
-      {/* ProgressBar + % overlay text */}
-      <View style={{ position: "relative" }}>
-        <ProgressBar
-          progress={loadingProgress / 100}
-          color="#62a346"
-          style={styles.progressBar}
-        />
-        <View style={styles.progressOverlay}>
-          <Text style={styles.progressPercentText}>
-            {Math.round(loadingProgress)}%
+      <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, paddingBottom: insets.bottom || 16 }}>
+        <View style={{ alignItems: 'center' }}>
+          <View style={{ position: "relative", marginBottom: 0 }}>
+            <ProgressBar
+              progress={loadingProgress / 100}
+              color="#62a346"
+              style={styles.progressBar}
+            />
+            <View style={styles.progressOverlay}>
+              <Text style={styles.progressPercentText}>
+                {Math.round(loadingProgress)}%
+              </Text>
+            </View>
+          </View>
+          <Text style={styles.progressText}>
+            {loadingProgress < 100 ? "Checking player data..." : "Complete!"}
           </Text>
         </View>
       </View>
-
-      <Text style={styles.progressText}>
-        {loadingProgress < 100 ? "Checking player data..." : "Complete!"}
-      </Text>
-      </Animated.View>
-    </SafeAreaView>
+    </Animated.View>
   );
 }
