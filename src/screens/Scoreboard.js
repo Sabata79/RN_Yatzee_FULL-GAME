@@ -11,14 +11,14 @@ import { useState, useEffect } from 'react';
 import { View, Text, ScrollView, ImageBackground, TouchableOpacity, Image } from 'react-native';
 import { DataTable } from 'react-native-paper';
 import { FontAwesome5 } from '@expo/vector-icons';
-import styles from '../styles/styles';
+import scoreboardStyles from '../styles/ScoreboardScreenStyles';
 import { NBR_OF_SCOREBOARD_ROWS } from '../constants/Game';
 import * as SecureStore from 'expo-secure-store';
 import PlayerCard from '../components/PlayerCard';
 import { useGame } from '../constants/GameContext';
 import { avatars } from '../constants/AvatarPaths';
 import { dbOnValue } from '../services/Firebase';
-import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 
 
@@ -140,68 +140,64 @@ export default function Scoreboard() {
   // Get avatar style based on player level
   const getAvatarStyle = (avatarPath) => {
     const avatar = avatars.find((av) => av.path === avatarPath);
-    if (!avatar) return styles.defaultAvatarIcon;
-    if (avatar.level === 'Beginner') return styles.beginnerAvatar;
-    if (avatar.level === 'Advanced') return styles.advancedAvatar;
-    return styles.avatar;
+    if (!avatar) return scoreboardStyles.defaultAvatarIcon;
+    if (avatar.level === 'Beginner') return scoreboardStyles.beginnerAvatar;
+    if (avatar.level === 'Advanced') return scoreboardStyles.advancedAvatar;
+    return scoreboardStyles.avatar;
   };
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <View style={{ flex: 1 }}>
       <ImageBackground
         source={require('../../assets/diceBackground.webp')}
-        style={styles.background}
+        style={scoreboardStyles.background}
       >
-        <View style={styles.overlay}>
+        <View style={scoreboardStyles.overlay}>
           <ScrollView
-            style={styles.container}
             contentContainerStyle={{
-              // Enough bottom padding: safe area + tabbar + small buffer
               paddingBottom: insets.bottom + tabBarHeight + 16,
-              // Optional: add top padding if needed
-              // paddingTop: 8,
             }}
             showsVerticalScrollIndicator={false}
           >
-            <View style={styles.tabContainer}>
+            <View style={scoreboardStyles.tabContainer}>
             <TouchableOpacity
-              style={scoreType === 'allTime' ? styles.activeTab : styles.inactiveTab}
+              style={scoreType === 'allTime' ? scoreboardStyles.activeTab : scoreboardStyles.inactiveTab}
               onPress={() => setScoreType('allTime')}
             >
-              <Text style={styles.tabText}>All Time</Text>
+              <Text style={scoreboardStyles.tabText}>All Time</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={scoreType === 'monthly' ? styles.activeTab : styles.inactiveTab}
+              style={scoreType === 'monthly' ? scoreboardStyles.activeTab : scoreboardStyles.inactiveTab}
               onPress={() => setScoreType('monthly')}
             >
-              <Text style={styles.tabText}>Monthly</Text>
+              <Text style={scoreboardStyles.tabText}>Monthly</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={scoreType === 'weekly' ? styles.activeTab : styles.inactiveTab}
+              style={scoreType === 'weekly' ? scoreboardStyles.activeTab : scoreboardStyles.inactiveTab}
               onPress={() => setScoreType('weekly')}
             >
-              <Text style={styles.tabText}>Weekly</Text>
+              <Text style={scoreboardStyles.tabText}>Weekly</Text>
             </TouchableOpacity>
           </View>
 
           {scores.length === 0 ? (
-            <Text style={styles.scoreboardText}>No scores yet</Text>
+            <Text style={scoreboardStyles.scoreboardText}>No scores yet</Text>
           ) : (
-            <DataTable style={styles.scoreboardContainer}>
+            <DataTable style={scoreboardStyles.scoreboardContainer}>
               <DataTable.Header>
-                <DataTable.Title style={[styles.rankHeaderCell]}>
-                  <Text style={styles.scoreboardHeader}>Rank #</Text>
+                <DataTable.Title style={[scoreboardStyles.rankHeaderCell]}>
+                  <Text style={scoreboardStyles.scoreboardHeader}>Rank #</Text>
                 </DataTable.Title>
-                <DataTable.Title style={[styles.playerHeaderCell]}>
-                  <Text style={styles.scoreboardHeader}>Player</Text>
+                <DataTable.Title style={[scoreboardStyles.playerHeaderCell]}>
+                  <Text style={scoreboardStyles.scoreboardHeader}>Player</Text>
                 </DataTable.Title>
-                <DataTable.Title style={[styles.durationHeaderCell]}>
-                  <Text style={styles.scoreboardHeader}>Duration</Text>
+                <DataTable.Title style={[scoreboardStyles.durationHeaderCell]}>
+                  <Text style={scoreboardStyles.scoreboardHeader}>Duration</Text>
                 </DataTable.Title>
-                <DataTable.Title style={[styles.pointsHeaderCell]}>
-                  <Text style={styles.scoreboardHeader}>Points</Text>
+                <DataTable.Title style={[scoreboardStyles.pointsHeaderCell]}>
+                  <Text style={scoreboardStyles.scoreboardHeader}>Points</Text>
                 </DataTable.Title>
               </DataTable.Header>
 
@@ -214,47 +210,49 @@ export default function Scoreboard() {
                     onPress={() => handlePlayerCard(score.playerId, score.name, score.scores)}
                     style={isCurrentUser ? { backgroundColor: '#d3bd867a' } : {}}
                   >
-                    <DataTable.Cell style={[styles.rankCell]}>
+                    <DataTable.Cell style={[scoreboardStyles.rankCell]}>
                       {index === 0 && (
-                        <View style={styles.medalWrapper}>
-                          <Image source={require('../../assets/medals/firstMedal.webp')} style={styles.medal} />
+                        <View style={scoreboardStyles.medalWrapper}>
+                          <Image source={require('../../assets/medals/firstMedal.webp')} style={scoreboardStyles.medal} />
                         </View>
                       )}
                       {index === 1 && (
-                        <View style={styles.medalWrapper}>
-                          <Image source={require('../../assets/medals/silverMedal.webp')} style={styles.medal} />
+                        <View style={scoreboardStyles.medalWrapper}>
+                          <Image source={require('../../assets/medals/silverMedal.webp')} style={scoreboardStyles.medal} />
                         </View>
                       )}
                       {index === 2 && (
-                        <View style={styles.medalWrapper}>
-                          <Image source={require('../../assets/medals/bronzeMedal.webp')} style={styles.medal} />
+                        <View style={scoreboardStyles.medalWrapper}>
+                          <Image source={require('../../assets/medals/bronzeMedal.webp')} style={scoreboardStyles.medal} />
                         </View>
                       )}
-                      {index > 2 && <Text style={styles.rankText}>{index + 1}.</Text>}
+                      {index > 2 && <Text style={scoreboardStyles.rankText}>{index + 1}.</Text>}
                     </DataTable.Cell>
 
-                    <DataTable.Cell style={[styles.playerCell]}>
-                      <View style={styles.playerWrapper}>
+                    <DataTable.Cell style={[scoreboardStyles.playerCell]}>
+                      <View style={scoreboardStyles.playerWrapper}>
                         {(() => {
-                          const avatarSource = avatars.find((a) => a.path.endsWith(score.avatar))?.display;
-                          return avatarSource ? (
-                            <Image source={avatarSource} style={getAvatarStyle(score.avatar)} />
-                          ) : (
-                            <View style={styles.defaultAvatarIcon}>
-                              <FontAwesome5 name="user" size={22} color="white" />
-                            </View>
-                          );
+                          const avatarObj = avatars.find((a) => a.path.endsWith(score.avatar));
+                          if (avatarObj && avatarObj.display) {
+                            return <Image source={avatarObj.display} style={getAvatarStyle(avatarObj.path)} />;
+                          } else {
+                            return (
+                              <View style={scoreboardStyles.defaultAvatarIcon}>
+                                <FontAwesome5 name="user" size={22} color="white" />
+                              </View>
+                            );
+                          }
                         })()}
-                        <Text style={styles.playerNameText}>{score.name}</Text>
+                        <Text style={scoreboardStyles.playerNameText}>{score.name}</Text>
                       </View>
                     </DataTable.Cell>
 
-                    <DataTable.Cell style={[styles.durationCell]}>
-                      <Text style={styles.durationText}>{score.duration}s</Text>
+                    <DataTable.Cell style={[scoreboardStyles.durationCell]}>
+                      <Text style={scoreboardStyles.durationText}>{score.duration}s</Text>
                     </DataTable.Cell>
 
-                    <DataTable.Cell style={[styles.pointsCell]}>
-                      <Text style={styles.pointsText}>{score.points}</Text>
+                    <DataTable.Cell style={[scoreboardStyles.pointsCell]}>
+                      <Text style={scoreboardStyles.pointsText}>{score.points}</Text>
                     </DataTable.Cell>
                   </DataTable.Row>
                 );
@@ -284,6 +282,6 @@ export default function Scoreboard() {
         )}
         </View>
       </ImageBackground>
-    </SafeAreaView>
+  </View>
   );
 }
