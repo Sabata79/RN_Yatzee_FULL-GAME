@@ -298,25 +298,6 @@ export default styles = StyleSheet.create({
     lockedTextColor: {
         color: 'black',
     },
-    scoreboardContainer: {
-        alignSelf: 'center',
-        borderRadius: 5,
-        backgroundColor: 'rgba(0, 0, 0, 0.546)',
-        width: '95%',
-        textAlign: 'center',
-        justifyContent: 'center',
-        borderColor: '#393838',
-        opacity: 0.96,
-        borderWidth: 2,
-        shadowColor: '#000000',
-        shadowOffset: {
-            width: 0,
-            height: 5,
-        },
-        shadowOpacity: 0.5,
-        shadowRadius: 3.84,
-        elevation: 10,
-    },
     cell: {
         flex: 1,
         justifyContent: 'center',
@@ -337,23 +318,6 @@ export default styles = StyleSheet.create({
         alignItems: 'center',
         height: '100%',
         width: '100%',
-    },
-
-    scoreboardText: {
-        fontSize: 14,
-        textAlign: 'center',
-        fontFamily: 'Roboto',
-        fontWeight: '800',
-        color: '#ffffff',
-        paddingVertical: 5,
-        lineHeight: 60,
-    },
-    scoreboardHeader: {
-        fontSize: 14,
-        textAlign: 'center',
-        fontFamily: 'AntonRegular',
-        color: '#f5f5f5',
-        paddingVertical: 5,
     },
 
     //Modal
@@ -486,33 +450,6 @@ export default styles = StyleSheet.create({
         textShadowRadius: 10,
         zIndex: 999,
     },
-    tabContainer: {
-        flexDirection: 1,
-        flexDirection: 'row',
-        justifyContent: 'center',
-        width: '100%',
-        backgroundColor: 'rgba(0, 0, 0, 0.6)',
-        padding: 5,
-        marginTop: 0,
-    },
-    tabText: {
-        flex: 1,
-        fontSize: 14,
-        lineHeight: 20,
-        color: 'white',
-        padding: 0,
-        textAlign: 'center',
-        margin: 5,
-    },
-    activeTab: {
-        flex: 1,
-        borderBottomWidth: 2,
-        borderBottomColor: 'gold',
-
-    },
-    inactiveTab: {
-        flex: 1,
-    },
     scoresHeaderContainer: {
         alignItems: 'center',
         marginTop: 10,
@@ -537,131 +474,4 @@ export default styles = StyleSheet.create({
         marginBottom: -120,
         marginTop: -50,
     },
-    defaultAvatarIcon: {
-        height: 40,
-        width: 40,
-        borderRadius: 20,
-        marginRight: 10,
-        backgroundColor: 'black',
-        justifyContent: 'center',
-        alignItems: 'center',
-        display: 'flex',
-    },
-    rankHeaderCell: {
-        flex: 1.2,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    playerHeaderCell: {
-        flex: 3,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    durationHeaderCell: {
-        flex: 2,
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginLeft: 15,
-    },
-    pointsHeaderCell: {
-        flex: 1.5,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    rankCell: {
-        flex: 1.2,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    medal: {
-        width: isSmallScreen ? 38 : 42,
-        height: isSmallScreen ? 38 : 42,
-        marginLeft: 0,
-        alignSelf: 'center',
-    },
-    medalWrapper: {
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    rankText: {
-        fontSize: 16,
-        color: '#f5f5f5',
-        textAlign: 'center',
-    },
-    playerCell: {
-        flex: 3,
-        justifyContent: 'flex-start',
-    },
-    playerWrapper: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    avatar: {
-        width: isSmallScreen ? 30 : 40,
-        height: isSmallScreen ? 30 : 40,
-        borderRadius: isSmallScreen ? 15 : 20,
-        marginRight: 10,
-        marginLeft: 15,
-        borderWidth: 1,
-        borderColor: 'black',
-    },
-    beginnerAvatar: {
-        borderRadius: 0,
-        width: 35,
-        height: 25,
-        resizeMode: 'cover',
-        marginLeft: 18,
-        marginRight: 12,
-        borderRadius: 2,
-        borderWidth: 1,
-        borderColor: '#4f4c4c36',
-    },
-    advancedAvatar: {
-        borderRadius: 0,
-        width: 40,
-        height: 30,
-        resizeMode: 'cover',
-        marginLeft: 18,
-        marginRight: 12,
-    },
-    defaultAvatarIcon: {
-        width: isSmallScreen ? 30 : 40,
-        height: isSmallScreen ? 30 : 40,
-        borderRadius: isSmallScreen ? 15 : 20,
-        backgroundColor: 'black',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginRight: 10,
-        marginLeft: 15,
-    },
-    playerNameText: {
-        fontSize: 16,
-        color: '#f5f5f5',
-        marginLeft: 5,
-        letterSpacing: -0.8,
-    },
-
-    durationCell: {
-        flex: 2,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    durationText: {
-        fontSize: 16,
-        color: '#f5f5f5',
-        textAlign: 'center',
-        marginLeft: 15,
-    },
-
-    pointsCell: {
-        flex: 1.5,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    pointsText: {
-        fontSize: 16,
-        color: '#f5f5f5',
-        textAlign: 'center',
-    },
-
 });
