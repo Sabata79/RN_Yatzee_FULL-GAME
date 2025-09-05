@@ -458,7 +458,7 @@ export default function Gameboard({ route, navigation }) {
         } else if (index === 2) {
             return (
                 <View style={gameboardstyles.item}>
-                    <Text style={gameboardstyles.gridTxt}>2X</Text>
+                    <Text style={gameboardstyles.gridTxt}>2 X</Text>
                 </View>
             );
         } else if (index === 3) {
@@ -474,7 +474,7 @@ export default function Gameboard({ route, navigation }) {
         } else if (index === 6) {
             return (
                 <View style={gameboardstyles.item}>
-                    <Text style={gameboardstyles.gridTxt}>3X</Text>
+                    <Text style={gameboardstyles.gridTxt}>3 X</Text>
                 </View>
             );
             // Sum of Triples and more
@@ -508,7 +508,7 @@ export default function Gameboard({ route, navigation }) {
         } else if (index === 10) {
             return (
                 <View style={gameboardstyles.item}>
-                    <Text style={gameboardstyles.gridTxt}>4X</Text>
+                    <Text style={gameboardstyles.gridTxt}>4 X</Text>
                 </View>
             );
             // Sum of Fours and more

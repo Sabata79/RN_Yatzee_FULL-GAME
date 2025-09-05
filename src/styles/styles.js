@@ -295,9 +295,9 @@ export default styles = StyleSheet.create({
         color: 'white',
         width: 60,
     },
-    lockedTextColor: {
-        color: 'black',
-    },
+    // lockedTextColor: {
+    //     color: 'black',
+    // },
     cell: {
         flex: 1,
         justifyContent: 'center',

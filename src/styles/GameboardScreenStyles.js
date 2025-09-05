@@ -138,6 +138,7 @@ const styles = StyleSheet.create({
     item: {
         flex: 1,
         height: isSmallScreen ? 35 : isBigScreen ? 60 : 40,
+        width: isSmallScreen ? 35 : isBigScreen ? 60 : 40,
         alignItems: 'center',
         justifyContent: 'center',
         marginTop: SPACING.xs,
@@ -160,9 +161,11 @@ const styles = StyleSheet.create({
         lineHeight: TYPOGRAPHY.fontSize.lg,
     },
     gridTxt: {
+        height: isSmallScreen ? 35 : isBigScreen ? 60 : 40,
+        width: isSmallScreen ? 35 : isBigScreen ? 60 : 40,
+        fontFamily: TYPOGRAPHY.fontFamily.bangers,
         color: COLORS.textDark,
-        fontSize: 16,
-        fontWeight: 'bold',
+        fontSize: TYPOGRAPHY.fontSize.md,
         textAlign: 'center',
         padding: SPACING.xs,
         marginTop: SPACING.xs,
@@ -171,13 +174,13 @@ const styles = StyleSheet.create({
         backgroundColor: COLORS.backgroundDark,
     },
     scoreText: {
-        color: 'white',
+        color: COLORS.textLight,
         fontFamily: TYPOGRAPHY.fontFamily.bangers,
         fontSize: TYPOGRAPHY.fontSize.md,
         paddingRight: SPACING.xs,
     },
     centeredText: {
-        color: 'white',
+        color: COLORS.textLight,
         fontSize: TYPOGRAPHY.fontSize.lg,
         textAlign: 'center',
         zIndex: 1000,
@@ -187,7 +190,7 @@ const styles = StyleSheet.create({
     icon: {
         justifyContent: 'center',
         alignItems: 'center',
-        color: 'white',
+        color: COLORS.textLight,
     },
 });
 
