@@ -37,13 +37,13 @@ export default scoreboardStyles = StyleSheet.create({
     },
     scoreboardContainer: {
         alignSelf: 'center',
-        marginTop: 10,
-        backgroundColor: COLORS.overlayExtraDark,
+        marginTop: 0,
+        borderRadiusBottom: 5,
+        backgroundColor: COLORS.overlayDark,
         width: '95%',
         textAlign: 'center',
         justifyContent: 'center',
-        borderLeftColor: COLORS.accentLight,
-        borderRightColor: COLORS.accentLight,
+
         borderWidth: 2,
     },
     scoreboardText: {
@@ -64,12 +64,14 @@ export default scoreboardStyles = StyleSheet.create({
         paddingVertical: 5,
     },
     tabContainer: {
+        position: 'absolute',
         flexDirection: 1,
         flexDirection: 'row',
         justifyContent: 'center',
         width: '100%',
-        backgroundColor: COLORS.overlayDark,
+        backgroundColor: COLORS.overlayExtraDark,
         padding: SPACING.xs,
+        zIndex: 1,
     },
     tabText: {
         flex: 1,

@@ -8,8 +8,8 @@
  * @since 2025-08-29
  */
 // Scoreboard screen: shows player rankings (all time, monthly, weekly) and allows viewing player cards
-import { useState, useEffect } from 'react';
-import { View, Text, ScrollView, ImageBackground, TouchableOpacity, Image } from 'react-native';
+import { useState, useEffect, useRef } from 'react';
+import { View, Text, ScrollView, ImageBackground, TouchableOpacity, Image, Animated } from 'react-native';
 import { DataTable } from 'react-native-paper';
 import { FontAwesome5 } from '@expo/vector-icons';
 import scoreboardStyles from '../styles/ScoreboardScreenStyles';
@@ -24,6 +24,9 @@ import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 
 
 export default function Scoreboard() {
+  const [tabVisible, setTabVisible] = useState(true);
+  const tabAnim = useState(new Animated.Value(0))[0]; // 0 = näkyvissä, -60 = piilossa
+  const scrollOffset = useRef(0);
   const [scores, setScores] = useState([]);
   const [scoreType, setScoreType] = useState('allTime');
   const [userId, setUserId] = useState('');
@@ -154,13 +157,19 @@ export default function Scoreboard() {
         style={scoreboardStyles.background}
       >
         <View style={scoreboardStyles.overlay}>
-          <ScrollView
-            contentContainerStyle={{
-              paddingBottom: insets.bottom + tabBarHeight + 16,
-            }}
-            showsVerticalScrollIndicator={false}
+          <Animated.View
+            style={[
+              scoreboardStyles.tabContainer,
+              {
+                transform: [{ translateY: tabAnim }],
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                zIndex: 10,
+              },
+            ]}
           >
-            <View style={scoreboardStyles.tabContainer}>
             <TouchableOpacity
               style={scoreType === 'allTime' ? scoreboardStyles.activeTab : scoreboardStyles.inactiveTab}
               onPress={() => setScoreType('allTime')}
@@ -181,88 +190,113 @@ export default function Scoreboard() {
             >
               <Text style={scoreboardStyles.tabText}>Weekly</Text>
             </TouchableOpacity>
-          </View>
+          </Animated.View>
+          <ScrollView
+            contentContainerStyle={{
+              paddingTop: 50, // tilaa tabille
+              paddingBottom: insets.bottom + tabBarHeight + 16,
+            }}
+            showsVerticalScrollIndicator={false}
+            scrollEventThrottle={16}
+            onScroll={event => {
+              const currentOffset = event.nativeEvent.contentOffset.y;
+              const diff = currentOffset - scrollOffset.current;
+              if (diff > 10) {
+                // Scrollataan alas, piilota tabit
+                Animated.timing(tabAnim, {
+                  toValue: -60,
+                  duration: 200,
+                  useNativeDriver: true,
+                }).start();
+              } else if (diff < -10) {
+                // Scrollataan ylös, näytä tabit
+                Animated.timing(tabAnim, {
+                  toValue: 0,
+                  duration: 200,
+                  useNativeDriver: true,
+                }).start();
+              }
+              scrollOffset.current = currentOffset;
+            }}
+          >
+            {scores.length === 0 ? (
+              <Text style={scoreboardStyles.scoreboardText}>No scores yet</Text>
+            ) : (
+              <DataTable style={scoreboardStyles.scoreboardContainer}>
+                <DataTable.Header>
+                  <DataTable.Title style={[scoreboardStyles.rankHeaderCell]}>
+                    <Text style={scoreboardStyles.scoreboardHeader}>Rank #</Text>
+                  </DataTable.Title>
+                  <DataTable.Title style={[scoreboardStyles.playerHeaderCell]}>
+                    <Text style={scoreboardStyles.scoreboardHeader}>Player</Text>
+                  </DataTable.Title>
+                  <DataTable.Title style={[scoreboardStyles.durationHeaderCell]}>
+                    <Text style={scoreboardStyles.scoreboardHeader}>Duration</Text>
+                  </DataTable.Title>
+                  <DataTable.Title style={[scoreboardStyles.pointsHeaderCell]}>
+                    <Text style={scoreboardStyles.scoreboardHeader}>Points</Text>
+                  </DataTable.Title>
+                </DataTable.Header>
 
-          {scores.length === 0 ? (
-            <Text style={scoreboardStyles.scoreboardText}>No scores yet</Text>
-          ) : (
-            <DataTable style={scoreboardStyles.scoreboardContainer}>
-              <DataTable.Header>
-                <DataTable.Title style={[scoreboardStyles.rankHeaderCell]}>
-                  <Text style={scoreboardStyles.scoreboardHeader}>Rank #</Text>
-                </DataTable.Title>
-                <DataTable.Title style={[scoreboardStyles.playerHeaderCell]}>
-                  <Text style={scoreboardStyles.scoreboardHeader}>Player</Text>
-                </DataTable.Title>
-                <DataTable.Title style={[scoreboardStyles.durationHeaderCell]}>
-                  <Text style={scoreboardStyles.scoreboardHeader}>Duration</Text>
-                </DataTable.Title>
-                <DataTable.Title style={[scoreboardStyles.pointsHeaderCell]}>
-                  <Text style={scoreboardStyles.scoreboardHeader}>Points</Text>
-                </DataTable.Title>
-              </DataTable.Header>
+                {scores.slice(0, NBR_OF_SCOREBOARD_ROWS).map((score, index) => {
+                  const isCurrentUser = score.playerId === userId;
 
-              {scores.slice(0, NBR_OF_SCOREBOARD_ROWS).map((score, index) => {
-                const isCurrentUser = score.playerId === userId;
+                  return (
+                    <DataTable.Row
+                      key={`${score.playerId}-${index}`}
+                      onPress={() => handlePlayerCard(score.playerId, score.name, score.scores)}
+                      style={isCurrentUser ? { backgroundColor: '#d3bd867a' } : {}}
+                    >
+                      <DataTable.Cell style={[scoreboardStyles.rankCell]}>
+                        {index === 0 && (
+                          <View style={scoreboardStyles.medalWrapper}>
+                            <Image source={require('../../assets/medals/firstMedal.webp')} style={scoreboardStyles.medal} />
+                          </View>
+                        )}
+                        {index === 1 && (
+                          <View style={scoreboardStyles.medalWrapper}>
+                            <Image source={require('../../assets/medals/silverMedal.webp')} style={scoreboardStyles.medal} />
+                          </View>
+                        )}
+                        {index === 2 && (
+                          <View style={scoreboardStyles.medalWrapper}>
+                            <Image source={require('../../assets/medals/bronzeMedal.webp')} style={scoreboardStyles.medal} />
+                          </View>
+                        )}
+                        {index > 2 && <Text style={scoreboardStyles.rankText}>{index + 1}.</Text>}
+                      </DataTable.Cell>
 
-                return (
-                  <DataTable.Row
-                    key={`${score.playerId}-${index}`}
-                    onPress={() => handlePlayerCard(score.playerId, score.name, score.scores)}
-                    style={isCurrentUser ? { backgroundColor: '#d3bd867a' } : {}}
-                  >
-                    <DataTable.Cell style={[scoreboardStyles.rankCell]}>
-                      {index === 0 && (
-                        <View style={scoreboardStyles.medalWrapper}>
-                          <Image source={require('../../assets/medals/firstMedal.webp')} style={scoreboardStyles.medal} />
+                      <DataTable.Cell style={[scoreboardStyles.playerCell]}>
+                        <View style={scoreboardStyles.playerWrapper}>
+                          {(() => {
+                            const avatarObj = avatars.find((a) => a.path.endsWith(score.avatar));
+                            if (avatarObj && avatarObj.display) {
+                              return <Image source={avatarObj.display} style={getAvatarStyle(avatarObj.path)} />;
+                            } else {
+                              return (
+                                <View style={scoreboardStyles.defaultAvatarIcon}>
+                                  <FontAwesome5 name="user" size={22} color="white" />
+                                </View>
+                              );
+                            }
+                          })()}
+                          <Text style={scoreboardStyles.playerNameText}>{score.name}</Text>
                         </View>
-                      )}
-                      {index === 1 && (
-                        <View style={scoreboardStyles.medalWrapper}>
-                          <Image source={require('../../assets/medals/silverMedal.webp')} style={scoreboardStyles.medal} />
-                        </View>
-                      )}
-                      {index === 2 && (
-                        <View style={scoreboardStyles.medalWrapper}>
-                          <Image source={require('../../assets/medals/bronzeMedal.webp')} style={scoreboardStyles.medal} />
-                        </View>
-                      )}
-                      {index > 2 && <Text style={scoreboardStyles.rankText}>{index + 1}.</Text>}
-                    </DataTable.Cell>
+                      </DataTable.Cell>
 
-                    <DataTable.Cell style={[scoreboardStyles.playerCell]}>
-                      <View style={scoreboardStyles.playerWrapper}>
-                        {(() => {
-                          const avatarObj = avatars.find((a) => a.path.endsWith(score.avatar));
-                          if (avatarObj && avatarObj.display) {
-                            return <Image source={avatarObj.display} style={getAvatarStyle(avatarObj.path)} />;
-                          } else {
-                            return (
-                              <View style={scoreboardStyles.defaultAvatarIcon}>
-                                <FontAwesome5 name="user" size={22} color="white" />
-                              </View>
-                            );
-                          }
-                        })()}
-                        <Text style={scoreboardStyles.playerNameText}>{score.name}</Text>
-                      </View>
-                    </DataTable.Cell>
+                      <DataTable.Cell style={[scoreboardStyles.durationCell]}>
+                        <Text style={scoreboardStyles.durationText}>{score.duration}s</Text>
+                      </DataTable.Cell>
 
-                    <DataTable.Cell style={[scoreboardStyles.durationCell]}>
-                      <Text style={scoreboardStyles.durationText}>{score.duration}s</Text>
-                    </DataTable.Cell>
-
-                    <DataTable.Cell style={[scoreboardStyles.pointsCell]}>
-                      <Text style={scoreboardStyles.pointsText}>{score.points}</Text>
-                    </DataTable.Cell>
-                  </DataTable.Row>
-                );
-              })}
-            </DataTable>
-          )}
-
-
-        </ScrollView>
+                      <DataTable.Cell style={[scoreboardStyles.pointsCell]}>
+                        <Text style={scoreboardStyles.pointsText}>{score.points}</Text>
+                      </DataTable.Cell>
+                    </DataTable.Row>
+                  );
+                })}
+              </DataTable>
+            )}
+          </ScrollView>
         {modalVisible && selectedPlayer && (
           <PlayerCard
             playerId={selectedPlayer.playerId}
