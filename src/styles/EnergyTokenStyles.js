@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
   },
   tokenText: {
     fontSize: TYPOGRAPHY.fontSize.xs,
-    fontFamily: TYPOGRAPHY.fontFamily.montserratSemiBold,
+    fontFamily: TYPOGRAPHY.fontFamily.montserratBold,
     lineHeight: TYPOGRAPHY.fontSize.xs,
     color: 'white',
     textAlign: 'center',
