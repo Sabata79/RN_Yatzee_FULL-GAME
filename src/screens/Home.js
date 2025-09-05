@@ -2,6 +2,7 @@
  * Home - Main screen for player login, linking, recovery, and welcome video.
  *
  * This file handles player login, account linking, recovery, and welcome video.
+ * @module screens/Home
  * @author Sabata79
  * @since 2025-08-29
  */

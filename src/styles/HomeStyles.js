@@ -2,6 +2,8 @@
  * homeStyles - Styles for the home screen, including overlays, rules, buttons, and images.
  * Used to style the main home screen and its UI elements.
  * @module styles/homeStyles
+ * @author Sabata79
+ * @since 2025-09-02
  */
 import { StyleSheet, Dimensions } from 'react-native';
 import COLORS from '../constants/colors';
@@ -11,7 +13,6 @@ import SPACING from '../constants/spacing';
 const { width } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
-  // Only home-specific styles left here
   input: {
     paddingVertical: SPACING.sm,
     paddingHorizontal: SPACING.md,
@@ -20,8 +21,8 @@ const styles = StyleSheet.create({
     minHeight: 48,
     justifyContent: 'center',
     textAlign: 'center',
-    fontFamily: 'BangersRegular',
-    fontSize: TYPOGRAPHY.fontSize.lg,
+    fontFamily: TYPOGRAPHY.fontFamily.montserratExtraBold,
+    fontSize: TYPOGRAPHY.fontSize.md,
     color: COLORS.text,
     backgroundColor: COLORS.background,
     borderRadius: 8,
