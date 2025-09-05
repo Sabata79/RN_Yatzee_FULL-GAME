@@ -1,8 +1,11 @@
 /**
  * landingPageStyles - Styles for the landing page, including container, logo, progress bar, and buttons.
  * Used to style the app's landing and loading screens.
- * JSDoc comments and inline code comments must always be in English.
+ *
  * @module styles/landingPageStyles
+ * @module styles/LandingPageStyles
+ * @author Sabata79
+ * @since 2025-08-29
  */
 import { StyleSheet, Dimensions } from 'react-native';
 import COLORS from '../constants/colors';

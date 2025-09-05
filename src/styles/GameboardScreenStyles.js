@@ -11,6 +11,7 @@
  *   <View style={styles.gameboardContainer}>...</View>
  *
  *
+ * @module styles/GameboardScreenStyles
  * @author Sabata79
  * @since 2025-09-04
  */

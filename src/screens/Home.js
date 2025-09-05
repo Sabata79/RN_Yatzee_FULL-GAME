@@ -1,7 +1,6 @@
 /**
  * Home - Main screen for player login, linking, recovery, and welcome video.
  *
- * JSDoc comments and inline code comments must always be in English.
  * This file handles player login, account linking, recovery, and welcome video.
  * @author Sabata79
  * @since 2025-08-29

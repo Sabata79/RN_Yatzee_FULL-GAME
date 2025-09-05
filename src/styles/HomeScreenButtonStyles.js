@@ -1,3 +1,20 @@
+/**
+ * HomeScreenButtonStyles.js - Styles for the Home screen action buttons
+ *
+ * Contains all styles for the Home screen action buttons and related elements.
+ *
+ * Usage:
+ *   import homeScreenBtnStyles from '../styles/HomeScreenButtonStyles';
+ *   ...
+ *   <Pressable style={homeScreenBtnStyles.button}>...</Pressable>
+ *
+ * Note! All fonts and colors are centralized in the constants folder.
+ *
+ * @module styles/HomeScreenButtonStyles
+ * @author Sabata79
+ * @since 2025-09-04
+ */
+
 import { StyleSheet } from 'react-native';
 import COLORS from '../constants/colors';
 import TYPOGRAPHY from '../constants/typography';

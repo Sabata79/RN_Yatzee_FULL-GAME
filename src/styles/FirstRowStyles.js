@@ -9,6 +9,7 @@
  *   ...
  *   <View style={styles.firstRowContainer}>...</View>
  *
+ * @module styles/FirstRowStyles
  * @author Sabata79
  * @since 2025-09-04
  */

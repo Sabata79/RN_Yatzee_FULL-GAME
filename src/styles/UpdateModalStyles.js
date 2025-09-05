@@ -1,8 +1,10 @@
 /**
  * updateModalStyles - Styles for the update modal overlay, content, buttons, and text.
  * Used to style the modal that prompts users to update the app.
- * JSDoc comments and inline code comments must always be in English.
+ *
  * @module styles/updateModalStyles
+ * @author Sabata79
+ * @since 2025-08-29
  */
 import { StyleSheet } from 'react-native';
 import COLORS from '../constants/colors';

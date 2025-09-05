@@ -1,7 +1,6 @@
 /**
  * homeStyles - Styles for the home screen, including overlays, rules, buttons, and images.
  * Used to style the main home screen and its UI elements.
- * JSDoc comments and inline code comments must always be in English.
  * @module styles/homeStyles
  */
 import { StyleSheet, Dimensions } from 'react-native';

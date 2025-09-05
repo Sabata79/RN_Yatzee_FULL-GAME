@@ -1,8 +1,10 @@
 /**
  * EnergyTokenStyles - Styles for the energy token system, including progress bars, modals, and icons.
  * Used to style the energy token UI elements and modal dialogs.
- * JSDoc comments and inline code comments must always be in English.
+ *
  * @module styles/EnergyTokenStyles
+ * @author Sabata79
+ * @since 2025-08-29
  */
 import { StyleSheet } from 'react-native';
 import COLORS from '../constants/colors';
@@ -14,7 +16,7 @@ const styles = StyleSheet.create({
     height: 20,
     alignItems: 'center',
     justifyContent: 'center',
-  pointerEvents: 'none',   // No interaction (for passive bar)
+    pointerEvents: 'none',   // No interaction (for passive bar)
     left: 0,
   },
   energyIcon: {
@@ -29,8 +31,8 @@ const styles = StyleSheet.create({
   },
   progressWrap: {
     position: 'relative',
-    width: 60,               // säädä pituus
-    height: 15,
+    width: 100,
+    height: 20,
   },
   progressOverlay: {
     position: 'absolute',
@@ -48,15 +50,16 @@ const styles = StyleSheet.create({
     borderColor: 'white',
   },
   tokenText: {
-    fontSize: 11,
-    fontWeight: 'bold',
+    fontSize: TYPOGRAPHY.fontSize.xs,
+    fontFamily: TYPOGRAPHY.fontFamily.montserratSemiBold,
+    lineHeight: TYPOGRAPHY.fontSize.xs,
     color: 'white',
     textAlign: 'center',
     textAlignVertical: 'center',
   },
   energyIconOverlay: {
     position: 'absolute',
-    left: -14,               
+    left: -14,
     top: -5,
     zIndex: 3,
     transform: [{ rotate: '-15deg' }],

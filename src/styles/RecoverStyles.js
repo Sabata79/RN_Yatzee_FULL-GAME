@@ -1,8 +1,10 @@
 /**
- * EnergyTokenStyles - Styles for the energy token system, including progress bars, modals, and icons.
- * Used to style the energy token UI elements and modal dialogs.
- * JSDoc comments and inline code comments must always be in English.
- * @module styles/recoverStyles
+ * RecoverStyles - Styles for the recover modal and related UI elements.
+ * Used to style the recovery dialogs and overlays.
+ *
+ * @module styles/RecoverStyles
+ * @author Sabata79
+ * @since 2025-08-29
  */
 
 import { StyleSheet } from 'react-native';

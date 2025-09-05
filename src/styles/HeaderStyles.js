@@ -1,8 +1,10 @@
 /**
  * headerStyles - Styles for the Header component, including layout, sections, and avatar images.
  * Used to style the app's header bar and related UI elements.
- * JSDoc comments and inline code comments must always be in English.
+ *
  * @module styles/headerStyles
+ * @author Sabata79
+ * @since 2025-08-29
  */
 // NOTICE: These styles are made whit section flex and flexDirection row. The styles are used in the Header.js component
 
@@ -20,38 +22,37 @@ const headerStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 10,
+    paddingHorizontal: SPACING.sm,
     height: isSmallScreen ? 50 : height * 0.1,
-    backgroundColor: 'black',
+    backgroundColor: COLORS.black,
     marginTop: statusBarHeight,
     overflow: 'hidden',
     marginTop: 0,
     position: 'relative',
   },
-  section1: {
-    flex: isSmallScreen ? 1.5 : 1.5,
-    flexDirection: 'row',
+  section3: {
+    width: 80,
     alignItems: 'flex-start',
-    justifyContent: 'flex-start',
+    justifyContent: 'center',
   },
   section2: {
-    flex: 2,
+    flex: 1,
     alignItems: 'flex-start',
     justifyContent: 'center',
   },
   centerOverlay: {
     position: 'absolute',
-    left: 0,
+    left: -95,
     right: 0,
     top: 0,
-    bottom: 0,            
-    alignItems: 'center', 
-    justifyContent: 'center', 
-    pointerEvents: 'none',   
+    bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    pointerEvents: 'none',
     zIndex: 2,
   },
   section3: {
-    flex: 2,
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -64,29 +65,34 @@ const headerStyles = StyleSheet.create({
     fontSize: isSmallScreen ? 18 : width * 0.05,
     alignSelf: 'center',
     fontFamily: 'AntonRegular',
-    color: '#ffffff',
+    color: COLORS.textLight,
   },
   headerImage: {
-    height: height * 0.11,
-    width: width * 0.15,
-    marginLeft: -width * 0.02,
+    alignSelf: 'flex-start',
+    height: 50,
+    width: undefined,
+    aspectRatio: 3,
+    marginLeft: -36,
+    resizeMode: 'contain',
   },
   userName: {
-    fontSize: isSmallScreen ? 14 : width * 0.0325,
-    fontWeight: 'bold',
+    fontFamily: TYPOGRAPHY.fontFamily.montserratExtraBold,
+    fontSize: TYPOGRAPHY.fontSize.sm,
+    position: 'absolute',
+    left: '50%',
+    top: 33,
+    textAlign: 'center',
+    width: 85, 
     color: 'white',
     textAlign: 'center',
     justifyContent: 'center',
-    width: '100%',
-    paddingRight: isSmallScreen ? 20 : 10,
-    letterSpacing: -1,
   },
   headerAvatarImage: {
     width: isSmallScreen ? 50 : 60,
     height: isSmallScreen ? 50 : 60,
     borderRadius: isSmallScreen ? 25 : 30,
-    marginLeft: 10,
-    marginTop: 10,
+    marginLeft: SPACING.sm,
+    marginTop: SPACING.sm,
     resizeMode: 'cover',
   },
   beginnerAvatar: {
@@ -102,13 +108,13 @@ const headerStyles = StyleSheet.create({
   defaultUserIcon: {
     fontSize: isSmallScreen ? 20 : 26,
     color: 'white',
-    marginLeft: 10,
-    marginRight: 15,
+    marginLeft: SPACING.sm,
+    marginRight: SPACING.md,
   },
   linkIconContainer: {
     position: 'absolute',
     top: 5,
-    left: 10,
+    left: SPACING.sm,
     padding: 2,
     borderRadius: 40,
     borderColor: '#4c4949',

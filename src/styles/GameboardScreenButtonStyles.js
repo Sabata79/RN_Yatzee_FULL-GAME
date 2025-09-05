@@ -10,6 +10,7 @@
  *
  * Note! All fonts and colors are centralized in the constants folder.
  *
+ * @module styles/GameboardScreenButtonStyles
  * @author Sabata79
  * @since 2025-09-03
  */
