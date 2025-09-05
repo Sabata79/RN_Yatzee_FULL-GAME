@@ -63,8 +63,9 @@ export const COLORS = {
   backgroundDark: '#d1d8e0',
   backgroundGray: '#776c62',
 
-  overlayDark: 'rgba(0, 0, 0, 0.7)',      // For dark overlays
-  overlayLight: 'rgba(255, 255, 255, 0.1)', // For light overlays
+  overlayDark: 'rgba(0, 0, 0, 0.7)',
+  overlayExtraDark: 'rgba(0, 0, 0, 0.9)',
+  overlayLight: 'rgba(255, 255, 255, 0.1)',
 
   text: '#222f3e',
   textLight: '#F5F5F5',
