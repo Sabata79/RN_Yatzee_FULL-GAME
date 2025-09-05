@@ -3,6 +3,7 @@
  *
  * JSDoc comments and inline code comments must always be in English.
  * This file displays the leaderboard and allows viewing player cards.
+ * @module screens/Scoreboard
  * @author Sabata79
  * @since 2025-08-29
  */
