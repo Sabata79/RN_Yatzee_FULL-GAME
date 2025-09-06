@@ -18,7 +18,7 @@ import { StyleSheet, Dimensions } from 'react-native';
 import COLORS from '../constants/colors';
 import SPACING from '../constants/spacing';
 import TYPOGRAPHY from '../constants/typography';
-import { overlay } from 'react-native-paper';
+
 const { width, height } = Dimensions.get('window');
 const isSmallScreen = height < 650;
 const isBigScreen = height >= 1050;
