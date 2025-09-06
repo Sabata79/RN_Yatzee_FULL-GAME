@@ -14,7 +14,7 @@
  */
 
 import { useState, useEffect, useRef } from 'react';
-import { View, Text, ScrollView, ImageBackground, TouchableOpacity, Image, Animated } from 'react-native';
+import { View, Text, ScrollView, ImageBackground, TouchableOpacity, Image, Animated, Dimensions } from 'react-native';
 import { DataTable } from 'react-native-paper';
 import { FontAwesome5 } from '@expo/vector-icons';
 import scoreboardStyles from '../styles/ScoreboardScreenStyles';
@@ -30,9 +30,11 @@ import Header from './Header';
 
 
 export default function Scoreboard() {
-  const [tabVisible, setTabVisible] = useState(true);
-  const tabAnim = useState(new Animated.Value(0))[0]; // 0 = näkyvissä, -60 = piilossa
+  const tabAnim = useRef(new Animated.Value(0)).current; // 0 = näkyvissä, -50 = piilossa
+  const headerAnim = useRef(new Animated.Value(0)).current; // 0 = näkyvissä, -70 = piilossa
   const scrollOffset = useRef(0);
+  const [tabHidden, setTabHidden] = useState(false);
+  const [headerHidden, setHeaderHidden] = useState(false);
   const [scores, setScores] = useState([]);
   const [scoreType, setScoreType] = useState('allTime');
   const [userId, setUserId] = useState('');
@@ -165,7 +167,7 @@ export default function Scoreboard() {
         <View style={scoreboardStyles.overlay}>
           <Animated.View
             style={{
-              transform: [{ translateY: tabAnim }],
+              transform: [{ translateY: headerAnim }],
               position: 'absolute',
               top: 0,
               left: 0,
@@ -179,9 +181,8 @@ export default function Scoreboard() {
             style={[
               scoreboardStyles.tabContainer,
               {
-                transform: [{ translateY: tabAnim }],
+                transform: [{ translateY: Animated.add(Animated.add(headerAnim, new Animated.Value(70)), tabAnim) }],
                 position: 'absolute',
-                top: 70, // headerin korkeus px
                 left: 0,
                 right: 0,
                 zIndex: 10,
@@ -211,30 +212,70 @@ export default function Scoreboard() {
           </Animated.View>
           <ScrollView
             contentContainerStyle={{
-              paddingTop: 120, // header + tabit
+              paddingTop: 80, // header + tabit
               paddingBottom: insets.bottom + tabBarHeight + 16,
             }}
             showsVerticalScrollIndicator={false}
             scrollEventThrottle={16}
             onScroll={event => {
               const currentOffset = event.nativeEvent.contentOffset.y;
-              const diff = currentOffset - scrollOffset.current;
-              if (diff > 10) {
-                // Scrollataan alas, piilota header+tabit
-                Animated.timing(tabAnim, {
-                  toValue: -120,
-                  duration: 200,
-                  useNativeDriver: true,
-                }).start();
-              } else if (diff < -10) {
-                // Scrollataan ylös, näytä header+tabit
-                Animated.timing(tabAnim, {
-                  toValue: 0,
-                  duration: 200,
-                  useNativeDriver: true,
-                }).start();
+              // Scrollataan alas
+              if (currentOffset > scrollOffset.current) {
+                if (!tabHidden) {
+                  Animated.timing(tabAnim, {
+                    toValue: -50,
+                    duration: 150,
+                    useNativeDriver: true,
+                  }).start(() => setTabHidden(true));
+                } else if (!headerHidden) {
+                  Animated.timing(headerAnim, {
+                    toValue: -70,
+                    duration: 150,
+                    useNativeDriver: true,
+                  }).start(() => setHeaderHidden(true));
+                }
+              }
+              // Scrollataan ylös
+              else if (currentOffset < scrollOffset.current) {
+                if (headerHidden) {
+                  Animated.timing(headerAnim, {
+                    toValue: 0,
+                    duration: 150,
+                    useNativeDriver: true,
+                  }).start(() => {
+                    setHeaderHidden(false);
+                    // Palautetaan myös tabAnim, jotta tabit eivät jää piiloon
+                    Animated.timing(tabAnim, {
+                      toValue: 0,
+                      duration: 150,
+                      useNativeDriver: true,
+                    }).start(() => setTabHidden(false));
+                  });
+                } else if (tabHidden) {
+                  Animated.timing(tabAnim, {
+                    toValue: 0,
+                    duration: 150,
+                    useNativeDriver: true,
+                  }).start(() => setTabHidden(false));
+                }
               }
               scrollOffset.current = currentOffset;
+            }}
+            onContentSizeChange={(contentWidth, contentHeight) => {
+              // Jos sisältö ei ylitä ruutua, palautetaan header ja tabit näkyviin
+              const windowHeight = Dimensions.get('window').height;
+              if (contentHeight <= windowHeight) {
+                Animated.timing(headerAnim, {
+                  toValue: 0,
+                  duration: 150,
+                  useNativeDriver: true,
+                }).start(() => setHeaderHidden(false));
+                Animated.timing(tabAnim, {
+                  toValue: 0,
+                  duration: 150,
+                  useNativeDriver: true,
+                }).start(() => setTabHidden(false));
+              }
             }}
           >
             {scores.length === 0 ? (
