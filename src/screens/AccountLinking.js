@@ -21,14 +21,14 @@ import COLORS from '../constants/colors';
 
 export default function AccountLinking() {
   return (
-  <ScrollView contentContainerStyle={gameRulesStyles.container}>
+    <ScrollView contentContainerStyle={gameRulesStyles.container}>
 
-  <View style={gameRulesStyles.sectionHeader}>
+      <View style={gameRulesStyles.sectionHeader}>
         <FontAwesome5 name="link" size={20} color={COLORS.warning} />
-  <Text style={gameRulesStyles.sectionTitle}>Account Linking</Text>
+        <Text style={gameRulesStyles.sectionTitle}>Account Linking</Text>
       </View>
-  <View style={gameRulesStyles.infoBox}>
-  <Text style={gameRulesStyles.infoText}>{linkingText}</Text>
+      <View style={gameRulesStyles.infoBox}>
+        <Text style={gameRulesStyles.infoText}>{linkingText}</Text>
       </View>
     </ScrollView>
   );
