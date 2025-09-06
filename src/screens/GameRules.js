@@ -45,13 +45,11 @@ export default function GameRules() {
 
       {/* Combinations Section Title with Icon */}
   <View style={gameRulesStyles.sectionHeader}>
-        <MaterialCommunityIcons name="dice-multiple" size={26} color="gold" />
   <Text style={gameRulesStyles.sectionTitle}>Combinations</Text>
       </View>
 
       {combinationsData.map((combination, index) => (
         <View style={gameRulesStyles.combination} key={index}>
-          <MaterialCommunityIcons name={combination.icon} size={30} color="gold" />
           <View style={gameRulesStyles.combinationText}>
             <Text style={gameRulesStyles.smallText}>{combination.smallText}</Text>
             <Text style={gameRulesStyles.description}>{combination.description}</Text>
@@ -61,7 +59,6 @@ export default function GameRules() {
 
       {/* Scores Comparison Section Title with Icon */}
   <View style={gameRulesStyles.sectionHeader}>
-        <MaterialCommunityIcons name="trophy-outline" size={24} color="gold" />
   <Text style={gameRulesStyles.sectionTitle}>{SCORE_COMPARSION_TEXT.title}</Text>
       </View>
 

@@ -32,21 +32,21 @@ export const TOPSCORELIMIT = 3000;
 
 //  Base description for the rules
 export const rulesTextContent = `
-Score as many points as possible by rolling dice to reach the ${MAX_SPOTS} combinations predefined in the game.
+🔸Score as many points as possible by rolling dice to reach the ${MAX_SPOTS} combinations predefined in the game.
 
-Dice can be rolled up to ${NBR_OF_THROWS} times in a turn to make one of the possible scoring combinations.
+🔸Dice can be rolled up to ${NBR_OF_THROWS} times in a turn to make one of the possible scoring combinations.
 
-A game consists ${MAX_SPOTS} rounds during which the player chooses which scoring combination is to be used in that round. Once a combination has been used in the game, it cannot be used again, except for the Yatzy combination, which can be stacked multiple times.
+🔸A game consists ${MAX_SPOTS} rounds during which the player chooses which scoring combination is to be used in that round. Once a combination has been used in the game, it cannot be used again, except for the Yatzy combination, which can be stacked multiple times.
 
-You can select dice after your first or second roll, and you must score after your third roll. After the first and second roll you can save the dice by clicking on them or throw them in the spots. Dice that are set aside from the previous rolls can be taken out and re-rolled.
+🔸You can select dice after your first or second roll, and you must score after your third roll. After the first and second roll you can save the dice by clicking on them or throw them in the spots. Dice that are set aside from the previous rolls can be taken out and re-rolled.
 
-When you want to record a combination in the scoreboard, click on the cell next to the combination and then press the Set Points button.
+🔸When you want to record a combination in the scoreboard, click on the cell next to the combination and then press the Set Points button.
 
-When you reach at least ${BONUS_POINTS_LIMIT} in minor sector of the scoreboard, you unlock as ${BONUS_POINTS} bonus points.
+🔸When you reach at least ${BONUS_POINTS_LIMIT} in minor sector of the scoreboard, you unlock as ${BONUS_POINTS} bonus points.
 
-You have a Yatzy when you get ${NBR_OF_DICES} dice with the same side and it is worth ${YATZY_POINTS} points. If you achieve multiple Yatzys, each additional Yatzy will add points to your score and increase the number of rounds by 1.
+🔸You have a Yatzy when you get ${NBR_OF_DICES} dice with the same side and it is worth ${YATZY_POINTS} points. If you achieve multiple Yatzys, each additional Yatzy will add points to your score and increase the number of rounds by 1.
 
-The game ends when all categories have been scored.
+🔸The game ends when all categories have been scored.
 `;
 
 //  Specific Rules and combinations
@@ -54,12 +54,12 @@ export const combinationsData = [
   {
     icon: 'dice-multiple',
     description: 'Get the maximum of same side dice. Scores the sum of all same dice on the Minor side.',
-    smallText: 'Minor Side (Sum of same dice)'
+    smallText: 'Minor Side ( Sum of same dice sides )'
   },
   {
     icon: 'numeric-3-box-multiple-outline',
     description: 'Two, Three, & Four of a kind. Sums same side dice.',
-    smallText: '2-4 Same (Sum dice)'
+    smallText: '2-4 Same ( Sum dice )'
   },
   {
     icon: 'home',
