@@ -1,10 +1,16 @@
 /**
- * RulesScreen - Multi-tab screen for game rules, account linking, and interface guide.
+ * Rules.js - Multi-tab screen for game rules, account linking, and interface guide
  *
- * JSDoc comments and inline code comments must always be in English.
- * This file displays the rules, account linking info, and interface guide in tabs.
+ * Contains the UI and logic for displaying rules, account linking info, and interface guide in tabs.
+ *
+ * Usage:
+ *   import Rules from './Rules';
+ *   ...
+ *   <Rules />
+ *
+ * @module screens/Rules
  * @author Sabata79
- * @since 2025-08-29
+ * @since 2025-09-06
  */
 import { useState } from 'react';
 import { Dimensions, useWindowDimensions, ImageBackground, View } from 'react-native';

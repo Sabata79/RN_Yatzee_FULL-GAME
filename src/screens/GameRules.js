@@ -1,10 +1,17 @@
 /**
- * GameRules - Screen for displaying gameplay rules and combinations.
+ * GameRules.js - Screen for displaying gameplay rules and combinations
  *
- * JSDoc comments and inline code comments must always be in English.
- * This file displays the rules and scoring combinations for the game.
+ * Contains the UI and logic for showing the rules and scoring combinations of the game.
+ * Uses icons and styled sections for clarity.
+ *
+ * Usage:
+ *   import GameRules from './GameRules';
+ *   ...
+ *   <GameRules />
+ *
+ * @module screens/GameRules
  * @author Sabata79
- * @since 2025-08-29
+ * @since 2025-09-06
  */
 // components/GameRules.js
 import { View, Text, ScrollView, StyleSheet } from 'react-native';

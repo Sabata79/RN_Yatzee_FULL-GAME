@@ -1,10 +1,16 @@
 /**
- * GameSave - Utility for saving player scores and game progress (screen version).
+ * GameSave.js - Utility for saving player scores and game progress (screen version)
  *
- * JSDoc comments and inline code comments must always be in English.
- * This file provides functions for saving player scores to the database and secure storage.
+ * Provides functions for saving player scores to the database and secure storage.
+ *
+ * Usage:
+ *   import GameSave from './GameSave';
+ *   ...
+ *   <GameSave totalPoints={...} />
+ *
+ * @module screens/GameSave
  * @author Sabata79
- * @since 2025-08-29
+ * @since 2025-09-06
  */
 // GameSave utility for saving player scores
 import * as SecureStore from 'expo-secure-store';

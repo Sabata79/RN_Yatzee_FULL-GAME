@@ -1,11 +1,16 @@
 /**
- * Header - App header component with logo, avatar, and energy tokens.
+ * Header.js - App header component with logo, avatar, and energy tokens
  *
+ * Displays the app header, logo, avatar, and energy token system.
  *
- * This file displays the app header, logo, avatar, and energy token system.
+ * Usage:
+ *   import Header from './Header';
+ *   ...
+ *   <Header />
  *
+ * @module screens/Header
  * @author Sabata79
- * @since 2025-08-29
+ * @since 2025-09-06
  */
 
 import { useState } from 'react';

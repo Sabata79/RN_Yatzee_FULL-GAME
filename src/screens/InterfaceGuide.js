@@ -1,10 +1,16 @@
 /**
- * InterfaceGuide - Screen for guiding users through the app interface.
+ * InterfaceGuide.js - Screen for guiding users through the app interface
  *
- * JSDoc comments and inline code comments must always be in English.
- * This file displays instructions and tips for using the app interface.
+ * Contains instructions and tips for using the app interface.
+ *
+ * Usage:
+ *   import InterfaceGuide from './InterfaceGuide';
+ *   ...
+ *   <InterfaceGuide />
+ *
+ * @module screens/InterfaceGuide
  * @author Sabata79
- * @since 2025-08-29
+ * @since 2025-09-06
  */
 // IntefaceGuide.js
 import { ScrollView, View, Text, StyleSheet, Image } from 'react-native';

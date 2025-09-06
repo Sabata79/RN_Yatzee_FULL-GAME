@@ -1,10 +1,16 @@
 /**
- * AboutMe - Screen for displaying app info, features, and contact links.
+ * AboutMe.js - Screen for displaying app info, features, and contact links
  *
- * JSDoc comments and inline code comments must always be in English.
- * This file displays information about the app, its features, and contact details.
+ * Contains the UI and logic for showing app information, features, and contact details.
+ *
+ * Usage:
+ *   import AboutMe from './AboutMe';
+ *   ...
+ *   <AboutMe />
+ *
+ * @module screens/AboutMe
  * @author Sabata79
- * @since 2025-08-29
+ * @since 2025-09-06
  */
 // components/AboutMe.js
 import {

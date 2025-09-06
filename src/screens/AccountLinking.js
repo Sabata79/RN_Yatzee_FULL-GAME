@@ -1,10 +1,16 @@
 /**
- * AccountLinking - Screen for displaying account linking information.
+ * AccountLinking.js - Screen for displaying account linking information
  *
- * JSDoc comments and inline code comments must always be in English.
- * This file displays information and instructions for linking a user account.
+ * Contains the UI and logic for showing information and instructions for linking a user account.
+ *
+ * Usage:
+ *   import AccountLinking from './AccountLinking';
+ *   ...
+ *   <AccountLinking />
+ *
+ * @module screens/AccountLinking
  * @author Sabata79
- * @since 2025-08-29
+ * @since 2025-09-06
  */
 // Account linking info screen component
 import { ScrollView, View, Text, StyleSheet } from 'react-native';

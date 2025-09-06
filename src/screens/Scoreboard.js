@@ -1,12 +1,17 @@
 import Header from './Header';
 /**
- * Scoreboard - Screen for displaying player rankings and player cards.
+ * Scoreboard.js - Screen for displaying player rankings and player cards
  *
- * JSDoc comments and inline code comments must always be in English.
- * This file displays the leaderboard and allows viewing player cards.
+ * Contains the leaderboard and logic for viewing player cards and rankings.
+ *
+ * Usage:
+ *   import Scoreboard from './Scoreboard';
+ *   ...
+ *   <Scoreboard />
+ *
  * @module screens/Scoreboard
  * @author Sabata79
- * @since 2025-08-29
+ * @since 2025-09-06
  */
 // Scoreboard screen: shows player rankings (all time, monthly, weekly) and allows viewing player cards
 import { useState, useEffect, useRef } from 'react';

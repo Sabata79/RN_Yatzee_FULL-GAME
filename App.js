@@ -1,5 +1,18 @@
-// App.js
-// Main entry point for the Yatzy app
+/**
+ * App.js - Main entry point for the Yatzy app
+ *
+ * Contains the main navigation, context providers, and global SafeAreaView for the application.
+ * All navigation stacks, modals, and status bar logic are defined here.
+ *
+ * Usage:
+ *   import App from './App';
+ *   ...
+ *   <App />
+ *
+ * @module App
+ * @author Sabata79
+ * @since 2025-09-06
+ */
 import { useState } from 'react';
 import { View, Text, Pressable, Modal, Linking, Dimensions } from 'react-native';
 import { StatusBar } from 'expo-status-bar';

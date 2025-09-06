@@ -1,11 +1,17 @@
 import { SafeAreaView } from 'react-native-safe-area-context';
 /**
- * Gameboard - Main game screen for playing Yatzy.
+ * Gameboard.js - Main game screen for playing Yatzy
  *
- * JSDoc comments and inline code comments must always be in English.
- * This file contains the main gameplay logic, dice, and scoreboard for Yatzy.
+ * Contains the main gameplay logic, dice, and scoreboard for Yatzy.
+ *
+ * Usage:
+ *   import Gameboard from './Gameboard';
+ *   ...
+ *   <Gameboard />
+ *
+ * @module screens/Gameboard
  * @author Sabata79
- * @since 2025-08-29
+ * @since 2025-09-06
  */
 import { useState, useEffect } from 'react';
 import { FlatList, Text, View, Pressable, ImageBackground, Animated, Dimensions } from 'react-native';

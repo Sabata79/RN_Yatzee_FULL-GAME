@@ -1,10 +1,16 @@
 /**
- * Home - Main screen for player login, linking, recovery, and welcome video.
+ * Home.js - Main screen for player login, linking, recovery, and welcome video
  *
- * This file handles player login, account linking, recovery, and welcome video.
+ * Handles player login, account linking, recovery, and welcome video.
+ *
+ * Usage:
+ *   import Home from './Home';
+ *   ...
+ *   <Home />
+ *
  * @module screens/Home
  * @author Sabata79
- * @since 2025-08-29
+ * @since 2025-09-06
  */
 import { useState, useEffect, useRef } from "react";
 import { View, Text, TextInput, Pressable, Alert, ImageBackground, Image, Animated, SafeAreaView } from "react-native";
