@@ -37,7 +37,7 @@ export default scoreboardStyles = StyleSheet.create({
     },
     scoreboardContainer: {
         alignSelf: 'center',
-        marginTop: 0,
+        marginTop: 40,
         borderRadiusBottom: 5,
         backgroundColor: COLORS.overlayDark,
         width: '95%',
