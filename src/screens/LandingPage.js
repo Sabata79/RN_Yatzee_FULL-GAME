@@ -17,7 +17,7 @@ import { useState, useEffect, useRef } from "react";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { View, Text, Image, Animated, Alert, Linking } from "react-native";
 import * as SecureStore from "expo-secure-store";
-import { signInAnon, dbGet } from "../services/Firebase";
+import { signInAnon, dbGet, dbOnValue } from "../services/Firebase";
 import { useGame } from "../constants/GameContext";
 import { ProgressBar } from "react-native-paper";
 import styles from "../styles/LandingPageStyles";
@@ -55,6 +55,7 @@ export default function LandingPage({ navigation }) {
     setPlayerLevel, // optional
     setGameVersion,
     gameVersion,
+    setScoreboardData,
   } = useGame();
 
   const isVersionOlder = (current, minimum) => {
@@ -235,7 +236,7 @@ export default function LandingPage({ navigation }) {
     const version = Constants.expoConfig?.version ?? "0.0.0";
     setGameVersion(version);
 
-    const loadAllAssets = async () => {
+  const loadAllAssets = async () => {
       try {
         // Start smart progress: 0 -> 92% ~2.5s, then finalize in 400ms when ready
         startSmartProgress(2500, 0.92, 400);
@@ -249,6 +250,7 @@ export default function LandingPage({ navigation }) {
           const imageAssets = cacheImages(allImages);
           await Promise.all(imageAssets);
         });
+
 
         // Get or create user ID
         const userId = await step("Get or create user ID", async () => {
@@ -267,6 +269,63 @@ export default function LandingPage({ navigation }) {
           navigation.navigate("MainApp");
           return;
         }
+
+        // --- Scoreboard preload from players ---
+        await step("Preload scoreboard data from players", async () => {
+          const snapshot = await dbGet('players');
+          const playersData = snapshot.val();
+          const tmpScores = [];
+          const currentMonth = new Date().getMonth();
+          const currentYear = new Date().getFullYear();
+          const currentWeek = (() => {
+            const d = new Date();
+            const dayNum = d.getUTCDay() || 7;
+            d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+            const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+            return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+          })();
+
+          if (playersData) {
+            Object.keys(playersData).forEach(playerId => {
+              const player = playersData[playerId];
+              if (player.scores) {
+                let scoresToUse = Object.values(player.scores);
+                // AllTime scoreboard, voit laajentaa monthly/weekly tarvittaessa
+                if (scoresToUse.length > 0) {
+                  let bestScore = null;
+                  scoresToUse.forEach(score => {
+                    if (
+                      !bestScore ||
+                      score.points > bestScore.points ||
+                      (score.points === bestScore.points && score.duration < bestScore.duration) ||
+                      (score.points === bestScore.points && score.duration === bestScore.duration &&
+                        new Date(score.date) < new Date(bestScore.date))
+                    ) {
+                      bestScore = score;
+                    }
+                  });
+                  if (bestScore) {
+                    tmpScores.push({
+                      ...bestScore,
+                      name: player.name,
+                      playerId,
+                      avatar: player.avatar || null,
+                      scores: Object.values(player.scores),
+                    });
+                  }
+                }
+              }
+            });
+            const sorted = tmpScores.sort((a, b) => {
+              if (b.points !== a.points) return b.points - a.points;
+              if (a.duration !== b.duration) return a.duration - b.duration;
+              return new Date(a.date) - new Date(b.date);
+            });
+            setScoreboardData(sorted);
+          } else {
+            setScoreboardData([]);
+          }
+        });
 
         // Kaikki boot-työt valmiit
         setBootDone(true);

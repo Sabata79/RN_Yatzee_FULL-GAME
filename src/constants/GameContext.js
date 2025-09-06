@@ -16,6 +16,8 @@ export const useGame = () => useContext(GameContext);
 
 export const GameProvider = ({ children }) => {
   const [playerId, setPlayerId] = useState('');
+  // Scoreboard data for global sharing
+  const [scoreboardData, setScoreboardData] = useState([]);
   const [playerName, setPlayerName] = useState('');
   const [playerIdContext, setPlayerIdContext] = useState('');
   const [playerNameContext, setPlayerNameContext] = useState('');
@@ -272,7 +274,9 @@ export const GameProvider = ({ children }) => {
     allTimeRank,
     avatarUrl,
     setAvatarUrl,
-    isAvatarLoaded,
+  isAvatarLoaded,
+  scoreboardData,
+  setScoreboardData,
   };
 
   return <GameContext.Provider value={contextValue}>{children}</GameContext.Provider>;
