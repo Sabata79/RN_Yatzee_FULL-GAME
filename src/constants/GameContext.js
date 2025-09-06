@@ -41,6 +41,8 @@ export const GameProvider = ({ children }) => {
   const [currentLevel, setCurrentLevel] = useState('');
   const [nextLevel, setNextLevel] = useState('');
   const [allTimeRank, setAllTimeRank] = useState('--');
+  const [nextTokenTime, setNextTokenTime] = useState(null);
+  const [timeToNextToken, setTimeToNextToken] = useState('');
 
   const isBetterScore = (newScore, oldScore) => {
     if (Number(newScore.points) > Number(oldScore.points)) return true;
@@ -249,6 +251,10 @@ export const GameProvider = ({ children }) => {
       setViewingPlayerId(null);
       setViewingPlayerName(null);
     },
+    timeToNextToken,
+    setTimeToNextToken,
+    nextTokenTime,
+    setNextTokenTime,
     tokens,
     setTokens,
     videoTokens,

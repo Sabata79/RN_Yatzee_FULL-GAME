@@ -1,3 +1,4 @@
+
 /**
  * homeStyles - Styles for the home screen, including overlays, rules, buttons, and images.
  * Used to style the main home screen and its UI elements.
@@ -21,44 +22,41 @@ const styles = StyleSheet.create({
     minHeight: 48,
     justifyContent: 'center',
     textAlign: 'center',
-    fontFamily: TYPOGRAPHY.fontFamily.montserratExtraBold,
+    fontFamily: TYPOGRAPHY.fontFamily.montserratBold,
     fontSize: TYPOGRAPHY.fontSize.md,
     color: COLORS.text,
     backgroundColor: COLORS.background,
     borderRadius: 8,
     borderWidth: 2,
-    borderColor: 'orange',
+    borderColor: COLORS.accentLight,
     marginBottom: SPACING.lg,
     alignSelf: 'center',
-    letterSpacing: 1,
   },
   homeBackground: {
-    flex: 1, 
+    flex: 1,
     justifyContent: 'flex-start',
     width: '100%',
     height: '100%',
     resizeMode: 'cover',
-    backgroundColor: '#000000',
+    backgroundColor: COLORS.black,
   },
   homeContainer: {
     width: '100%',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.982)',
+    backgroundColor: COLORS.black,
     borderRadius: 10,
   },
-  homeText: {
+  tokenText: {
     fontFamily: TYPOGRAPHY.fontFamily.montserratBold,
     fontSize: TYPOGRAPHY.fontSize.lg,
-    color: 'gold',
-    marginBottom: SPACING.xxs,
+    color: COLORS.warning,
     textAlign: 'center',
-    width: '80%',
-    zIndex: 1,
+    marginTop: SPACING.xxs,
   },
   homeAuxillaryText: {
-    fontSize: 14,
-    color: 'white',
-    fontFamily: 'Roboto',
+    fontSize: TYPOGRAPHY.fontSize.sm,
+    color: COLORS.textLight,
+    fontFamily: TYPOGRAPHY.fontFamily.montserratLight,
     textAlign: 'center',
   },
   registerImage: {
@@ -75,6 +73,23 @@ const styles = StyleSheet.create({
     height: width * 0.65,
     resizeMode: 'contain',
     backgroundColor: 'transparent',
+  },
+  energyIcon: {
+    marginTop: 4,
+    left: -3,
+    transform: [{ rotate: '+5deg' }],
+  },
+  tokenRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: SPACING.sm,
+  },
+  homeText: {
+    color: COLORS.textLight,
+    fontSize: TYPOGRAPHY.fontSize.lg,
+    fontFamily: TYPOGRAPHY.fontFamily.montserrat,
+    marginRight: SPACING.xs,
   },
 });
 

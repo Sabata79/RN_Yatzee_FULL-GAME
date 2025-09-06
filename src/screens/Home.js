@@ -13,9 +13,10 @@
  * @since 2025-09-06
  */
 import { useState, useEffect, useRef } from "react";
-import { View, Text, TextInput, Pressable, Alert, ImageBackground, Image, Animated, SafeAreaView } from "react-native";
+import { View, Text, TextInput, Alert, ImageBackground, Image, Animated } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { FontAwesome5 } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { VideoView, useVideoPlayer } from 'expo-video';
 import styles from '../styles/styles';
 import homeStyles from '../styles/HomeStyles';
@@ -67,8 +68,11 @@ export default function Home({ setPlayerId }) {
     playerName,
     playerId,
     setPlayerName,
-    isLinked
+    isLinked,
+    tokens,
+    nextTokenTime,
     // Game context values and setters
+    timeToNextToken,
   } = useGame();
 
   const isFocused = useIsFocused();
@@ -182,12 +186,12 @@ export default function Home({ setPlayerId }) {
 
   return (
     <ImageBackground style={homeStyles.homeBackground}>
-  <View style={styles.overlay}>
+      <View style={styles.overlay}>
         {!userRecognized ? (
           <View style={homeStyles.homeContainer}>
             <Text style={homeStyles.homeText}>Hi, Stranger!</Text>
             <Text style={homeStyles.homeText}>Can you tell your nickname?</Text>
-            <Text style={homeStyles.homeAuxillaryText}>(Nickname must be 3-10 characters long.)</Text>
+            <Text style={homeStyles.homeAuxillaryText}>(Nickname must be 3-10 characters long)</Text>
             <Image source={require("../../assets/register.webp")} style={styles.registerImage} />
             <TextInput
               ref={inputRef}
@@ -214,8 +218,35 @@ export default function Home({ setPlayerId }) {
           </View>
         ) : (
           <View style={homeStyles.homeContainer}>
-            <Text style={homeStyles.homeText}>Hi {playerName},</Text>
-            <Text style={homeStyles.homeText}>Ready to roll the dice?</Text>
+            <Text style={[homeStyles.homeText]}>Hi {playerName},</Text>
+            <View style={homeStyles.tokenRow}>
+              <Text style={[homeStyles.homeText]}>you have</Text>
+              <Text style={homeStyles.tokenText}>{tokens}</Text>
+              <View style={homeStyles.energyIcon}>
+                <MaterialCommunityIcons
+                  name="flash"
+                  size={18}
+                  color='#f1c40f'
+                />
+              </View>
+              <Text style={[homeStyles.homeText, { left: -5 }]}>energy left.</Text>
+            </View>
+
+            {tokens > 0 ? (
+              <Text style={homeStyles.homeText}>Ready to roll the dice?</Text>
+            ) : (
+              <View style={homeStyles.tokenRow}>
+                <Text style={homeStyles.homeText}>Next energy</Text>
+                <View style={[homeStyles.energyIcon, { left: -5}]}>
+                  <MaterialCommunityIcons
+                    name="flash"
+                    size={18}
+                    color='#f1c40f'
+                  />
+                </View>
+                <Text style={[homeStyles.homeText, { left: -5 }]}>in {timeToNextToken}</Text>
+              </View>
+            )}
             {!videoError ? (
               <VideoView
                 player={videoPlayer}
@@ -272,7 +303,7 @@ export default function Home({ setPlayerId }) {
             setModalVisible={setModalVisible}
           />
         )}
-  </View>
+      </View>
     </ImageBackground>
   );
 }

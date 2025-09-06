@@ -32,6 +32,7 @@ import About from './src/screens/AboutMe';
 import Rules from './src/screens/Rules';
 
 import updateModalStyles from './src/styles/UpdateModalStyles';
+import EnergyTokenSystem from './src/components/EnergyTokenSystem';
 
 const { height } = Dimensions.get('window');
 const isSmallScreen = height < 720;
@@ -224,6 +225,9 @@ function AppShell() {
   return (
     // Main app view, now wrapped in SafeAreaView for edge-to-edge support
     <SafeAreaView style={{ flex: 1, backgroundColor: '#000' }} edges={['top', 'left', 'right']}>
+      {/* EnergyTokenSystem is always mounted for global token logic */}
+  <EnergyTokenSystem hidden />
+
       {/* Update modal */}
       <Modal
         visible={updateModalVisible}
