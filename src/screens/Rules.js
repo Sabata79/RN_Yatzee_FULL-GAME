@@ -19,7 +19,8 @@ import GameRules from '../screens/GameRules';
 import AccountLinking from '../screens/AccountLinking';
 import InterfaceGuide from './InterfaceGuide';
 // Multi-tab rules/help screen for the game (Rules, Account Linking, Guide)
-import styles from '../styles/styles';
+// import styles from '../styles/styles';
+import COLORS from '../constants/colors';
 
 const initialLayout = { width: Dimensions.get('window').width };
 
@@ -54,8 +55,8 @@ export default function RulesScreen() {
           renderTabBar={props => (
             <TabBar
               {...props}
-              indicatorStyle={{ backgroundColor: 'gold' }}
-              style={{ backgroundColor: 'rgba(0,0,0,0.7)',marginTop: -10 }}
+              indicatorStyle={{ backgroundColor: COLORS.accent }}
+              style={{ backgroundColor: COLORS.overlayDark, marginTop: -10 }}
               labelStyle={{ color: 'white', fontSize: 14 }}
             />
           )}

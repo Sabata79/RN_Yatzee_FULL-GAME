@@ -13,7 +13,6 @@
  * @author Sabata79
  * @since 2025-09-06
  */
-// components/GameRules.js
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { rulesTextContent, combinationsData, SCORE_COMPARSION_TEXT } from '../constants/Game';

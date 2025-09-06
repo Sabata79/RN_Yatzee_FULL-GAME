@@ -293,7 +293,7 @@ export default function Scoreboard() {
                             } else {
                               return (
                                 <View style={scoreboardStyles.defaultAvatarIcon}>
-                                  <FontAwesome5 name="user" size={22} color="white" />
+                                  <FontAwesome5 name="user" size={22} color='#d1d8e0' />
                                 </View>
                               );
                             }
