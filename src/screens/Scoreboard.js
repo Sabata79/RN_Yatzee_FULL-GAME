@@ -1,3 +1,4 @@
+import Header from './Header';
 /**
  * Scoreboard - Screen for displaying player rankings and player cards.
  *
@@ -158,12 +159,24 @@ export default function Scoreboard() {
       >
         <View style={scoreboardStyles.overlay}>
           <Animated.View
+            style={{
+              transform: [{ translateY: tabAnim }],
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              zIndex: 20,
+            }}
+          >
+            <Header />
+          </Animated.View>
+          <Animated.View
             style={[
               scoreboardStyles.tabContainer,
               {
                 transform: [{ translateY: tabAnim }],
                 position: 'absolute',
-                top: 0,
+                top: 70, // headerin korkeus px
                 left: 0,
                 right: 0,
                 zIndex: 10,
@@ -193,7 +206,7 @@ export default function Scoreboard() {
           </Animated.View>
           <ScrollView
             contentContainerStyle={{
-              paddingTop: 50, // tilaa tabille
+              paddingTop: 120, // header + tabit
               paddingBottom: insets.bottom + tabBarHeight + 16,
             }}
             showsVerticalScrollIndicator={false}
@@ -202,14 +215,14 @@ export default function Scoreboard() {
               const currentOffset = event.nativeEvent.contentOffset.y;
               const diff = currentOffset - scrollOffset.current;
               if (diff > 10) {
-                // Scrollataan alas, piilota tabit
+                // Scrollataan alas, piilota header+tabit
                 Animated.timing(tabAnim, {
-                  toValue: -60,
+                  toValue: -120,
                   duration: 200,
                   useNativeDriver: true,
                 }).start();
               } else if (diff < -10) {
-                // Scrollataan ylös, näytä tabit
+                // Scrollataan ylös, näytä header+tabit
                 Animated.timing(tabAnim, {
                   toValue: 0,
                   duration: 200,

@@ -18,6 +18,7 @@ import Scoreboard from './src/screens/Scoreboard';
 import About from './src/screens/AboutMe';
 import Rules from './src/screens/Rules';
 import Header from './src/screens/Header';
+import { useRoute } from '@react-navigation/native';
 
 import updateModalStyles from './src/styles/UpdateModalStyles';
 
@@ -236,13 +237,8 @@ function AppShell() {
           <Stack.Screen
             name="MainApp"
             options={{
-              headerShown: true,
+              headerShown: false,
               swipeEnabled: false,
-              header: () => (
-                <View style={{ backgroundColor: '#000' }}>
-                  <Header isUserRecognized={isUserRecognized} name={name} playerId={playerId} />
-                </View>
-              ),
             }}
           >
             {() => <TabNavigator />}
