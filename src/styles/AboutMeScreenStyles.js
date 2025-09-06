@@ -60,8 +60,8 @@ const aboutMeStyles = StyleSheet.create({
   },
   infoText: {
     color: 'white',
-    fontSize: TYPOGRAPHY.fontSize.xs,
-    lineHeight: SPACING.md,
+    fontSize: TYPOGRAPHY.fontSize.md,
+    lineHeight: SPACING.lg,
     fontFamily: TYPOGRAPHY.fontFamily.montserratRegular,
     textAlign: 'center',
     marginBottom: SPACING.xxs,

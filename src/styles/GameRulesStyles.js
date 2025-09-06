@@ -33,7 +33,7 @@ const gameRulesStyles = StyleSheet.create({
     fontFamily: TYPOGRAPHY.fontFamily.montserratRegular,
     backgroundColor: COLORS.overlayDark,
     padding: SPACING.sm,
-    borderRadius: 10,
+    borderRadius: 5,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -44,10 +44,11 @@ const gameRulesStyles = StyleSheet.create({
     marginBottom: SPACING.sm,
   },
   sectionTitle: {
-    fontSize: 20,
+    fontSize: TYPOGRAPHY.fontSize.xl,
     color: COLORS.warning,
     fontFamily: TYPOGRAPHY.fontFamily.bangers,
     textAlign: 'center',
+    marginBottom: 6,
   },
   combination: {
     flexDirection: 'row',
@@ -55,7 +56,7 @@ const gameRulesStyles = StyleSheet.create({
     marginBottom: 5,
     backgroundColor:COLORS.overlayDark,
     padding: SPACING.sm,
-    borderRadius: 10,
+    borderRadius: 5,
     justifyContent: 'center',
   },
   combinationText: {
@@ -65,30 +66,30 @@ const gameRulesStyles = StyleSheet.create({
   },
   smallText: {
     color: COLORS.warning,
-    fontSize: 16,
+    fontSize: TYPOGRAPHY.fontSize.lg,
     fontFamily: TYPOGRAPHY.fontFamily.bangers,
   },
   description: {
     color: COLORS.textLight,
-    fontSize: 14,
+    fontSize: TYPOGRAPHY.fontSize.sm,
     lineHeight: 20,
     fontFamily: TYPOGRAPHY.fontFamily.montserratRegular,
   },
   scoreItem: {
     backgroundColor: COLORS.overlayDark,
     padding: SPACING.md,
-    borderRadius: 10,
+    borderRadius: 5,
     marginBottom: SPACING.sm,
   },
   scoreTitle: {
     color: COLORS.warning,
-    fontSize: 16,
+    fontSize: TYPOGRAPHY.fontSize.lg,
     fontFamily: TYPOGRAPHY.fontFamily.bangers,
     marginBottom: 5,
   },
   scoreDescription: {
     color: COLORS.textLight,
-    fontSize: 14,
+    fontSize: TYPOGRAPHY.fontSize.sm,
     fontFamily: TYPOGRAPHY.fontFamily.montserratRegular,
     lineHeight: 20,
   },

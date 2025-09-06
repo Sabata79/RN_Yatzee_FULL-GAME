@@ -48,15 +48,16 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.sm,
   },
   sectionTitle: {
-    fontSize: TYPOGRAPHY.fontSize.lg,
+    fontSize: TYPOGRAPHY.fontSize.xl,
     color: COLORS.warning,
     fontFamily: TYPOGRAPHY.fontFamily.bangers,
     textAlign: 'center',
+    marginBottom: 6,
   },
   infoBox: {
-    backgroundColor: 'rgba(0, 0, 0, 0.546)',
+    backgroundColor: COLORS.overlayDark,
     padding: SPACING.md,
-    borderRadius: 10,
+    borderRadius: 5,
     marginBottom: SPACING.sm,
   },
   infoText: {
