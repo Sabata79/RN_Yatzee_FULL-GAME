@@ -1,4 +1,3 @@
-import Header from './Header';
 /**
  * Scoreboard.js - Screen for displaying player rankings and player cards
  *
@@ -13,7 +12,7 @@ import Header from './Header';
  * @author Sabata79
  * @since 2025-09-06
  */
-// Scoreboard screen: shows player rankings (all time, monthly, weekly) and allows viewing player cards
+
 import { useState, useEffect, useRef } from 'react';
 import { View, Text, ScrollView, ImageBackground, TouchableOpacity, Image, Animated } from 'react-native';
 import { DataTable } from 'react-native-paper';
@@ -27,6 +26,7 @@ import { avatars } from '../constants/AvatarPaths';
 import { dbOnValue } from '../services/Firebase';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
+import Header from './Header';
 
 
 export default function Scoreboard() {

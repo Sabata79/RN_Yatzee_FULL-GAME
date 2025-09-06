@@ -23,6 +23,7 @@ import DiceAnimation from '../components/DiceAnimation';
 import ModalAlert from '../constants/ModalAlert';
 import { useGame } from '../constants/GameContext';
 import RenderFirstRow from '../components/RenderFirstRow';
+import Header from './Header';
 import GlowingText from '../components/AnimatedText';
 import GameSave from '../constants/GameSave';
 import { dicefaces } from '../constants/DicePaths';
@@ -836,9 +837,9 @@ export default function Gameboard({ route, navigation }) {
             setEnergyModalVisible(true);
         }
     };
-    // Remove ImageBackground (if needed)
     return (
         <ImageBackground source={require('../../assets/diceBackground.webp')} style={styles.background}>
+            <Header />
             {isLayerVisible && (
                 <Pressable
                     onPress={() => {
