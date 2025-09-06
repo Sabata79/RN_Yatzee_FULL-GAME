@@ -18,8 +18,7 @@ import { TabView, SceneMap, TabBar } from 'react-native-tab-view';
 import GameRules from '../screens/GameRules';
 import AccountLinking from '../screens/AccountLinking';
 import InterfaceGuide from './InterfaceGuide';
-// Multi-tab rules/help screen for the game (Rules, Account Linking, Guide)
-// import styles from '../styles/styles';
+
 import COLORS from '../constants/colors';
 
 const initialLayout = { width: Dimensions.get('window').width };
