@@ -15,6 +15,7 @@
  *
  * Note! With custom fonts, fontWeight does not work—always use the correct fontFamily value directly.
  *
+ * @module constants/typography
  * @author Sabata79
  * @since 2025-09-02
  */

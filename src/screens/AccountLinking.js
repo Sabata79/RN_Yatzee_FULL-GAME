@@ -12,58 +12,58 @@
  * @author Sabata79
  * @since 2025-09-06
  */
-// Account linking info screen component
 import { ScrollView, View, Text, StyleSheet } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { linkingText } from '../constants/AboutContent';
 
+import COLORS from '../constants/colors';
+import SPACING from '../constants/spacing';
+import TYPOGRAPHY from '../constants/typography';
+
 export default function AccountLinking() {
   return (
-    // Scrollable view for account linking info
     <ScrollView contentContainerStyle={styles.container}>
-      
+
       <View style={styles.sectionHeader}>
-        <FontAwesome5 name="link" size={24} color="gold" />
+        <FontAwesome5 name="link" size={20} color={COLORS.warning} />
         <Text style={styles.sectionTitle}>Account Linking</Text>
       </View>
-
       <View style={styles.infoBox}>
         <Text style={styles.infoText}>{linkingText}</Text>
       </View>
-
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    padding: 20,
+    padding: SPACING.md,
   },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 10,
-    marginTop: 5,
-    marginBottom: 10,
+    gap: SPACING.sm,
+    marginTop: SPACING.xs,
+    marginBottom: SPACING.sm,
   },
   sectionTitle: {
-    fontSize: 20,
-    color: 'gold',
-    fontFamily: 'AntonRegular',
+    fontSize: TYPOGRAPHY.fontSize.lg,
+    color: COLORS.warning,
+    fontFamily: TYPOGRAPHY.fontFamily.bangers,
     textAlign: 'center',
   },
   infoBox: {
     backgroundColor: 'rgba(0, 0, 0, 0.546)',
-    padding: 15,
+    padding: SPACING.md,
     borderRadius: 10,
-    marginBottom: 10,
+    marginBottom: SPACING.sm,
   },
   infoText: {
     color: 'white',
-    fontSize: 16,
+    fontSize: TYPOGRAPHY.fontSize.md,
     lineHeight: 20,
     textAlign: 'center',
-    fontFamily: 'Roboto',
+    fontFamily: TYPOGRAPHY.fontFamily.montserratRegular,
   },
 });

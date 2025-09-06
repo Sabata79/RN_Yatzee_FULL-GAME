@@ -41,4 +41,6 @@ export const aboutContact = `
 Contact:
 `;
 
-export const linkingText = `Linking your account with an email and password is optional but highly recommended. It ensures that your game data is securely stored in the cloud, allowing you to access your progress from any device. If you don't link your account, your progress is stored locally on your device only, which may lead to data loss if your device is lost or damaged.`;
+export const linkingText = `🔸Linking your account with an email and password is optional but highly recommended. It ensures that your game data is securely stored in the cloud, allowing you to access your progress from any device.
+
+🔸If you don't link your account, your progress is stored locally on your device only, which may lead to data loss if your device is lost or damaged.`;

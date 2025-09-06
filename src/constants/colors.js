@@ -4,6 +4,8 @@
  * Centralizes all main color definitions, including dark and light shades, for easy theme management and consistency.
  * Import COLORS to use e.g. COLORS.primary, COLORS.secondary, etc. throughout the app.
  * shadow usage ...COLORS.shadow in styleSheets
+ *
+ * @module constants/colors
  * @author Sabata79
  * @since 2025-08-29
  *

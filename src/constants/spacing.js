@@ -4,6 +4,8 @@
  *
  * Centralizes all main spacing definitions for easy layout management and consistency.
  * Import SPACING to use e.g. SPACING.md, SPACING.lg, etc. throughout the app.
+ *
+ * @module constants/spacing
  * @author Sabata79
  * @since 2025-08-29
  */
