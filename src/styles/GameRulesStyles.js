@@ -93,6 +93,54 @@ const gameRulesStyles = StyleSheet.create({
     fontFamily: TYPOGRAPHY.fontFamily.montserratRegular,
     lineHeight: 20,
   },
+
+  // Yhteiset tab-tyylit (AccountLinking, InterfaceGuide, GameRules)
+  infoBox: {
+    backgroundColor: COLORS.overlayDark,
+    padding: SPACING.md,
+    borderRadius: 5,
+    marginBottom: SPACING.sm,
+  },
+  infoText: {
+    color: COLORS.textLight,
+    fontSize: TYPOGRAPHY.fontSize.md,
+    lineHeight: 20,
+    textAlign: 'center',
+    fontFamily: TYPOGRAPHY.fontFamily.montserratRegular,
+  },
+  infoTitle: {
+    color: COLORS.warning,
+    fontSize: TYPOGRAPHY.fontSize.lg,
+    fontFamily: TYPOGRAPHY.fontFamily.bangers,
+    marginBottom: SPACING.xs,
+    textAlign: 'center',
+  },
+  image: {
+    width: '100%',
+    height: 550,
+    borderRadius: 12,
+    marginBottom: SPACING.md,
+    resizeMode: 'contain',
+  },
+  bulletRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: SPACING.sm,
+    gap: SPACING.sm,
+  },
+  bullet: {
+    backgroundColor: COLORS.warning,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bulletText: {
+    color: COLORS.black,
+    fontSize: TYPOGRAPHY.fontSize.md,
+    fontFamily: TYPOGRAPHY.fontFamily.montserratRegular,
+  },
 });
 
 export default gameRulesStyles;
