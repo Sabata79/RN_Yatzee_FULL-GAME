@@ -17,8 +17,6 @@ import Gameboard from './src/screens/Gameboard';
 import Scoreboard from './src/screens/Scoreboard';
 import About from './src/screens/AboutMe';
 import Rules from './src/screens/Rules';
-import Header from './src/screens/Header';
-import { useRoute } from '@react-navigation/native';
 
 import updateModalStyles from './src/styles/UpdateModalStyles';
 
