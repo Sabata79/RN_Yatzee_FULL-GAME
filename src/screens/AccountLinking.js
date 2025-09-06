@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.sm,
   },
   infoText: {
-    color: 'white',
+    color: COLORS.textLight,
     fontSize: TYPOGRAPHY.fontSize.md,
     lineHeight: 20,
     textAlign: 'center',
