@@ -42,7 +42,7 @@ firstRow: {
         zIndex: 10,
     },
     firstRowCategoryText: {
-        fontFamily: TYPOGRAPHY.fontFamily.bangers,
+        fontFamily: TYPOGRAPHY.fontFamily.montserratExtraBold,
         fontSize: TYPOGRAPHY.fontSize.lg,
         color: COLORS.textLight,
         marginVertical: 0,

@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
     // Score fields
     selectScore: {
         flex: 1,
-        fontFamily: TYPOGRAPHY.fontFamily.bangers,
+        fontFamily: TYPOGRAPHY.fontFamily.montserratBold,
         alignItems: 'center',
         justifyContent: 'center',
         color: COLORS.overlayLight,
@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
     },
     selectScorePressed: {
         flex: 1,
-        fontFamily: TYPOGRAPHY.fontFamily.bangers,
+        fontFamily: TYPOGRAPHY.fontFamily.montserratBold,
         alignItems: 'center',
         justifyContent: 'center',
         color: COLORS.black,
@@ -147,14 +147,14 @@ const styles = StyleSheet.create({
 
     // Text styles
     sectionBonusTxt: {
-        fontSize: TYPOGRAPHY.fontSize.sm,
+        fontSize: TYPOGRAPHY.fontSize.xs,
         textAlign: 'center',
         color: COLORS.textDark,
         fontFamily: TYPOGRAPHY.fontFamily.bangers,
     },
     inputIndexShown: {
         fontSize: TYPOGRAPHY.fontSize.lg,
-        fontFamily: TYPOGRAPHY.fontFamily.bangers,
+        fontFamily: TYPOGRAPHY.fontFamily.montserratExtraBold,
         color: COLORS.textDark,
         textAlign: 'center',
         textAlignVertical: 'center',
@@ -175,7 +175,7 @@ const styles = StyleSheet.create({
     },
     scoreText: {
         color: COLORS.textLight,
-        fontFamily: TYPOGRAPHY.fontFamily.bangers,
+        fontFamily: TYPOGRAPHY.fontFamily.montserratExtraBold,
         fontSize: TYPOGRAPHY.fontSize.md,
         paddingRight: SPACING.xs,
     },

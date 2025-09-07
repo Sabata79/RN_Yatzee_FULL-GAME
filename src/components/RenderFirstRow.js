@@ -59,7 +59,7 @@ const RenderFirstRow = () => {
     Animated.loop(
       Animated.sequence([
         Animated.timing(glowAnim, {
-          toValue: 1.5,
+          toValue: 1.3,
           duration: 500,
           useNativeDriver: true,
         }),
@@ -91,7 +91,7 @@ const RenderFirstRow = () => {
             name="timer"
             size={24}
             color="#ffffff"
-            style={{ marginRight: 5, marginTop: 3 }}
+            style={{ marginRight: 8, marginTop: -6 }}
           />
           {/* Animated timer text with glow effect */}
           <Animated.Text style={[firstRowStyles.firstRowCategoryText, { width: 60, textAlign: 'center' }, { transform: [{ scale: glowAnim }] }]}> 
