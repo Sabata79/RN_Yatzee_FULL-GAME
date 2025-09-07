@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         borderWidth: 1,
         borderColor: COLORS.white,
-        borderRadius: 4,
+        borderRadius: 2,
         backgroundColor: COLORS.backgroundGray,
     },
     selectScorePressed: {
@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
         width: isSmallScreen ? 35 : isBigScreen ? 60 : 40,
         alignItems: 'center',
         justifyContent: 'center',
-        marginTop: SPACING.xs,
+        marginTop: SPACING.sm,
         left: -10,
     },
 
@@ -161,14 +161,14 @@ const styles = StyleSheet.create({
         lineHeight: TYPOGRAPHY.fontSize.lg,
     },
     gridTxt: {
-        height: isSmallScreen ? 35 : isBigScreen ? 60 : 40,
+        height: isSmallScreen ? 35 : isBigScreen ? 40 : 40,
         width: isSmallScreen ? 35 : isBigScreen ? 60 : 40,
         fontFamily: TYPOGRAPHY.fontFamily.bangers,
         color: COLORS.textDark,
         fontSize: TYPOGRAPHY.fontSize.md,
         textAlign: 'center',
         padding: SPACING.xs,
-        marginTop: SPACING.xs,
+        marginTop: -2,
         borderColor: COLORS.backgroundDark,
         borderRadius: 4,
         backgroundColor: COLORS.backgroundDark,
@@ -191,6 +191,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         color: COLORS.textLight,
+        marginTop: -7,
     },
 });
 

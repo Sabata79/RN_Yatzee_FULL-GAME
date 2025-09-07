@@ -460,7 +460,7 @@ export default function Gameboard({ route, navigation }) {
         if (index === 0) {
             return (
                 <View style={gameboardstyles.item}>
-                    <MaterialCommunityIcons name="dice-1" size={isSmallScreen ? 40 : 45} style={gameboardstyles.icon} />
+                    <MaterialCommunityIcons name="dice-1" size={isSmallScreen ? 45 : 50} style={gameboardstyles.icon} />
                 </View>
             );
             // Sum of ones
@@ -510,7 +510,7 @@ export default function Gameboard({ route, navigation }) {
         } else if (index === 4) {
             return (
                 <View style={gameboardstyles.item}>
-                    <MaterialCommunityIcons name="dice-2" size={isSmallScreen ? 40 : 45} style={gameboardstyles.icon} />
+                    <MaterialCommunityIcons name="dice-2" size={isSmallScreen ? 45 : 50} style={gameboardstyles.icon} />
                 </View>
             );
             // Sum of twos
@@ -544,7 +544,7 @@ export default function Gameboard({ route, navigation }) {
         } else if (index === 8) {
             return (
                 <View style={gameboardstyles.item}>
-                    <MaterialCommunityIcons name="dice-3" size={isSmallScreen ? 40 : 45} style={gameboardstyles.icon} />
+                    <MaterialCommunityIcons name="dice-3" size={isSmallScreen ? 45 : 50} style={gameboardstyles.icon} />
                 </View>
             );
             // Sum of Threes
@@ -580,7 +580,7 @@ export default function Gameboard({ route, navigation }) {
         } else if (index === 12) {
             return (
                 <View style={gameboardstyles.item}>
-                    <MaterialCommunityIcons name="dice-4" size={isSmallScreen ? 40 : 45} style={gameboardstyles.icon} />
+                    <MaterialCommunityIcons name="dice-4" size={isSmallScreen ? 45 : 50} style={gameboardstyles.icon} />
                 </View>
             );
         } else if (index === 13) {
@@ -614,7 +614,7 @@ export default function Gameboard({ route, navigation }) {
         } else if (index === 16) {
             return (
                 <View style={gameboardstyles.item}>
-                    <MaterialCommunityIcons name="dice-5" size={isSmallScreen ? 40 : 45} style={gameboardstyles.icon} />
+                    <MaterialCommunityIcons name="dice-5" size={isSmallScreen ? 45 : 50} style={gameboardstyles.icon} />
                 </View>
             );
             // Sum of Fives
@@ -649,7 +649,7 @@ export default function Gameboard({ route, navigation }) {
         } else if (index === 20) {
             return (
                 <View style={gameboardstyles.item}>
-                    <MaterialCommunityIcons name="dice-6" size={isSmallScreen ? 40 : 45} style={gameboardstyles.icon} />
+                    <MaterialCommunityIcons name="dice-6" size={isSmallScreen ? 45 : 50} style={gameboardstyles.icon} />
                 </View>
             );
             // Sum of Sixes
