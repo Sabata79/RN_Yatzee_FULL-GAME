@@ -10,8 +10,9 @@ import { View, Text, Animated } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useGame } from '../constants/GameContext';
 import { useStopwatch } from 'react-timer-hook';
-import styles from '../styles/styles';
 import firstRowStyles from '../styles/FirstRowStyles';
+
+import COLORS from '../constants/colors';
 
 // Renders the top row of the game UI, including timer and category labels
 const RenderFirstRow = () => {
@@ -20,6 +21,14 @@ const RenderFirstRow = () => {
   const { totalSeconds, start, reset, pause } = useStopwatch({
     autoStart: false,
   });
+
+  // Timer color logic
+  let timerColor = COLORS.success;
+  if (totalSeconds > 300) {
+    timerColor = COLORS.error;
+  } else if (totalSeconds > 150) {
+    timerColor = COLORS.warning;
+  }
 
   // Local state for timer and animation
   const [hasStarted, setHasStarted] = useState(false);
@@ -90,11 +99,11 @@ const RenderFirstRow = () => {
           <MaterialCommunityIcons
             name="timer"
             size={24}
-            color="#ffffff"
-            style={{ marginRight: 8, marginTop: -6 }}
+            color={timerColor}
+            style={{ marginRight: 15, marginTop: -6 }}
           />
           {/* Animated timer text with glow effect */}
-          <Animated.Text style={[firstRowStyles.firstRowCategoryText, { width: 60, textAlign: 'center' }, { transform: [{ scale: glowAnim }] }]}> 
+          <Animated.Text style={[firstRowStyles.firstRowTimerText, { width: 60, textAlign: 'center', color: timerColor }, { transform: [{ scale: glowAnim }] }]}> 
             {Math.min(totalSeconds, MAX_SECS)} s
           </Animated.Text>
         </View>

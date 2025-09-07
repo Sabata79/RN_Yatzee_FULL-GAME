@@ -17,7 +17,7 @@
 import { Dimensions, StyleSheet } from 'react-native';
 import COLORS from '../constants/colors';
 import TYPOGRAPHY from '../constants/typography';
-import SPACING from '../constants/spacing';  
+import SPACING from '../constants/spacing';
 
 const { width, height } = Dimensions.get('window');
 const isSmallScreen = height < 650;
@@ -25,7 +25,7 @@ const isBigScreen = height >= 1050;
 
 export default firstRowStyles = StyleSheet.create({
 
-firstRow: {
+    firstRow: {
         marginTop: isBigScreen ? '30%' : 0,
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -46,5 +46,11 @@ firstRow: {
         fontSize: TYPOGRAPHY.fontSize.lg,
         color: COLORS.textLight,
         marginVertical: 0,
+    },
+    firstRowTimerText: {
+        fontFamily: TYPOGRAPHY.fontFamily.montserratExtraBold,
+        fontSize: TYPOGRAPHY.fontSize.sm,
+        color: COLORS.accentLight,
+        marginVertical: 5,
     },
 });
