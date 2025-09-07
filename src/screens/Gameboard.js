@@ -744,13 +744,15 @@ export default function Gameboard({ route, navigation }) {
     // selectDice to useCallback
     const selectDice = useCallback((i) => {
         if (nbrOfThrowsLeft < NBR_OF_THROWS) {
-            let dices = [...selectedDices];
-            dices[i] = !dices[i];
-            setSelectedDices(dices);
+            setSelectedDices(prev => {
+                const dices = [...prev];
+                dices[i] = !dices[i];
+                return dices;
+            });
         } else {
             setStatus('Game has not started');
         }
-    }, [nbrOfThrowsLeft, selectedDices]);
+    }, [nbrOfThrowsLeft]);
 
     // getDiceColor to useCallback
     const getDiceColor = useCallback((index) => {

@@ -6,11 +6,11 @@
  * @author Sabata79
  * @since 2025-08-29
  */
-import { useEffect, memo }  from 'react';
+import { useEffect }  from 'react';
 import { Animated, Image, TouchableOpacity, View, StyleSheet,Easing } from 'react-native';
 
 // Dice animation component for rolling dice
-const DiceAnimation = memo(({ diceName, isSelected, onSelect, animationValue, color, isRolling }) => {
+const DiceAnimation = ({ diceName, isSelected, onSelect, animationValue, color, isRolling }) => {
     const CONTAINER_SIZE = 58; // kasvatettu koko
 
     const totalFrames = 16;
@@ -57,7 +57,7 @@ const DiceAnimation = memo(({ diceName, isSelected, onSelect, animationValue, co
             <TouchableOpacity
                 onPress={onSelect}
                 activeOpacity={0.2}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                hitSlop={{ top: 30, bottom: 30, left: 30, right: 30 }}
             >
                 {isRolling ? (
                     <View style={styles.spriteContainer}>
@@ -90,13 +90,14 @@ const DiceAnimation = memo(({ diceName, isSelected, onSelect, animationValue, co
             </TouchableOpacity>
         </View>
     );
-});
+};
 
 const styles = StyleSheet.create({
     container: {
         width: 60,
         height: 60,
         margin: 5,
+        zIndex: 2,
     },
     spriteContainer: {
         width: 60,
