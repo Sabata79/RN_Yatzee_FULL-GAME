@@ -24,17 +24,13 @@ const GameboardButtons = ({
 }) => {
     return (
         <View style={gameboardBtnstyles.buttonContainer}>
-            {/* Pelin aikana kaksi nappia */}
             {rounds > 0 && (
                 <>
                     <View style={gameboardBtnstyles.buttonWrapper}>
                         <View style={gameboardBtnstyles.shadowLayer} />
                         <Pressable
                             disabled={nbrOfThrowsLeft <= 0}
-                            style={({ pressed }) => [
-                                gameboardBtnstyles.button,
-                                pressed && gameboardBtnstyles.buttonPressed,
-                            ]}
+                            style={({ pressed }) => [gameboardBtnstyles.button, pressed && gameboardBtnstyles.buttonPressed]}
                             onPress={() => {
                                 if (rounds === MAX_SPOTS && nbrOfThrowsLeft === 3) {
                                     startGame();

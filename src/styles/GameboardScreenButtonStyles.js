@@ -84,7 +84,9 @@ const styles = StyleSheet.create({
         alignSelf: 'center',
     },
     buttonPressed: {
-        opacity: 0.5,
+        backgroundColor: COLORS.accentLight,
+        left: 2,
+        top: 3,
     },
     label: {
         fontFamily: TYPOGRAPHY.fontFamily.bangers,

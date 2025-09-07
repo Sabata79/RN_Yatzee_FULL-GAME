@@ -36,6 +36,11 @@ const styles = StyleSheet.create({
     zIndex: 1,
     height: 68,
   },
+  buttonPressed: {
+    backgroundColor: COLORS.accentLight,
+    left: 3,
+    top: 4,
+  },
   shadowLayer: {
     position: 'absolute',
     top: SPACING.xxs,
