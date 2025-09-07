@@ -13,7 +13,7 @@
  * @since 2025-09-06
  */
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { View, Text, ScrollView, ImageBackground, TouchableOpacity, Image, Animated, Dimensions } from 'react-native';
 import { DataTable } from 'react-native-paper';
 import { FontAwesome5 } from '@expo/vector-icons';
@@ -40,6 +40,11 @@ export default function Scoreboard() {
   const [userId, setUserId] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState(null);
+  // Pomppausanimaatio ja sijoitusmuutokset
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const prevRank = useRef(null);
+  const prevRanks = useRef({}); // {playerId: rank}
+  const [rankChanges, setRankChanges] = useState({}); // {playerId: 'up'|'down'|undefined}
 
   const { viewingPlayerId, viewingPlayerName, setViewingPlayerId, setViewingPlayerName } = useGame();
 
@@ -53,7 +58,7 @@ export default function Scoreboard() {
       if (storedUserId) setUserId(storedUserId);
     });
 
-    const handle = (snapshot) => {
+  const handle = (snapshot) => {
       const playersData = snapshot.val();
       const tmpScores = [];
       const currentMonth = new Date().getMonth();
@@ -65,7 +70,6 @@ export default function Scoreboard() {
           const player = playersData[playerId];
           if (player.scores) {
             let scoresToUse = [];
-
             if (scoreType === 'monthly') {
               scoresToUse = Object.values(player.scores).filter(score => {
                 const parts = score.date.split('.');
@@ -85,7 +89,6 @@ export default function Scoreboard() {
             } else {
               scoresToUse = Object.values(player.scores);
             }
-
             if (scoresToUse.length > 0) {
               let bestScore = null;
               scoresToUse.forEach(score => {
@@ -99,7 +102,6 @@ export default function Scoreboard() {
                   bestScore = score;
                 }
               });
-
               if (bestScore) {
                 tmpScores.push({
                   ...bestScore,
@@ -112,13 +114,36 @@ export default function Scoreboard() {
             }
           }
         });
-
         const sorted = tmpScores.sort((a, b) => {
           if (b.points !== a.points) return b.points - a.points;
           if (a.duration !== b.duration) return a.duration - b.duration;
           return new Date(a.date) - new Date(b.date);
         });
-
+        // Sijoitusmuutosten seuranta
+        const newRankChanges = {};
+        sorted.forEach((row, idx) => {
+          const prev = prevRanks.current[row.playerId];
+          if (prev !== undefined) {
+            if (idx < prev) newRankChanges[row.playerId] = 'up';
+            else if (idx > prev) newRankChanges[row.playerId] = 'down';
+            else newRankChanges[row.playerId] = 'same';
+          }
+        });
+        setRankChanges(newRankChanges);
+        // Pomppausanimaatio: jos oma sijoitus paranee
+        if (userId) {
+          const newRank = sorted.findIndex(s => s.playerId === userId);
+          if (prevRank.current !== null && newRank !== -1 && newRank < prevRank.current) {
+            Animated.sequence([
+              Animated.timing(scaleAnim, { toValue: 1.15, duration: 180, useNativeDriver: true }),
+              Animated.spring(scaleAnim, { toValue: 1, friction: 4, useNativeDriver: true })
+            ]).start();
+          }
+          prevRank.current = newRank;
+        }
+        // Päivitä prevRanks seuraavaa päivitystä varten
+        prevRanks.current = {};
+        sorted.forEach((row, idx) => { prevRanks.current[row.playerId] = idx; });
         setScores(sorted);
       } else {
         setScores([]);
@@ -299,8 +324,7 @@ export default function Scoreboard() {
 
                 {scores.slice(0, NBR_OF_SCOREBOARD_ROWS).map((score, index) => {
                   const isCurrentUser = score.playerId === userId;
-
-                  return (
+                  const rowContent = (
                     <DataTable.Row
                       key={`${score.playerId}-${index}`}
                       onPress={() => handlePlayerCard(score.playerId, score.name, score.scores)}
@@ -323,8 +347,17 @@ export default function Scoreboard() {
                           </View>
                         )}
                         {index > 2 && <Text style={scoreboardStyles.rankText}>{index + 1}.</Text>}
+                        {/* Sijoitusmuutosnuoli */}
+                        {rankChanges[score.playerId] === 'up' && (
+                          <FontAwesome5 name="arrow-up" size={16} color="#62a346" style={{ marginLeft: 4 }} />
+                        )}
+                        {rankChanges[score.playerId] === 'down' && (
+                          <FontAwesome5 name="arrow-down" size={16} color="#e74c3c" style={{ marginLeft: 4 }} />
+                        )}
+                        {rankChanges[score.playerId] === 'same' && (
+                          <FontAwesome5 name="arrow-right" size={16} color="#3498db" style={{ marginLeft: 4 }} />
+                        )}
                       </DataTable.Cell>
-
                       <DataTable.Cell style={[scoreboardStyles.playerCell]}>
                         <View style={scoreboardStyles.playerWrapper}>
                           {(() => {
@@ -342,16 +375,24 @@ export default function Scoreboard() {
                           <Text style={scoreboardStyles.playerNameText}>{score.name}</Text>
                         </View>
                       </DataTable.Cell>
-
                       <DataTable.Cell style={[scoreboardStyles.durationCell]}>
                         <Text style={scoreboardStyles.durationText}>{score.duration}s</Text>
                       </DataTable.Cell>
-
                       <DataTable.Cell style={[scoreboardStyles.pointsCell]}>
                         <Text style={scoreboardStyles.pointsText}>{score.points}</Text>
                       </DataTable.Cell>
                     </DataTable.Row>
                   );
+                  // Jos tämä on nykyinen käyttäjä, wräpätään Animated.Viewiin
+                  if (isCurrentUser) {
+                    return (
+                      <Animated.View key={`anim-${score.playerId}-${index}`} style={{ transform: [{ scale: scaleAnim }] }}>
+                        {rowContent}
+                      </Animated.View>
+                    );
+                  } else {
+                    return rowContent;
+                  }
                 })}
               </DataTable>
             )}

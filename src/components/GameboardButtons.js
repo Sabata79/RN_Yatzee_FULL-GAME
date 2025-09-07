@@ -24,27 +24,8 @@ const GameboardButtons = ({
 }) => {
     return (
         <View style={gameboardBtnstyles.buttonContainer}>
-            {rounds === 0 ? (
-                <View style={gameboardBtnstyles.buttonWrapper}>
-                    <View style={gameboardBtnstyles.shadowLayer} />
-                    <Pressable
-                        style={({ pressed }) => [
-                            gameboardBtnstyles.button,
-                            pressed && gameboardBtnstyles.buttonPressed,
-                        ]}
-                        onPress={async () => {
-                            const ok = await savePlayerPoints();
-                            if (ok) {
-                                resetGame();
-                                navigation.navigate('Scoreboard');
-                            }
-                        }}
-                    >
-                        <Text style={gameboardBtnstyles.buttonText}>Game Over, Save Your Score</Text>
-                        <MaterialCommunityIcons name="scoreboard-outline" size={24} color="black" />
-                    </Pressable>
-                </View>
-            ) : (
+            {/* Pelin aikana kaksi nappia */}
+            {rounds > 0 && (
                 <>
                     <View style={gameboardBtnstyles.buttonWrapper}>
                         <View style={gameboardBtnstyles.shadowLayer} />
@@ -97,6 +78,28 @@ const GameboardButtons = ({
                         </Pressable>
                     </View>
                 </>
+            )}
+            {/* Game Over -nappi keskitetysti */}
+            {rounds === 0 && (
+                <View style={gameboardBtnstyles.fullWidthButtonWrapper}>
+                    <View style={gameboardBtnstyles.shadowLayer} />
+                    <Pressable
+                        style={({ pressed }) => [
+                            gameboardBtnstyles.button,
+                            pressed && gameboardBtnstyles.buttonPressed,
+                        ]}
+                        onPress={async () => {
+                            const ok = await savePlayerPoints();
+                            if (ok) {
+                                resetGame();
+                                navigation.navigate('Scoreboard');
+                            }
+                        }}
+                    >
+                        <Text style={gameboardBtnstyles.buttonText}>Game Over, Save Your Score</Text>
+                        <MaterialCommunityIcons name="scoreboard-outline" size={24} color="black" />
+                    </Pressable>
+                </View>
             )}
         </View>
     );

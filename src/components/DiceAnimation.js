@@ -6,12 +6,12 @@
  * @author Sabata79
  * @since 2025-08-29
  */
-import { useEffect }  from 'react';
+import { useEffect, memo }  from 'react';
 import { Animated, Image, TouchableOpacity, View, StyleSheet,Easing } from 'react-native';
 
 // Dice animation component for rolling dice
-const DiceAnimation = ({ diceName, isSelected, onSelect, animationValue, color, isRolling }) => {
-    const CONTAINER_SIZE = 45;
+const DiceAnimation = memo(({ diceName, isSelected, onSelect, animationValue, color, isRolling }) => {
+    const CONTAINER_SIZE = 58; // kasvatettu koko
 
     const totalFrames = 16;
     const SPRITE_SHEET = require('../../assets/Spritesheet/dice_spritesheet.webp');
@@ -54,7 +54,11 @@ const DiceAnimation = ({ diceName, isSelected, onSelect, animationValue, color, 
     // Render dice: animated sprite when rolling, static image otherwise
     return (
         <View style={styles.container}>
-            <TouchableOpacity onPress={onSelect} activeOpacity={0.2}>
+            <TouchableOpacity
+                onPress={onSelect}
+                activeOpacity={0.2}
+                hitSlop={{ top: 5, bottom: 5, left: 5, right: 5 }}
+            >
                 {isRolling ? (
                     <View style={styles.spriteContainer}>
                         <Animated.Image
@@ -63,7 +67,7 @@ const DiceAnimation = ({ diceName, isSelected, onSelect, animationValue, color, 
                                 position: 'absolute',
                                 top: 0,
                                 left: 0,
-                                width: 45,
+                                width: CONTAINER_SIZE,
                                 height: scaledSpriteHeight,
                                 transform: [{ translateY }],
                             }}
@@ -86,26 +90,26 @@ const DiceAnimation = ({ diceName, isSelected, onSelect, animationValue, color, 
             </TouchableOpacity>
         </View>
     );
-};
+});
 
 const styles = StyleSheet.create({
     container: {
-        width: 45,
-        height: 45,
+        width: 50,
+        height: 50,
         margin: 5,
     },
     spriteContainer: {
-        width: 45,
-        height: 45,
+        width: 50,
+        height: 50,
         overflow: 'hidden',
     },
     overlay: {
         position: 'absolute',
-        width: 45,
-        height: 45,
+        width: 50,
+        height: 50,
         backgroundColor: '#00ff112c',
         borderWidth: 2,
-        borderRadius: 5,
+        borderRadius: 7,
     },
 });
 

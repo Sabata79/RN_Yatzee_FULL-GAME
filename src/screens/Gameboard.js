@@ -13,7 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
  * @author Sabata79
  * @since 2025-09-06
  */
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { FlatList, Text, View, Pressable, ImageBackground, Animated, Dimensions } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import styles from '../styles/styles';
@@ -727,34 +727,54 @@ export default function Gameboard({ route, navigation }) {
     const [diceAnimations] = useState(() =>
         Array.from({ length: NBR_OF_DICES }, () => new Animated.Value(0))
     );
-
     const [isRolling, setIsRolling] = useState(false);
 
-    const renderDices = () => {
+    // selectDice juureen ja useCallbackilla
+    const selectDice = useCallback((i) => {
+        if (nbrOfThrowsLeft < NBR_OF_THROWS) {
+            let dices = [...selectedDices];
+            dices[i] = !dices[i];
+            setSelectedDices(dices);
+        } else {
+            setStatus('Game has not started');
+        }
+    }, [nbrOfThrowsLeft, selectedDices]);
 
-        const throwDices = () => {
-            if (nbrOfThrowsLeft > 0) {
-                setIsRolling(true);
-                setTimeout(() => {
-                    const newBoard = [...board];
-                    for (let i = 0; i < NBR_OF_DICES; i++) {
-                        if (!selectedDices[i]) {
-                            let randomNumber = Math.floor(Math.random() * 6) + 1;
-                            newBoard[i] = randomNumber;
-                            rolledDices[i] = randomNumber;
-                        }
+    // getDiceColor juureen ja useCallbackilla
+    const getDiceColor = useCallback((index) => {
+        if (board.every((value, i, arr) => value === arr[0])) {
+            return 'red';
+        } else {
+            return selectedDices[index] ? 'red' : 'white';
+        }
+    }, [board, selectedDices]);
+
+    // throwDices juureen
+    const throwDices = useCallback(() => {
+        if (nbrOfThrowsLeft > 0) {
+            setIsRolling(true);
+            setTimeout(() => {
+                const newBoard = [...board];
+                for (let i = 0; i < NBR_OF_DICES; i++) {
+                    if (!selectedDices[i]) {
+                        let randomNumber = Math.floor(Math.random() * 6) + 1;
+                        newBoard[i] = randomNumber;
+                        rolledDices[i] = randomNumber;
                     }
-                    setBoard(newBoard);
-                    setNbrOfThrowsLeft(nbrOfThrowsLeft - 1);
-                    setIsRolling(false);
-                    checkAndUnlockYatzy(rolledDices);
-                }, 1000);
-            } else {
-                setStatus('No throws left');
-                setNbrOfThrowsLeft(NBR_OF_THROWS);
-            }
-        };
+                }
+                setBoard(newBoard);
+                setNbrOfThrowsLeft(nbrOfThrowsLeft - 1);
+                setIsRolling(false);
+                checkAndUnlockYatzy(rolledDices);
+            }, 1000);
+        } else {
+            setStatus('No throws left');
+            setNbrOfThrowsLeft(NBR_OF_THROWS);
+        }
+    }, [nbrOfThrowsLeft, board, selectedDices, rolledDices]);
 
+    // renderDices juureen
+    const renderDices = () => {
         const diceRow = [];
         for (let i = 0; i < NBR_OF_DICES; i++) {
             diceRow.push(
@@ -762,38 +782,13 @@ export default function Gameboard({ route, navigation }) {
                     key={i}
                     diceName={dicefaces[board[i] - 1]?.display}
                     isSelected={selectedDices[i]}
-                    onSelect={() => selectDice(i)}
+                    onSelect={useCallback(() => selectDice(i), [selectDice, i])}
                     animationValue={diceAnimations[i]}
                     color={getDiceColor(i)}
                     isRolling={isRolling && !selectedDices[i]}
                 />
             );
         }
-
-        function getDiceColor(index) {
-            if (board.every((value, i, arr) => value === arr[0])) {
-                return 'red';
-            } else {
-                return selectedDices[index] ? 'red' : 'white';
-            }
-        }
-
-        const selectDice = (i) => {
-            if (nbrOfThrowsLeft < NBR_OF_THROWS) {
-                let dices = [...selectedDices];
-                dices[i] = !dices[i];
-                setSelectedDices(dices);
-            } else {
-                setStatus('Game has not started');
-            }
-        };
-
-        useEffect(() => {
-            if (rounds === 0) {
-                endGame();
-            }
-        }, [rounds]);
-
         return (
             <View style={gameboardstyles.gameboard}>
                 <Text style={styles.status}>{status}</Text>

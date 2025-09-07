@@ -74,7 +74,82 @@ const GameSave = ({ totalPoints }) => {
         return acc;
       }, {});
 
+
       await dbSet(scoresPath, scoresObj);
+
+      // --- Update lastRank fields for AllTime, Monthly, Weekly ---
+      // Fetch all players for ranking
+      const allPlayersSnap = await dbGet('players');
+      const allPlayers = allPlayersSnap.val() || {};
+      const nowDate = new Date();
+      const currentMonth = nowDate.getMonth();
+      const currentYear = nowDate.getFullYear();
+      const getWeekNumber = (date) => {
+        const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+        const dayNum = d.getUTCDay() || 7;
+        d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+        const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+        return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+      };
+      const currentWeek = getWeekNumber(nowDate);
+
+      // Helper to get best score for a player by filter
+      const getBestScore = (scores, filterFn) => {
+        const filtered = scores.filter(filterFn);
+        if (filtered.length === 0) return null;
+        return filtered.reduce((best, s) => {
+          if (!best) return s;
+          if (s.points > best.points) return s;
+          if (s.points === best.points && s.duration < best.duration) return s;
+          if (s.points === best.points && s.duration === best.duration && new Date(s.date) < new Date(best.date)) return s;
+          return best;
+        }, null);
+      };
+
+      // Build ranking arrays
+      const playerRanks = { allTime: [], monthly: [], weekly: [] };
+      Object.entries(allPlayers).forEach(([pid, pdata]) => {
+        const scores = pdata.scores ? Object.values(pdata.scores) : [];
+        // AllTime: best score
+        const bestAll = getBestScore(scores, () => true);
+        if (bestAll) playerRanks.allTime.push({ playerId: pid, ...bestAll });
+        // Monthly: best score this month
+        const bestMonth = getBestScore(scores, (s) => {
+          const parts = s.date.split('.');
+          if (parts.length !== 3) return false;
+          const d = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+          return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+        });
+        if (bestMonth) playerRanks.monthly.push({ playerId: pid, ...bestMonth });
+        // Weekly: best score this week
+        const bestWeek = getBestScore(scores, (s) => {
+          const parts = s.date.split('.');
+          if (parts.length !== 3) return false;
+          const d = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+          return getWeekNumber(d) === currentWeek && d.getFullYear() === currentYear;
+        });
+        if (bestWeek) playerRanks.weekly.push({ playerId: pid, ...bestWeek });
+      });
+
+      // Sort and find ranks
+      const sortScores = (arr) => arr.sort((a, b) => {
+        if (b.points !== a.points) return b.points - a.points;
+        if (a.duration !== b.duration) return a.duration - b.duration;
+        return new Date(a.date) - new Date(b.date);
+      });
+      const allTimeSorted = sortScores(playerRanks.allTime);
+      const monthlySorted = sortScores(playerRanks.monthly);
+      const weeklySorted = sortScores(playerRanks.weekly);
+
+      const findRank = (arr, pid) => arr.findIndex(p => p.playerId === pid) + 1;
+      const lastRank = {
+        allTime: findRank(allTimeSorted, uid),
+        monthly: findRank(monthlySorted, uid),
+        weekly: findRank(weeklySorted, uid),
+      };
+
+      // Update player lastRank field
+      await dbSet(`players/${uid}/lastRank`, lastRank);
 
       // Mark the game as saved
       if (typeof saveGame === 'function') saveGame();
