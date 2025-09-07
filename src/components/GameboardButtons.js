@@ -97,7 +97,6 @@ const GameboardButtons = ({
                         }}
                     >
                         <Text style={gameboardBtnstyles.buttonText}>Game Over, Save Your Score</Text>
-                        <MaterialCommunityIcons name="scoreboard-outline" size={24} color="black" />
                     </Pressable>
                 </View>
             )}

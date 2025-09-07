@@ -64,14 +64,14 @@ const styles = StyleSheet.create({
         backgroundColor: COLORS.success,
     },
     diceBorder: {
-        width: '80%',
-        height: isSmallScreen ? 50 : 60,
+        width: '94%',
+        height: isSmallScreen ? 65 : 75,
         borderWidth: 2,
         borderColor: '#ccc9c9',
         borderRadius: 4,
         alignItems: 'center',
         backgroundColor: '#000000',
-        marginTop: -50,
+        marginTop: -75,
     },
     filterLayer: {
         position: 'absolute',

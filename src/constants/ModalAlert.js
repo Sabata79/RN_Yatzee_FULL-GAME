@@ -1,7 +1,6 @@
 /**
  * ModalAlert - Modal component for displaying alert messages.
  *
- * JSDoc comments and inline code comments must always be in English.
  * This file provides a modal for showing alert messages to the user.
  * @author Sabata79
  * @since 2025-08-29

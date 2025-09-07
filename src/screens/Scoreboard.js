@@ -18,6 +18,7 @@ import { View, Text, ScrollView, ImageBackground, TouchableOpacity, Image, Anima
 import { DataTable } from 'react-native-paper';
 import { FontAwesome5 } from '@expo/vector-icons';
 import scoreboardStyles from '../styles/ScoreboardScreenStyles';
+import { COLORS } from '../constants/colors';
 import { NBR_OF_SCOREBOARD_ROWS } from '../constants/Game';
 import * as SecureStore from 'expo-secure-store';
 import PlayerCard from '../components/PlayerCard';
@@ -38,13 +39,22 @@ export default function Scoreboard() {
   const [scores, setScores] = useState([]);
   const [scoreType, setScoreType] = useState('allTime');
   const [userId, setUserId] = useState('');
+  // Scrollaa automaattisesti pelaajan riville kun näkymä avataan
+  const scrollViewRef = useRef(null);
+  useEffect(() => {
+    if (scrollViewRef.current && userId && scores.length > 0) {
+      const idx = scores.findIndex(s => s.playerId === userId);
+      if (idx !== -1) {
+        setTimeout(() => {
+          scrollViewRef.current.scrollTo({ y: 60 * idx, animated: true });
+        }, 400);
+      }
+    }
+  }, [userId, scores]);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState(null);
-  // Pomppausanimaatio ja sijoitusmuutokset
+  // Pomppausanimaatio (ei sijoitusmuutoksia)
   const scaleAnim = useRef(new Animated.Value(1)).current;
-  const prevRank = useRef(null);
-  const prevRanks = useRef({}); // {playerId: rank}
-  const [rankChanges, setRankChanges] = useState({}); // {playerId: 'up'|'down'|undefined}
 
   const { viewingPlayerId, viewingPlayerName, setViewingPlayerId, setViewingPlayerName } = useGame();
 
@@ -53,12 +63,12 @@ export default function Scoreboard() {
 
 
   useEffect(() => {
-  // Fetch userId from secure storage
+    // Fetch userId from secure storage
     SecureStore.getItemAsync('user_id').then((storedUserId) => {
       if (storedUserId) setUserId(storedUserId);
     });
 
-  const handle = (snapshot) => {
+    const handle = (snapshot) => {
       const playersData = snapshot.val();
       const tmpScores = [];
       const currentMonth = new Date().getMonth();
@@ -119,31 +129,7 @@ export default function Scoreboard() {
           if (a.duration !== b.duration) return a.duration - b.duration;
           return new Date(a.date) - new Date(b.date);
         });
-        // Sijoitusmuutosten seuranta
-        const newRankChanges = {};
-        sorted.forEach((row, idx) => {
-          const prev = prevRanks.current[row.playerId];
-          if (prev !== undefined) {
-            if (idx < prev) newRankChanges[row.playerId] = 'up';
-            else if (idx > prev) newRankChanges[row.playerId] = 'down';
-            else newRankChanges[row.playerId] = 'same';
-          }
-        });
-        setRankChanges(newRankChanges);
-        // Pomppausanimaatio: jos oma sijoitus paranee
-        if (userId) {
-          const newRank = sorted.findIndex(s => s.playerId === userId);
-          if (prevRank.current !== null && newRank !== -1 && newRank < prevRank.current) {
-            Animated.sequence([
-              Animated.timing(scaleAnim, { toValue: 1.15, duration: 180, useNativeDriver: true }),
-              Animated.spring(scaleAnim, { toValue: 1, friction: 4, useNativeDriver: true })
-            ]).start();
-          }
-          prevRank.current = newRank;
-        }
-        // Päivitä prevRanks seuraavaa päivitystä varten
-        prevRanks.current = {};
-        sorted.forEach((row, idx) => { prevRanks.current[row.playerId] = idx; });
+
         setScores(sorted);
       } else {
         setScores([]);
@@ -159,7 +145,7 @@ export default function Scoreboard() {
   // ISO week number (Mon–Sun)
   function getWeekNumber(date) {
     const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-  const dayNum = d.getUTCDay() || 7; // Sunday=7
+    const dayNum = d.getUTCDay() || 7; // Sunday=7
     d.setUTCDate(d.getUTCDate() + 4 - dayNum);
     const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
     return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
@@ -235,7 +221,9 @@ export default function Scoreboard() {
               <Text style={scoreboardStyles.tabText}>Weekly</Text>
             </TouchableOpacity>
           </Animated.View>
+
           <ScrollView
+            ref={scrollViewRef}
             contentContainerStyle={{
               paddingTop: 80, // header + tabit
               paddingBottom: insets.bottom + tabBarHeight + 16,
@@ -347,16 +335,7 @@ export default function Scoreboard() {
                           </View>
                         )}
                         {index > 2 && <Text style={scoreboardStyles.rankText}>{index + 1}.</Text>}
-                        {/* Sijoitusmuutosnuoli */}
-                        {rankChanges[score.playerId] === 'up' && (
-                          <FontAwesome5 name="arrow-up" size={16} color="#62a346" style={{ marginLeft: 4 }} />
-                        )}
-                        {rankChanges[score.playerId] === 'down' && (
-                          <FontAwesome5 name="arrow-down" size={16} color="#e74c3c" style={{ marginLeft: 4 }} />
-                        )}
-                        {rankChanges[score.playerId] === 'same' && (
-                          <FontAwesome5 name="arrow-right" size={16} color="#3498db" style={{ marginLeft: 4 }} />
-                        )}
+
                       </DataTable.Cell>
                       <DataTable.Cell style={[scoreboardStyles.playerCell]}>
                         <View style={scoreboardStyles.playerWrapper}>
@@ -372,7 +351,9 @@ export default function Scoreboard() {
                               );
                             }
                           })()}
-                          <Text style={scoreboardStyles.playerNameText}>{score.name}</Text>
+                          <Text style={isCurrentUser ? [scoreboardStyles.playerNameText, { color: COLORS.success, fontWeight: 'bold' }] : scoreboardStyles.playerNameText}>
+                            {score.name}
+                          </Text>
                         </View>
                       </DataTable.Cell>
                       <DataTable.Cell style={[scoreboardStyles.durationCell]}>
@@ -397,26 +378,26 @@ export default function Scoreboard() {
               </DataTable>
             )}
           </ScrollView>
-        {modalVisible && selectedPlayer && (
-          <PlayerCard
-            playerId={selectedPlayer.playerId}
-            playerName={selectedPlayer.playerName}
-            playerScores={selectedPlayer.playerScores}
-            isModalVisible={modalVisible}
-            setModalVisible={(v) => {
-              if (!v) {
-                setModalVisible(false);
-                setSelectedPlayer(null);
-                setViewingPlayerId('');
-                setViewingPlayerName('');
-              } else {
-                setModalVisible(true);
-              }
-            }}
-          />
-        )}
+          {modalVisible && selectedPlayer && (
+            <PlayerCard
+              playerId={selectedPlayer.playerId}
+              playerName={selectedPlayer.playerName}
+              playerScores={selectedPlayer.playerScores}
+              isModalVisible={modalVisible}
+              setModalVisible={(v) => {
+                if (!v) {
+                  setModalVisible(false);
+                  setSelectedPlayer(null);
+                  setViewingPlayerId('');
+                  setViewingPlayerName('');
+                } else {
+                  setModalVisible(true);
+                }
+              }}
+            />
+          )}
         </View>
       </ImageBackground>
-  </View>
+    </View>
   );
 }

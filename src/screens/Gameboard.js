@@ -1,4 +1,3 @@
-import { SafeAreaView } from 'react-native-safe-area-context';
 /**
  * Gameboard.js - Main game screen for playing Yatzy
  *
@@ -45,6 +44,13 @@ export default function Gameboard({ route, navigation }) {
     const { gameStarted, gameEnded, startGame, endGame, totalPoints, setTotalPoints, tokens, setTokens, setEnergyModalVisible } = useGame();
     const [elapsedTime, setElapsedTime] = useState(0);
     const { savePlayerPoints } = GameSave({ playerId, totalPoints, elapsedTime, navigation });
+
+    // Navigoi Scoreboardiin oikeaan välilehteen ja pelaajan kohdalle
+    const handleSaveAndNavigate = async () => {
+        await savePlayerPoints();
+        resetGame();
+        navigation.navigate('Scoreboard', { tab: 'week', playerId });
+    };
 
     const [isLayerVisible, setLayerVisible] = useState(true);
 
@@ -170,6 +176,12 @@ export default function Gameboard({ route, navigation }) {
             setLayerVisible(true);
         } else {
             setLayerVisible(false);
+        }
+    }, [rounds]);
+
+    useEffect(() => {
+        if (rounds === 0) {
+            endGame();
         }
     }, [rounds]);
 
@@ -729,7 +741,7 @@ export default function Gameboard({ route, navigation }) {
     );
     const [isRolling, setIsRolling] = useState(false);
 
-    // selectDice juureen ja useCallbackilla
+    // selectDice to useCallback
     const selectDice = useCallback((i) => {
         if (nbrOfThrowsLeft < NBR_OF_THROWS) {
             let dices = [...selectedDices];
@@ -740,7 +752,7 @@ export default function Gameboard({ route, navigation }) {
         }
     }, [nbrOfThrowsLeft, selectedDices]);
 
-    // getDiceColor juureen ja useCallbackilla
+    // getDiceColor to useCallback
     const getDiceColor = useCallback((index) => {
         if (board.every((value, i, arr) => value === arr[0])) {
             return 'red';
@@ -749,7 +761,7 @@ export default function Gameboard({ route, navigation }) {
         }
     }, [board, selectedDices]);
 
-    // throwDices juureen
+    // throwDices to useCallback
     const throwDices = useCallback(() => {
         if (nbrOfThrowsLeft > 0) {
             setIsRolling(true);
@@ -801,7 +813,7 @@ export default function Gameboard({ route, navigation }) {
                     status={status}
                     rounds={rounds}
                     nbrOfThrowsLeft={nbrOfThrowsLeft}
-                    savePlayerPoints={savePlayerPoints}
+                    savePlayerPoints={handleSaveAndNavigate}
                     resetGame={resetGame}
                     navigation={navigation}
                     startGame={startGame}

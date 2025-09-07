@@ -57,7 +57,7 @@ const DiceAnimation = memo(({ diceName, isSelected, onSelect, animationValue, co
             <TouchableOpacity
                 onPress={onSelect}
                 activeOpacity={0.2}
-                hitSlop={{ top: 5, bottom: 5, left: 5, right: 5 }}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
                 {isRolling ? (
                     <View style={styles.spriteContainer}>
@@ -94,19 +94,19 @@ const DiceAnimation = memo(({ diceName, isSelected, onSelect, animationValue, co
 
 const styles = StyleSheet.create({
     container: {
-        width: 50,
-        height: 50,
+        width: 60,
+        height: 60,
         margin: 5,
     },
     spriteContainer: {
-        width: 50,
-        height: 50,
+        width: 60,
+        height: 60,
         overflow: 'hidden',
     },
     overlay: {
         position: 'absolute',
-        width: 50,
-        height: 50,
+        width: 60,
+        height: 60,
         backgroundColor: '#00ff112c',
         borderWidth: 2,
         borderRadius: 7,
