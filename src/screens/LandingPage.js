@@ -31,6 +31,8 @@ import { Animations } from "../constants/AnimationPaths";
 import { VideoView, useVideoPlayer } from 'expo-video';
 import { useIsFocused } from '@react-navigation/native';
 
+import COLORS from "../constants/colors";
+
 
 export default function LandingPage({ navigation }) {
   const insets = useSafeAreaInsets();

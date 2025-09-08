@@ -53,18 +53,12 @@ export default function Home({ setPlayerId }) {
   // Error state for video playback
   const [videoError, setVideoError] = useState(false);
 
-  // Video player setup  "hiThere animation" (expo-video)
-  const videoPlayer = useVideoPlayer(require('../../assets/hiThere.mp4'), (p) => {
-    p.loop = false;
-    p.muted = true;
-    p.playbackRate = 0.6;
-  });
-
+ 
   // Video player setup "backgroundVideo animation" (expo-video)
   const backgroundVideoPlayer = useVideoPlayer(require('../../assets/video/backgroundVideo.m4v'), (p) => {
-    p.loop = false;        // no looping
+    p.loop = true;         // loop forever
     p.muted = true;        // muted
-    p.playbackRate = 0.2;  // slightly slower
+    p.playbackRate = 0.6;  // slightly slower
   });
 
   const {
@@ -81,24 +75,7 @@ export default function Home({ setPlayerId }) {
   } = useGame();
 
   const isFocused = useIsFocused();
-
-  // Play or pause the welcome video when the screen is focused "hiThere animation"
-  useEffect(() => {
-    if (!videoPlayer) return;
-
-    if (isFocused) {
-      try {
-        // always start from beginning when view becomes visible 
-        videoPlayer.currentTime = 0;
-        videoPlayer.play();
-      } catch (e) {
-        console.log('video play failed', e);
-      }
-    } else {
-      try { videoPlayer.pause(); } catch { }
-    }
-  }, [isFocused, videoPlayer]);
-
+  // Play or pause the welcome video based on screen focus
   useEffect(() => {
     if (!backgroundVideoPlayer) return;
 
@@ -282,24 +259,11 @@ export default function Home({ setPlayerId }) {
                 <Text style={[homeStyles.homeText, { left: -5 }]}>in {timeToNextToken}</Text>
               </View>
             )}
-            {!videoError ? (
-              <VideoView
-                player={videoPlayer}
-                style={homeStyles.hiThereImage}
-                contentFit="contain"
-                nativeControls={false}
-                allowsFullscreen={false}
-                allowsPictureInPicture={false}
-                pointerEvents="none"
-                focusable={false}
-                onError={(e) => {
-                  console.log("Home hiThere video error:", e);
-                  setVideoError(true);
-                }}
-              />
-            ) : (
-              <Image source={require("../../assets/hiThere.webp")} style={styles.hiThereImage} />
-            )}
+            <Animated.Image
+              source={require('../../assets/animations/hiThereAnimation.gif')}
+              style={homeStyles.hiThereImage}
+              resizeMode="contain"
+            />
 
             <HomeScreenButton
               label="PLAY"

@@ -76,7 +76,6 @@ const styles = StyleSheet.create({
     width: width * 0.65,
     height: width * 0.65,
     resizeMode: 'contain',
-    opacity: 0.1,
     alignSelf: 'center',
     zIndex: 1,
   },
