@@ -19,6 +19,7 @@ import { DataTable } from 'react-native-paper';
 import { FontAwesome5 } from '@expo/vector-icons';
 import scoreboardStyles from '../styles/ScoreboardScreenStyles';
 import { COLORS } from '../constants/colors';
+import { TYPOGRAPHY } from '../constants/typography';
 import { NBR_OF_SCOREBOARD_ROWS } from '../constants/Game';
 import * as SecureStore from 'expo-secure-store';
 import PlayerCard from '../components/PlayerCard';
@@ -343,7 +344,7 @@ export default function Scoreboard() {
                               );
                             }
                           })()}
-                          <Text style={isCurrentUser ? [scoreboardStyles.playerNameText, { color: COLORS.success, fontWeight: 'bold' }] : scoreboardStyles.playerNameText}>
+                          <Text style={isCurrentUser ? [scoreboardStyles.playerNameText, { color: COLORS.white, fontFamily: TYPOGRAPHY.fontFamily.montserratBold, fontSize: TYPOGRAPHY.fontSize.md }] : scoreboardStyles.playerNameText}>
                             {score.name}
                           </Text>
                         </View>
