@@ -43,7 +43,7 @@ export default function Scoreboard() {
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
-  const { viewingPlayerId, viewingPlayerName, setViewingPlayerId, setViewingPlayerName, scoreboardData } = useGame();
+  const { setViewingPlayerId, setViewingPlayerName, scoreboardData } = useGame();
 
   const insets = useSafeAreaInsets();
   const tabBarHeight = useBottomTabBarHeight();

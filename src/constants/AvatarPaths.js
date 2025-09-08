@@ -60,7 +60,7 @@ export const avatars = [
     { path: '../../assets/euflags/ua.webp', display: require('../../assets/euflags/ua.webp'), level: 'Beginner' },
     { path: '../../assets/euflags/va.webp', display: require('../../assets/euflags/va.webp'), level: 'Beginner' },
     { path: '../../assets/euflags/eu.webp', display: require('../../assets/euflags/eu.webp'), level: 'Beginner' },
-    { path: '..assets/noneuflags/ca.webp', display: require('../../assets/noneuflags/ca.webp'), level: 'Beginner' },
+    { path: '../../assets/noneuflags/ca.webp', display: require('../../assets/noneuflags/ca.webp'), level: 'Beginner' },
     { path: '../../assets/noneuflags/us.webp', display: require('../../assets/noneuflags/us.webp'), level: 'Beginner' },
 
 

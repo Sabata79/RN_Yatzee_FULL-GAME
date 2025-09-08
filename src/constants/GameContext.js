@@ -37,7 +37,7 @@ export const GameProvider = ({ children }) => {
   const [videoTokens, setVideoTokens] = useState(0);
   const [energyModalVisible, setEnergyModalVisible] = useState(false);
   const [isLinked, setIsLinked] = useState(false);
-  const [playerLevel, setPlayerLevel] = useState('beginner');
+  const [playerLevel, setPlayerLevel] = useState('');
   const [gameVersion, setGameVersion] = useState('');
   const [progressPoints, setProgressPoints] = useState(0);
   const [currentLevel, setCurrentLevel] = useState('');
@@ -97,6 +97,7 @@ export const GameProvider = ({ children }) => {
     dbOnValue(path, handleValue);
     return () => dbOff(path, handleValue);
   }, [playerId]);
+
   // Scoreboard listener
   useEffect(() => {
     const handle = (snapshot) => {
