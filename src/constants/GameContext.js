@@ -98,6 +98,54 @@ export const GameProvider = ({ children }) => {
     return () => dbOff(path, handleValue);
   }, [playerId]);
 
+  useEffect(() => {
+    const handle = (snapshot) => {
+      const playersData = snapshot.val();
+      const tmpScores = [];
+      if (playersData) {
+        Object.keys(playersData).forEach(playerId => {
+          const player = playersData[playerId];
+          if (player.scores) {
+            let scoresToUse = Object.values(player.scores);
+            if (scoresToUse.length > 0) {
+              let bestScore = null;
+              scoresToUse.forEach(score => {
+                if (
+                  !bestScore ||
+                  score.points > bestScore.points ||
+                  (score.points === bestScore.points && score.duration < bestScore.duration) ||
+                  (score.points === bestScore.points && score.duration === bestScore.duration &&
+                    new Date(score.date) < new Date(bestScore.date))
+                ) {
+                  bestScore = score;
+                }
+              });
+              if (bestScore) {
+                tmpScores.push({
+                  ...bestScore,
+                  name: player.name,
+                  playerId,
+                  avatar: player.avatar || null,
+                  scores: Object.values(player.scores),
+                });
+              }
+            }
+          }
+        });
+        const sorted = tmpScores.sort((a, b) => {
+          if (b.points !== a.points) return b.points - a.points;
+          if (a.duration !== b.duration) return a.duration - b.duration;
+          return new Date(a.date) - new Date(b.date);
+        });
+        setScoreboardData(sorted);
+      } else {
+        setScoreboardData([]);
+      }
+    };
+    const unsubscribe = dbOnValue('players', handle);
+    return () => { if (typeof unsubscribe === 'function') unsubscribe(); };
+  }, []);
+
   // Player level listener
   useEffect(() => {
     if (!playerId) return;
@@ -274,9 +322,9 @@ export const GameProvider = ({ children }) => {
     allTimeRank,
     avatarUrl,
     setAvatarUrl,
-  isAvatarLoaded,
-  scoreboardData,
-  setScoreboardData,
+    isAvatarLoaded,
+    scoreboardData,
+    setScoreboardData,
   };
 
   return <GameContext.Provider value={contextValue}>{children}</GameContext.Provider>;

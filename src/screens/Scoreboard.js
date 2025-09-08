@@ -13,7 +13,7 @@
  * @since 2025-09-06
  */
 
-import { useState, useEffect, useRef, useLayoutEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { View, Text, ScrollView, ImageBackground, TouchableOpacity, Image, Animated, Dimensions } from 'react-native';
 import { DataTable } from 'react-native-paper';
 import { FontAwesome5 } from '@expo/vector-icons';
@@ -24,7 +24,7 @@ import * as SecureStore from 'expo-secure-store';
 import PlayerCard from '../components/PlayerCard';
 import { useGame } from '../constants/GameContext';
 import { avatars } from '../constants/AvatarPaths';
-import { dbOnValue } from '../services/Firebase';
+// ...existing code...
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import Header from './Header';
@@ -36,9 +36,19 @@ export default function Scoreboard() {
   const scrollOffset = useRef(0);
   const [tabHidden, setTabHidden] = useState(false);
   const [headerHidden, setHeaderHidden] = useState(false);
-  const [scores, setScores] = useState([]);
+  const [scores, setScores] = useState([]); // filtered scoreboardData
   const [scoreType, setScoreType] = useState('allTime');
   const [userId, setUserId] = useState('');
+
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedPlayer, setSelectedPlayer] = useState(null);
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  const { viewingPlayerId, viewingPlayerName, setViewingPlayerId, setViewingPlayerName, scoreboardData } = useGame();
+
+  const insets = useSafeAreaInsets();
+  const tabBarHeight = useBottomTabBarHeight();
+
   // Scrollaa automaattisesti pelaajan riville kun näkymä avataan
   const scrollViewRef = useRef(null);
   useEffect(() => {
@@ -51,96 +61,80 @@ export default function Scoreboard() {
       }
     }
   }, [userId, scores]);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [selectedPlayer, setSelectedPlayer] = useState(null);
-  // Pomppausanimaatio (ei sijoitusmuutoksia)
-  const scaleAnim = useRef(new Animated.Value(1)).current;
 
-  const { viewingPlayerId, viewingPlayerName, setViewingPlayerId, setViewingPlayerName } = useGame();
-
-  const insets = useSafeAreaInsets();
-  const tabBarHeight = useBottomTabBarHeight();
-
-
+  // Fetch userId from secure storage (once)
   useEffect(() => {
-    // Fetch userId from secure storage
     SecureStore.getItemAsync('user_id').then((storedUserId) => {
       if (storedUserId) setUserId(storedUserId);
     });
+  }, []);
 
-    const handle = (snapshot) => {
-      const playersData = snapshot.val();
-      const tmpScores = [];
-      const currentMonth = new Date().getMonth();
-      const currentYear = new Date().getFullYear();
-      const currentWeek = getWeekNumber(new Date());
+  // Filter scoreboardData from context based on scoreType
+  useEffect(() => {
+    if (!scoreboardData) {
+      setScores([]);
+      return;
+    }
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+    const currentWeek = getWeekNumber(new Date());
 
-      if (playersData) {
-        Object.keys(playersData).forEach(playerId => {
-          const player = playersData[playerId];
-          if (player.scores) {
-            let scoresToUse = [];
-            if (scoreType === 'monthly') {
-              scoresToUse = Object.values(player.scores).filter(score => {
-                const parts = score.date.split('.');
-                if (parts.length !== 3) return false;
-                const d = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
-                if (isNaN(d)) return false;
-                return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
-              });
-            } else if (scoreType === 'weekly') {
-              scoresToUse = Object.values(player.scores).filter(score => {
-                const parts = score.date.split('.');
-                if (parts.length !== 3) return false;
-                const d = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
-                if (isNaN(d)) return false;
-                return getWeekNumber(d) === currentWeek;
-              });
-            } else {
-              scoresToUse = Object.values(player.scores);
-            }
-            if (scoresToUse.length > 0) {
-              let bestScore = null;
-              scoresToUse.forEach(score => {
-                if (
-                  !bestScore ||
-                  score.points > bestScore.points ||
-                  (score.points === bestScore.points && score.duration < bestScore.duration) ||
-                  (score.points === bestScore.points && score.duration === bestScore.duration &&
-                    new Date(score.date) < new Date(bestScore.date))
-                ) {
-                  bestScore = score;
-                }
-              });
-              if (bestScore) {
-                tmpScores.push({
-                  ...bestScore,
-                  name: player.name,
-                  playerId,
-                  avatar: player.avatar || null,
-                  scores: Object.values(player.scores),
-                });
-              }
-            }
+    const filterScores = (data) => {
+      return data.map(player => {
+        let filteredScores = [];
+        if (scoreType === 'monthly') {
+          filteredScores = player.scores.filter(score => {
+            const parts = score.date.split('.');
+            if (parts.length !== 3) return false;
+            const d = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+            if (isNaN(d)) return false;
+            return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+          });
+        } else if (scoreType === 'weekly') {
+          filteredScores = player.scores.filter(score => {
+            const parts = score.date.split('.');
+            if (parts.length !== 3) return false;
+            const d = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+            if (isNaN(d)) return false;
+            return getWeekNumber(d) === currentWeek;
+          });
+        } else {
+          filteredScores = player.scores;
+        }
+        // Pick best score for this player in this filter
+        let bestScore = null;
+        filteredScores.forEach(score => {
+          if (
+            !bestScore ||
+            score.points > bestScore.points ||
+            (score.points === bestScore.points && score.duration < bestScore.duration) ||
+            (score.points === bestScore.points && score.duration === bestScore.duration &&
+              new Date(score.date) < new Date(bestScore.date))
+          ) {
+            bestScore = score;
           }
         });
-        const sorted = tmpScores.sort((a, b) => {
-          if (b.points !== a.points) return b.points - a.points;
-          if (a.duration !== b.duration) return a.duration - b.duration;
-          return new Date(a.date) - new Date(b.date);
-        });
-
-        setScores(sorted);
-      } else {
-        setScores([]);
-      }
+        if (bestScore) {
+          return {
+            ...bestScore,
+            name: player.name,
+            playerId: player.playerId,
+            avatar: player.avatar || null,
+            scores: player.scores,
+          };
+        }
+        return null;
+      }).filter(Boolean);
     };
 
-    const unsubscribe = dbOnValue('players', handle);
-    return () => {
-      if (typeof unsubscribe === 'function') unsubscribe();
-    };
-  }, [scoreType]);
+    // Sort filtered scores
+    const filtered = filterScores(scoreboardData).sort((a, b) => {
+      if (b.points !== a.points) return b.points - a.points;
+      if (a.duration !== b.duration) return a.duration - b.duration;
+      return new Date(a.date) - new Date(b.date);
+    });
+    setScores(filtered);
+  }, [scoreType, scoreboardData]);
 
   // ISO week number (Mon–Sun)
   function getWeekNumber(date) {
