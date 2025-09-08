@@ -48,7 +48,6 @@ const styles = StyleSheet.create({
   logo: {
     width: width * 0.8,
     height: width * 0.8,
-    // opacity: 0.5,
     maxWidth: 600,
     maxHeight: 600,
     marginBottom: SPACING.xs,
