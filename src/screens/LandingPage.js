@@ -28,6 +28,8 @@ import { PlayercardBg } from "../constants/PlayercardBg";
 import { additionalImages } from "../constants/AdditionalImages";
 import { fetchRemoteConfig } from "../services/RemoteConfigService";
 import { Animations } from "../constants/AnimationPaths";
+import { VideoView, useVideoPlayer } from 'expo-video';
+import { useNavigation, useIsFocused } from '@react-navigation/native';
 
 
 export default function LandingPage({ navigation }) {
@@ -58,6 +60,8 @@ export default function LandingPage({ navigation }) {
     setScoreboardData,
   } = useGame();
 
+  const isFocused = useIsFocused();
+
   const isVersionOlder = (current, minimum) => {
     const cur = current.split(".").map(Number);
     const min = minimum.split(".").map(Number);
@@ -67,6 +71,29 @@ export default function LandingPage({ navigation }) {
     }
     return false;
   };
+
+  // Video player setup (expo-video)
+  const videoPlayer = useVideoPlayer(require('../../assets/video/backgroundVideo.m4v'), (p) => {
+    p.loop = false;        // no looping
+    p.muted = true;        // muted
+    p.playbackRate = 0.6;  // slightly slower
+  });
+
+  useEffect(() => {
+    if (!videoPlayer) return;
+
+    if (isFocused) {
+      try {
+        // always start from beginning when view becomes visible
+        videoPlayer.currentTime = 0;
+        videoPlayer.play();
+      } catch (e) {
+        console.log('video play failed', e);
+      }
+    } else {
+      try { videoPlayer.pause(); } catch { }
+    }
+  }, [isFocused, videoPlayer]);
 
   const fire = (name, fn) => {
     const t0 = Date.now();
@@ -236,7 +263,7 @@ export default function LandingPage({ navigation }) {
     const version = Constants.expoConfig?.version ?? "0.0.0";
     setGameVersion(version);
 
-  const loadAllAssets = async () => {
+    const loadAllAssets = async () => {
       try {
         // Start smart progress: 0 -> 92% ~2.5s, then finalize in 400ms when ready
         startSmartProgress(2500, 0.92, 400);
@@ -350,19 +377,27 @@ export default function LandingPage({ navigation }) {
       return () => clearTimeout(t);
     }
   }, [remoteBlock, loadingProgress, bootDone, navigation]);
-  
+
 
   return (
-    <Animated.View style={[styles.container, { opacity: fadeAnim, flex: 1, backgroundColor: '#253445', justifyContent: 'center' }]}>
-      <View style={styles.versionContainer}>
-        <Text style={styles.versionText}>Version: {gameVersion}</Text>
-      </View>
 
-      <View style={styles.logoContainer}>
-        <Image
-          source={require("../../assets/coins/coin.webp")}
-          style={styles.logo}
-        />
+    <Animated.View style={[styles.container, { opacity: fadeAnim, flex: 1, backgroundColor: '#253445', justifyContent: 'center' }]}>
+      <VideoView
+        player={videoPlayer}
+        style={styles.video}
+        contentFit="cover"
+        nativeControls={false}
+        allowsFullscreen={true}
+        allowsPictureInPicture={false}
+        pointerEvents="none"
+        focusable={false}
+        onError={(e) => {
+          console.log("LandingPageVideo error:", e);
+          setVideoError(true);
+        }}
+      />
+      <View style={[styles.versionContainer]}>
+        <Text style={styles.versionText}>Version: {gameVersion}</Text>
       </View>
       <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, paddingBottom: insets.bottom || 16 }}>
         <View style={{ alignItems: 'center' }}>
@@ -382,6 +417,12 @@ export default function LandingPage({ navigation }) {
             {loadingProgress < 100 ? "Checking player data..." : "Complete!"}
           </Text>
         </View>
+      </View>
+      <View style={styles.logoContainer}>
+        <Image
+          source={require("../../assets/coins/coin.webp")}
+          style={styles.logo}
+        />
       </View>
     </Animated.View>
   );

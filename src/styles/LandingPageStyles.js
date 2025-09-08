@@ -34,23 +34,25 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: COLORS.accent, // Darker and softer background
-    padding: SPACING.sm,
+    backgroundColor: COLORS.accent, 
   },
   logoContainer: {
     alignItems: "center",
     justifyContent: 'center',
     alignSelf: 'center',
-    marginBottom: isSmallScreen ? 15 : 30,
+    marginBottom: -140,
     flexShrink: 0,
+    zIndex: 20,
+    elevation: 20, 
   },
   logo: {
     width: width * 0.8,
     height: width * 0.8,
-    opacity: 0.5,
+    // opacity: 0.5,
     maxWidth: 600,
     maxHeight: 600,
     marginBottom: SPACING.xs,
+
   },
   progressBar: {
     width: width * 0.8,
@@ -93,6 +95,14 @@ const styles = StyleSheet.create({
   progressPercentText: {
     color: COLORS.textLight,
     fontWeight: '600',
+  },
+  video: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: -1,
   },
 });
 
