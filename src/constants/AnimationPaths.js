@@ -9,5 +9,5 @@
 // Animation paths for the game
 export const Animations = [
 
-{path: '../../assets/hiThere.mp4', display: require('../../assets/hiThere.mp4')}
+{path: '../../assets/video/backgroundVideo.m4v', display: require('../../assets/video/backgroundVideo.m4v'), description: 'Background video animation'},
 ];

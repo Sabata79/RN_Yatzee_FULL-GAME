@@ -16,7 +16,6 @@ export const additionalImages = [
     { path: '../../assets/profile.webp', display: require('../../assets/profile.webp') },
     { path: '../../assets/desktopIcon.webp', display: require('../../assets/desktopIcon.webp') },
     { path: '../../assets/register.webp', display: require('../../assets/register.webp') },
-    { path: '../../assets/hiThere.webp', display: require('../../assets/hiThere.webp') },
     { path: '../../assets/playerCard_explained.webp', display: require('../../assets/playerCard_explained.webp') },
     { path: '../../assets/trophies/goldTrophy.webp', display: require('../../assets/trophies/goldTrophy.webp') },
     { path: '../../assets/trophies/silverTrophy.webp', display: require('../../assets/trophies/silverTrophy.webp') },
@@ -30,5 +29,6 @@ export const additionalImages = [
     { path: '../../assets/dicesides/4-dice.webp', display: require('../../assets/dicesides/4-dice.webp') },
     { path: '../../assets/dicesides/5-dice.webp', display: require('../../assets/dicesides/5-dice.webp') },
     { path: '../../assets/dicesides/6-dice.webp', display: require('../../assets/dicesides/6-dice.webp') },
+    { path: '../../assets/animations/hiThereAnimation.gif', display: require('../../assets/animations/hiThereAnimation.gif') },
 
 ];
