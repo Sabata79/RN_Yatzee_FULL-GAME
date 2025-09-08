@@ -179,6 +179,7 @@ export default function Home({ setPlayerId }) {
   };
 
   const handlePlay = () => navigation.navigate('Gameboard');
+  const handleScore = () => navigation.navigate('Scoreboard');
   const handleChangeName = () => { setLocalName(''); setUserRecognized(false); };
   const handleViewPlayerCard = () => { setSelectedPlayer({ playerId, playerName }); setModalVisible(true); };
   const handleLinkAccount = () => setIsLinkModalVisible(true);
@@ -274,6 +275,11 @@ export default function Home({ setPlayerId }) {
               label="View Player Card"
               icon={<FontAwesome5 name="id-card" size={30} color="black" style={{ marginLeft: 8 }} />}
               onPress={handleViewPlayerCard}
+            />
+            <HomeScreenButton
+              label="View Scoreboard"
+              icon={<FontAwesome5 name="trophy" size={30} color="black" style={{ marginLeft: 8 }} />}
+              onPress={handleScore}
             />
             <HomeScreenButton
               label="Change name"

@@ -28,13 +28,13 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.accent,
     borderColor: COLORS.accentLight,
     borderWidth: 3,
-    borderRadius: 5,
+    borderRadius: 10,
     paddingVertical: SPACING.sm,
     paddingHorizontal: SPACING.md,
     width: '80%',
     alignSelf: 'center',
     zIndex: 1,
-    height: 68,
+    height: 55,
   },
   buttonPressed: {
     backgroundColor: COLORS.accentLight,
@@ -46,9 +46,9 @@ const styles = StyleSheet.create({
     top: SPACING.xxs,
     left: '11%',
     width: '80%',
-    height: 72,
+    height: 57,
     backgroundColor: 'rgba(255, 255, 255, 0.635)',
-    borderRadius: 7,
+    borderRadius: 10,
     zIndex: 1,
   },
   iconContainer: {
@@ -62,6 +62,7 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: 'center',
     fontSize: TYPOGRAPHY.fontSize.xl,
+    lineHeight: TYPOGRAPHY.fontSize.xl,
   },
 });
 
