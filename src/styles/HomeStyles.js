@@ -38,12 +38,12 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     resizeMode: 'cover',
-    backgroundColor: COLORS.black,
+    backgroundColor: 'transparent',
   },
   homeContainer: {
     width: '100%',
     alignItems: 'center',
-    backgroundColor: COLORS.black,
+    backgroundColor: 'transparent',
     borderRadius: 10,
   },
   tokenText: {
@@ -68,11 +68,17 @@ const styles = StyleSheet.create({
     opacity: 0.8,
   },
   hiThereImage: {
-    top: SPACING.sm,
+    position: 'relative',
+    zIndex: 0,
+    left: 0,
+    right: 0,
+    top: 10,
     width: width * 0.65,
     height: width * 0.65,
     resizeMode: 'contain',
-    backgroundColor: 'transparent',
+    opacity: 0.1,
+    alignSelf: 'center',
+    zIndex: 1,
   },
   energyIcon: {
     marginTop: 4,
@@ -90,6 +96,15 @@ const styles = StyleSheet.create({
     fontSize: TYPOGRAPHY.fontSize.lg,
     fontFamily: TYPOGRAPHY.fontFamily.montserrat,
     marginRight: SPACING.xs,
+    zIndex: 1,
+  },
+  backgroundVideo: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: -1,
   },
 });
 

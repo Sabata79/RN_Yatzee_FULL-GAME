@@ -53,11 +53,18 @@ export default function Home({ setPlayerId }) {
   // Error state for video playback
   const [videoError, setVideoError] = useState(false);
 
-  // Video player setup (expo-video)
+  // Video player setup  "hiThere animation" (expo-video)
   const videoPlayer = useVideoPlayer(require('../../assets/hiThere.mp4'), (p) => {
+    p.loop = false;
+    p.muted = true;
+    p.playbackRate = 0.6;
+  });
+
+  // Video player setup "backgroundVideo animation" (expo-video)
+  const backgroundVideoPlayer = useVideoPlayer(require('../../assets/video/backgroundVideo.m4v'), (p) => {
     p.loop = false;        // no looping
     p.muted = true;        // muted
-    p.playbackRate = 0.6;  // slightly slower
+    p.playbackRate = 0.2;  // slightly slower
   });
 
   const {
@@ -70,20 +77,18 @@ export default function Home({ setPlayerId }) {
     setPlayerName,
     isLinked,
     tokens,
-    nextTokenTime,
-    // Game context values and setters
     timeToNextToken,
   } = useGame();
 
   const isFocused = useIsFocused();
 
-  // Play or pause the welcome video when the screen is focused
+  // Play or pause the welcome video when the screen is focused "hiThere animation"
   useEffect(() => {
     if (!videoPlayer) return;
 
     if (isFocused) {
       try {
-        // always start from beginning when view becomes visible
+        // always start from beginning when view becomes visible 
         videoPlayer.currentTime = 0;
         videoPlayer.play();
       } catch (e) {
@@ -93,6 +98,23 @@ export default function Home({ setPlayerId }) {
       try { videoPlayer.pause(); } catch { }
     }
   }, [isFocused, videoPlayer]);
+
+  useEffect(() => {
+    if (!backgroundVideoPlayer) return;
+
+    if (isFocused) {
+      try {
+        // Play or pause the welcome video when the screen is focused "backgroundVideo animation"
+        backgroundVideoPlayer.currentTime = 0;
+        backgroundVideoPlayer.play();
+      } catch (e) {
+        console.log('video play failed', e);
+      }
+    } else {
+      try { backgroundVideoPlayer.pause(); } catch { }
+    }
+  }, [isFocused, backgroundVideoPlayer]);
+
 
   // Update game context when localName or playerId changes
   useEffect(() => {
@@ -185,8 +207,21 @@ export default function Home({ setPlayerId }) {
   const handleLinkAccount = () => setIsLinkModalVisible(true);
 
   return (
-    <ImageBackground style={homeStyles.homeBackground}>
       <View style={styles.overlay}>
+        <VideoView
+          player={backgroundVideoPlayer}
+          style={homeStyles.backgroundVideo}
+          contentFit="cover"
+          nativeControls={false}
+          allowsFullscreen={true}
+          allowsPictureInPicture={false}
+          pointerEvents="none"
+          focusable={false}
+          onError={(e) => {
+            console.log("LandingPageVideo error:", e);
+            setVideoError(true);
+          }}
+        />
         {!userRecognized ? (
           <View style={homeStyles.homeContainer}>
             <Text style={homeStyles.homeText}>Hi, Stranger!</Text>
@@ -237,7 +272,7 @@ export default function Home({ setPlayerId }) {
             ) : (
               <View style={homeStyles.tokenRow}>
                 <Text style={homeStyles.homeText}>Next energy</Text>
-                <View style={[homeStyles.energyIcon, { left: -5}]}>
+                <View style={[homeStyles.energyIcon, { left: -5 }]}>
                   <MaterialCommunityIcons
                     name="flash"
                     size={18}
@@ -304,6 +339,5 @@ export default function Home({ setPlayerId }) {
           />
         )}
       </View>
-    </ImageBackground>
   );
 }

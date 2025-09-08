@@ -17,7 +17,7 @@ import { useState, useEffect, useRef } from "react";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { View, Text, Image, Animated, Alert, Linking } from "react-native";
 import * as SecureStore from "expo-secure-store";
-import { signInAnon, dbGet, dbOnValue } from "../services/Firebase";
+import { signInAnon, dbGet } from "../services/Firebase";
 import { useGame } from "../constants/GameContext";
 import { ProgressBar } from "react-native-paper";
 import styles from "../styles/LandingPageStyles";
@@ -29,7 +29,7 @@ import { additionalImages } from "../constants/AdditionalImages";
 import { fetchRemoteConfig } from "../services/RemoteConfigService";
 import { Animations } from "../constants/AnimationPaths";
 import { VideoView, useVideoPlayer } from 'expo-video';
-import { useNavigation, useIsFocused } from '@react-navigation/native';
+import { useIsFocused } from '@react-navigation/native';
 
 
 export default function LandingPage({ navigation }) {
