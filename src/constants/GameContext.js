@@ -9,7 +9,7 @@
 // Game context provider for global state management
 import { createContext, useState, useContext, useEffect } from 'react';
 import { dbOnValue, dbOff, dbGet, dbSet } from '../services/Firebase';
-import { MAX_TOKENS, VIDEO_TOKEN_LIMIT } from './Game';
+import { MAX_TOKENS } from './Game';
 
 const GameContext = createContext();
 export const useGame = () => useContext(GameContext);
@@ -97,7 +97,7 @@ export const GameProvider = ({ children }) => {
     dbOnValue(path, handleValue);
     return () => dbOff(path, handleValue);
   }, [playerId]);
-
+  // Scoreboard listener
   useEffect(() => {
     const handle = (snapshot) => {
       const playersData = snapshot.val();
@@ -217,17 +217,14 @@ export const GameProvider = ({ children }) => {
       fetchInitialTokens();
       fetchVideoTokens();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playerId]);
 
   useEffect(() => {
     updateTokensInFirebase();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tokens]);
 
   useEffect(() => {
     updateVideoTokensInFirebase();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [videoTokens]);
 
   const getCurrentLevel = (points) => {

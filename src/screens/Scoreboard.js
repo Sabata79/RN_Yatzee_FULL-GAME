@@ -24,15 +24,14 @@ import * as SecureStore from 'expo-secure-store';
 import PlayerCard from '../components/PlayerCard';
 import { useGame } from '../constants/GameContext';
 import { avatars } from '../constants/AvatarPaths';
-// ...existing code...
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import Header from './Header';
 
 
 export default function Scoreboard() {
-  const tabAnim = useRef(new Animated.Value(0)).current; // 0 = näkyvissä, -50 = piilossa
-  const headerAnim = useRef(new Animated.Value(0)).current; // 0 = näkyvissä, -70 = piilossa
+  const tabAnim = useRef(new Animated.Value(0)).current; 
+  const headerAnim = useRef(new Animated.Value(0)).current; 
   const scrollOffset = useRef(0);
   const [tabHidden, setTabHidden] = useState(false);
   const [headerHidden, setHeaderHidden] = useState(false);
@@ -49,7 +48,7 @@ export default function Scoreboard() {
   const insets = useSafeAreaInsets();
   const tabBarHeight = useBottomTabBarHeight();
 
-  // Scrollaa automaattisesti pelaajan riville kun näkymä avataan
+  // Scroll to current user on mount
   const scrollViewRef = useRef(null);
   useEffect(() => {
     if (scrollViewRef.current && userId && scores.length > 0) {
@@ -268,8 +267,7 @@ export default function Scoreboard() {
               }
               scrollOffset.current = currentOffset;
             }}
-            onContentSizeChange={(contentWidth, contentHeight) => {
-              // Jos sisältö ei ylitä ruutua, palautetaan header ja tabit näkyviin
+            onContentSizeChange={(contentHeight) => {
               const windowHeight = Dimensions.get('window').height;
               if (contentHeight <= windowHeight) {
                 Animated.timing(headerAnim, {
@@ -358,7 +356,6 @@ export default function Scoreboard() {
                       </DataTable.Cell>
                     </DataTable.Row>
                   );
-                  // Jos tämä on nykyinen käyttäjä, wräpätään Animated.Viewiin
                   if (isCurrentUser) {
                     return (
                       <Animated.View key={`anim-${score.playerId}-${index}`} style={{ transform: [{ scale: scaleAnim }] }}>
