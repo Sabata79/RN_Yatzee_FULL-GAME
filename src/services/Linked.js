@@ -159,7 +159,6 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
     marginBottom: 10,
     color: '#333',
   },
@@ -218,7 +217,6 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: 'bold',
     marginRight: 8,
   },
 });

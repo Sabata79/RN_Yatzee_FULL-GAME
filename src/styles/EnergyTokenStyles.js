@@ -65,19 +65,6 @@ const styles = StyleSheet.create({
     transform: [{ rotate: '-15deg' }],
     pointerEvents: 'none',
   },
-  // plusMark: {
-  //   position: 'absolute',
-  //   fontFamily: 'AntonRegular',
-  //   left: 15,
-  //   top: -30,
-  //   fontSize: 40,
-  //   fontWeight: 'bold',
-  //   color: '#0bf012',
-  //   textShadowColor: 'rgba(0, 0, 0, 1)',
-  //   textShadowOffset: { width: 0.5, height: 0.5 },
-  //   textShadowRadius: 1,
-  //   zIndex: 5,
-  // },
 
   // Modal
   energyModalOverlay: {
@@ -100,7 +87,6 @@ const styles = StyleSheet.create({
   },
   energyModalTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
     marginBottom: 10,
     color: '#333',
   },
@@ -146,7 +132,6 @@ const styles = StyleSheet.create({
   },
   energyModalButtonText: {
     color: 'white',
-    fontWeight: 'bold',
     marginTop: 5,
   },
   energyModalFooterText: {

@@ -18,6 +18,7 @@ const isFoldScreen = width < 800;
 const avatarSize = isFoldScreen ? 75 : 80;
 
 
+
 export default styles = StyleSheet.create({
     playerCardMonthDark: {
         borderColor: '#F5F5F5',
@@ -40,9 +41,12 @@ export default styles = StyleSheet.create({
         marginLeft: 5,
     },
     playerCardName: {
+        fontFamily: TYPOGRAPHY.fontFamily.montserratBold,
         marginTop: 5,
-        fontSize: 24,
-        fontWeight: 'bold',
+        fontSize: TYPOGRAPHY.fontSize.xl,
+    },
+    playerCardNameDark: {
+        color: COLORS.textLight,
     },
     playerTextContainer: {
         alignItems: 'right',
@@ -106,15 +110,17 @@ export default styles = StyleSheet.create({
         resizeMode: 'cover',
     },
     trophyText: {
+        fontFamily: TYPOGRAPHY.fontFamily.montserratBold,
         position: 'absolute',
-        bottom: 0,
+        bottom: -1,
+        borderBottomLeftRadius: 5,
+        borderBottomRightRadius: 5,
         left: 0,
         right: 0,
         textAlign: 'center',
-        color: 'black',
-        fontSize: 9,
-        fontWeight: 'bold',
-        backgroundColor: '#F5F5F5',
+        color: COLORS.textDark,
+        fontSize: TYPOGRAPHY.fontSize.xxxs,
+        backgroundColor: COLORS.background,
     },
     // Avatar Styles
     avatarContainer: {
@@ -186,7 +192,6 @@ export default styles = StyleSheet.create({
     },
     avatarSelectText: {
         fontSize: 18,
-        fontWeight: 'bold',
         marginBottom: 20,
         textAlign: 'center',
         color: '#fff',
@@ -218,7 +223,6 @@ export default styles = StyleSheet.create({
     closeAvatarModalText: {
         color: '#fff',
         fontSize: 22,
-        fontWeight: 'bold',
         padding: 5,
     },
     scoreRow: {
@@ -241,51 +245,49 @@ export default styles = StyleSheet.create({
         height: 90,
     },
     evenRow: {
-        backgroundColor: '#ffffff00', 
+        backgroundColor: '#ffffff00',
     },
     evenRowDark: {
         backgroundColor: '#a9a6a658',
     },
 
     oddRow: {
-        backgroundColor: '#00000010', 
+        backgroundColor: '#00000010',
     },
     oddRowDark: {
         backgroundColor: '#4543438f',
     },
     playerCardScoresTitle: {
-        marginTop: 10,
-        fontSize: 14,
-        marginBottom: 0,
+        fontFamily: TYPOGRAPHY.fontFamily.montserratBold,
+        marginTop: 5,
+        fontSize: TYPOGRAPHY.fontSize.sm,
         textAlign: 'center',
-        fontWeight: 'bold',
     },
     playerCardScoreItem: {
-        fontSize: 10,
-        fontWeight: 'bold',
-        color: '#000',
+        fontFamily: TYPOGRAPHY.fontFamily.montserratMedium,
+        fontSize: TYPOGRAPHY.fontSize.xxs,
+        color: COLORS.textDark,
         width: '60%',
         marginLeft: 5,
         marginBottom: 2,
 
     },
     playerCardScoreDate: {
-        fontSize: 10,
-        fontWeight: 'bold',
-        color: '#000000',
+        fontFamily: TYPOGRAPHY.fontFamily.montserratMedium,
+        fontSize: TYPOGRAPHY.fontSize.xxs,
+        color: COLORS.textDark,
         textAlign: 'right',
         paddingTop: 2,
         marginRight: 5,
     },
     playerCardTrophyCase: {
         width: '98%',
-        marginTop: 0,
         alignItems: 'center',
+        opacity: 0.85,
     },
     playerCardTrophyCaseTitle: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        marginTop: 0,
+        fontFamily: TYPOGRAPHY.fontFamily.montserratBold,
+        fontSize: TYPOGRAPHY.fontSize.sm,
         marginBottom: 2,
     },
     playerCardMonthsContainer: {
@@ -298,45 +300,41 @@ export default styles = StyleSheet.create({
         width: '23%',
         aspectRatio: 0.8,
         minHeight: 70,
-        marginHorizontal: '1%',
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: 5,
-        backgroundColor: '#fffcfc',
+        marginTop: 5,
+        backgroundColor: COLORS.background,
         borderRadius: 5,
         position: 'relative',
         flexDirection: 'column',
-        borderColor: '#000',
+        borderColor: COLORS.black,
         borderWidth: 1,
-        opacity: 0.75,
     },
     playerCardOngoingMonth: {
-        borderColor: 'green',
-        borderWidth: 2,
-        shadowColor: 'green',
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.8,
-        shadowRadius: 4,
-        elevation: 12,
+        borderColor: COLORS.success,
+        borderWidth: 4,
+        borderRadius: 5,
     },
 
     playerCardMonthText: {
-        fontSize: 11,
+        fontFamily: TYPOGRAPHY.fontFamily.montserratBold,
+        fontSize: TYPOGRAPHY.fontSize.xxs,
         width: '100%',
-        fontWeight: 'bold',
         textAlign: 'center',
-        color: '#000',
+        color: COLORS.textDark,
         position: 'absolute',
         top: 0,
         marginBottom: 10,
         zIndex: 2,
-        backgroundColor: '#ffffff8e',
+        backgroundColor: COLORS.overlayLight,
         borderTopLeftRadius: 3,
         borderTopRightRadius: 3,
     },
     emptySlotText: {
-        fontSize: 12,
-        color: 'black',
+        fontFamily: TYPOGRAPHY.fontFamily.montserratLight,
+        fontSize: TYPOGRAPHY.fontSize.xxl,
+        color: COLORS.textDark,
         textAlign: 'center',
     },
     playerCardCloseButton: {
@@ -350,14 +348,16 @@ export default styles = StyleSheet.create({
         zIndex: 3,
     },
     playerCardCloseText: {
-        color: 'black',
-        fontSize: 22,
-        fontWeight: 'bold',
+        fontFamily: TYPOGRAPHY.fontFamily.bangers,
+        color: COLORS.textDark,
+        fontSize: TYPOGRAPHY.fontSize.xxl,
+        top: -30,
+        right: -15,
         zIndex: 10,
-        padding: 5,
+        padding: 15,
     },
     playerCardCloseTextDark: {
-        color: '#F5F5F5',
+        color: COLORS.textLight,
     },
     nameAndLinkContainer: {
         flexDirection: 'row',
@@ -366,24 +366,28 @@ export default styles = StyleSheet.create({
     linkIconContainer: {
         marginLeft: -15,
         marginRight: 5,
+        marginBottom: 6,
         padding: 5,
         borderRadius: 40,
         borderColor: '#4c4949',
         borderWidth: 1,
-        backgroundColor: '#000000ba',
-        alignSelf: 'center', // pysyy rivillä oikein
+        backgroundColor: COLORS.overlayDark,
+        alignSelf: 'center',
+    },
+    linkIconContainerDark: {
+        backgroundColor: COLORS.overlayLight,
     },
     playerStatsContainer: {
-        marginTop: 3,
+        marginTop: 2,
         alignItems: 'left',
         marginLeft: 5,
         borderRadius: 2,
-        padding: 2,
+        padding: 0,
     },
     playerStat: {
-        fontSize: 10,
-        fontWeight: 'bold',
-        color: '#000000',
+        fontFamily: TYPOGRAPHY.fontFamily.montserratExtraBold,
+        fontSize: TYPOGRAPHY.fontSize.xxxs,
+        color: COLORS.textDark,
         textAlign: 'center',
     },
     progressBar: {
@@ -397,21 +401,24 @@ export default styles = StyleSheet.create({
         position: 'relative',
         borderWidth: 0.5,
         borderBottomWidth: 0,
-        marginBottom: -3,
+        marginBottom: 2,
         alignSelf: 'center',
+        textAlign: 'center',
+        justifyContent: 'center',
     },
     progressFill: {
         height: '100%',
-        backgroundColor: '#24c92f',
+        backgroundColor: COLORS.success,
         borderRadius: 2,
     },
     progressPercentageText: {
+        fontFamily: TYPOGRAPHY.fontFamily.montserratExtraBold,
         position: 'absolute',
         width: '100%',
         textAlign: 'center',
-        color: '#000000',
-        fontWeight: 'bold',
-        fontSize: 10,
+        color: COLORS.textDark,
+        fontSize: TYPOGRAPHY.fontSize.xxs,
+        lineHeight: TYPOGRAPHY.fontSize.xxs,
         padding: 1,
     },
     playerCardHeader: {
@@ -424,19 +431,11 @@ export default styles = StyleSheet.create({
         marginBottom: 5,
         zIndex: 10,
     },
-
-    playerCardNameText: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: '#000',
-    },
-
     playerCardInfoWrapper: {
         width: '100%',
         paddingHorizontal: 5,
         marginBottom: 10,
     },
-
     playerCardTopScoresWrapper: {
         width: '100%',
         paddingHorizontal: 5,
@@ -451,24 +450,9 @@ export default styles = StyleSheet.create({
         position: 'relative',
         marginTop: 5,
     },
-
-    playerCardNameTextCentered: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: '#000',
-        textAlign: 'center',
-    },
-    playerCardNameTextCenteredDark: {
-        color: '#F5F5F5',
-    },
-
     playerCardTextDark: {
-        color: '#F5F5F5',
-        textShadowColor: '#000',
-        textShadowOffset: { width: 1, height: 1 },
-        textShadowRadius: 2,
+        color: COLORS.textLight,
     },
-
     playerCardCloseButton: {
         position: 'absolute',
         right: 10,
@@ -476,12 +460,4 @@ export default styles = StyleSheet.create({
         backgroundColor: 'transparent',
         zIndex: 2,
     },
-
-    playerCardCloseText: {
-        fontSize: 22,
-        fontWeight: 'bold',
-        color: 'black',
-        padding: 5,
-    },
-
 });

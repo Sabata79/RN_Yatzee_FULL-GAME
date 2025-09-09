@@ -38,7 +38,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
   const [viewingPlayerAvatar, setViewingPlayerAvatar] = useState('');
   const [avatarSelected, setAvatarSelected] = useState(null);
   const [monthlyRanks, setMonthlyRanks] = useState(Array(12).fill(null));
-  const [weeklyRank, setWeeklyRank] = useState('--');
+  const [weeklyRank, setWeeklyRank] = useState('-');
   const [isAvatarModalVisible, setIsAvatarModalVisible] = useState(false);
   const [topScores, setTopScores] = useState([]);
   const [isModalModalVisible, setModalModalVisible] = useState(false);
@@ -46,7 +46,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
   const [avgPoints, setAvgPoints] = useState(0);
   const [avgDuration, setAvgDuration] = useState(0);
   const [storedLevel, setStoredLevel] = useState(null);
-  const [viewingAllTimeRank, setViewingAllTimeRank] = useState('--');
+  const [viewingAllTimeRank, setViewingAllTimeRank] = useState('-');
   const [weeklyWins, setWeeklyWins] = useState(0);
   const [modalHeight, setModalHeight] = useState(0);
 
@@ -198,7 +198,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     const playersPath = 'players';
     const monthlyCb = (snapshot) => {
       if (!snapshot.exists()) {
-        setMonthlyRanks(Array(12).fill('--'));
+        setMonthlyRanks(Array(12).fill('-'));
         return;
       }
       const playersData = snapshot.val();
@@ -222,14 +222,14 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
       });
 
       const monthRanks = monthlyScores.map((arr) => {
-        if (arr.length === 0) return '--';
+        if (arr.length === 0) return ' - ';
         arr.sort((a, b) => {
           if (b.points !== a.points) return b.points - a.points;
           if (a.duration !== b.duration) return a.duration - b.duration;
           return a.date - b.date;
         });
         const idx = arr.findIndex(s => s.playerId === idToUse);
-        return idx === -1 ? '--' : idx + 1;
+        return idx === -1 ? ' - ' : idx + 1;
       });
 
       setMonthlyRanks(monthRanks);
@@ -240,7 +240,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     // WEEKLY RANK (last week)
     const weeklyRankCb = (snapshot) => {
       if (!snapshot.exists()) {
-        setWeeklyRank('--');
+        setWeeklyRank(' - ');
         return;
       }
       const playersData = snapshot.val();
@@ -277,7 +277,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
       });
 
       const r = best.findIndex(s => s.playerId === idToUse) + 1;
-      setWeeklyRank(r === 0 ? '--' : r);
+      setWeeklyRank(r === 0 ? ' - ' : r);
     };
     dbOnValue(playersPath, weeklyRankCb);
     subs.push({ path: playersPath, cb: weeklyRankCb });
@@ -368,7 +368,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     // ALL-TIME RANK
     const allTimeCb = (snapshot) => {
       if (!snapshot.exists()) {
-        setViewingAllTimeRank('--');
+        setViewingAllTimeRank(' - ');
         return;
       }
       const playersData = snapshot.val();
@@ -381,7 +381,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
       });
       bestScores.sort((a, b) => b.maxScore - a.maxScore);
       const idx = bestScores.findIndex(item => item.playerId === idToUse);
-      setViewingAllTimeRank(idx >= 0 ? idx + 1 : '--');
+      setViewingAllTimeRank(idx >= 0 ? idx + 1 : ' - ');
     };
     dbOnValue(playersPath, allTimeCb);
     subs.push({ path: playersPath, cb: allTimeCb });
@@ -425,7 +425,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
   // Get trophy for specific month
   const getTrophyForMonth = (monthIndex) => {
     const rank = monthlyRanks[monthIndex];
-    if (rank === '--') return <Text style={styles.emptySlotText}>--</Text>;
+    if (rank === ' - ') return <Text style={styles.emptySlotText}> - </Text>;
     if (rank === 1) {
       return (
         <View style={styles.trophyContainer}>
@@ -453,8 +453,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     return (
       <Text
         style={[
-          styles.playerCardMonthText,
-          { fontWeight: 'bold', marginTop: '40%', fontSize: 18, backgroundColor: '#00000000' },
+          styles.playerCardMonthText,,
         ]}
       >
         {rank}.
@@ -491,11 +490,11 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
             <View style={styles.playerCardHeaderCentered}>
               <View style={styles.nameAndLinkContainer}>
                 {playerIsLinked && (
-                  <View style={styles.linkIconContainer}>
-                    <FontAwesome5 name="link" size={10} color="gold" />
+                  <View style={[styles.linkIconContainer, isDarkBg && styles.linkIconContainerDark]}>
+                    <FontAwesome5 name="link" size={18} color='#f1c40f' />
                   </View>
                 )}
-                <Text style={[styles.playerCardNameTextCentered, isDarkBg && styles.playerCardNameTextCenteredDark]}>{nameToUse}</Text>
+                <Text style={[styles.playerCardName, isDarkBg && styles.playerCardNameDark]}>{nameToUse}</Text>
               </View>
               <Pressable
                 style={styles.playerCardCloseButton}
@@ -527,7 +526,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
                 )}
               </View>
 
-              <View style={[styles.playerTextContainer, isDarkBg && styles.playerTextContainerDark]}>
+              <View style={[styles.playerTextContainer]}>
                 <Text style={[styles.playerStat, isDarkBg && styles.playerCardTextDark]}>Level: {levelInfo.level}</Text>
                 <View style={styles.progressBar}>
                   <View style={[styles.progressFill, { width: `${levelInfo.progress * 100}%` }]} />

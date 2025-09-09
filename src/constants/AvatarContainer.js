@@ -159,7 +159,6 @@ const styles = StyleSheet.create({
   },
   avatarSelectText: {
     fontSize: 18,
-    fontWeight: 'bold',
     color: '#fff',
     textAlign: 'center',
   },
@@ -178,7 +177,6 @@ const styles = StyleSheet.create({
   closeAvatarModalText: {
     color: '#fff',
     fontSize: 22,
-    fontWeight: 'bold',
   },
   tabsContainer: {
     flexDirection: 'row',
@@ -214,7 +212,6 @@ const styles = StyleSheet.create({
   },
   activeTabText: {
     color: '#fff',
-    fontWeight: 'bold',
   },
   avatarSelectionWrapper: {
     flexDirection: 'row',
