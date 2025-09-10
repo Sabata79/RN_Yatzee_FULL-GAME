@@ -17,6 +17,18 @@ const gameRulesStyles = StyleSheet.create({
     padding: 20,
     marginTop: -20,
   },
+  TabViewContainer: {
+    flex: 1,
+    backgroundColor: COLORS.overlayDark,
+  },
+  TabBarStyle: {
+    backgroundColor: COLORS.overlayDark,
+    marginTop: 0,
+    height: 100,
+    textAlign: 'center',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   title: {
     fontSize: TYPOGRAPHY.fontSize.xl,
     color: COLORS.textLight,

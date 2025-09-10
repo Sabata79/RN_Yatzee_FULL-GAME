@@ -66,7 +66,8 @@
     "react-native-uuid": "^2.0.3",
     "react-native-vector-icons": "^10.2.0",
     "react-timer-hook": "^3.0.8",
-    "uuid": "^11.0.5"
+    "uuid": "^11.0.5",
+    "@react-native-community/slider": "4.5.6"
   },
   "devDependencies": {
     "@babel/core": "^7.26.0",

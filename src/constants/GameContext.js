@@ -46,6 +46,8 @@ export const GameProvider = ({ children }) => {
   const [nextTokenTime, setNextTokenTime] = useState(null);
   const [timeToNextToken, setTimeToNextToken] = useState('');
 
+  console.log('GameContext rendered', playerName);
+
   const isBetterScore = (newScore, oldScore) => {
     if (Number(newScore.points) > Number(oldScore.points)) return true;
     if (Number(newScore.points) < Number(oldScore.points)) return false;

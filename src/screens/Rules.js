@@ -18,8 +18,11 @@ import { TabView, SceneMap, TabBar } from 'react-native-tab-view';
 import GameRules from '../screens/GameRules';
 import AccountLinking from '../screens/AccountLinking';
 import InterfaceGuide from './InterfaceGuide';
+import AboutMe from '../screens/AboutMe';
+import gameRulesStyles from '../styles/GameRulesStyles';
 
 import COLORS from '../constants/colors';
+import TYPOGRAPHY from '../constants/typography';
 
 const initialLayout = { width: Dimensions.get('window').width };
 
@@ -30,12 +33,14 @@ export default function RulesScreen() {
     { key: 'rules', title: '🎲 Rules' },
     { key: 'linking', title: '🔗 Linking' },
     { key: 'interface', title: '🧭 Guide' },
+    { key: 'about', title: '⚙️ About' },
   ]);
 
   const renderScene = SceneMap({
     rules: GameRules,
     linking: AccountLinking,
     interface: InterfaceGuide,
+    about: AboutMe,
   });
 
   return (
@@ -44,19 +49,20 @@ export default function RulesScreen() {
       style={{ flex: 1 }}
       resizeMode="cover"
     >
-      <View style={{ flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.6)' }}>
+      <View style={gameRulesStyles.TabViewContainer}>
         <TabView
           navigationState={{ index, routes }}
           renderScene={renderScene}
           onIndexChange={setIndex}
           initialLayout={initialLayout}
-          swipeEnabled={false}
+          swipeEnabled={true}
+          commonOptions={{ labelStyle: {fontSize: 14, fontFamily: TYPOGRAPHY.fontFamily.montserratRegular } }}
           renderTabBar={props => (
             <TabBar
               {...props}
               indicatorStyle={{ backgroundColor: COLORS.accent }}
-              style={{ backgroundColor: COLORS.overlayDark, marginTop: -10 }}
-              labelStyle={{ color: 'white', fontSize: 14 }}
+              style={gameRulesStyles.TabBarStyle}
+              labelStyle={{ fontSize: 25 }}
             />
           )}
         />

@@ -17,6 +17,7 @@ import { useState } from 'react';
 import { View, Text, Pressable, Modal, Linking, Dimensions } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { FontAwesome5 } from '@expo/vector-icons';
+import Feather from '@expo/vector-icons/Feather';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -28,7 +29,7 @@ import LandingPage from './src/screens/LandingPage';
 import Home from './src/screens/Home';
 import Gameboard from './src/screens/Gameboard';
 import Scoreboard from './src/screens/Scoreboard';
-import About from './src/screens/AboutMe';
+import SettingScreen from './src/screens/SettingScreen';
 import Rules from './src/screens/Rules';
 
 import updateModalStyles from './src/styles/UpdateModalStyles';
@@ -157,10 +158,10 @@ function AppShell() {
                 </IconWrap>
               );
             }
-            if (route.name === 'About Me') {
+            if (route.name === 'Settings') {
               return (
                 <IconWrap>
-                  <FontAwesome5 name="user" {...common} />
+                  <Feather name="settings" {...common} />
                 </IconWrap>
               );
             }
@@ -214,9 +215,9 @@ function AppShell() {
           component={Rules}
         />
         <Tab.Screen
-          name="About Me"
-          options={{ tabBarLabel: 'About' }}
-          component={About}
+          name="Settings"
+          options={{ tabBarLabel: 'Settings' }}
+          component={SettingScreen}
         />
       </Tab.Navigator>
     );
@@ -225,7 +226,6 @@ function AppShell() {
   return (
     // Main app view, now wrapped in SafeAreaView for edge-to-edge support
     <SafeAreaView style={{ flex: 1, backgroundColor: '#000' }} edges={['top', 'left', 'right']}>
-      {/* EnergyTokenSystem is always mounted for global token logic */}
   <EnergyTokenSystem hidden />
 
       {/* Update modal */}
