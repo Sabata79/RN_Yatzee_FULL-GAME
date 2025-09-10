@@ -1,3 +1,4 @@
+
 // ...existing code...
  /**
  * SettingScreenStyles.js - Styles for the SettingScreen view
@@ -137,6 +138,103 @@ const settingScreenStyles = StyleSheet.create({
         backgroundColor: 'rgba(255,255,255,0.6)',
         borderRadius: 6,
         zIndex: 0,
+    },
+    wipeButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#c62828',
+        borderColor: '#fff',
+        borderWidth: 2,
+        borderRadius: 6,
+        paddingVertical: 7,
+        paddingHorizontal: 18,
+        minWidth: 160,
+        minHeight: 36,
+        marginTop: 0,
+    },
+    wipeButtonPressed: {
+        backgroundColor: '#b71c1c',
+        transform: [{ translateY: 2 }, { translateX: 2 }],
+    },
+    wipeButtonText: {
+        color: '#fff',
+        fontSize: TYPOGRAPHY.fontSize.sm,
+        fontFamily: TYPOGRAPHY.fontFamily.montserratBold,
+        letterSpacing: 0.5,
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.6)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    modalContent: {
+        backgroundColor: '#fff',
+        borderRadius: 10,
+        padding: 24,
+        width: 320,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.18,
+        shadowRadius: 8,
+        elevation: 5,
+    },
+    modalTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: '#c62828',
+        marginBottom: 10,
+        textAlign: 'center',
+    },
+    modalWarning: {
+        color: '#c62828',
+        fontSize: 15,
+        marginBottom: 16,
+        textAlign: 'center',
+    },
+    modalLabel: {
+        fontSize: 15,
+        color: '#333',
+        marginBottom: 6,
+    },
+    modalInput: {
+        width: 220,
+        borderWidth: 1,
+        borderColor: '#ccc',
+        borderRadius: 5,
+        padding: 10,
+        fontSize: 16,
+        marginBottom: 6,
+        color: '#222',
+        backgroundColor: '#f9f9f9',
+    },
+    modalError: {
+        color: '#c62828',
+        fontSize: 14,
+        marginBottom: 2,
+    },
+    modalCancelBtn: {
+        backgroundColor: '#aaa',
+        borderRadius: 5,
+        paddingVertical: 8,
+        paddingHorizontal: 18,
+        marginRight: 10,
+    },
+    modalCancelText: {
+        color: '#fff',
+        fontSize: 16,
+    },
+    modalOkBtn: {
+        backgroundColor: '#c62828',
+        borderRadius: 5,
+        paddingVertical: 8,
+        paddingHorizontal: 18,
+    },
+    modalOkText: {
+        color: '#fff',
+        fontSize: 16,
     },
 });
 
