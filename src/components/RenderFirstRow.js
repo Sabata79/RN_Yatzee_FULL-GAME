@@ -15,7 +15,8 @@ import firstRowStyles from '../styles/FirstRowStyles';
 import COLORS from '../constants/colors';
 
 // Renders the top row of the game UI, including timer and category labels
-const RenderFirstRow = () => {
+export default function RenderFirstRow(props) {
+  console.log('[RenderFirstRow] props', props);
   // Game state and timer hooks
   const { gameStarted, gameEnded, setElapsedTimeContext, isGameSaved, setIsGameSaved } = useGame();
   const { totalSeconds, start, reset, pause } = useStopwatch({
@@ -116,4 +117,4 @@ const RenderFirstRow = () => {
   );
 };
 
-export default RenderFirstRow;
+ // ...

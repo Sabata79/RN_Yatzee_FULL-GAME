@@ -31,9 +31,11 @@ const DiceAnimation = ({ diceName, isSelected, onSelect, animationValue, color, 
         outputRange: [extraOffset, -CONTAINER_SIZE * (totalFrames - 1) + extraOffset],
     });
 
+    
     // Start the rolling animation if isRolling is true
     useEffect(() => {
         if (isRolling) {
+            console.log('[DiceAnimation] Render file: isRolling after if:', isRolling);
             const loopAnimation = Animated.loop(
                 Animated.timing(animationValue, {
                     toValue: totalFrames - 1,

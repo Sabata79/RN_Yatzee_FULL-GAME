@@ -46,6 +46,7 @@ const Tab = createBottomTabNavigator();
 
 // Main shell component containing navigation and modals
 function AppShell() {
+  console.log('[APP] AppShell render');
   const [isUserRecognized, setIsUserRecognized] = useState(false);
   const [name, setName] = useState('');
   const [playerId, setPlayerId] = useState('');
@@ -80,6 +81,7 @@ function AppShell() {
 
   // Bottom tab navigator for main app screens
   const TabNavigator = () => {
+    console.log('[APP] TabNavigator render');
     const baseHeight = isSmallScreen ? 56 : isBigScreen ? 84 : 68;
     const bottomPad = insets.bottom > 8 ? insets.bottom : 0;
 
