@@ -4,19 +4,27 @@ import * as SecureStore from 'expo-secure-store';
 const SFX_KEY = 'sfx_settings';
 const MUSIC_KEY = 'music_settings';
 
+
 const SFX_PATH = require('../../assets/sounds/dice-sound.mp3');
-const MUSIC_PATH = require('../../assets/sounds/relaxing-guitar-loop.mp3');
+const MUSIC_PATH = require('../../assets/sounds/ambientBG.mp3');
+const SELECT_PATH = require('../../assets/sounds/select.mp3');
+const DESELECT_PATH = require('../../assets/sounds/deselect.mp3');
+
 
 
 class AudioManager {
   sfxSound = null;
+  selectSound = null;
+  deselectSound = null;
   musicSound = null;
   sfxVolume = 0.7;
-  musicVolume = 0.5;
+  musicVolume = 0.05;
   sfxMuted = false;
   musicMuted = false;
   musicLoaded = false;
   sfxLoaded = false;
+  selectLoaded = false;
+  deselectLoaded = false;
 
 
   // --- INIT & SETTINGS ---
@@ -37,16 +45,63 @@ class AudioManager {
     } catch (e) {
       // Defaults if error
     }
-    // Lataa SFX-ääni valmiiksi muistiin
+    // Lataa SFX-äänet valmiiksi muistiin
     if (!this.sfxLoaded) {
       try {
         const { sound } = await Audio.Sound.createAsync(SFX_PATH, { volume: this.sfxVolume });
         this.sfxSound = sound;
         this.sfxLoaded = true;
       } catch (e) {
-        // preload fail, yritetään myöhemmin uudestaan
         this.sfxLoaded = false;
       }
+    }
+    if (!this.selectLoaded) {
+      try {
+        const { sound } = await Audio.Sound.createAsync(SELECT_PATH, { volume: this.sfxVolume });
+        this.selectSound = sound;
+        this.selectLoaded = true;
+      } catch (e) {
+        this.selectLoaded = false;
+      }
+    }
+    if (!this.deselectLoaded) {
+      try {
+        const { sound } = await Audio.Sound.createAsync(DESELECT_PATH, { volume: this.sfxVolume });
+        this.deselectSound = sound;
+        this.deselectLoaded = true;
+      } catch (e) {
+        this.deselectLoaded = false;
+      }
+    }
+  }
+  async playSelect() {
+    if (this.sfxMuted) return;
+    try {
+      if (!this.selectSound) {
+        const { sound } = await Audio.Sound.createAsync(SELECT_PATH, { volume: this.sfxVolume });
+        this.selectSound = sound;
+        this.selectLoaded = true;
+      }
+      await this.selectSound.setStatusAsync({ volume: this.sfxVolume });
+      await this.selectSound.replayAsync();
+    } catch (e) {
+      this.selectSound = null;
+      this.selectLoaded = false;
+    }
+  }
+  async playDeselect() {
+    if (this.sfxMuted) return;
+    try {
+      if (!this.deselectSound) {
+        const { sound } = await Audio.Sound.createAsync(DESELECT_PATH, { volume: this.sfxVolume });
+        this.deselectSound = sound;
+        this.deselectLoaded = true;
+      }
+      await this.deselectSound.setStatusAsync({ volume: this.sfxVolume });
+      await this.deselectSound.replayAsync();
+    } catch (e) {
+      this.deselectSound = null;
+      this.deselectLoaded = false;
     }
   }
 
@@ -115,6 +170,7 @@ class AudioManager {
     this.musicVolume = volume;
     if (this.musicSound) this.musicSound.setStatusAsync({ volume });
     this.saveMusicSettings();
+    // Älä toista musiikkia tässä, vain volume päivitys!
   }
   setMusicMuted(muted) {
     this.musicMuted = muted;

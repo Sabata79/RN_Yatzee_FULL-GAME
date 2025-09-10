@@ -19,22 +19,39 @@ const SettingScreen = () => {
     const [musicMuted, setMusicMuted] = useState(false);
     const [sfxVolume, setSfxVolume] = useState(0.7);
     const [sfxMuted, setSfxMuted] = useState(false);
+    const [isLoaded, setIsLoaded] = useState(false);
 
     // Load audio settings from AudioManager on mount
     useEffect(() => {
+        let mounted = true;
         (async () => {
             await audioManager.loadSettings();
-            setMusicVolume(audioManager.musicVolume);
-            setMusicMuted(audioManager.musicMuted);
-            setSfxVolume(audioManager.sfxVolume);
-            setSfxMuted(audioManager.sfxMuted);
+            if (mounted) {
+                console.log('[SFX] useEffect: asetusten lataus, arvo:', audioManager.sfxVolume);
+                setMusicVolume(audioManager.musicVolume);
+                setMusicMuted(audioManager.musicMuted);
+                setSfxVolume(audioManager.sfxVolume);
+                setSfxMuted(audioManager.sfxMuted);
+                setIsLoaded(true);
+            }
         })();
+        return () => { mounted = false; };
     }, []);
+
+    // Estä sliderin arvojen päivitys AudioManagerista päin kun isLoaded=true
+    // (ei tarvita enää, koska sliderin arvoa ei päivitetä missään muualla kuin käyttäjän toimesta)
 
     // Handlers to update AudioManager and persist settings
     const handleMusicVolume = (value) => {
+        console.log('[MUSIC] handleMusicVolume: käyttäjä säätää, arvo:', value, 'isLoaded:', isLoaded);
         setMusicVolume(value);
         audioManager.setMusicVolume(value);
+    };
+
+    // Toista musiikki preview vain kun käyttäjä lopettaa sliderin säädön
+    const handleMusicSlidingComplete = (value) => {
+        console.log('[MUSIC] handleMusicSlidingComplete: käyttäjä lopetti säädön, arvo:', value, 'isLoaded:', isLoaded);
+        // Ei preview-soittoa, mutta tähän voisi lisätä esim. pienen preview-soiton jos halutaan
     };
     const handleMusicMuted = (muted) => {
         setMusicMuted(muted);
@@ -44,8 +61,17 @@ const SettingScreen = () => {
         }
     };
     const handleSfxVolume = (value) => {
+        console.log('[SFX] handleSfxVolume: käyttäjä säätää, arvo:', value, 'isLoaded:', isLoaded);
         setSfxVolume(value);
         audioManager.setSfxVolume(value);
+    };
+
+    // Toista SFX-ääni vain kun käyttäjä lopettaa sliderin säädön
+    const handleSfxSlidingComplete = (value) => {
+        console.log('[SFX] handleSfxSlidingComplete: käyttäjä lopetti säädön, arvo:', value, 'isLoaded:', isLoaded);
+        if (!sfxMuted && isLoaded) {
+            audioManager.playSfx();
+        }
     };
     const handleSfxMuted = (muted) => {
         setSfxMuted(muted);
@@ -87,16 +113,33 @@ const SettingScreen = () => {
                             </TouchableOpacity>
                             <Text style={settingScreenStyles.rowLabel}>Music</Text>
                         </View>
+                        {/* Music step indicators as numbers (10 steps) */}
+                        <View style={settingScreenStyles.stepIndicatorRow}>
+                            {Array.from({length: 10}, (_, i) => i).map((i) => {
+                                const v = i * 0.1;
+                                const isActive = Math.abs(musicVolume - v) < 0.05;
+                                return (
+                                    <Text
+                                        key={i}
+                                        style={[settingScreenStyles.stepNumber, isActive && settingScreenStyles.stepNumberActive]}
+                                    >
+                                        {i+1}
+                                    </Text>
+                                );
+                            })}
+                        </View>
                         <Slider
                             style={settingScreenStyles.slider}
                             minimumValue={0}
-                            maximumValue={1}
+                            maximumValue={0.9}
+                            step={0.1}
                             value={musicVolume}
                             onValueChange={handleMusicVolume}
+                            onSlidingComplete={handleMusicSlidingComplete}
                             minimumTrackTintColor="#FFD600"
                             maximumTrackTintColor="#888"
                             thumbTintColor="#FFD600"
-                            disabled={musicMuted}
+                            disabled={musicMuted || !isLoaded}
                         />
 
                         {/* SFX row */}
@@ -106,16 +149,33 @@ const SettingScreen = () => {
                             </TouchableOpacity>
                             <Text style={settingScreenStyles.rowLabel}>SFX</Text>
                         </View>
+                        {/* SFX step indicators as numbers */}
+                        <View style={settingScreenStyles.stepIndicatorRow}>
+                            {Array.from({length: 5}, (_, i) => i).map((i) => {
+                                const v = i * 0.25;
+                                const isActive = Math.abs(sfxVolume - v) < 0.13;
+                                return (
+                                    <Text
+                                        key={i}
+                                        style={[settingScreenStyles.stepNumber, isActive && settingScreenStyles.stepNumberActive]}
+                                    >
+                                        {i+1}
+                                    </Text>
+                                );
+                            })}
+                        </View>
                         <Slider
                             style={settingScreenStyles.slider}
                             minimumValue={0}
                             maximumValue={1}
+                            step={0.25}
                             value={sfxVolume}
                             onValueChange={handleSfxVolume}
+                            onSlidingComplete={handleSfxSlidingComplete}
                             minimumTrackTintColor="#FFD600"
                             maximumTrackTintColor="#888"
                             thumbTintColor="#FFD600"
-                            disabled={sfxMuted}
+                            disabled={sfxMuted || !isLoaded}
                         />
                         <View style={settingScreenStyles.linkButtonContainer}>
                             <View style={settingScreenStyles.linkShadowLayer} />

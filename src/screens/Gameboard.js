@@ -435,7 +435,13 @@ export default function Gameboard({ route, navigation }) {
 
         const handlePressField = (index) => {
             if (nbrOfThrowsLeft < NBR_OF_THROWS && nbrOfThrowsLeft !== NBR_OF_THROWS) {
-                setSelectedField(index === selectedField ? null : index);
+                if (index === selectedField) {
+                    setSelectedField(null);
+                    audioManager.playDeselect();
+                } else {
+                    setSelectedField(index);
+                    audioManager.playSelect();
+                }
             } else {
                 setStatus('Cannot select field at this time');
             }

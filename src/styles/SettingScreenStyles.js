@@ -1,4 +1,3 @@
-
 // ...existing code...
  /**
  * SettingScreenStyles.js - Styles for the SettingScreen view
@@ -235,6 +234,43 @@ const settingScreenStyles = StyleSheet.create({
     modalOkText: {
         color: '#fff',
         fontSize: 16,
+    },
+    stepIndicatorRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 2,
+        marginTop: 8,
+        marginHorizontal: 8,
+    },
+    stepDot: {
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+        backgroundColor: '#888',
+        opacity: 0.5,
+    },
+    stepDotActive: {
+        backgroundColor: '#FFD600',
+        opacity: 1,
+        width: 10,
+        height: 10,
+        borderRadius: 5,
+    },
+    stepNumber: {
+        fontSize: 12,
+        color: '#888',
+        opacity: 0.7,
+        fontWeight: 'bold',
+        marginHorizontal: 1,
+    },
+    stepNumberActive: {
+        color: '#FFD600',
+        opacity: 1,
+        fontSize: 14,
+        textShadowColor: '#222',
+        textShadowOffset: { width: 0, height: 1 },
+        textShadowRadius: 2,
     },
 });
 

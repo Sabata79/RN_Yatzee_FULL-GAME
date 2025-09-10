@@ -64,8 +64,8 @@ const styles = StyleSheet.create({
         backgroundColor: COLORS.success,
     },
     diceBorder: {
-        width: '94%',
-        height: isSmallScreen ? 65 : 75,
+        width: '80%',
+        height: isSmallScreen ? 60 : 70,
         borderWidth: 2,
         borderColor: '#ccc9c9',
         borderRadius: 4,
@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         borderWidth: 1,
         borderColor: COLORS.white,
-        borderRadius: 2,
+        borderRadius: 10,
         backgroundColor: COLORS.backgroundGray,
     },
     selectScorePressed: {
@@ -117,7 +117,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         borderWidth: 2,
         borderColor: COLORS.error,
-        borderRadius: 4,
+        borderRadius: 10,
         backgroundColor: COLORS.accentDark,
     },
     lockedField: {
@@ -130,9 +130,9 @@ const styles = StyleSheet.create({
         marginTop: SPACING.xs,
         fontSize: TYPOGRAPHY.fontSize.lg,
         textAlign: 'center',
-        borderWidth: 3,
+        borderWidth: 2,
         borderColor: 'green',
-        borderRadius: 4,
+        borderRadius: 10,
         backgroundColor: COLORS.success,
     },
     item: {
@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
         padding: SPACING.xs,
         marginTop: -2,
         borderColor: COLORS.backgroundDark,
-        borderRadius: 4,
+        borderRadius: 5,
         backgroundColor: COLORS.backgroundDark,
     },
     scoreText: {
@@ -185,7 +185,6 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         zIndex: 1000,
     },
-
     // Icons
     icon: {
         justifyContent: 'center',

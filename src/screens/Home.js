@@ -24,10 +24,10 @@ import { dbGet, dbSet } from '../services/Firebase';
 import uuid from 'react-native-uuid';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
 import { useGame } from '../constants/GameContext';
-// import Linked from "../services/Linked";
 import Recover from "../services/Recover";
 import PlayerCard from "../components/PlayerCard";
 import HomeScreenButton from "../components/HomeScreenButton";
+import audioManager from "../services/AudioManager";
 
 // Home screen component: handles player login, linking, recovery, and welcome video
 export default function Home({ setPlayerId }) {
@@ -178,7 +178,7 @@ export default function Home({ setPlayerId }) {
     }
   };
 
-  const handlePlay = () => navigation.navigate('Gameboard');
+  const handlePlay = () => { audioManager.playSelect(); navigation.navigate('Gameboard');};
   const handleScore = () => navigation.navigate('Scoreboard');
   const handleChangeName = () => { setLocalName(''); setUserRecognized(false); };
   const handleViewPlayerCard = () => { setSelectedPlayer({ playerId, playerName }); setModalVisible(true); };

@@ -57,7 +57,7 @@ const DiceAnimation = ({ diceName, isSelected, onSelect, animationValue, color, 
             <TouchableOpacity
                 onPress={onSelect}
                 activeOpacity={0.2}
-                hitSlop={{ top: 30, bottom: 30, left: 30, right: 30 }}
+                hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
             >
                 {isRolling ? (
                     <View style={styles.spriteContainer}>
@@ -94,23 +94,23 @@ const DiceAnimation = ({ diceName, isSelected, onSelect, animationValue, color, 
 
 const styles = StyleSheet.create({
     container: {
-        width: 60,
-        height: 60,
+        width: 50,
+        height: 50,
         margin: 5,
         zIndex: 2,
     },
     spriteContainer: {
-        width: 60,
-        height: 60,
+        width: 50,
+        height: 50,
         overflow: 'hidden',
     },
     overlay: {
         position: 'absolute',
-        width: 60,
-        height: 60,
+        width: 50,
+        height: 50,
         backgroundColor: '#00ff112c',
         borderWidth: 2,
-        borderRadius: 7,
+        borderRadius: 5,
     },
 });
 
