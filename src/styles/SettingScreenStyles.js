@@ -1,4 +1,5 @@
-/**
+// ...existing code...
+ /**
  * SettingScreenStyles.js - Styles for the SettingScreen view
  *
  * Jäljittelee GameRulesStyles.js:n tyyliä, mutta tarkoitettu asetussivulle.
@@ -89,6 +90,53 @@ const settingScreenStyles = StyleSheet.create({
         width: '100%',
         height: 32,
         marginBottom: 18,
+    },
+
+    linkButtonContainer: {
+        alignItems: 'center',
+        marginTop: 10,
+        marginBottom: 4,
+    },
+    linkButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: COLORS.accent,
+        borderColor: COLORS.accentLight,
+        borderWidth: 2,
+        borderRadius: 6,
+        paddingVertical: 7,
+        paddingHorizontal: 18,
+        minWidth: 160,
+        minHeight: 36,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.12,
+        shadowRadius: 3,
+        elevation: 2,
+    },
+    linkButtonPressed: {
+        backgroundColor: COLORS.accentLight,
+        transform: [{ translateY: 4 }, { translateX: 4 }],
+    },
+    linkButtonDisabled: {
+        opacity: 0.5,
+    },
+    linkButtonText: {
+        color: COLORS.textLight,
+        fontSize: TYPOGRAPHY.fontSize.sm,
+        fontFamily: TYPOGRAPHY.fontFamily.montserratBold,
+        letterSpacing: 0.5,
+    },
+    linkShadowLayer: {
+        position: 'absolute',
+        top: 4,
+        left: 34,
+        width: '78%',
+        height: 43,
+        backgroundColor: 'rgba(255,255,255,0.6)',
+        borderRadius: 6,
+        zIndex: 0,
     },
 });
 

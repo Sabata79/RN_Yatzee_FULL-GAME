@@ -24,7 +24,7 @@ import { dbGet, dbSet } from '../services/Firebase';
 import uuid from 'react-native-uuid';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
 import { useGame } from '../constants/GameContext';
-import Linked from "../services/Linked";
+// import Linked from "../services/Linked";
 import Recover from "../services/Recover";
 import PlayerCard from "../components/PlayerCard";
 import HomeScreenButton from "../components/HomeScreenButton";
@@ -286,18 +286,7 @@ export default function Home({ setPlayerId }) {
               icon={<FontAwesome5 name="user-edit" size={30} color="black" style={{ marginLeft: 8 }} />}
               onPress={handleChangeName}
             />
-            {!isLinked && (
-              <HomeScreenButton
-                label="Link your account"
-                icon={<FontAwesome5 name="link" size={30} color="black" style={{ marginLeft: 8 }} />}
-                onPress={handleLinkAccount}
-              />
-            )}
-            <Linked
-              isVisible={isLinkModalVisible}
-              onClose={() => setIsLinkModalVisible(false)}
-              onLinkAccount={handleLinkAccount}
-            />
+            {/* Link your account button and modal moved to SettingScreen */}
           </View>
         )}
         {isModalVisible && selectedPlayer && (

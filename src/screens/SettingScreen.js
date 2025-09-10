@@ -1,8 +1,10 @@
 
 
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ImageBackground } from 'react-native';
-import { Ionicons, MaterialCommunityIcons, Feather } from '@expo/vector-icons';
+import { View, Text, Pressable, ImageBackground, TouchableOpacity } from 'react-native';
+import { Ionicons, MaterialCommunityIcons, Feather, FontAwesome5 } from '@expo/vector-icons';
+import Linked from '../services/Linked';
+import HomeScreenButton from '../components/HomeScreenButton';
 import Slider from '@react-native-community/slider';
 import settingScreenStyles from '../styles/SettingScreenStyles';
 import { useGame } from '../constants/GameContext';
@@ -12,7 +14,8 @@ const SettingScreen = () => {
     const [musicMuted, setMusicMuted] = useState(false);
     const [sfxVolume, setSfxVolume] = useState(0.7);
     const [sfxMuted, setSfxMuted] = useState(false);
-    const { playerId, playerName } = useGame();
+    const [isLinkModalVisible, setIsLinkModalVisible] = useState(false);
+    const { playerId, playerName, isLinked } = useGame();
 
         return (
             <View style={settingScreenStyles.root}>
@@ -32,6 +35,7 @@ const SettingScreen = () => {
                                 <Feather name="edit-2" size={18} color="#FFD600" style={settingScreenStyles.editIcon} />
                             </TouchableOpacity>
                         </View>
+
                         <Text style={settingScreenStyles.playerId}>ID: {playerId}</Text>
 
                         {/* Music row */}
@@ -73,7 +77,27 @@ const SettingScreen = () => {
                             thumbTintColor="#FFD600"
                             disabled={sfxMuted}
                         />
+                        <View style={settingScreenStyles.linkButtonContainer}>
+                            <View style={settingScreenStyles.linkShadowLayer} />
+                            <Pressable
+                                style={({ pressed }) => [
+                                    settingScreenStyles.linkButton,
+                                    isLinked && settingScreenStyles.linkButtonDisabled,
+                                    pressed && settingScreenStyles.linkButtonPressed,
+                                ]}
+                                onPress={() => setIsLinkModalVisible(true)}
+                                disabled={isLinked}
+                            >
+                                <FontAwesome5 name="link" size={18} color="#FFD600" style={{ marginRight: 8 }} />
+                                <Text style={settingScreenStyles.linkButtonText}>Link your account</Text>
+                            </Pressable>
+                        </View>
+                        <Linked
+                            isVisible={isLinkModalVisible}
+                            onClose={() => setIsLinkModalVisible(false)}
+                        />
                     </View>
+
                 </ImageBackground>
             </View>
         );
