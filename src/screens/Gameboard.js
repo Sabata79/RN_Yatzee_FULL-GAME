@@ -12,7 +12,7 @@
  * @author Sabata79
  * @since 2025-09-06
  */
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { FlatList, Text, View, Pressable, ImageBackground, Animated, Dimensions } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import styles from '../styles/styles';
@@ -798,13 +798,17 @@ export default function Gameboard({ route, navigation }) {
     // renderDices juureen
     const renderDices = () => {
         const diceRow = [];
+        const onSelectHandlers = useMemo(() =>
+            Array.from({ length: NBR_OF_DICES }, (_, i) => () => selectDice(i)),
+            [selectDice]
+        );
         for (let i = 0; i < NBR_OF_DICES; i++) {
             diceRow.push(
                 <DiceAnimation
                     key={i}
                     diceName={dicefaces[board[i] - 1]?.display}
                     isSelected={selectedDices[i]}
-                    onSelect={useCallback(() => selectDice(i), [selectDice, i])}
+                    onSelect={onSelectHandlers[i]}
                     animationValue={diceAnimations[i]}
                     color={getDiceColor(i)}
                     isRolling={isRolling && !selectedDices[i]}
