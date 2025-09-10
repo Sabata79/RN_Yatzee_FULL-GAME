@@ -1,6 +1,6 @@
 
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 import audioManager from '../services/AudioManager';
 import { View, Text, Pressable, ImageBackground, TouchableOpacity, Modal, TextInput, Alert, ActivityIndicator } from 'react-native';
@@ -20,6 +20,7 @@ const SettingScreen = () => {
     const [sfxVolume, setSfxVolume] = useState(0.7);
     const [sfxMuted, setSfxMuted] = useState(false);
     const [isLoaded, setIsLoaded] = useState(false);
+    const isInitialLoad = useRef(true);
 
     // Load audio settings from AudioManager on mount
     useEffect(() => {
@@ -27,12 +28,12 @@ const SettingScreen = () => {
         (async () => {
             await audioManager.loadSettings();
             if (mounted) {
-                console.log('[SFX] useEffect: asetusten lataus, arvo:', audioManager.sfxVolume);
                 setMusicVolume(audioManager.musicVolume);
                 setMusicMuted(audioManager.musicMuted);
                 setSfxVolume(audioManager.sfxVolume);
                 setSfxMuted(audioManager.sfxMuted);
                 setIsLoaded(true);
+                isInitialLoad.current = false;
             }
         })();
         return () => { mounted = false; };
@@ -43,9 +44,12 @@ const SettingScreen = () => {
 
     // Handlers to update AudioManager and persist settings
     const handleMusicVolume = (value) => {
-        console.log('[MUSIC] handleMusicVolume: käyttäjä säätää, arvo:', value, 'isLoaded:', isLoaded);
-        setMusicVolume(value);
-        audioManager.setMusicVolume(value);
+        if (isInitialLoad.current) return;
+        // Pyöristetään stepin (0.1) tarkkuuteen
+        const rounded = Math.round(value * 10) / 10;
+        console.log('[MUSIC] handleMusicVolume: käyttäjä säätää, arvo:', rounded, 'isLoaded:', isLoaded);
+        setMusicVolume(rounded);
+        audioManager.setMusicVolume(rounded);
     };
 
     // Toista musiikki preview vain kun käyttäjä lopettaa sliderin säädön
@@ -61,6 +65,7 @@ const SettingScreen = () => {
         }
     };
     const handleSfxVolume = (value) => {
+        if (isInitialLoad.current) return;
         console.log('[SFX] handleSfxVolume: käyttäjä säätää, arvo:', value, 'isLoaded:', isLoaded);
         setSfxVolume(value);
         audioManager.setSfxVolume(value);

@@ -39,7 +39,8 @@ class AudioManager {
       }
       if (music) {
         const { volume, muted } = JSON.parse(music);
-        this.musicVolume = volume;
+        // Pyöristetään stepin (0.1) tarkkuuteen
+        this.musicVolume = Math.round(volume * 10) / 10;
         this.musicMuted = muted;
       }
     } catch (e) {
@@ -167,8 +168,10 @@ class AudioManager {
     }
   }
   setMusicVolume(volume) {
-    this.musicVolume = volume;
-    if (this.musicSound) this.musicSound.setStatusAsync({ volume });
+    // Pyöristetään stepin (0.1) tarkkuuteen
+    const rounded = Math.round(volume * 10) / 10;
+    this.musicVolume = rounded;
+    if (this.musicSound) this.musicSound.setStatusAsync({ volume: rounded });
     this.saveMusicSettings();
     // Älä toista musiikkia tässä, vain volume päivitys!
   }
