@@ -19,6 +19,7 @@ import styles from '../styles/styles';
 import gameboardstyles from '../styles/GameboardScreenStyles';
 import { NBR_OF_THROWS, NBR_OF_DICES, MAX_SPOTS, BONUS_POINTS, BONUS_POINTS_LIMIT } from '../constants/Game';
 import DiceAnimation from '../components/DiceAnimation';
+import audioManager from '../services/AudioManager';
 import ModalAlert from '../constants/ModalAlert';
 import { useGame } from '../constants/GameContext';
 import RenderFirstRow from '../components/RenderFirstRow';
@@ -767,6 +768,7 @@ export default function Gameboard({ route, navigation }) {
     const throwDices = useCallback(() => {
         if (nbrOfThrowsLeft > 0) {
             setIsRolling(true);
+            audioManager.playSfx();
             setTimeout(() => {
                 const newBoard = [...board];
                 for (let i = 0; i < NBR_OF_DICES; i++) {
@@ -780,7 +782,7 @@ export default function Gameboard({ route, navigation }) {
                 setNbrOfThrowsLeft(nbrOfThrowsLeft - 1);
                 setIsRolling(false);
                 checkAndUnlockYatzy(rolledDices);
-            }, 1000);
+            }, 500);
         } else {
             setStatus('No throws left');
             setNbrOfThrowsLeft(NBR_OF_THROWS);

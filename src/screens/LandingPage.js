@@ -31,8 +31,9 @@ import { Animations } from "../constants/AnimationPaths";
 import { VideoView, useVideoPlayer } from 'expo-video';
 import { useIsFocused } from '@react-navigation/native';
 
-import COLORS from "../constants/colors";
 
+import audioManager from '../services/AudioManager';
+import COLORS from "../constants/colors";
 
 export default function LandingPage({ navigation }) {
   const insets = useSafeAreaInsets();
@@ -40,6 +41,23 @@ export default function LandingPage({ navigation }) {
   const [loadingProgress, setLoadingProgress] = useState(0); // 0..100
   const [bootDone, setBootDone] = useState(false); // all boot tasks done
   const [remoteBlock, setRemoteBlock] = useState(false);
+
+  // Käynnistä taustamusiikki fade-inillä kun ruutu avataan
+  useEffect(() => {
+    (async () => {
+      console.log('[LandingPage] Ladataan audioManager.loadSettings()');
+      await audioManager.loadSettings();
+      console.log('[LandingPage] Kutsutaan audioManager.playMusic(true)');
+      audioManager.playMusic(true)
+        .then(() => {
+          console.log('[LandingPage] Musiikin käynnistys onnistui');
+        })
+        .catch((e) => {
+          console.log('[LandingPage] Musiikin käynnistys epäonnistui:', e);
+        });
+    })();
+    // Ei pysäytetä musiikkia kun LandingPage unmounttaa, koska halutaan jatkua muualla
+  }, []);
 
   const rafRef = useRef(null); // progress animation rAF
   const alertShownRef = useRef(false);
@@ -273,11 +291,12 @@ export default function LandingPage({ navigation }) {
         // Remote update check in parallel (does not block navigation)
         fire("Remote update check (non-blocking)", checkRemoteUpdate);
 
-        // Load assets
-        await step("Preloading images", async () => {
+        // Lataa kuvat ja äänet valmiiksi
+        await step("Preloading images & sounds", async () => {
           const allImages = [...avatars, ...PlayercardBg, ...additionalImages, ...Animations];
           const imageAssets = cacheImages(allImages);
           await Promise.all(imageAssets);
+          await audioManager.loadSettings(); // preload SFX ja musiikki
         });
 
 

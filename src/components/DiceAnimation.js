@@ -37,7 +37,7 @@ const DiceAnimation = ({ diceName, isSelected, onSelect, animationValue, color, 
             const loopAnimation = Animated.loop(
                 Animated.timing(animationValue, {
                     toValue: totalFrames - 1,
-                    duration: 500,
+                    duration: 400,
                     easing: Easing.out(Easing.quad),
                     useNativeDriver: true,
                 })

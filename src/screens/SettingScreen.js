@@ -1,10 +1,11 @@
 
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+
+import audioManager from '../services/AudioManager';
 import { View, Text, Pressable, ImageBackground, TouchableOpacity, Modal, TextInput, Alert, ActivityIndicator } from 'react-native';
 import { Ionicons, MaterialCommunityIcons, Feather, FontAwesome5 } from '@expo/vector-icons';
 import Linked from '../services/Linked';
-import HomeScreenButton from '../components/HomeScreenButton';
 import Slider from '@react-native-community/slider';
 import settingScreenStyles from '../styles/SettingScreenStyles';
 import { useGame } from '../constants/GameContext';
@@ -18,6 +19,38 @@ const SettingScreen = () => {
     const [musicMuted, setMusicMuted] = useState(false);
     const [sfxVolume, setSfxVolume] = useState(0.7);
     const [sfxMuted, setSfxMuted] = useState(false);
+
+    // Load audio settings from AudioManager on mount
+    useEffect(() => {
+        (async () => {
+            await audioManager.loadSettings();
+            setMusicVolume(audioManager.musicVolume);
+            setMusicMuted(audioManager.musicMuted);
+            setSfxVolume(audioManager.sfxVolume);
+            setSfxMuted(audioManager.sfxMuted);
+        })();
+    }, []);
+
+    // Handlers to update AudioManager and persist settings
+    const handleMusicVolume = (value) => {
+        setMusicVolume(value);
+        audioManager.setMusicVolume(value);
+    };
+    const handleMusicMuted = (muted) => {
+        setMusicMuted(muted);
+        audioManager.setMusicMuted(muted);
+        if (!muted) {
+            audioManager.playMusic(); // Käynnistä musiikki uudelleen jos mute pois päältä
+        }
+    };
+    const handleSfxVolume = (value) => {
+        setSfxVolume(value);
+        audioManager.setSfxVolume(value);
+    };
+    const handleSfxMuted = (muted) => {
+        setSfxMuted(muted);
+        audioManager.setSfxMuted(muted);
+    };
     const [isLinkModalVisible, setIsLinkModalVisible] = useState(false);
     const { playerId, playerName, isLinked, setIsLinked, setPlayerId, setPlayerName } = useGame();
     const navigation = useNavigation();
@@ -49,8 +82,7 @@ const SettingScreen = () => {
 
                         {/* Music row */}
                         <View style={settingScreenStyles.row}>
-                            <MaterialCommunityIcons name={musicMuted ? 'music-off' : 'music'} size={22} color={musicMuted ? '#aaa' : '#FFD600'} style={settingScreenStyles.muteIcon} />
-                            <TouchableOpacity onPress={() => setMusicMuted(!musicMuted)}>
+                            <TouchableOpacity onPress={() => handleMusicMuted(!musicMuted)}>
                                 <Ionicons name={musicMuted ? 'volume-mute' : 'volume-high'} size={22} color={musicMuted ? '#aaa' : '#FFD600'} style={settingScreenStyles.muteIcon} />
                             </TouchableOpacity>
                             <Text style={settingScreenStyles.rowLabel}>Music</Text>
@@ -60,7 +92,7 @@ const SettingScreen = () => {
                             minimumValue={0}
                             maximumValue={1}
                             value={musicVolume}
-                            onValueChange={setMusicVolume}
+                            onValueChange={handleMusicVolume}
                             minimumTrackTintColor="#FFD600"
                             maximumTrackTintColor="#888"
                             thumbTintColor="#FFD600"
@@ -69,8 +101,7 @@ const SettingScreen = () => {
 
                         {/* SFX row */}
                         <View style={settingScreenStyles.row}>
-                            <MaterialCommunityIcons name={sfxMuted ? 'volume-off' : 'volume-medium'} size={22} color={sfxMuted ? '#aaa' : '#FFD600'} style={settingScreenStyles.muteIcon} />
-                            <TouchableOpacity onPress={() => setSfxMuted(!sfxMuted)}>
+                            <TouchableOpacity onPress={() => handleSfxMuted(!sfxMuted)}>
                                 <Ionicons name={sfxMuted ? 'volume-mute' : 'volume-high'} size={22} color={sfxMuted ? '#aaa' : '#FFD600'} style={settingScreenStyles.muteIcon} />
                             </TouchableOpacity>
                             <Text style={settingScreenStyles.rowLabel}>SFX</Text>
@@ -80,7 +111,7 @@ const SettingScreen = () => {
                             minimumValue={0}
                             maximumValue={1}
                             value={sfxVolume}
-                            onValueChange={setSfxVolume}
+                            onValueChange={handleSfxVolume}
                             minimumTrackTintColor="#FFD600"
                             maximumTrackTintColor="#888"
                             thumbTintColor="#FFD600"
