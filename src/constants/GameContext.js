@@ -7,7 +7,7 @@
  * @since 2025-08-29
  */
 // Game context provider for global state management
-import { createContext, useState, useContext, useEffect } from 'react';
+import { createContext, useState, useContext, useEffect, useMemo } from 'react';
 import { dbOnValue, dbOff, dbGet, dbSet } from '../services/Firebase';
 import { MAX_TOKENS } from './Game';
 
@@ -34,7 +34,7 @@ export const GameProvider = ({ children }) => {
   const [isAvatarLoaded, setIsAvatarLoaded] = useState(false);
   const [userRecognized, setUserRecognized] = useState(false);
   const [tokens, setTokens] = useState(null);
-  const [videoTokens, setVideoTokens] = useState(0);
+  // const [videoTokens, setVideoTokens] = useState(0);
   const [energyModalVisible, setEnergyModalVisible] = useState(false);
   const [isLinked, setIsLinked] = useState(false);
   const [playerLevel, setPlayerLevel] = useState('');
@@ -147,7 +147,7 @@ export const GameProvider = ({ children }) => {
     return () => { if (typeof unsubscribe === 'function') unsubscribe(); };
   }, []);
 
-  // Player level listener
+  //Player level listener
   useEffect(() => {
     if (!playerId) return;
     const path = `players/${playerId}/level`;
@@ -175,58 +175,15 @@ export const GameProvider = ({ children }) => {
     return () => dbOff(path, handleValue);
   }, [playerId]);
 
-  // Fetch tokens
-  const fetchInitialTokens = async () => {
-    try {
-      const snapshot = await dbGet(`players/${playerId}/tokens`);
-      if (snapshot.exists()) {
-        setTokens(snapshot.val());
-      } else {
-        await dbSet(`players/${playerId}/tokens`, MAX_TOKENS);
-        setTokens(MAX_TOKENS);
-      }
-    } catch (error) {
-      console.error('Virhe tokenien lataamisessa:', error);
-      setTokens(MAX_TOKENS);
-    }
-  };
-
-  const fetchVideoTokens = async () => {
-    try {
-      const snapshot = await dbGet(`players/${playerId}/videoTokens`);
-      setVideoTokens(snapshot.exists() ? snapshot.val() : 0);
-    } catch (error) {
-      console.error('Error fetching video tokens:', error);
-      setVideoTokens(0);
-    }
-  };
-
   const updateTokensInFirebase = async () => {
     if (playerId && tokens !== null) {
       await dbSet(`players/${playerId}/tokens`, tokens);
     }
   };
 
-  const updateVideoTokensInFirebase = async () => {
-    if (playerId && videoTokens !== null) {
-      await dbSet(`players/${playerId}/videoTokens`, videoTokens);
-    }
-  };
-
-  useEffect(() => {
-    if (playerId) {
-      fetchInitialTokens();
-      fetchVideoTokens();
-    }
-  }, [playerId]);
-
   useEffect(() => {
     updateTokensInFirebase();
   }, [tokens]);
-
-  useEffect(() => {
-    updateVideoTokensInFirebase();
-  }, [videoTokens]);
 
   const getCurrentLevel = (points) => {
     if (points <= 400) return 'Beginner';
@@ -255,75 +212,78 @@ export const GameProvider = ({ children }) => {
     setPlayerName(name);
   };
 
-  const contextValue = {
-    playerLevel,
-    setPlayerLevel,
-    playerId,
-    setPlayerId,
-    playerName,
-    setPlayerName,
-    playerIdContext,
-    setPlayerIdContext,
-    playerNameContext,
-    setPlayerNameContext,
-    activePlayerId,
-    setActivePlayer,
-    playerScores,
-    setPlayerScores,
-    gameStarted,
-    gameEnded,
-    startGame: () => {
-      setGameStarted(true);
-      setGameEnded(false);
-      setElapsedTime(0);
-    },
-    endGame: () => {
-      setGameEnded(true);
-      setGameStarted(false);
-    },
-    totalPoints,
-    setTotalPoints,
-    elapsedTime,
-    setElapsedTime,
-    setElapsedTimeContext: setElapsedTime,
-    isGameSaved,
-    setIsGameSaved,
-    saveGame: () => setIsGameSaved(true),
-    userRecognized,
-    setUserRecognized,
-    viewingPlayerId,
-    viewingPlayerName,
-    setViewingPlayerId,
-    setViewingPlayerName,
-    resetViewingPlayer: () => {
-      setViewingPlayerId(null);
-      setViewingPlayerName(null);
-    },
-    timeToNextToken,
-    setTimeToNextToken,
-    nextTokenTime,
-    setNextTokenTime,
-    tokens,
-    setTokens,
-    videoTokens,
-    setVideoTokens,
-    energyModalVisible,
-    setEnergyModalVisible,
-    isLinked,
-    setIsLinked,
-    gameVersion,
-    setGameVersion,
-    progressPoints,
-    setProgressPoints: updateProgressPoints,
-    currentLevel,
-    nextLevel,
-    allTimeRank,
-    avatarUrl,
-    setAvatarUrl,
-    isAvatarLoaded,
-    scoreboardData,
-    setScoreboardData,
-  };
+const contextValue = useMemo(() => ({
+  playerLevel,
+  setPlayerLevel,
+  playerId,
+  setPlayerId,
+  playerName,
+  setPlayerName,
+  playerIdContext,
+  setPlayerIdContext,
+  playerNameContext,
+  setPlayerNameContext,
+  activePlayerId,
+  setActivePlayer,
+  playerScores,
+  setPlayerScores,
+  gameStarted,
+  gameEnded,
+  startGame: () => {
+    setGameStarted(true);
+    setGameEnded(false);
+    setElapsedTime(0);
+  },
+  endGame: () => {
+    setGameEnded(true);
+    setGameStarted(false);
+  },
+  totalPoints,
+  setTotalPoints,
+  elapsedTime,
+  setElapsedTime,
+  setElapsedTimeContext: setElapsedTime,
+  isGameSaved,
+  setIsGameSaved,
+  saveGame: () => setIsGameSaved(true),
+  userRecognized,
+  setUserRecognized,
+  viewingPlayerId,
+  viewingPlayerName,
+  setViewingPlayerId,
+  setViewingPlayerName,
+  resetViewingPlayer: () => {
+    setViewingPlayerId(null);
+    setViewingPlayerName(null);
+  },
+  timeToNextToken,
+  setTimeToNextToken,
+  nextTokenTime,
+  setNextTokenTime,
+  tokens,
+  setTokens,
+  energyModalVisible,
+  setEnergyModalVisible,
+  isLinked,
+  setIsLinked,
+  gameVersion,
+  setGameVersion,
+  progressPoints,
+  setProgressPoints: updateProgressPoints,
+  currentLevel,
+  nextLevel,
+  allTimeRank,
+  avatarUrl,
+  setAvatarUrl,
+  isAvatarLoaded,
+  scoreboardData,
+  setScoreboardData,
+}), [
+  playerLevel, playerId, playerName, playerIdContext, playerNameContext, activePlayerId, playerScores,
+  gameStarted, gameEnded, totalPoints, elapsedTime, isGameSaved, userRecognized, viewingPlayerId, viewingPlayerName,
+  timeToNextToken, nextTokenTime, tokens, energyModalVisible, isLinked, gameVersion, progressPoints,
+  currentLevel, nextLevel, allTimeRank, avatarUrl, isAvatarLoaded, scoreboardData
+]);
 
-  return <GameContext.Provider value={contextValue}>{children}</GameContext.Provider>;
+return <GameContext.Provider value={contextValue}>{children}</GameContext.Provider>;
 };

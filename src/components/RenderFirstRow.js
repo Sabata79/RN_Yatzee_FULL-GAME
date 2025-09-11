@@ -15,8 +15,8 @@ import firstRowStyles from '../styles/FirstRowStyles';
 import COLORS from '../constants/colors';
 
 // Renders the top row of the game UI, including timer and category labels
-export default function RenderFirstRow(props) {
-  console.log('[RenderFirstRow] props', props);
+export default function RenderFirstRow() {
+
   // Game state and timer hooks
   const { gameStarted, gameEnded, setElapsedTimeContext, isGameSaved, setIsGameSaved } = useGame();
   const { totalSeconds, start, reset, pause } = useStopwatch({
@@ -58,8 +58,8 @@ export default function RenderFirstRow(props) {
   // Effect: Cap timer at MAX_SECS
   useEffect(() => {
     if (totalSeconds >= MAX_SECS) {
-      pause();                       
-      setElapsedTimeContext(MAX_SECS); 
+      pause();
+      setElapsedTimeContext(MAX_SECS);
     }
   }, [totalSeconds, pause, setElapsedTimeContext]);
 
@@ -104,12 +104,11 @@ export default function RenderFirstRow(props) {
             style={{ marginRight: 15, marginTop: -6 }}
           />
           {/* Animated timer text with glow effect */}
-          <Animated.Text style={[firstRowStyles.firstRowTimerText, { width: 60, textAlign: 'center', color: timerColor }, { transform: [{ scale: glowAnim }] }]}> 
+          <Animated.Text style={[firstRowStyles.firstRowTimerText, { width: 60, textAlign: 'center', color: timerColor }, { transform: [{ scale: glowAnim }] }]}>
             {Math.min(totalSeconds, MAX_SECS)} s
           </Animated.Text>
         </View>
       </View>
-
       <View style={firstRowStyles.firstRowItem}>
         <Text style={firstRowStyles.firstRowCategoryText}>Major</Text>
       </View>
@@ -117,4 +116,4 @@ export default function RenderFirstRow(props) {
   );
 };
 
- // ...
+// ...
