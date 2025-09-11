@@ -13,7 +13,7 @@
  * @since 2025-09-06
  */
 import { useState, useEffect, useRef } from "react";
-import { View, Text, TextInput, Alert, ImageBackground, Image, Animated } from "react-native";
+import { View, Text, TextInput, Alert, Image, Animated } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { FontAwesome5 } from '@expo/vector-icons';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -21,6 +21,7 @@ import { VideoView, useVideoPlayer } from 'expo-video';
 import styles from '../styles/styles';
 import homeStyles from '../styles/HomeStyles';
 import { dbGet, dbSet } from '../services/Firebase';
+import { sanitizeInput, checkIfNameExists } from '../services/nameUtils';
 import uuid from 'react-native-uuid';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
 import { useGame } from '../constants/GameContext';
@@ -113,18 +114,6 @@ export default function Home({ setPlayerId }) {
     }
   }, [loading, fadeAnim]);
 
-  // Check if the player name already exists
-  const checkIfNameExists = async (name) => {
-    const snapshot = await dbGet('players');
-    if (snapshot.exists()) {
-      const playersData = snapshot.val();
-      for (let pid in playersData) {
-        if (playersData[pid]?.name === name) return true;
-      }
-    }
-    return false;
-  };
-
   // Save a new player to the database
   const saveNewPlayer = async (name, userId) => {
     const snap = await dbGet(`players/${userId}`);
@@ -145,12 +134,8 @@ export default function Home({ setPlayerId }) {
     setPlayerId(userId);
   };
 
-  // Sanitize user input
-  const sanitizeInput = (input) => input.replace(/[^a-zA-Z0-9 ]/g, '').trim();
-
   const handlePress = async () => {
     const cleanedName = sanitizeInput(localName);
-
     if (cleanedName === '') {
       Alert.alert('Name is required', 'Please enter your name.');
     } else if (cleanedName.length < 3 || cleanedName.length > 10) {
@@ -161,7 +146,6 @@ export default function Home({ setPlayerId }) {
         Alert.alert('Name already in use', 'That nickname is already in use. Please choose another.');
       } else {
         setUserRecognized(true);
-
         if (!playerId) {
           const newPlayerId = uuid.v4();
           setLocalPlayerId(newPlayerId);
@@ -180,9 +164,8 @@ export default function Home({ setPlayerId }) {
 
   const handlePlay = () => { audioManager.playSelect(); navigation.navigate('Gameboard');};
   const handleScore = () => navigation.navigate('Scoreboard');
-  const handleChangeName = () => { setLocalName(''); setUserRecognized(false); };
   const handleViewPlayerCard = () => { setSelectedPlayer({ playerId, playerName }); setModalVisible(true); };
-  const handleLinkAccount = () => setIsLinkModalVisible(true);
+  const handleSettings = () => navigation.navigate('Settings');
 
   return (
       <View style={styles.overlay}>
@@ -282,11 +265,11 @@ export default function Home({ setPlayerId }) {
               onPress={handleScore}
             />
             <HomeScreenButton
-              label="Change name"
-              icon={<FontAwesome5 name="user-edit" size={30} color="black" style={{ marginLeft: 8 }} />}
-              onPress={handleChangeName}
+              label="Settings"
+              icon={<FontAwesome5 name="cog" size={30} color="black" style={{ marginLeft: 8 }} />}
+              onPress={handleSettings}
             />
-            {/* Link your account button and modal moved to SettingScreen */}
+
           </View>
         )}
         {isModalVisible && selectedPlayer && (
