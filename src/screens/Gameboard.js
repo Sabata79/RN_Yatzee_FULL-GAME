@@ -113,9 +113,26 @@ export default function Gameboard({ route, navigation }) {
 
     const { gameStarted, gameEnded, startGame, endGame, totalPoints, setTotalPoints, tokens, setTokens, setEnergyModalVisible } = gameContext;
     const [elapsedTime, setElapsedTime] = useState(0);
+    const [timer, setTimer] = useState(null);
     const { savePlayerPoints } = GameSave({ playerId, totalPoints, elapsedTime, navigation });
 
     const [isLayerVisible, setLayerVisible] = useState(true);
+
+    // Käynnistä ja pysäytä peliajan laskenta
+    useEffect(() => {
+        if (gameStarted && !gameEnded) {
+            if (!timer) {
+                const interval = setInterval(() => {
+                    setElapsedTime((t) => t + 1);
+                }, 1000);
+                setTimer(interval);
+            }
+        } else if (timer) {
+            clearInterval(timer);
+            setTimer(null);
+        }
+        return () => { if (timer) clearInterval(timer); };
+    }, [gameStarted, gameEnded]);
 
     // Game logic state
     const [nbrOfThrowsLeft, setNbrOfThrowsLeft] = useState(NBR_OF_THROWS);
@@ -202,20 +219,20 @@ export default function Gameboard({ route, navigation }) {
             const points = selectedCategory.calculateScore(rolledDices);
             const isMinor = minorNames.includes(selectedCategory.name);
             setScoringCategories((prev) => prev.map((c) => (c.index === selectedField ? { ...c, points, locked: true } : c)));
-            setTotalPoints((tp) => {
-                let ntp = tp + points;
-                if (isMinor) {
-                    setMinorPoints((mp) => {
-                        const nmp = mp + points;
-                        if (nmp >= BONUS_POINTS_LIMIT && !hasAppliedBonus) {
-                            ntp += BONUS_POINTS;
-                            setHasAppliedBonus(true);
-                        }
-                        return nmp;
-                    });
+            if (isMinor) {
+                const newMinorPoints = minorPoints + points;
+                let bonusApplied = hasAppliedBonus;
+                let total = totalPoints + points;
+                if (newMinorPoints >= BONUS_POINTS_LIMIT && !hasAppliedBonus) {
+                    total += BONUS_POINTS;
+                    bonusApplied = true;
                 }
-                return ntp;
-            });
+                setMinorPoints(newMinorPoints);
+                setTotalPoints(total);
+                if (bonusApplied !== hasAppliedBonus) setHasAppliedBonus(bonusApplied);
+            } else {
+                setTotalPoints(totalPoints + points);
+            }
         }
         setSelectedField(null);
     }, [selectedField, scoringCategories, rolledDices, hasAppliedBonus, setTotalPoints]);
@@ -315,7 +332,14 @@ export default function Gameboard({ route, navigation }) {
             nbrOfThrowsLeft={nbrOfThrowsLeft}
             setNbrOfThrowsLeft={setNbrOfThrowsLeft}
             resetGame={resetGame}
-            savePlayerPoints={async () => { await savePlayerPoints(); resetGame(); navigation.navigate('Scoreboard', { tab: 'week', playerId }); }}
+            savePlayerPoints={async () => {
+                // Pysäytä ajastin ja tallenna viimeisin peliaika
+                if (timer) clearInterval(timer);
+                setTimer(null);
+                await savePlayerPoints();
+                resetGame();
+                navigation.navigate('Scoreboard', { tab: 'week', playerId });
+            }}
             navigation={navigation}
             startGame={startGame}
             throwDices={throwDices}
@@ -326,7 +350,7 @@ export default function Gameboard({ route, navigation }) {
             setRounds={setRounds}
             diceRow={diceRow}
         />
-    ), [status, rounds, nbrOfThrowsLeft, resetGame, savePlayerPoints, navigation, playerId, startGame, throwDices, selectedField, handleSetPoints, resetDiceSelection, scoringCategories, setRounds, diceRow, setStatus, setNbrOfThrowsLeft]);
+    ), [status, rounds, nbrOfThrowsLeft, resetGame, savePlayerPoints, navigation, playerId, startGame, throwDices, selectedField, handleSetPoints, resetDiceSelection, scoringCategories, setRounds, diceRow, setStatus, setNbrOfThrowsLeft, timer]);
 
     return (
         <ImageBackground source={require('../../assets/diceBackground.webp')} style={styles.background}>
