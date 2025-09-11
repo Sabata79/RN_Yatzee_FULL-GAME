@@ -1,17 +1,24 @@
+ /**
+* Settings screen component for managing player settings such as audio preferences,
+* account linking, and data wiping.
+*
+* Usage: import SettingScreen from './SettingScreen';
+*   
+* @module screens/SettingScreen
+* @author Sabata79
+* @since 2025-09-06
+*/
 
-
-import React, { useState, useEffect, useRef } from 'react';
-
+import{ useState, useEffect, useRef } from 'react';
 import audioManager from '../services/AudioManager';
 import { View, Text, Pressable, ImageBackground, TouchableOpacity, Modal, TextInput, Alert, ActivityIndicator } from 'react-native';
 import { Ionicons, MaterialCommunityIcons, Feather, FontAwesome5 } from '@expo/vector-icons';
 import Linked from '../services/Linked';
-import Slider from '@react-native-community/slider';
 import settingScreenStyles from '../styles/SettingScreenStyles';
 import { useGame } from '../constants/GameContext';
 import * as SecureStore from 'expo-secure-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { remove, dbRef, dbGet, dbUpdate } from '../services/Firebase';
+import { remove, dbRef, dbUpdate } from '../services/Firebase';
 import { BackHandler } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
@@ -31,7 +38,6 @@ const SettingScreen = () => {
 
     const [isLinkModalVisible, setIsLinkModalVisible] = useState(false);
     const { playerId, playerName, isLinked, setIsLinked, setPlayerId, setPlayerName } = useGame();
-
 
     // Load audio settings from AudioManager on mount
     useEffect(() => {
@@ -58,13 +64,12 @@ const SettingScreen = () => {
         }
     };
 
-
     const handleSfxMuted = (muted) => {
         setSfxMuted(muted);
         audioManager.setSfxMuted(muted);
     };
 
-    // Nimen editoinnin tilat
+    // Player name editing
     const [isEditingName, setIsEditingName] = useState(false);
     const [editName, setEditName] = useState(playerName);
     useEffect(() => { setEditName(playerName); }, [playerName]);
@@ -106,7 +111,7 @@ const SettingScreen = () => {
                     <Text style={settingScreenStyles.title}>PLAYER SETTINGS</Text>
 
                     <View style={settingScreenStyles.nameRow}>
-                        <Ionicons name="person-outline" size={22} color="#fff" style={settingScreenStyles.muteIcon} />
+                        <Ionicons name="person-outline" size={22} color="#F5F5F5" style={settingScreenStyles.muteIcon} />
                         {isEditingName ? (
                             <TextInput
                                 ref={editNameInputRef}
@@ -134,13 +139,15 @@ const SettingScreen = () => {
                             </TouchableOpacity>
                         )}
                     </View>
-
-                    <Text style={settingScreenStyles.playerId}>ID: {playerId}</Text>
+                    <View style={settingScreenStyles.nameRow}>
+                        <MaterialCommunityIcons name="identifier" style={settingScreenStyles.idIcon} />
+                        <Text style={settingScreenStyles.playerId}>{playerId}</Text>
+                    </View>
 
                     {/* Music on/off */}
                     <View style={settingScreenStyles.row}>
                         <TouchableOpacity onPress={() => handleMusicMuted(!musicMuted)}>
-                            <Ionicons name={musicMuted ? 'volume-mute' : 'volume-high'} size={22} color={musicMuted ? '#aaa' : '#FFD600'} style={settingScreenStyles.muteIcon} />
+                            <Ionicons name={musicMuted ? 'volume-mute' : 'volume-high'} size={22} color={musicMuted ? '#aaa' : '#f1c40f'} style={settingScreenStyles.muteIcon} />
                         </TouchableOpacity>
                         <Text style={settingScreenStyles.rowLabel}>Music {musicMuted ? 'Off' : 'On'}</Text>
                     </View>
@@ -148,7 +155,7 @@ const SettingScreen = () => {
                     {/* SFX on/off */}
                     <View style={settingScreenStyles.row}>
                         <TouchableOpacity onPress={() => handleSfxMuted(!sfxMuted)}>
-                            <Ionicons name={sfxMuted ? 'volume-mute' : 'volume-high'} size={22} color={sfxMuted ? '#aaa' : '#FFD600'} style={settingScreenStyles.muteIcon} />
+                            <Ionicons name={sfxMuted ? 'volume-mute' : 'volume-high'} size={22} color={sfxMuted ? '#aaa' : '#f1c40f'} style={settingScreenStyles.muteIcon} />
                         </TouchableOpacity>
                         <Text style={settingScreenStyles.rowLabel}>SFX {sfxMuted ? 'Off' : 'On'}</Text>
                     </View>
@@ -163,7 +170,7 @@ const SettingScreen = () => {
                             onPress={() => setIsLinkModalVisible(true)}
                             disabled={isLinked}
                         >
-                            <FontAwesome5 name="link" size={18} color="#FFD600" style={{ marginRight: 8 }} />
+                            <FontAwesome5 name="link" size={18} color='#f1c40f' style={{ marginRight: 8 }} />
                             <Text style={settingScreenStyles.linkButtonText}>Link your account</Text>
                         </Pressable>
                     </View>
@@ -271,14 +278,13 @@ const SettingScreen = () => {
                                         }}
                                         disabled={wiping}
                                     >
-                                        {wiping ? <ActivityIndicator color="#fff" /> : <Text style={settingScreenStyles.modalOkText}>OK</Text>}
+                                        {wiping ? <ActivityIndicator color='#F5F5F5' /> : <Text style={settingScreenStyles.modalOkText}>OK</Text>}
                                     </Pressable>
                                 </View>
                             </View>
                         </View>
                     </Modal>
                 </View>
-
             </ImageBackground>
         </View>
     );

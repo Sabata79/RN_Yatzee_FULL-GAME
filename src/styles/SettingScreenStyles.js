@@ -1,8 +1,7 @@
-// ...existing code...
  /**
  * SettingScreenStyles.js - Styles for the SettingScreen view
  *
- * Jäljittelee GameRulesStyles.js:n tyyliä, mutta tarkoitettu asetussivulle.
+* Contains all style definitions for the SettingScreen view, including containers, text styles,
  *
  * @module styles/SettingScreenStyles
  * @author Sabata79
@@ -60,17 +59,27 @@ const settingScreenStyles = StyleSheet.create({
         fontSize: TYPOGRAPHY.fontSize.md,
         color: COLORS.textLight,
         fontFamily: TYPOGRAPHY.fontFamily.montserratBold,
+        textAlign: 'center',
         flex: 1,
     },
     editIcon: {
         marginLeft: 8,
+        
     },
     playerId: {
-        fontSize: TYPOGRAPHY.fontSize.xs,
+        fontSize: TYPOGRAPHY.fontSize.sm,
+        lineHeight: TYPOGRAPHY.fontSize.sm,
         color: COLORS.textLight,
         fontFamily: TYPOGRAPHY.fontFamily.montserratRegular,
-        marginBottom: 20,
-        marginLeft: 5,
+        marginBottom: 0,
+        marginLeft: 0,
+        letterSpacing: -0.6,
+    },
+    idIcon: {
+        marginRight: 4,
+        marginLeft: -4,
+        color: COLORS.textLight,
+        fontSize: TYPOGRAPHY.fontSize.xxl,
     },
     row: {
         flexDirection: 'row',
