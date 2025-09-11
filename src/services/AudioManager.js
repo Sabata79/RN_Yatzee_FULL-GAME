@@ -17,8 +17,8 @@ class AudioManager {
   selectSound = null;
   deselectSound = null;
   musicSound = null;
-  sfxVolume = 0.7;
-  musicVolume = 0.05;
+  sfxVolume = 0.5; // kovakoodattu SFX volume (4 tasosta, keskitaso)
+  musicVolume = 0.05; // kovakoodattu musiikin volume (2 tasosta, hiljainen)
   sfxMuted = false;
   musicMuted = false;
   musicLoaded = false;
@@ -131,13 +131,13 @@ class AudioManager {
       this.sfxLoaded = false;
     }
   }
+  // Ei enää käytössä: SFX volume on kovakoodattu
   setSfxVolume(volume) {
-    this.sfxVolume = volume;
-    if (this.sfxSound) this.sfxSound.setStatusAsync({ volume });
-    this.saveSfxSettings();
+    // Ei tee mitään
   }
   setSfxMuted(muted) {
     this.sfxMuted = muted;
+    if (this.sfxSound) this.sfxSound.setStatusAsync({ volume: muted ? 0 : 0.5 });
     this.saveSfxSettings();
   }
 
@@ -167,17 +167,13 @@ class AudioManager {
       await this.musicSound.stopAsync();
     }
   }
+  // Ei enää käytössä: musiikin volume on kovakoodattu
   setMusicVolume(volume) {
-    // Pyöristetään stepin (0.1) tarkkuuteen
-    const rounded = Math.round(volume * 10) / 10;
-    this.musicVolume = rounded;
-    if (this.musicSound) this.musicSound.setStatusAsync({ volume: rounded });
-    this.saveMusicSettings();
-    // Älä toista musiikkia tässä, vain volume päivitys!
+    // Ei tee mitään
   }
   setMusicMuted(muted) {
     this.musicMuted = muted;
-    if (this.musicSound) this.musicSound.setStatusAsync({ volume: muted ? 0 : this.musicVolume });
+    if (this.musicSound) this.musicSound.setStatusAsync({ volume: muted ? 0 : 0.05 });
     this.saveMusicSettings();
   }
 }
