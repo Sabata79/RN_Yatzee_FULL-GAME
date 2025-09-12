@@ -12,8 +12,8 @@
  * @author Sabata79
  * @since 2025-09-06
  */
-import { useState, useEffect, useRef } from "react";
-import { View, Text, TextInput, Alert, Image, Animated } from "react-native";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { View, Text, TextInput, Alert, Image, Animated, InteractionManager } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { FontAwesome5 } from '@expo/vector-icons';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -23,12 +23,12 @@ import homeStyles from '../styles/HomeStyles';
 import { dbGet, dbSet } from '../services/Firebase';
 import { sanitizeInput, checkIfNameExists } from '../services/nameUtils';
 import uuid from 'react-native-uuid';
-import { useNavigation, useIsFocused } from '@react-navigation/native';
+import { useNavigation, useIsFocused, useFocusEffect } from '@react-navigation/native';
 import { useGame } from '../constants/GameContext';
 import Recover from "../services/Recover";
 import PlayerCard from "../components/PlayerCard";
 import HomeScreenButton from "../components/HomeScreenButton";
-import audioManager from "../services/AudioManager";
+import { useAudio } from '../services/AudioManager';
 
 // Home screen component: handles player login, linking, recovery, and welcome video
 export default function Home({ setPlayerId }) {
@@ -54,7 +54,15 @@ export default function Home({ setPlayerId }) {
   // Error state for video playback
   const [videoError, setVideoError] = useState(false);
 
- 
+  const { ready, playSelect, prewarmSfx } = useAudio();
+
+  // Lämmitä samplet aina kun ruutu tulee näkyviin
+  useFocusEffect(
+    useCallback(() => {
+      prewarmSfx().catch(() => { });
+    }, [prewarmSfx])
+  );
+
   // Video player setup "backgroundVideo animation" (expo-video)
   const backgroundVideoPlayer = useVideoPlayer(require('../../assets/video/backgroundVideo.m4v'), (p) => {
     p.loop = true;         // loop forever
@@ -161,125 +169,129 @@ export default function Home({ setPlayerId }) {
       }
     }
   };
-
-  const handlePlay = () => { audioManager.playSelect(); navigation.navigate('Gameboard');};
+const handlePlay = useCallback(async () => {
+  await prewarmSfx().catch(() => {});
+  try { await playSelect(); } catch {}
+  setTimeout(() => navigation.navigate('Gameboard'), 140); // 120–150ms toimii hyvin
+}, [prewarmSfx, playSelect, navigation]);
   const handleScore = () => navigation.navigate('Scoreboard');
   const handleViewPlayerCard = () => { setSelectedPlayer({ playerId, playerName }); setModalVisible(true); };
   const handleSettings = () => navigation.navigate('Settings');
 
   return (
-      <View style={styles.overlay}>
-        <VideoView
-          player={backgroundVideoPlayer}
-          style={homeStyles.backgroundVideo}
-          contentFit="cover"
-          nativeControls={false}
-          allowsFullscreen={true}
-          allowsPictureInPicture={false}
-          pointerEvents="none"
-          focusable={false}
-          onError={(e) => {
-            console.log("LandingPageVideo error:", e);
-            setVideoError(true);
-          }}
-        />
-        {!userRecognized ? (
-          <View style={homeStyles.homeContainer}>
-            <Text style={homeStyles.homeText}>Hi, Stranger!</Text>
-            <Text style={homeStyles.homeText}>Can you tell your nickname?</Text>
-            <Text style={homeStyles.homeAuxillaryText}>(Nickname must be 3-10 characters long)</Text>
-            <Image source={require("../../assets/register.webp")} style={styles.registerImage} />
-            <TextInput
-              ref={inputRef}
-              style={homeStyles.input}
-              placeholder="Enter your nickname"
-              placeholderTextColor={"#222f3e"}
-              value={localName}
-              onChangeText={(text) => setLocalName(sanitizeInput(text))}
-            />
-            <HomeScreenButton
-              label="OK"
-              icon={<FontAwesome5 name="check" size={30} color="black" style={{ marginLeft: 8 }} />}
-              onPress={handlePress}
-            />
-            <HomeScreenButton
-              label="Recover linked player"
-              icon={<FontAwesome5 name="redo" size={30} color="black" style={{ marginLeft: 8 }} />}
-              onPress={() => setIsRecoverModalVisible(true)}
-            />
-            <Recover
-              isVisible={isRecoverModalVisible}
-              onClose={() => setIsRecoverModalVisible(false)}
-            />
+    <View style={styles.overlay}>
+      <VideoView
+        player={backgroundVideoPlayer}
+        style={homeStyles.backgroundVideo}
+        contentFit="cover"
+        nativeControls={false}
+        allowsFullscreen={true}
+        allowsPictureInPicture={false}
+        pointerEvents="none"
+        focusable={false}
+        onError={(e) => {
+          console.log("LandingPageVideo error:", e);
+          setVideoError(true);
+        }}
+      />
+      {!userRecognized ? (
+        <View style={homeStyles.homeContainer}>
+          <Text style={homeStyles.homeText}>Hi, Stranger!</Text>
+          <Text style={homeStyles.homeText}>Can you tell your nickname?</Text>
+          <Text style={homeStyles.homeAuxillaryText}>(Nickname must be 3-10 characters long)</Text>
+          <Image source={require("../../assets/register.webp")} style={styles.registerImage} />
+          <TextInput
+            ref={inputRef}
+            style={homeStyles.input}
+            placeholder="Enter your nickname"
+            placeholderTextColor={"#222f3e"}
+            value={localName}
+            onChangeText={(text) => setLocalName(sanitizeInput(text))}
+          />
+          <HomeScreenButton
+            label="OK"
+            icon={<FontAwesome5 name="check" size={30} color="black" style={{ marginLeft: 8 }} />}
+            onPress={handlePress}
+          />
+          <HomeScreenButton
+            label="Recover linked player"
+            icon={<FontAwesome5 name="redo" size={30} color="black" style={{ marginLeft: 8 }} />}
+            onPress={() => setIsRecoverModalVisible(true)}
+          />
+          <Recover
+            isVisible={isRecoverModalVisible}
+            onClose={() => setIsRecoverModalVisible(false)}
+          />
+        </View>
+      ) : (
+        <View style={homeStyles.homeContainer}>
+          <Text style={[homeStyles.homeText]}>Hi {playerName},</Text>
+          <View style={homeStyles.tokenRow}>
+            <Text style={[homeStyles.homeText]}>you have</Text>
+            <Text style={homeStyles.tokenText}>{tokens}</Text>
+            <View style={homeStyles.energyIcon}>
+              <MaterialCommunityIcons
+                name="flash"
+                size={18}
+                color='#f1c40f'
+              />
+            </View>
+            <Text style={[homeStyles.homeText, { left: -5 }]}>energy left.</Text>
           </View>
-        ) : (
-          <View style={homeStyles.homeContainer}>
-            <Text style={[homeStyles.homeText]}>Hi {playerName},</Text>
+
+          {tokens > 0 ? (
+            <Text style={homeStyles.homeText}>Ready to roll the dice?</Text>
+          ) : (
             <View style={homeStyles.tokenRow}>
-              <Text style={[homeStyles.homeText]}>you have</Text>
-              <Text style={homeStyles.tokenText}>{tokens}</Text>
-              <View style={homeStyles.energyIcon}>
+              <Text style={homeStyles.homeText}>Next energy</Text>
+              <View style={[homeStyles.energyIcon, { left: -5 }]}>
                 <MaterialCommunityIcons
                   name="flash"
                   size={18}
                   color='#f1c40f'
                 />
               </View>
-              <Text style={[homeStyles.homeText, { left: -5 }]}>energy left.</Text>
+              <Text style={[homeStyles.homeText, { left: -5 }]}>in {timeToNextToken}</Text>
             </View>
-
-            {tokens > 0 ? (
-              <Text style={homeStyles.homeText}>Ready to roll the dice?</Text>
-            ) : (
-              <View style={homeStyles.tokenRow}>
-                <Text style={homeStyles.homeText}>Next energy</Text>
-                <View style={[homeStyles.energyIcon, { left: -5 }]}>
-                  <MaterialCommunityIcons
-                    name="flash"
-                    size={18}
-                    color='#f1c40f'
-                  />
-                </View>
-                <Text style={[homeStyles.homeText, { left: -5 }]}>in {timeToNextToken}</Text>
-              </View>
-            )}
-            <Animated.Image
-              source={require('../../assets/animations/hiThereAnimation.gif')}
-              style={homeStyles.hiThereImage}
-              resizeMode="contain"
-            />
-
-            <HomeScreenButton
-              label="PLAY"
-              icon={<FontAwesome5 name="play" size={30} color="black" style={{ marginLeft: 8 }} />}
-              onPress={handlePlay}
-            />
-            <HomeScreenButton
-              label="View Player Card"
-              icon={<FontAwesome5 name="id-card" size={30} color="black" style={{ marginLeft: 8 }} />}
-              onPress={handleViewPlayerCard}
-            />
-            <HomeScreenButton
-              label="View Scoreboard"
-              icon={<FontAwesome5 name="trophy" size={30} color="black" style={{ marginLeft: 8 }} />}
-              onPress={handleScore}
-            />
-            <HomeScreenButton
-              label="Settings"
-              icon={<FontAwesome5 name="cog" size={30} color="black" style={{ marginLeft: 8 }} />}
-              onPress={handleSettings}
-            />
-
-          </View>
-        )}
-        {isModalVisible && selectedPlayer && (
-          <PlayerCard
-            playerId={selectedPlayer.playerId}
-            playerName={selectedPlayer.playerName}
-            isModalVisible={isModalVisible}
-            setModalVisible={setModalVisible}
+          )}
+          <Animated.Image
+            source={require('../../assets/animations/hiThereAnimation.gif')}
+            style={homeStyles.hiThereImage}
+            resizeMode="contain"
           />
-        )}
-      </View>
+          {/* PLAY BUTTON IS TEST PHASE FOR SFX SOUNDS */}
+          <HomeScreenButton
+            label="PLAY"
+            icon={<FontAwesome5 name="play" size={30} color="black" style={{ marginLeft: 8 }} />}
+            onPress={handlePlay}
+          />
+
+          <HomeScreenButton
+            label="View Player Card"
+            icon={<FontAwesome5 name="id-card" size={30} color="black" style={{ marginLeft: 8 }} />}
+            onPress={handleViewPlayerCard}
+          />
+          <HomeScreenButton
+            label="View Scoreboard"
+            icon={<FontAwesome5 name="trophy" size={30} color="black" style={{ marginLeft: 8 }} />}
+            onPress={handleScore}
+          />
+          <HomeScreenButton
+            label="Settings"
+            icon={<FontAwesome5 name="cog" size={30} color="black" style={{ marginLeft: 8 }} />}
+            onPress={handleSettings}
+          />
+
+        </View>
+      )}
+      {isModalVisible && selectedPlayer && (
+        <PlayerCard
+          playerId={selectedPlayer.playerId}
+          playerName={selectedPlayer.playerName}
+          isModalVisible={isModalVisible}
+          setModalVisible={setModalVisible}
+        />
+      )}
+    </View>
   );
 }
