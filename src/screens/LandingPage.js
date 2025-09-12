@@ -13,7 +13,7 @@
  * @since 2025-09-06
  */
 // LandingPage screen: handles app boot, progress, and remote config
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { View, Text, Image, Animated, Alert, Linking } from "react-native";
 import * as SecureStore from "expo-secure-store";
@@ -31,33 +31,30 @@ import { Animations } from "../constants/AnimationPaths";
 import { VideoView, useVideoPlayer } from 'expo-video';
 import { useIsFocused } from '@react-navigation/native';
 
-
-import audioManager from '../services/AudioManager';
+import { useAudio } from '../services/AudioManager';
 import COLORS from "../constants/colors";
+
+// --- Helper: image preloader (require-asset or URL) ---
+const cacheImages = (images) => {
+  return images.map((img) => {
+    const mod = img?.display ?? img;
+    if (typeof mod === 'number') {
+      return Asset.fromModule(mod).downloadAsync();
+    }
+    if (typeof mod === 'string') {
+      return Image.prefetch(mod);
+    }
+    return Promise.resolve();
+  });
+};
 
 export default function LandingPage({ navigation }) {
   const insets = useSafeAreaInsets();
-  const [fadeAnim] = useState(new Animated.Value(0));
+  const [fadeAnim] = useState(new Animated.Value(1)); // näkyvissä alussa
   const [loadingProgress, setLoadingProgress] = useState(0); // 0..100
   const [bootDone, setBootDone] = useState(false); // all boot tasks done
   const [remoteBlock, setRemoteBlock] = useState(false);
-
-  // Käynnistä taustamusiikki fade-inillä kun ruutu avataan
-  useEffect(() => {
-    (async () => {
-      console.log('[LandingPage] Ladataan audioManager.loadSettings()');
-      await audioManager.loadSettings();
-      console.log('[LandingPage] Kutsutaan audioManager.playMusic(true)');
-      audioManager.playMusic(true)
-        .then(() => {
-          console.log('[LandingPage] Musiikin käynnistys onnistui');
-        })
-        .catch((e) => {
-          console.log('[LandingPage] Musiikin käynnistys epäonnistui:', e);
-        });
-    })();
-    // Ei pysäytetä musiikkia kun LandingPage unmounttaa, koska halutaan jatkua muualla
-  }, []);
+  const [videoError, setVideoError] = useState(false);
 
   const rafRef = useRef(null); // progress animation rAF
   const alertShownRef = useRef(false);
@@ -66,6 +63,10 @@ export default function LandingPage({ navigation }) {
   // Smart progress state tracking
   const bootDoneRef = useRef(false);
   const remoteBlockRef = useRef(false);
+
+  // Audio (React hook – Providerista)
+  const { ready, musicMuted, playMusic } = useAudio();
+  const musicStartedRef = useRef(false); // to prevent multiple starts
 
   const {
     setPlayerIdContext,
@@ -94,17 +95,40 @@ export default function LandingPage({ navigation }) {
 
   // Video player setup (expo-video)
   const videoPlayer = useVideoPlayer(require('../../assets/video/backgroundVideo.m4v'), (p) => {
-    p.loop = false;        // no looping
-    p.muted = true;        // muted
-    p.playbackRate = 0.6;  // slightly slower
+    p.loop = false;       // no looping
+    p.muted = true;       // muted
+    p.playbackRate = 0.6; // slightly slower
   });
+
+  // Start music once audio is ready and not muted
+  useEffect(() => {
+    // console.log('[LandingPage Audio]', { ready, musicMuted, remoteBlock, bootDone, started: musicStartedRef.current });
+
+    if (!ready) return;
+    if (musicMuted) return;
+    if (remoteBlock) return;
+    if (musicStartedRef.current) return;
+
+    let alive = true;
+    (async () => {
+      try {
+        await playMusic(true);
+        if (!alive) return;
+        musicStartedRef.current = true;
+        // console.log('[LandingPage] Musiikin käynnistys onnistui');
+      } catch (e) {
+        console.log('[LandingPage] Musiikin käynnistys epäonnistui:', e);
+      }
+    })();
+
+    return () => { alive = false; };
+  }, [ready, musicMuted, remoteBlock, playMusic, bootDone]);
 
   useEffect(() => {
     if (!videoPlayer) return;
 
     if (isFocused) {
       try {
-        // always start from beginning when view becomes visible
         videoPlayer.currentTime = 0;
         videoPlayer.play();
       } catch (e) {
@@ -138,22 +162,25 @@ export default function LandingPage({ navigation }) {
     }
   };
 
-  // ---- SMART PROGRESS ----
-  const startSmartProgress = (minMs = 2500, holdAt = 0.92, finishMs = 400) => {
+  // ---- SMART PROGRESS (smooth & slow) ----
+  const startSmartProgress = (minMs = 8000, holdAt = 0.9, finishMs = 1600) => {
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
 
     const start = Date.now();
     let finishing = false;
     let finishStart = 0;
 
+    let displayed = 0;     // 0..1 (näytettävä arvo)
+    const smooth = 0.08;   // pienempi = tasaisempi liike
+
     const tick = () => {
       const now = Date.now();
       const elapsed = now - start;
 
-      // base progress
+      // base kohti holdAt
       const base = Math.min(elapsed / minMs, 1) * holdAt;
 
-      // when boot is done OR remoteBlock is triggered, start finalization
+      // kun boot valmis TAI remoteBlock laukeaa → finaali
       if ((bootDoneRef.current || remoteBlockRef.current) && !finishing) {
         finishing = true;
         finishStart = now;
@@ -162,13 +189,15 @@ export default function LandingPage({ navigation }) {
       let target = base;
 
       if (finishing) {
-        const finishT = Math.min((now - finishStart) / finishMs, 1);
-        // ease-out
-        const eased = 1 - Math.pow(1 - finishT, 3);
+        const t = Math.min((now - finishStart) / finishMs, 1);
+        const eased = 1 - Math.pow(1 - t, 3); // easeOutCubic
         target = holdAt + (1 - holdAt) * eased;
       }
 
-      const pct = Math.max(0, Math.min(100, Math.round(target * 100)));
+      // suodatettu lähestyminen
+      displayed = displayed + (target - displayed) * smooth;
+
+      const pct = Math.round(Math.max(0, Math.min(100, displayed * 100)));
       setLoadingProgress(pct);
 
       if (pct < 100) {
@@ -177,10 +206,6 @@ export default function LandingPage({ navigation }) {
     };
 
     rafRef.current = requestAnimationFrame(tick);
-  };
-
-  const cacheImages = (images) => {
-    return images.map((img) => Asset.fromModule(img.display).downloadAsync());
   };
 
   // Anonymous sign-in
@@ -232,7 +257,6 @@ export default function LandingPage({ navigation }) {
   const checkRemoteUpdate = async () => {
     try {
       const config = await fetchRemoteConfig();
-      console.log('[RC] fetched', config);
       if (!config) return false;
 
       const currentVersion = Constants.expoConfig?.version ?? "0.0.0";
@@ -274,31 +298,24 @@ export default function LandingPage({ navigation }) {
     if (bootStartedRef.current) return;
     bootStartedRef.current = true;
 
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 1500,
-      useNativeDriver: true,
-    }).start();
-
+    // (Pidetään alussa näkyvänä; erillinen ulosfade myöhemmin)
     const version = Constants.expoConfig?.version ?? "0.0.0";
     setGameVersion(version);
 
     const loadAllAssets = async () => {
       try {
-        // Start smart progress: 0 -> 92% ~2.5s, then finalize in 400ms when ready
-        startSmartProgress(2500, 0.92, 400);
+        // Smooth & slow progress
+        startSmartProgress(8000, 0.9, 1600);
 
         // Remote update check in parallel (does not block navigation)
         fire("Remote update check (non-blocking)", checkRemoteUpdate);
 
-        // Lataa kuvat ja äänet valmiiksi
+        // Preload images
         await step("Preloading images & sounds", async () => {
           const allImages = [...avatars, ...PlayercardBg, ...additionalImages, ...Animations];
-          const imageAssets = cacheImages(allImages);
-          await Promise.all(imageAssets);
-          await audioManager.loadSettings(); // preload SFX ja musiikki
+          await Promise.all(cacheImages(allImages));
+          // Äänien prelaadit hoitaa AudioProvider (useAudio)
         });
-
 
         // Get or create user ID
         const userId = await step("Get or create user ID", async () => {
@@ -338,7 +355,6 @@ export default function LandingPage({ navigation }) {
               const player = playersData[playerId];
               if (player.scores) {
                 let scoresToUse = Object.values(player.scores);
-                // AllTime scoreboard, voit laajentaa monthly/weekly tarvittaessa
                 if (scoresToUse.length > 0) {
                   let bestScore = null;
                   scoresToUse.forEach(score => {
@@ -366,7 +382,7 @@ export default function LandingPage({ navigation }) {
             });
             const sorted = tmpScores.sort((a, b) => {
               if (b.points !== a.points) return b.points - a.points;
-              if (a.duration !== b.duration) return a.duration - b.duration;
+              if (a.duration !== b.duration) return a.duration - b.duration; // fixed typo
               return new Date(a.date) - new Date(b.date);
             });
             setScoreboardData(sorted);
@@ -392,16 +408,20 @@ export default function LandingPage({ navigation }) {
   // Navigate only when progress = 100, bootDone = true, and no forced update
   useEffect(() => {
     if (!remoteBlock && loadingProgress === 100 && bootDone) {
-      const t = setTimeout(() => {
-        navigation.navigate("MainApp");
-      }, 1500);
-      return () => clearTimeout(t);
+      // Hidas ulos-fade ennen navigointia → “crossfade”-fiilis yhdessä Stackin fade-transitionin kanssa
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 1200,      // hitaampi ulosfade
+        useNativeDriver: true,
+      }).start(({ finished }) => {
+        if (finished) {
+          navigation.navigate("MainApp");
+        }
+      });
     }
-  }, [remoteBlock, loadingProgress, bootDone, navigation]);
-
+  }, [remoteBlock, loadingProgress, bootDone, navigation, fadeAnim]);
 
   return (
-
     <Animated.View style={[styles.container, { opacity: fadeAnim, flex: 1, backgroundColor: '#253445', justifyContent: 'center' }]}>
       <VideoView
         player={videoPlayer}
@@ -425,7 +445,7 @@ export default function LandingPage({ navigation }) {
           <View style={{ position: "relative", marginBottom: 0 }}>
             <ProgressBar
               progress={loadingProgress / 100}
-              color="#62a346"
+              color={COLORS.success}
               style={styles.progressBar}
             />
             <View style={styles.progressOverlay}>
