@@ -1,119 +1,145 @@
 /**
  * DiceAnimation - Dice animation component for rolling dice.
- *
- * JSDoc comments and inline code comments must always be in English.
- * This file animates dice rolling using a sprite sheet for the game UI.
- * @author Sabata79
- * @since 2025-08-29
+ * Comments in English.
  */
-import { useEffect }  from 'react';
-import { Animated, Image, TouchableOpacity, View, StyleSheet,Easing } from 'react-native';
+import React, { useEffect, memo, useRef } from 'react';
+import { Animated, Image, Pressable, View, StyleSheet, Easing } from 'react-native';
 
-// Dice animation component for rolling dice
-const DiceAnimation = ({ diceName, isSelected, onSelect, animationValue, color, isRolling }) => {
-    const CONTAINER_SIZE = 58; // kasvatettu koko
+const CONTAINER_SIZE = 60;
+const TOTAL_FRAMES = 16;
+const SPRITE_SHEET = require('../../assets/Spritesheet/dice_spritesheet.webp');
+const SPRITE_WIDTH = 412;
+const SPRITE_HEIGHT = 4923;
 
-    const totalFrames = 16;
-    const SPRITE_SHEET = require('../../assets/Spritesheet/dice_spritesheet.webp');
-    const SPRITE_WIDTH = 412;  
-    const SPRITE_HEIGHT = 4923; 
+const frameHeightOriginal = SPRITE_HEIGHT / TOTAL_FRAMES;
+const scaleFactor = CONTAINER_SIZE / frameHeightOriginal;
+const scaledSpriteHeight = SPRITE_HEIGHT * scaleFactor;
 
-    const frameHeightOriginal = SPRITE_HEIGHT / totalFrames;
-    const scaleFactor = CONTAINER_SIZE / frameHeightOriginal;
-    const scaledSpriteHeight = SPRITE_HEIGHT * scaleFactor;
-    const scaledSpriteWidth = SPRITE_WIDTH * scaleFactor;
+const DiceAnimation = ({
+  diceName,
+  isSelected,
+  onSelect,
+  animationValue,
+  color,             // not used in styles below, but keep prop if you want
+  isRolling,
+  canInteract = true // new: parent can disable interaction
+}) => {
+  // Precompute translation range once
+  const translateY = animationValue.interpolate({
+    inputRange: [0, TOTAL_FRAMES - 1],
+    outputRange: [0, -CONTAINER_SIZE * (TOTAL_FRAMES - 1)],
+  });
 
-    const extraOffset = 0;
+  // Keep a ref to the loop so we can stop it safely
+  const loopRef = useRef(null);
 
-    // Interpolate the Y translation based on the animation value
-    const translateY = animationValue.interpolate({
-        inputRange: [0, totalFrames - 1],
-        outputRange: [extraOffset, -CONTAINER_SIZE * (totalFrames - 1) + extraOffset],
-    });
+  useEffect(() => {
+    if (isRolling) {
+      // No console.log here – logging inside animation loop hurts perf
+      const loop = Animated.loop(
+        Animated.timing(animationValue, {
+          toValue: TOTAL_FRAMES - 1,
+          duration: 1500,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        })
+      );
+      loopRef.current = loop;
+      loop.start();
+      return () => {
+        loop.stop();
+        loopRef.current = null;
+      };
+    } else {
+      // Ensure animation resets cleanly
+      loopRef.current?.stop?.();
+      loopRef.current = null;
+      animationValue.stopAnimation();
+      animationValue.setValue(0);
+    }
+  }, [isRolling, animationValue]);
 
-    
-    // Start the rolling animation if isRolling is true
-    useEffect(() => {
-        if (isRolling) {
-            console.log('[DiceAnimation] Render file: isRolling after if:', isRolling);
-            const loopAnimation = Animated.loop(
-                Animated.timing(animationValue, {
-                    toValue: totalFrames - 1,
-                    duration: 1500,
-                    easing: Easing.out(Easing.quad),
-                    useNativeDriver: true,
-                })
-            );
-            loopAnimation.start();
-
-            return () => loopAnimation.stop();
-        } else {
-            animationValue.stopAnimation();
-            animationValue.setValue(0);
-        }
-    }, [isRolling, animationValue, totalFrames]);
-
-    // Render dice: animated sprite when rolling, static image otherwise
-    return (
-        <View style={styles.container}>
-            <TouchableOpacity
-                onPress={onSelect}
-                activeOpacity={0.2}
-                hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
-            >
-                {isRolling ? (
-                    <View style={styles.spriteContainer}>
-                        <Animated.Image
-                            source={SPRITE_SHEET}
-                            style={{
-                                position: 'absolute',
-                                top: 0,
-                                left: 0,
-                                width: CONTAINER_SIZE,
-                                height: scaledSpriteHeight,
-                                transform: [{ translateY }],
-                            }}
-                            resizeMode="cover"
-                        />
-                    </View>
-                ) : (
-                    <Image
-                        source={diceName}
-                        style={{
-                            width: '100%',
-                            height: '100%',
-                            resizeMode: 'contain',
-                        }}
-                    />
-                )}
-                {isSelected && (
-                    <View style={[styles.overlay, { borderColor: 'green' }]} />
-                )}
-            </TouchableOpacity>
-        </View>
-    );
+  return (
+    <View style={styles.container}>
+      <Pressable
+        onPress={onSelect}
+        disabled={!canInteract}
+        android_disableSound
+        hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+        style={styles.pressArea}
+      >
+        {isRolling ? (
+          <View style={styles.spriteContainer}>
+            <Animated.Image
+              pointerEvents="none"            // do not steal touches
+              source={SPRITE_SHEET}
+              style={{
+                position: 'absolute',
+                top: 0, left: 0,
+                width: CONTAINER_SIZE,
+                height: scaledSpriteHeight,
+                transform: [{ translateY }],
+              }}
+              resizeMode="cover"
+            />
+          </View>
+        ) : (
+          <Image
+            pointerEvents="none"
+            source={diceName}
+            style={styles.staticImage}
+            resizeMode="contain"
+          />
+        )}
+        {isSelected && (
+          <View pointerEvents="none" style={styles.overlay} />
+        )}
+      </Pressable>
+    </View>
+  );
 };
 
 const styles = StyleSheet.create({
-    container: {
-        width: 60,
-        height: 60,
-        margin: 5,
-        zIndex: 2,
-    },
-    spriteContainer: {
-        width: 60,
-        height: 60,
-        overflow: 'hidden',
-    },
-    overlay: {
-        position: 'absolute',
-        width: 60,
-        height: 60,
-        backgroundColor: '#00ff112c',
-        borderWidth: 2,
-        borderRadius: 5,
-    },
+  container: {
+    width: CONTAINER_SIZE,
+    height: CONTAINER_SIZE,
+    margin: 5,
+    zIndex: 2,
+  },
+  pressArea: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 6,
+    overflow: 'hidden',
+    // small GPU hint:
+    renderToHardwareTextureAndroid: true,
+  },
+  spriteContainer: {
+    width: CONTAINER_SIZE,
+    height: CONTAINER_SIZE,
+    overflow: 'hidden',
+  },
+  staticImage: {
+    width: '100%',
+    height: '100%',
+  },
+  overlay: {
+    position: 'absolute',
+    width: CONTAINER_SIZE,
+    height: CONTAINER_SIZE,
+    backgroundColor: '#00ff112c',
+    borderWidth: 2,
+    borderColor: 'green',
+    borderRadius: 6,
+  },
 });
 
-export default DiceAnimation;
+export default memo(DiceAnimation, (a, b) => (
+  a.diceName === b.diceName &&
+  a.isSelected === b.isSelected &&
+  a.isRolling === b.isRolling &&
+  a.onSelect === b.onSelect &&
+  a.animationValue === b.animationValue &&
+  a.color === b.color &&
+  a.canInteract === b.canInteract
+));

@@ -6,7 +6,7 @@
  * @author Sabata79
  * @since 2025-08-29
  */
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { FlatList, Text, View, Pressable, ImageBackground, Animated, Dimensions } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import styles from '../styles/styles';
@@ -56,6 +56,7 @@ const RenderDices = React.memo(function RenderDices({
     scoringCategories,
     setRounds,
     diceRow,
+    endGame,
 }) {
     return (
         <View style={gameboardstyles.gameboard}>
@@ -85,6 +86,7 @@ const RenderDices = React.memo(function RenderDices({
                 styles={styles}
                 gameboardstyles={gameboardstyles}
                 MaterialCommunityIcons={MaterialCommunityIcons}
+                endGame={endGame}
             />
         </View>
     );
@@ -92,12 +94,12 @@ const RenderDices = React.memo(function RenderDices({
 
 export default function Gameboard({ route, navigation }) {
     const gameContext = useGame();
-    const { playSfx, playSelect, playDeselect } = useAudio();
+    const { playSfx, playSelect, playDeselect, playDiceTouch } = useAudio();
 
     // Adater for Gridfield
     const audioApi = useMemo(
-        () => ({ playSfx, playSelect, playDeselect }),
-        [playSfx, playSelect, playDeselect]
+        () => ({ playSfx, playSelect, playDeselect, playDiceTouch }),
+        [playSfx, playSelect, playDeselect, playDiceTouch]
     );
 
     // Selected grid field
@@ -113,6 +115,7 @@ export default function Gameboard({ route, navigation }) {
     const { gameStarted, gameEnded, startGame, endGame, totalPoints, setTotalPoints, tokens, setTokens, setEnergyModalVisible } = gameContext;
     const [elapsedTime, setElapsedTime] = useState(0);
     const [timer, setTimer] = useState(null);
+    const timerRef = useRef(null);
     const { savePlayerPoints } = GameSave({ playerId, totalPoints, elapsedTime, navigation });
 
     const [isLayerVisible, setLayerVisible] = useState(true);
@@ -252,20 +255,18 @@ export default function Gameboard({ route, navigation }) {
     const [isRolling, setIsRolling] = useState(false);
 
     const selectDice = useCallback((i) => {
-        if (nbrOfThrowsLeft < NBR_OF_THROWS) {
-            setSelectedDices(prev => {
-                const d = [...prev];
-                const willSelect = !d[i];
-                d[i] = willSelect;
-                // voice REFACTOR HERE
-                if (willSelect) { try { playSelect(); } catch { } }
-                else { try { playDeselect(); } catch { } }
-                return d;
-            });
-        } else {
-            setStatus('Game has not started');
-        }
-    }, [nbrOfThrowsLeft, playSelect, playDeselect]);
+        // allow selecting only after the first throw
+        if (nbrOfThrowsLeft >= NBR_OF_THROWS) return;
+
+        setSelectedDices(prev => {
+            const next = [...prev];
+            next[i] = !next[i];
+            return next;
+        });
+
+        // play tap sfx (ignore errors)
+        Promise.resolve(playDiceTouch?.()).catch(() => { });
+    }, [nbrOfThrowsLeft, playDiceTouch]);
 
     const getDiceColor = useCallback((index) => {
         if (board.every((v, i, arr) => v === arr[0])) return 'red';
@@ -311,6 +312,9 @@ export default function Gameboard({ route, navigation }) {
         }
     }, [tokens, setTokens, setEnergyModalVisible]);
 
+    //
+    const canSelectNow = nbrOfThrowsLeft < NBR_OF_THROWS;
+    const rollingGlobal = isRolling;
     // Prebuild dice row (stable handlers per index)
     const onSelectHandlers = useMemo(() => Array.from({ length: NBR_OF_DICES }, (_, i) => () => selectDice(i)), [selectDice]);
     const diceRow = useMemo(() => (
@@ -322,10 +326,11 @@ export default function Gameboard({ route, navigation }) {
                 onSelect={onSelectHandlers[i]}
                 animationValue={diceAnimations[i]}
                 color={getDiceColor(i)}
-                isRolling={isRolling && !selectedDices[i]}
+                isRolling={isRolling && !selectedDices[i]} // animaatiota varten
+                canInteract={canSelectNow && !rollingGlobal} // UI-gating
             />
         ))
-    ), [board, selectedDices, onSelectHandlers, diceAnimations, getDiceColor, isRolling]);
+    ), [board, selectedDices, onSelectHandlers, diceAnimations, getDiceColor, isRolling, canSelectNow, rollingGlobal]);
 
     const renderFooter = useCallback(() => (
         <RenderDices

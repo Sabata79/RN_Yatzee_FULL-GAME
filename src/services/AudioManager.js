@@ -24,6 +24,7 @@ const SFX_PATH = require('../../assets/sounds/dice-sound.mp3');
 const MUSIC_PATH = require('../../assets/sounds/ambientBG.mp3');
 const SELECT_PATH = require('../../assets/sounds/select.mp3');
 const DESELECT_PATH = require('../../assets/sounds/deselect.mp3');
+const DICE_TOUCH_PATH = require('../../assets/sounds/dicetouch.mp3');
 
 // ---- Context
 export const AudioContext = createContext(null);
@@ -32,8 +33,8 @@ export const AudioContext = createContext(null);
 export const useAudio = () => {
   const ctx = useContext(AudioContext);
   if (!ctx) {
-    const noop = async () => {};
-    const setNoop = () => {};
+    const noop = async () => { };
+    const setNoop = () => { };
     return {
       ready: false,
       musicMuted: true,
@@ -61,6 +62,7 @@ export function AudioProvider({ children }) {
 
   // ---- State
   const [ready, setReady] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
 
   const [musicMuted, setMusicMuted] = useState(false);
   const [sfxMuted, setSfxMuted] = useState(false);
@@ -72,6 +74,7 @@ export function AudioProvider({ children }) {
   const sfxSound = useRef(null);
   const selectSound = useRef(null);
   const deselectSound = useRef(null);
+  const diceTouchSound = useRef(null);
 
   // ---- Helpers to (lazy) load each sound
   const ensureMusic = useCallback(async () => {
@@ -114,11 +117,22 @@ export function AudioProvider({ children }) {
     console.log('[Audio] DESELECT loaded');
   }, [sfxMuted, sfxVolume]);
 
+  const ensureDiceTouch = useCallback(async () => {
+    if (diceTouchSound.current) return;
+    const { sound } = await Audio.Sound.createAsync(
+      DICE_TOUCH_PATH,
+      { volume: sfxMuted ? 0 : sfxVolume }
+    );
+    diceTouchSound.current = sound;
+    console.log('[Audio] DICE_TOUCH loaded');
+  }, [sfxMuted, sfxVolume]);
+
   const unloadAll = useCallback(() => {
-    musicSound.current?.unloadAsync?.();   musicSound.current = null;
-    sfxSound.current?.unloadAsync?.();     sfxSound.current = null;
-    selectSound.current?.unloadAsync?.();  selectSound.current = null;
-    deselectSound.current?.unloadAsync?.();deselectSound.current = null;
+    musicSound.current?.unloadAsync?.(); musicSound.current = null;
+    sfxSound.current?.unloadAsync?.(); sfxSound.current = null;
+    selectSound.current?.unloadAsync?.(); selectSound.current = null;
+    deselectSound.current?.unloadAsync?.(); deselectSound.current = null;
+    diceTouchSound.current?.unloadAsync?.(); diceTouchSound.current = null;
   }, []);
 
   // ---- Persisted settings → state
@@ -130,7 +144,7 @@ export function AudioProvider({ children }) {
         if (typeof volume === 'number') setSfxVolume(volume);
         if (typeof muted === 'boolean') setSfxMuted(muted);
       }
-    } catch {}
+    } catch { }
     try {
       const music = await SecureStore.getItemAsync(MUSIC_KEY);
       if (music) {
@@ -138,18 +152,19 @@ export function AudioProvider({ children }) {
         if (typeof volume === 'number') setMusicVolume(Math.round(volume * 10) / 10);
         if (typeof muted === 'boolean') setMusicMuted(muted);
       }
-    } catch {}
+    } catch { }
+    finally {
+      setHydrated(true); // <— mark settings as loaded
+    }
   }, []);
 
   // ---- INIT: audio mode, persisted settings, preload (run once)
   useEffect(() => {
-    if (didInitRef.current) return;
-    didInitRef.current = true;
-
     let alive = true;
+
     (async () => {
       try {
-        // Build a safe audioMode object (skip invalid constants on older SDKs)
+        // Safe audio mode (fall back if constants not available)
         const hasIosConst =
           typeof Audio?.INTERRUPTION_MODE_IOS_DO_NOT_MIX === 'number' ||
           typeof Audio?.INTERRUPTION_MODE_IOS_DUCK_OTHERS === 'number';
@@ -166,10 +181,10 @@ export function AudioProvider({ children }) {
             : {}),
           ...(Platform.OS === 'android' && hasAndroidConst
             ? {
-                interruptionModeAndroid: Audio.INTERRUPTION_MODE_ANDROID_DO_NOT_MIX,
-                shouldDuckAndroid: true,
-                playThroughEarpieceAndroid: false,
-              }
+              interruptionModeAndroid: Audio.INTERRUPTION_MODE_ANDROID_DO_NOT_MIX,
+              shouldDuckAndroid: true,
+              playThroughEarpieceAndroid: false,
+            }
             : {}),
         };
 
@@ -184,10 +199,16 @@ export function AudioProvider({ children }) {
           console.log('[Audio] setAudioModeAsync (fallback) OK');
         }
 
-        // 1) Load persisted settings BEFORE creating sounds
+        // 1) Load persisted settings FIRST
         await loadPersistedSettingsIntoState();
+        console.log('[Audio] loaded settings (hydrated)', {
+          musicMutedAfterLoad: musicMuted,
+          sfxMutedAfterLoad: sfxMuted,
+          musicVolumeAfterLoad: musicVolume,
+          sfxVolumeAfterLoad: sfxVolume,
+        });
 
-        // 2) Preload sounds (do not crash if one fails)
+        // 2) Then preload sounds (don’t crash if one fails)
         await Promise.allSettled([
           ensureSfx(),
           ensureSelect(),
@@ -197,10 +218,8 @@ export function AudioProvider({ children }) {
       } catch (e) {
         console.warn('[Audio] init failed (audio mode / preload)', e);
       } finally {
-        if (alive) {
-          setReady(true);
-          console.log('[Audio] ready = true');
-        }
+        // 3) Only now mark the audio system as ready
+        if (alive) setReady(true);
       }
     })();
 
@@ -208,8 +227,10 @@ export function AudioProvider({ children }) {
       alive = false;
       unloadAll();
     };
-    // Intentionally empty deps: run exactly once (guarded by didInitRef)
-  }, []);
+    // Keep these deps so the effect sees the correct functions,
+    // but it still runs only once at mount time.
+  }, [ensureSfx, ensureSelect, ensureDeselect, ensureMusic, unloadAll, loadPersistedSettingsIntoState]);
+
 
   // ---- Actions
   const playMusic = useCallback(async (fadeIn = false) => {
@@ -238,7 +259,7 @@ export function AudioProvider({ children }) {
   }, [musicMuted, ready, ensureMusic, musicVolume]);
 
   const stopMusic = useCallback(async () => {
-    try { await musicSound.current?.stopAsync?.(); } catch {}
+    try { await musicSound.current?.stopAsync?.(); } catch { }
   }, []);
 
   const playSelect = useCallback(async () => {
@@ -248,7 +269,7 @@ export function AudioProvider({ children }) {
     if (!snd) return;
     try {
       // Make sure it always starts from the beginning
-      await snd.stopAsync().catch(() => {});
+      await snd.stopAsync().catch(() => { });
       await snd.setStatusAsync({
         volume: sfxMuted ? 0 : sfxVolume,
         positionMillis: 0,
@@ -265,7 +286,7 @@ export function AudioProvider({ children }) {
     const snd = sfxSound.current;
     if (!snd) return;
     try {
-      await snd.stopAsync().catch(() => {});
+      await snd.stopAsync().catch(() => { });
       await snd.setStatusAsync({
         volume: sfxMuted ? 0 : sfxVolume,
         positionMillis: 0,
@@ -284,48 +305,68 @@ export function AudioProvider({ children }) {
     try {
       await sound.setStatusAsync({ volume: sfxVolume });
       await sound.replayAsync();
-    } catch {}
+    } catch { }
   }, [ensureDeselect, sfxMuted, sfxVolume]);
 
   // Prewarm small samples so the first press is instant (Android sometimes needs this)
   const prewarmSfx = useCallback(async () => {
-    await Promise.allSettled([ensureSfx(), ensureSelect(), ensureDeselect()]);
+    await Promise.allSettled([
+      ensureSfx(), ensureSelect(), ensureDeselect(), ensureDiceTouch()
+    ]);
     try {
-      const snd = selectSound.current;
-      if (snd) {
+      const warm = async (snd) => {
+        if (!snd) return;
         await snd.setStatusAsync({ volume: 0, positionMillis: 0, shouldPlay: true });
         await snd.stopAsync();
         await snd.setStatusAsync({ volume: sfxMuted ? 0 : sfxVolume });
-      }
-    } catch {}
-  }, [ensureSfx, ensureSelect, ensureDeselect, sfxMuted, sfxVolume]);
+      };
+      await warm(selectSound.current);
+      await warm(diceTouchSound.current);
+    } catch { }
+  }, [ensureSfx, ensureSelect, ensureDeselect, ensureDiceTouch, sfxMuted, sfxVolume]);
 
   // ---- Persist & apply volumes/mutes
+
+  // MUSIC persist/apply
   useEffect(() => {
-    // MUSIC
+    if (!hydrated) return;             // <— guard
     const v = musicMuted ? 0 : musicVolume;
     musicSound.current?.setStatusAsync?.({ volume: v });
-    SecureStore.setItemAsync(MUSIC_KEY, JSON.stringify({
-      volume: musicVolume, muted: musicMuted
-    })).catch(() => {});
-    // Auto-resume when unmuted and ready
+    SecureStore.setItemAsync(MUSIC_KEY, JSON.stringify({ volume: musicVolume, muted: musicMuted }))
+      .catch(() => { });
     if (!musicMuted && ready) {
       musicSound.current?.getStatusAsync?.().then(st => {
         if (!st?.isPlaying) playMusic(false);
-      }).catch(() => {});
+      }).catch(() => { });
     }
-  }, [musicMuted, musicVolume, ready, playMusic]);
+  }, [musicMuted, musicVolume, ready, playMusic, hydrated]);
 
+  // SFX persist/apply
   useEffect(() => {
-    // SFX
+    if (!hydrated) return;             // <— guard
     const v = sfxMuted ? 0 : sfxVolume;
     sfxSound.current?.setStatusAsync?.({ volume: v });
     selectSound.current?.setStatusAsync?.({ volume: v });
     deselectSound.current?.setStatusAsync?.({ volume: v });
-    SecureStore.setItemAsync(SFX_KEY, JSON.stringify({
-      volume: sfxVolume, muted: sfxMuted
-    })).catch(() => {});
-  }, [sfxMuted, sfxVolume]);
+    SecureStore.setItemAsync(SFX_KEY, JSON.stringify({ volume: sfxVolume, muted: sfxMuted }))
+      .catch(() => { });
+  }, [sfxMuted, sfxVolume, hydrated]);
+
+  const playDiceTouch = useCallback(async () => {
+    if (sfxMuted) return;
+    await ensureDiceTouch();
+    const snd = diceTouchSound.current;
+    if (!snd) return;
+    try {
+      // always restart from the beginning
+      await snd.stopAsync().catch(() => { });
+      await snd.setStatusAsync({
+        volume: sfxMuted ? 0 : sfxVolume,
+        positionMillis: 0,
+        shouldPlay: true,
+      });
+    } catch { }
+  }, [sfxMuted, sfxVolume, ensureDiceTouch]);
 
   const value = {
     // state
@@ -337,7 +378,7 @@ export function AudioProvider({ children }) {
     // actions
     playMusic, stopMusic,
     playSfx, playSelect, playDeselect,
-    prewarmSfx,
+    prewarmSfx, playDiceTouch,
   };
 
   return (
@@ -349,8 +390,8 @@ export function AudioProvider({ children }) {
 
 // ---- Legacy default export (no-ops). Prefer: const {playSelect} = useAudio()
 const legacy = {
-  playSfx: async () => {}, playSelect: async () => {}, playDeselect: async () => {},
-  playMusic: async () => {}, stopMusic: async () => {},
-  setMusicMuted: () => {}, setSfxMuted: () => {},
+  playSfx: async () => { }, playSelect: async () => { }, playDeselect: async () => { },
+  playMusic: async () => { }, stopMusic: async () => { },
+  setMusicMuted: () => { }, setSfxMuted: () => { },
 };
 export default legacy;

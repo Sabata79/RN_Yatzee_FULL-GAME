@@ -1,27 +1,15 @@
 /**
- * GameSave.js - Utility for saving player scores and game progress (screen version)
- *
- * Provides functions for saving player scores to the database and secure storage.
- *
- * Usage:
- *   import GameSave from './GameSave';
- *   ...
- *   <GameSave totalPoints={...} />
- *
- * @module screens/GameSave
- * @author Sabata79
- * @since 2025-09-06
+ * GameSave.js - Save player scores & duration
  */
-// GameSave utility for saving player scores
 import * as SecureStore from 'expo-secure-store';
 import { useGame } from '../constants/GameContext';
 import { dbGet, dbSet, dbRef, push } from '../services/Firebase';
 import { TOPSCORELIMIT } from '../constants/Game';
 
-const GameSave = ({ totalPoints }) => {
+const GameSave = ({ totalPoints, durationOverride } = {}) => {
   const { playerId, elapsedTime, saveGame } = useGame();
 
-  // Fallback: if playerId is missing from context, fetch from SecureStore
+  // Fallback: if playerId missing in context, read from SecureStore
   const resolvePlayerId = async () => {
     if (playerId) return playerId;
     try {
@@ -38,51 +26,65 @@ const GameSave = ({ totalPoints }) => {
       console.error('Player ID is missing in GameSave.');
       return false;
     }
-    if (totalPoints === undefined || totalPoints === null) {
-      console.error('Total points is undefined or null');
+    if (typeof totalPoints !== 'number') {
+      console.error('Total points is undefined or not a number');
       return false;
     }
 
     try {
-  // Fetch player data
+      // Fetch player data
       const snap = await dbGet(`players/${uid}`);
-      const playerData = snap.val();
+      const playerData = snap.val() || {};
 
-      if (!playerData) {
-        console.error('Player data not found');
-        return false;
-      }
+      // Preserve existing keys from the DB
+      const prevEntries = playerData.scores
+        ? Object.entries(playerData.scores).map(([key, val]) => ({
+            ...val,
+            key: val?.key || key,
+          }))
+        : [];
 
-  // Create a new key for the score
+      // Create a key for the new score
       const scoresPath = `players/${uid}/scores`;
       const newRef = push(dbRef(scoresPath));
       const newKey = newRef.key;
 
       const now = new Date();
-      const formattedDate = `${now.getDate()}.${now.getMonth() + 1}.${now.getFullYear()}`;
+      const formattedDate = now.toLocaleDateString('fi-FI');
+
+      const duration =
+        typeof durationOverride === 'number'
+          ? durationOverride
+          : typeof elapsedTime === 'number'
+          ? elapsedTime
+          : 0;
 
       const playerPoints = {
         key: newKey,
         date: formattedDate,
         time: now.toLocaleTimeString(),
         points: totalPoints,
-        duration: elapsedTime,
+        duration, // <- save elapsed time here
       };
 
-  // Update top scores (merge old + new, sort, limit)
-      const prevScores = playerData.scores ? Object.values(playerData.scores) : [];
-      const updatedScores = [...prevScores, playerPoints].sort((a, b) => b.points - a.points);
-      const topScores = updatedScores.slice(0, TOPSCORELIMIT);
+      // Merge + sort + limit
+      const updated = [...prevEntries, playerPoints]
+        .sort((a, b) => {
+          if (b.points !== a.points) return b.points - a.points;              // higher points first
+          if ((a.duration ?? 0) !== (b.duration ?? 0)) return (a.duration ?? 0) - (b.duration ?? 0); // shorter duration wins
+          return new Date(a.date) - new Date(b.date);                          // earlier date wins
+        })
+        .slice(0, TOPSCORELIMIT);
 
-  // Write back as an object with keys
-      const scoresObj = topScores.reduce((acc, s) => {
+      // Write back as { key: score, ... }
+      const scoresObj = updated.reduce((acc, s) => {
         acc[s.key] = s;
         return acc;
       }, {});
 
       await dbSet(scoresPath, scoresObj);
 
-  // Mark the game as saved
+      // Mark the game as saved (if provided in context)
       if (typeof saveGame === 'function') saveGame();
 
       return true;
