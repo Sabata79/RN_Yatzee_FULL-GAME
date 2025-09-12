@@ -39,7 +39,7 @@ const DiceAnimation = ({
       const loopAnimation = Animated.loop(
         Animated.timing(animationValue, {
           toValue: totalFrames - 1,
-          duration: 1500,
+          duration: 500,
           easing: Easing.out(Easing.quad),
           useNativeDriver: true,
         })
@@ -98,20 +98,20 @@ const DiceAnimation = ({
 
 const styles = StyleSheet.create({
   container: {
-    width: 60,
-    height: 60,
+    width: 55,
+    height: 55,
     margin: 5,
     zIndex: 2,
   },
   spriteContainer: {
-    width: 60,
-    height: 60,
+    width: 56,
+    height: 56,
     overflow: 'hidden',
   },
   overlay: {
     position: 'absolute',
-    width: 60,
-    height: 60,
+    width: 55,
+    height: 55,
     backgroundColor: '#00ff112c',
     borderWidth: 2,
     borderRadius: 5,

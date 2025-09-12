@@ -39,8 +39,6 @@ const isSmallScreen = height < 720;
 
 // Footer with dice row and buttons
 const RenderDices = React.memo(function RenderDices({
-  status,
-  setStatus,
   rounds,
   nbrOfThrowsLeft,
   setNbrOfThrowsLeft,
@@ -57,15 +55,13 @@ const RenderDices = React.memo(function RenderDices({
   diceRow,
 }) {
   return (
-    <View style={gameboardstyles.gameboard}>
-      <Text style={styles.status}>{status}</Text>
+    <View style={gameboardstyles.footerWrap}>
       <View style={gameboardstyles.diceBorder}>
         <View style={[gameboardstyles.gameboardContainer, { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }]}>
           {diceRow}
         </View>
       </View>
       <GameboardButtons
-        status={status}
         rounds={rounds}
         nbrOfThrowsLeft={nbrOfThrowsLeft}
         savePlayerPoints={savePlayerPoints}
@@ -121,7 +117,6 @@ export default function Gameboard({ route, navigation }) {
 
   // Game logic state
   const [nbrOfThrowsLeft, setNbrOfThrowsLeft] = useState(NBR_OF_THROWS);
-  const [status, setStatus] = useState('Throw the dices');
   const [selectedDices, setSelectedDices] = useState(new Array(NBR_OF_DICES).fill(false));
   const resetDiceSelection = useCallback(() => setSelectedDices(new Array(NBR_OF_DICES).fill(false)), []);
   const [rounds, setRounds] = useState(MAX_SPOTS);
@@ -295,7 +290,6 @@ export default function Gameboard({ route, navigation }) {
         setIsRolling(false);
       }, 500);
     } else {
-      setStatus('No throws left');
       setNbrOfThrowsLeft(NBR_OF_THROWS);
     }
   }, [nbrOfThrowsLeft, selectedDices, rolledDices, checkAndUnlockYatzy, playSfx]);
@@ -303,7 +297,6 @@ export default function Gameboard({ route, navigation }) {
   const handleStartGame = useCallback(() => {
     if (tokens > 0) {
       setLayerVisible(false);
-      setStatus('Throw the dices');
       setTokens((prev) => prev - 1);
     } else {
       setEnergyModalVisible(true);
@@ -338,8 +331,6 @@ export default function Gameboard({ route, navigation }) {
   const renderFooter = useCallback(
     () => (
       <RenderDices
-        status={status}
-        setStatus={setStatus}
         rounds={rounds}
         nbrOfThrowsLeft={nbrOfThrowsLeft}
         setNbrOfThrowsLeft={setNbrOfThrowsLeft}
@@ -363,7 +354,6 @@ export default function Gameboard({ route, navigation }) {
       />
     ),
     [
-      status,
       rounds,
       nbrOfThrowsLeft,
       resetGame,
@@ -406,7 +396,6 @@ export default function Gameboard({ route, navigation }) {
               selectedField={selectedField}
               setSelectedField={setSelectedField}
               audioManager={audioApi}
-              setStatus={setStatus}
               isSmallScreen={isSmallScreen}
               gameboardstyles={gameboardstyles}
               rolledDices={rolledDices}
@@ -422,7 +411,6 @@ export default function Gameboard({ route, navigation }) {
           ListEmptyComponent={null}
           ListHeaderComponent={<RenderFirstRow rounds={rounds} />}
           ListFooterComponent={renderFooter}
-          ListFooterComponentStyle={gameboardstyles.gameboardContainer}
           extraData={{ scoringCategories, totalPoints, minorPoints, selectedField, nbrOfThrowsLeft, rounds }}
         />
       </View>

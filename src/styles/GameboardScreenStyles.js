@@ -64,14 +64,14 @@ const styles = StyleSheet.create({
         backgroundColor: COLORS.success,
     },
     diceBorder: {
-        width: '94%',
+        width: '84%',
         height: isSmallScreen ? 60 : 75,
         borderWidth: 2,
         borderColor: '#ccc9c9',
         borderRadius: 4,
         alignItems: 'center',
         backgroundColor: '#000000',
-        marginTop: -75,
+        marginTop: '-65%',
     },
     filterLayer: {
         position: 'absolute',
@@ -191,6 +191,26 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         color: COLORS.textLight,
         marginTop: -7,
+    },
+    // NEW: a light wrapper for the footer (dice row + buttons)
+    footerWrap: {
+        alignItems: 'center',
+        paddingVertical: 8,
+        // IMPORTANT: do NOT put flex:1 here
+    },
+
+    // FIX: dice area box, no negative margin, center content
+    diceBorder: {
+        width: '90%',
+        height: 75, // tai laske isSmallScreen mukaan jos haluat
+        borderWidth: 2,
+        borderColor: '#ccc9c9',
+        borderRadius: 6,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: COLORS.black,
+        marginTop: 8,     // small, positive spacing
+        marginBottom: 2,  // small, positive spacing
     },
 });
 
