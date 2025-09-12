@@ -38,6 +38,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         width: '96%',
+        minHeight: 132
     },
     buttonWrapper: {
         width: '47%',

@@ -1,93 +1,73 @@
 /**
  * RenderFirstRow - Renders the top row of the game UI, including timer and category labels.
- *
- * Shows an animated timer and "Minor / Major" labels.
- * Time is live-synced to GameContext every second while the game is running.
- * The timer is reset and started when the game starts, and paused when the game ends.
- *
+ * Uses a stopwatch and writes elapsed seconds into GameContext.
+ * Stops immediately when `rounds` reaches 0.
  * @author Sabata79
  * @since 2025-08-29
  */
 import { useEffect, useState } from 'react';
 import { View, Text, Animated } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useStopwatch } from 'react-timer-hook';
 import { useGame } from '../constants/GameContext';
+import { useStopwatch } from 'react-timer-hook';
 import firstRowStyles from '../styles/FirstRowStyles';
 import COLORS from '../constants/colors';
 
-export default function RenderFirstRow() {
-  const { gameStarted, gameEnded, setElapsedTimeContext } = useGame();
-
-  // Stopwatch from react-timer-hook
+export default function RenderFirstRow({ rounds = null }) {
+  const { gameStarted, gameEnded, setElapsedTimeContext, isGameSaved, setIsGameSaved } = useGame();
   const { totalSeconds, start, reset, pause } = useStopwatch({ autoStart: false });
 
-  // Local UI state
-  const [hasStarted, setHasStarted] = useState(false);
+  // Timer color mapping
+  let timerColor = COLORS.success;
+  if (totalSeconds > 300) timerColor = COLORS.error;
+  else if (totalSeconds > 150) timerColor = COLORS.warning;
+
+  // Local glow effect
   const [glowAnim] = useState(new Animated.Value(1));
   const MAX_SECS = 9999;
 
-  // Timer color thresholds
-  let timerColor = COLORS.success;
-  if (totalSeconds > 300) {
-    timerColor = COLORS.error;
-  } else if (totalSeconds > 150) {
-    timerColor = COLORS.warning;
-  }
-
-  // Start/stop timer and glow based on game state
+  // Start on game start
   useEffect(() => {
-    if (gameStarted && !hasStarted) {
-      // Ensure timer starts from zero for each new game
-      reset(0, false);
+    if (gameStarted) {
       start();
-      setHasStarted(true);
-      startGlowEffect();
-    } else if (gameEnded && hasStarted) {
-      pause();
-      stopGlowEffect();
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(glowAnim, { toValue: 1.3, duration: 500, useNativeDriver: true }),
+          Animated.timing(glowAnim, { toValue: 1, duration: 500, useNativeDriver: true }),
+        ])
+      ).start();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gameStarted, gameEnded, hasStarted, start, pause, reset]);
+  }, [gameStarted, start, glowAnim]);
 
-  // Live-sync totalSeconds to GameContext while the game is running
+  // Stop immediately when rounds are over
   useEffect(() => {
-    if (gameStarted && !gameEnded) {
+    if (rounds === 0) {
+      pause();
       setElapsedTimeContext(totalSeconds);
     }
-  }, [totalSeconds, gameStarted, gameEnded, setElapsedTimeContext]);
+  }, [rounds, pause, totalSeconds, setElapsedTimeContext]);
 
-  // Cap timer at MAX_SECS as a safety guard
+  // Cap to MAX_SECS and sync to context
   useEffect(() => {
     if (totalSeconds >= MAX_SECS) {
       pause();
       setElapsedTimeContext(MAX_SECS);
+    } else {
+      setElapsedTimeContext(totalSeconds);
     }
   }, [totalSeconds, pause, setElapsedTimeContext]);
 
-  // Start glowing animation
-  const startGlowEffect = () => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(glowAnim, {
-          toValue: 1.3,
-          duration: 500,
-          useNativeDriver: true,
-        }),
-        Animated.timing(glowAnim, {
-          toValue: 1,
-          duration: 500,
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
-  };
-
-  // Stop glowing animation
-  const stopGlowEffect = () => {
-    glowAnim.stopAnimation();
-    glowAnim.setValue(1);
-  };
+  // Reset after score save
+  useEffect(() => {
+    if (isGameSaved) {
+      pause();
+      reset();
+      setElapsedTimeContext(0);
+      setIsGameSaved(false);
+      glowAnim.stopAnimation();
+      glowAnim.setValue(1);
+    }
+  }, [isGameSaved, pause, reset, setElapsedTimeContext, setIsGameSaved, glowAnim]);
 
   return (
     <View style={firstRowStyles.firstRow}>
