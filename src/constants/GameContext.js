@@ -6,8 +6,7 @@
  * @author Sabata79
  * @since 2025-08-29
  */
-// Game context provider for global state management
-import { createContext, useState, useContext, useEffect, useMemo } from 'react';
+import { createContext, useState, useContext, useEffect, useMemo, useRef } from 'react';
 import { dbOnValue, dbOff, dbGet, dbSet } from '../services/Firebase';
 import { MAX_TOKENS } from './Game';
 
@@ -16,7 +15,6 @@ export const useGame = () => useContext(GameContext);
 
 export const GameProvider = ({ children }) => {
   const [playerId, setPlayerId] = useState('');
-  // Scoreboard data for global sharing
   const [scoreboardData, setScoreboardData] = useState([]);
   const [playerName, setPlayerName] = useState('');
   const [playerIdContext, setPlayerIdContext] = useState('');
@@ -33,8 +31,11 @@ export const GameProvider = ({ children }) => {
   const [avatarUrl, setAvatarUrl] = useState('');
   const [isAvatarLoaded, setIsAvatarLoaded] = useState(false);
   const [userRecognized, setUserRecognized] = useState(false);
+
+  // IMPORTANT: tokens state
   const [tokens, setTokens] = useState(null);
-  // const [videoTokens, setVideoTokens] = useState(0);
+  const hydratedRef = useRef(false); // becomes true after first Firebase tokens snapshot
+
   const [energyModalVisible, setEnergyModalVisible] = useState(false);
   const [isLinked, setIsLinked] = useState(false);
   const [playerLevel, setPlayerLevel] = useState('');
@@ -43,6 +44,7 @@ export const GameProvider = ({ children }) => {
   const [currentLevel, setCurrentLevel] = useState('');
   const [nextLevel, setNextLevel] = useState('');
   const [allTimeRank, setAllTimeRank] = useState('--');
+
   const [nextTokenTime, setNextTokenTime] = useState(null);
   const [timeToNextToken, setTimeToNextToken] = useState('');
 
@@ -56,7 +58,7 @@ export const GameProvider = ({ children }) => {
     return dateA < dateB;
   };
 
-  // All Time Rank listener
+  // ----- All Time Rank listener -----
   useEffect(() => {
     if (!playerId) return;
     const path = 'players';
@@ -98,7 +100,7 @@ export const GameProvider = ({ children }) => {
     return () => dbOff(path, handleValue);
   }, [playerId]);
 
-  // Scoreboard listener
+  // ----- Scoreboard listener -----
   useEffect(() => {
     const handle = (snapshot) => {
       const playersData = snapshot.val();
@@ -147,7 +149,7 @@ export const GameProvider = ({ children }) => {
     return () => { if (typeof unsubscribe === 'function') unsubscribe(); };
   }, []);
 
-  //Player level listener
+  // ----- Player level listener -----
   useEffect(() => {
     if (!playerId) return;
     const path = `players/${playerId}/level`;
@@ -160,7 +162,7 @@ export const GameProvider = ({ children }) => {
     return () => dbOff(path, handleValue);
   }, [playerId]);
 
-  // Avatar listener
+  // ----- Avatar listener -----
   useEffect(() => {
     if (!playerId) return;
     const path = `players/${playerId}/avatar`;
@@ -175,16 +177,38 @@ export const GameProvider = ({ children }) => {
     return () => dbOff(path, handleValue);
   }, [playerId]);
 
-  const updateTokensInFirebase = async () => {
-    if (playerId && tokens !== null) {
-      await dbSet(`players/${playerId}/tokens`, tokens);
-    }
-  };
-
+  // ===== TOKENS: Realtime listener (this was missing) =====
   useEffect(() => {
-    updateTokensInFirebase();
-  }, [tokens]);
+    if (!playerId) return;
 
+    const path = `players/${playerId}/tokens`;
+    const handleTokens = (snapshot) => {
+      const raw = snapshot.val();
+      const n = Number.isFinite(raw) ? raw : 0;
+      const clamped = Math.max(0, Math.min(MAX_TOKENS, Math.trunc(n)));
+      setTokens(clamped);
+      hydratedRef.current = true; // mark that we have an authoritative value from Firebase
+    };
+
+    const unsubscribe = dbOnValue(path, handleTokens);
+    return () => { 
+      hydratedRef.current = false;
+      if (typeof unsubscribe === 'function') unsubscribe(); 
+      else dbOff(path, handleTokens); 
+    };
+  }, [playerId]);
+
+  // Write-through on local changes (after hydration)
+  useEffect(() => {
+    if (!playerId) return;
+    if (!hydratedRef.current) return; // avoid writing before first server value
+    if (tokens == null) return;
+
+    const clamped = Math.max(0, Math.min(MAX_TOKENS, Math.trunc(tokens)));
+    dbSet(`players/${playerId}/tokens`, clamped).catch(() => {});
+  }, [playerId, tokens]);
+
+  // ----- Level helpers -----
   const getCurrentLevel = (points) => {
     if (points <= 400) return 'Beginner';
     if (points <= 800) return 'Basic';
@@ -212,78 +236,78 @@ export const GameProvider = ({ children }) => {
     setPlayerName(name);
   };
 
-const contextValue = useMemo(() => ({
-  playerLevel,
-  setPlayerLevel,
-  playerId,
-  setPlayerId,
-  playerName,
-  setPlayerName,
-  playerIdContext,
-  setPlayerIdContext,
-  playerNameContext,
-  setPlayerNameContext,
-  activePlayerId,
-  setActivePlayer,
-  playerScores,
-  setPlayerScores,
-  gameStarted,
-  gameEnded,
-  startGame: () => {
-    setGameStarted(true);
-    setGameEnded(false);
-    setElapsedTime(0);
-  },
-  endGame: () => {
-    setGameEnded(true);
-    setGameStarted(false);
-  },
-  totalPoints,
-  setTotalPoints,
-  elapsedTime,
-  setElapsedTime,
-  setElapsedTimeContext: setElapsedTime,
-  isGameSaved,
-  setIsGameSaved,
-  saveGame: () => setIsGameSaved(true),
-  userRecognized,
-  setUserRecognized,
-  viewingPlayerId,
-  viewingPlayerName,
-  setViewingPlayerId,
-  setViewingPlayerName,
-  resetViewingPlayer: () => {
-    setViewingPlayerId(null);
-    setViewingPlayerName(null);
-  },
-  timeToNextToken,
-  setTimeToNextToken,
-  nextTokenTime,
-  setNextTokenTime,
-  tokens,
-  setTokens,
-  energyModalVisible,
-  setEnergyModalVisible,
-  isLinked,
-  setIsLinked,
-  gameVersion,
-  setGameVersion,
-  progressPoints,
-  setProgressPoints: updateProgressPoints,
-  currentLevel,
-  nextLevel,
-  allTimeRank,
-  avatarUrl,
-  setAvatarUrl,
-  isAvatarLoaded,
-  scoreboardData,
-  setScoreboardData,
-}), [
-  playerLevel, playerId, playerName, playerIdContext, playerNameContext, activePlayerId, playerScores,
-  gameStarted, gameEnded, totalPoints, elapsedTime, isGameSaved, userRecognized, viewingPlayerId, viewingPlayerName,
-  timeToNextToken, nextTokenTime, tokens, energyModalVisible, isLinked, gameVersion, progressPoints,
-  currentLevel, nextLevel, allTimeRank, avatarUrl, isAvatarLoaded, scoreboardData
-]);
+  const contextValue = useMemo(() => ({
+    playerLevel,
+    setPlayerLevel,
+    playerId,
+    setPlayerId,
+    playerName,
+    setPlayerName,
+    playerIdContext,
+    setPlayerIdContext,
+    playerNameContext,
+    setPlayerNameContext,
+    activePlayerId,
+    setActivePlayer,
+    playerScores,
+    setPlayerScores,
+    gameStarted,
+    gameEnded,
+    startGame: () => {
+      setGameStarted(true);
+      setGameEnded(false);
+      setElapsedTime(0);
+    },
+    endGame: () => {
+      setGameEnded(true);
+      setGameStarted(false);
+    },
+    totalPoints,
+    setTotalPoints,
+    elapsedTime,
+    setElapsedTime,
+    setElapsedTimeContext: setElapsedTime,
+    isGameSaved,
+    setIsGameSaved,
+    saveGame: () => setIsGameSaved(true),
+    userRecognized,
+    setUserRecognized,
+    viewingPlayerId,
+    viewingPlayerName,
+    setViewingPlayerId,
+    setViewingPlayerName,
+    resetViewingPlayer: () => {
+      setViewingPlayerId(null);
+      setViewingPlayerName(null);
+    },
+    timeToNextToken,
+    setTimeToNextToken,
+    nextTokenTime,
+    setNextTokenTime,
+    tokens,
+    setTokens,
+    energyModalVisible,
+    setEnergyModalVisible,
+    isLinked,
+    setIsLinked,
+    gameVersion,
+    setGameVersion,
+    progressPoints,
+    setProgressPoints: updateProgressPoints,
+    currentLevel,
+    nextLevel,
+    allTimeRank,
+    avatarUrl,
+    setAvatarUrl,
+    isAvatarLoaded,
+    scoreboardData,
+    setScoreboardData,
+  }), [
+    playerLevel, playerId, playerName, playerIdContext, playerNameContext, activePlayerId, playerScores,
+    gameStarted, gameEnded, totalPoints, elapsedTime, isGameSaved, userRecognized, viewingPlayerId, viewingPlayerName,
+    timeToNextToken, nextTokenTime, tokens, energyModalVisible, isLinked, gameVersion, progressPoints,
+    currentLevel, nextLevel, allTimeRank, avatarUrl, isAvatarLoaded, scoreboardData
+  ]);
 
-return <GameContext.Provider value={contextValue}>{children}</GameContext.Provider>;
+  return <GameContext.Provider value={contextValue}>{children}</GameContext.Provider>;
 };
