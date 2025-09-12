@@ -12,7 +12,6 @@
  * @author Sabata79
  * @since 2025-09-06
  */
-// LandingPage screen: handles app boot, progress, and remote config
 import React, { useState, useEffect, useRef } from "react";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { View, Text, Image, Animated, Alert, Linking } from "react-native";
@@ -50,7 +49,7 @@ const cacheImages = (images) => {
 
 export default function LandingPage({ navigation }) {
   const insets = useSafeAreaInsets();
-  const [fadeAnim] = useState(new Animated.Value(1)); // näkyvissä alussa
+  const [fadeAnim] = useState(new Animated.Value(1));
   const [loadingProgress, setLoadingProgress] = useState(0); // 0..100
   const [bootDone, setBootDone] = useState(false); // all boot tasks done
   const [remoteBlock, setRemoteBlock] = useState(false);
@@ -75,7 +74,7 @@ export default function LandingPage({ navigation }) {
     setPlayerId,
     setPlayerName,
     setIsLinked,
-    setPlayerLevel, // optional
+    setPlayerLevel,
     setGameVersion,
     gameVersion,
     setScoreboardData,
@@ -115,9 +114,9 @@ export default function LandingPage({ navigation }) {
         await playMusic(true);
         if (!alive) return;
         musicStartedRef.current = true;
-        // console.log('[LandingPage] Musiikin käynnistys onnistui');
+        // console.log('[LandingPage]Music started');
       } catch (e) {
-        console.log('[LandingPage] Musiikin käynnistys epäonnistui:', e);
+        console.log('[LandingPage]Music start failed:', e);
       }
     })();
 
@@ -170,17 +169,15 @@ export default function LandingPage({ navigation }) {
     let finishing = false;
     let finishStart = 0;
 
-    let displayed = 0;     // 0..1 (näytettävä arvo)
-    const smooth = 0.08;   // pienempi = tasaisempi liike
+    let displayed = 0;
+    const smooth = 0.08;
 
     const tick = () => {
       const now = Date.now();
       const elapsed = now - start;
-
-      // base kohti holdAt
       const base = Math.min(elapsed / minMs, 1) * holdAt;
 
-      // kun boot valmis TAI remoteBlock laukeaa → finaali
+      // when boot or remote block done, start finishing
       if ((bootDoneRef.current || remoteBlockRef.current) && !finishing) {
         finishing = true;
         finishStart = now;
@@ -190,7 +187,7 @@ export default function LandingPage({ navigation }) {
 
       if (finishing) {
         const t = Math.min((now - finishStart) / finishMs, 1);
-        const eased = 1 - Math.pow(1 - t, 3); // easeOutCubic
+        const eased = 1 - Math.pow(1 - t, 3);
         target = holdAt + (1 - holdAt) * eased;
       }
 
@@ -217,7 +214,7 @@ export default function LandingPage({ navigation }) {
       setPlayerId(uid);
       return uid;
     } catch (error) {
-      console.error("Anonyymin kirjautumisen virhe:", error);
+      console.error("Anynomous sign-in error:", error);
       return null;
     }
   };
@@ -298,7 +295,6 @@ export default function LandingPage({ navigation }) {
     if (bootStartedRef.current) return;
     bootStartedRef.current = true;
 
-    // (Pidetään alussa näkyvänä; erillinen ulosfade myöhemmin)
     const version = Constants.expoConfig?.version ?? "0.0.0";
     setGameVersion(version);
 
@@ -314,7 +310,6 @@ export default function LandingPage({ navigation }) {
         await step("Preloading images & sounds", async () => {
           const allImages = [...avatars, ...PlayercardBg, ...additionalImages, ...Animations];
           await Promise.all(cacheImages(allImages));
-          // Äänien prelaadit hoitaa AudioProvider (useAudio)
         });
 
         // Get or create user ID
@@ -382,7 +377,7 @@ export default function LandingPage({ navigation }) {
             });
             const sorted = tmpScores.sort((a, b) => {
               if (b.points !== a.points) return b.points - a.points;
-              if (a.duration !== b.duration) return a.duration - b.duration; // fixed typo
+              if (a.duration !== b.duration) return a.duration - b.duration;
               return new Date(a.date) - new Date(b.date);
             });
             setScoreboardData(sorted);
@@ -391,7 +386,7 @@ export default function LandingPage({ navigation }) {
           }
         });
 
-        // Kaikki boot-työt valmiit
+        // All boot tasks done
         setBootDone(true);
       } catch (error) {
         console.error("Asset loading failed:", error);
@@ -408,7 +403,6 @@ export default function LandingPage({ navigation }) {
   // Navigate only when progress = 100, bootDone = true, and no forced update
   useEffect(() => {
     if (!remoteBlock && loadingProgress === 100 && bootDone) {
-      // Hidas ulos-fade ennen navigointia → “crossfade”-fiilis yhdessä Stackin fade-transitionin kanssa
       Animated.timing(fadeAnim, {
         toValue: 0,
         duration: 1200,      // hitaampi ulosfade
