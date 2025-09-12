@@ -32,19 +32,18 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.lg,
     alignSelf: 'center',
   },
-  homeBackground: {
+  overlayTransparent: {
     flex: 1,
-    justifyContent: 'flex-start',
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
-    backgroundColor: 'transparent',
+    backgroundColor: 'red',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   homeContainer: {
     width: '100%',
     alignItems: 'center',
     backgroundColor: 'transparent',
     borderRadius: 10,
+    marginTop: 50,
   },
   tokenText: {
     fontFamily: TYPOGRAPHY.fontFamily.montserratBold,
@@ -69,7 +68,6 @@ const styles = StyleSheet.create({
   },
   hiThereImage: {
     position: 'relative',
-    zIndex: 0,
     left: 0,
     right: 0,
     top: 10,
@@ -96,14 +94,6 @@ const styles = StyleSheet.create({
     fontFamily: TYPOGRAPHY.fontFamily.montserrat,
     marginRight: SPACING.xs,
     zIndex: 1,
-  },
-  backgroundVideo: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: -1,
   },
 });
 

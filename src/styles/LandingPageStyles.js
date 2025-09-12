@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: COLORS.accent, 
+    backgroundColor: 'transparent', 
   },
   logoContainer: {
     alignItems: "center",
@@ -92,7 +92,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   progressPercentText: {
-    color: COLORS.textLight,
+    color: COLORS.textDark,
+    fontSize: TYPOGRAPHY.fontSize.xxs,
+    fontFamily: TYPOGRAPHY.fontFamily.montserratBold,
     fontWeight: '600',
   },
   video: {

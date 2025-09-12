@@ -22,7 +22,7 @@ export default styles = StyleSheet.create({
     container: {
         flex: 1,
         alignSelf: 'stretch',
-        backgroundColor: '#253445',
+        backgroundColor: 'transparent',
     },
     background: {
         flex: 1,

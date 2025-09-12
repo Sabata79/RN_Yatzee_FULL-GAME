@@ -27,11 +27,11 @@ import { PlayercardBg } from "../constants/PlayercardBg";
 import { additionalImages } from "../constants/AdditionalImages";
 import { fetchRemoteConfig } from "../services/RemoteConfigService";
 import { Animations } from "../constants/AnimationPaths";
-import { VideoView, useVideoPlayer } from 'expo-video';
 import { useIsFocused } from '@react-navigation/native';
 
 import { useAudio } from '../services/AudioManager';
 import COLORS from "../constants/colors";
+import BackgroundVideo from '../components/BackgroundVideo';
 
 // --- Helper: image preloader (require-asset or URL) ---
 const cacheImages = (images) => {
@@ -53,7 +53,6 @@ export default function LandingPage({ navigation }) {
   const [loadingProgress, setLoadingProgress] = useState(0); // 0..100
   const [bootDone, setBootDone] = useState(false); // all boot tasks done
   const [remoteBlock, setRemoteBlock] = useState(false);
-  const [videoError, setVideoError] = useState(false);
 
   const rafRef = useRef(null);
   const alertShownRef = useRef(false);
@@ -63,9 +62,9 @@ export default function LandingPage({ navigation }) {
   const bootDoneRef = useRef(false);
   const remoteBlockRef = useRef(false);
 
-  // Audio (React hook – Providerista)
+  // Audio
   const { ready, musicMuted, playMusic } = useAudio();
-  const musicStartedRef = useRef(false); // to prevent multiple starts
+  const musicStartedRef = useRef(false);
 
   const {
     setPlayerIdContext,
@@ -92,16 +91,8 @@ export default function LandingPage({ navigation }) {
     return false;
   };
 
-  // Video player setup (expo-video)
-  const videoPlayer = useVideoPlayer(require('../../assets/video/backgroundVideo.m4v'), (p) => {
-    p.loop = false;
-    p.muted = true;
-    p.playbackRate = 0.6;
-  });
-
   // Start music once audio is ready and not muted
   useEffect(() => {
-    // Näytä ehdot, helpottaa jos taas “ei lähde”
     console.log('[LandingPage Audio]', { ready, musicMuted, remoteBlock, bootDone, started: musicStartedRef.current });
 
     if (!ready) return;
@@ -111,7 +102,6 @@ export default function LandingPage({ navigation }) {
 
     let alive = true;
 
-    // Odota, että mahdolliset layoutit/animoinnit on ajettu → sitten pieni viive
     InteractionManager.runAfterInteractions(() => {
       if (!alive) return;
       setTimeout(async () => {
@@ -124,26 +114,11 @@ export default function LandingPage({ navigation }) {
         } catch (e) {
           console.log('[LandingPage] Music start failed:', e);
         }
-      }, 120); // pieni hengähdys UI:lle
+      }, 120);
     });
 
     return () => { alive = false; };
   }, [ready, musicMuted, remoteBlock, playMusic, bootDone]);
-
-  useEffect(() => {
-    if (!videoPlayer) return;
-
-    if (isFocused) {
-      try {
-        videoPlayer.currentTime = 0;
-        videoPlayer.play();
-      } catch (e) {
-        console.log('video play failed', e);
-      }
-    } else {
-      try { videoPlayer.pause(); } catch { }
-    }
-  }, [isFocused, videoPlayer]);
 
   const fire = (name, fn) => {
     const t0 = Date.now();
@@ -227,7 +202,7 @@ export default function LandingPage({ navigation }) {
   const getOrCreateUserId = async () => {
     try {
       let userId = await SecureStore.getItemAsync("user_id");
-    if (!userId) userId = await doSignInAnonymously();
+      if (!userId) userId = await doSignInAnonymously();
       return userId;
     } catch (error) {
       console.error("Virhe getOrCreateUserId-funktiossa:", error);
@@ -399,7 +374,7 @@ export default function LandingPage({ navigation }) {
     if (!remoteBlock && loadingProgress === 100 && bootDone) {
       Animated.timing(fadeAnim, {
         toValue: 0,
-        duration: 1200,      // hitaampi ulosfade
+        duration: 1200,
         useNativeDriver: true,
       }).start(({ finished }) => {
         if (finished) {
@@ -410,49 +385,40 @@ export default function LandingPage({ navigation }) {
   }, [remoteBlock, loadingProgress, bootDone, navigation, fadeAnim]);
 
   return (
-    <Animated.View style={[styles.container, { opacity: fadeAnim, flex: 1, backgroundColor: '#253445', justifyContent: 'center' }]}>
-      <VideoView
-        player={videoPlayer}
-        style={styles.video}
-        contentFit="cover"
-        nativeControls={false}
-        allowsFullscreen={true}
-        allowsPictureInPicture={false}
-        pointerEvents="none"
-        focusable={false}
-        onError={(e) => {
-          console.log("LandingPageVideo error:", e);
-          setVideoError(true);
-        }}
-      />
-      <View style={[styles.versionContainer]}>
-        <Text style={styles.versionText}>Version: {gameVersion}</Text>
-      </View>
-      <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, paddingBottom: insets.bottom || 16 }}>
-        <View style={{ alignItems: 'center' }}>
-          <View style={{ position: "relative", marginBottom: 0 }}>
-            <ProgressBar
-              progress={loadingProgress / 100}
-              color={COLORS.success}
-              style={styles.progressBar}
-            />
-            <View style={styles.progressOverlay}>
-              <Text style={styles.progressPercentText}>
-                {Math.round(loadingProgress)}%
-              </Text>
-            </View>
-          </View>
-          <Text style={styles.progressText}>
-            {loadingProgress < 100 ? "Checking player data..." : "Complete!"}
-          </Text>
+    <View style={{ flex: 1 }}>
+      <BackgroundVideo isActive />
+      <Animated.View style={[styles.container, { backgroundColor: 'transparent', opacity: fadeAnim }]}>
+        <View style={[styles.versionContainer]}>
+          <Text style={styles.versionText}>Version: {gameVersion}</Text>
         </View>
-      </View>
-      <View style={styles.logoContainer}>
-        <Image
-          source={require("../../assets/coins/coin.webp")}
-          style={styles.logo}
-        />
-      </View>
-    </Animated.View>
+
+        <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, paddingBottom: insets.bottom || 16 }}>
+          <View style={{ alignItems: 'center' }}>
+            <View style={{ position: "relative", marginBottom: 0 }}>
+              <ProgressBar
+                progress={loadingProgress / 100}
+                color={COLORS.success}
+                style={styles.progressBar}
+              />
+              <View style={styles.progressOverlay}>
+                <Text style={styles.progressPercentText}>
+                  {Math.round(loadingProgress)}%
+                </Text>
+              </View>
+            </View>
+            <Text style={styles.progressText}>
+              {loadingProgress < 100 ? "Checking player data..." : "Complete!"}
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.logoContainer}>
+          <Image
+            source={require("../../assets/coins/coin.webp")}
+            style={styles.logo}
+          />
+        </View>
+      </Animated.View>
+    </View>
   );
 }

@@ -1,19 +1,20 @@
 /**
  * App.js - Main entry point for the Yatzy app
- *
- * Contains the main navigation, context providers, and global SafeAreaView for the application.
- * All navigation stacks, modals, and status bar logic are defined here.
- *
- * @module App
- * @author Sabata79
- * @since 2025-09-06
+  * Sets up navigation, context providers, and global styles.
+  * Usage:
+  * import App from './App';
+  *   ...
+  *   <App />
+  * @module App
+  * @author Sabata79
+  * @since 2025-08-30
  */
 import React, { useState } from 'react';
 import { View, Text, Pressable, Modal, Linking, Dimensions, Easing } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { FontAwesome5 } from '@expo/vector-icons';
 import Feather from '@expo/vector-icons/Feather';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -39,9 +40,16 @@ const { height } = Dimensions.get('window');
 const isSmallScreen = height < 720;
 const isBigScreen = height >= 900;
 
-// Navigation stacks
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
+
+const navTheme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    background: 'transparent', // transparent
+  },
+};
 
 function AppShell() {
   const [isUserRecognized, setIsUserRecognized] = useState(false);
@@ -63,7 +71,7 @@ function AppShell() {
     const apply = async () => {
       if (!mounted) return;
       try {
-        await NavigationBar.setBackgroundColorAsync('#000000');
+        await NavigationBar.setBackgroundColorAsync('transparent');
         await NavigationBar.setButtonStyleAsync('light');
         try { await NavigationBar.setBehaviorAsync('overlay-swipe'); } catch {}
         try { await NavigationBar.setPositionAsync('absolute'); } catch {}
@@ -93,13 +101,7 @@ function AppShell() {
   const ICON_SIZE = isSmallScreen ? 22 : isBigScreen ? 28 : 26;
 
   const IconWrap = ({ children }) => (
-    <View
-      style={{
-        width: ICON_SIZE + 14,
-        alignItems: 'center',
-        overflow: 'visible',
-      }}
-    >
+    <View style={{ width: ICON_SIZE + 14, alignItems: 'center', overflow: 'visible' }}>
       {children}
     </View>
   );
@@ -110,14 +112,14 @@ function AppShell() {
 
     return (
       <Tab.Navigator
-        sceneContainerStyle={{ backgroundColor: '#253445' }}
+        sceneContainerStyle={{ backgroundColor: 'black' }}
         screenOptions={({ route }) => ({
           headerShown: false,
           tabBarStyle: {
             height: baseHeight + bottomPad,
             paddingBottom: bottomPad,
             paddingTop: 6,
-            backgroundColor: '#253445',
+            backgroundColor: 'black',
             borderTopWidth: 0,
             position: 'absolute',
             left: 0,
@@ -125,14 +127,7 @@ function AppShell() {
             bottom: 0,
           },
           tabBarBackground: () => (
-            <View
-              style={{
-                flex: 1,
-                backgroundColor: '#000000E6',
-                borderTopWidth: 0.6,
-                borderTopColor: 'gold',
-              }}
-            />
+            <View style={{ flex: 1, backgroundColor: 'black', borderTopWidth: 0.6, borderTopColor: 'gold' }} />
           ),
           tabBarActiveTintColor: '#ffffff',
           tabBarInactiveTintColor: 'gray',
@@ -141,10 +136,7 @@ function AppShell() {
             letterSpacing: -0.1,
             fontFamily: 'AntonRegular',
           },
-          tabBarItemStyle: {
-            paddingHorizontal: 8,
-            minWidth: isSmallScreen ? 64 : 72,
-          },
+          tabBarItemStyle: { paddingHorizontal: 8, minWidth: isSmallScreen ? 64 : 72 },
           tabBarIcon: ({ focused }) => {
             const color = focused ? '#eae6e6' : 'gray';
             const common = {
@@ -154,41 +146,11 @@ function AppShell() {
               style: { includeFontPadding: false, textAlign: 'center' },
             };
 
-            if (route.name === 'Home') {
-              return (
-                <IconWrap>
-                  <FontAwesome5 name="home" {...common} />
-                </IconWrap>
-              );
-            }
-            if (route.name === 'Gameboard') {
-              return (
-                <IconWrap>
-                  <FontAwesome5 name="dice" {...common} />
-                </IconWrap>
-              );
-            }
-            if (route.name === 'Scoreboard') {
-              return (
-                <IconWrap>
-                  <FontAwesome5 name="trophy" {...common} />
-                </IconWrap>
-              );
-            }
-            if (route.name === 'Rules') {
-              return (
-                <IconWrap>
-                  <FontAwesome5 name="book" {...common} />
-                </IconWrap>
-              );
-            }
-            if (route.name === 'Settings') {
-              return (
-                <IconWrap>
-                  <Feather name="settings" {...common} />
-                </IconWrap>
-              );
-            }
+            if (route.name === 'Home') return <IconWrap><FontAwesome5 name="home" {...common} /></IconWrap>;
+            if (route.name === 'Gameboard') return <IconWrap><FontAwesome5 name="dice" {...common} /></IconWrap>;
+            if (route.name === 'Scoreboard') return <IconWrap><FontAwesome5 name="trophy" {...common} /></IconWrap>;
+            if (route.name === 'Rules') return <IconWrap><FontAwesome5 name="book" {...common} /></IconWrap>;
+            if (route.name === 'Settings') return <IconWrap><Feather name="settings" {...common} /></IconWrap>;
             return null;
           },
         })}
@@ -211,7 +173,7 @@ function AppShell() {
                 </IconWrap>
               );
             },
-            tabBarStyle: { display: 'none' },
+            tabBarStyle: { display: 'none' }, // hide tab bar on Home
           }}
         >
           {() => (
@@ -223,32 +185,16 @@ function AppShell() {
           )}
         </Tab.Screen>
 
-        <Tab.Screen
-          name="Gameboard"
-          options={{ tabBarLabel: 'Game' }}
-          component={Gameboard}
-        />
-        <Tab.Screen
-          name="Scoreboard"
-          options={{ tabBarLabel: 'Scores' }}
-          component={Scoreboard}
-        />
-        <Tab.Screen
-          name="Rules"
-          options={{ tabBarLabel: 'Help' }}
-          component={Rules}
-        />
-        <Tab.Screen
-          name="Settings"
-          options={{ tabBarLabel: 'Settings' }}
-          component={SettingScreen}
-        />
+        <Tab.Screen name="Gameboard" options={{ tabBarLabel: 'Game' }} component={Gameboard} />
+        <Tab.Screen name="Scoreboard" options={{ tabBarLabel: 'Scores' }} component={Scoreboard} />
+        <Tab.Screen name="Rules" options={{ tabBarLabel: 'Help' }} component={Rules} />
+        <Tab.Screen name="Settings" options={{ tabBarLabel: 'Settings' }} component={SettingScreen} />
       </Tab.Navigator>
     );
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#000' }} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: 'black' }} edges={['top', 'left', 'right']}>
       <EnergyTokenSystem hidden />
 
       <Modal
@@ -268,31 +214,21 @@ function AppShell() {
         </View>
       </Modal>
 
-      <NavigationContainer>
+      <NavigationContainer theme={navTheme}>
         <Stack.Navigator
           screenOptions={{
             headerShown: false,
-            cardStyle: { backgroundColor: '#253445' },
-
-            // Fade transition
+            cardStyle: { backgroundColor: 'transparent' },
             gestureEnabled: false,
             transitionSpec: {
               open: { animation: 'timing', config: { duration: 3000, easing: Easing.out(Easing.cubic) } },
-              close: { animation: 'timing', config: { duration: 1900, easing: Easing.out(Easing.cubic) } },
+              close: { animation: 'timing', config: { duration: 3000, easing: Easing.out(Easing.cubic) } },
             },
-            cardStyleInterpolator: ({ current }) => ({
-              cardStyle: { opacity: current.progress },
-            }),
+            cardStyleInterpolator: ({ current }) => ({ cardStyle: { opacity: current.progress } }),
           }}
         >
           <Stack.Screen name="LandingPage" component={LandingPage} />
-          <Stack.Screen
-            name="MainApp"
-            options={{
-              headerShown: false,
-              swipeEnabled: false,
-            }}
-          >
+          <Stack.Screen name="MainApp" options={{ headerShown: false, swipeEnabled: false }}>
             {() => <TabNavigator />}
           </Stack.Screen>
         </Stack.Navigator>
