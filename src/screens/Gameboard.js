@@ -17,7 +17,7 @@ import styles from '../styles/styles';
 import gameboardstyles from '../styles/GameboardScreenStyles';
 import { NBR_OF_THROWS, NBR_OF_DICES, MAX_SPOTS, BONUS_POINTS, BONUS_POINTS_LIMIT } from '../constants/Game';
 import DiceAnimation from '../components/DiceAnimation';
-import audioManager from '../services/AudioManager';
+import { useAudio } from '../services/AudioManager';
 import ModalAlert from '../constants/ModalAlert';
 import { useGame } from '../constants/GameContext';
 import RenderFirstRow from '../components/RenderFirstRow';
@@ -100,6 +100,13 @@ const RenderDices = React.memo(function RenderDices({
 
 export default function Gameboard({ route, navigation }) {
     const gameContext = useGame();
+    const { playSfx, playSelect, playDeselect } = useAudio();
+
+    // Adapteri GridFieldille: sama muoto kuin ennen
+    const audioApi = useMemo(
+        () => ({ playSfx, playSelect, playDeselect }),
+        [playSfx, playSelect, playDeselect]
+    );
 
     // Selected grid field
     const [selectedField, setSelectedField] = useState(null);
@@ -254,15 +261,19 @@ export default function Gameboard({ route, navigation }) {
 
     const selectDice = useCallback((i) => {
         if (nbrOfThrowsLeft < NBR_OF_THROWS) {
-            setSelectedDices((prev) => {
+            setSelectedDices(prev => {
                 const d = [...prev];
-                d[i] = !d[i];
+                const willSelect = !d[i];
+                d[i] = willSelect;
+                // soita ääni valinnan mukaan
+                if (willSelect) { try { playSelect(); } catch { } }
+                else { try { playDeselect(); } catch { } }
                 return d;
             });
         } else {
             setStatus('Game has not started');
         }
-    }, [nbrOfThrowsLeft]);
+    }, [nbrOfThrowsLeft, playSelect, playDeselect]);
 
     const getDiceColor = useCallback((index) => {
         if (board.every((v, i, arr) => v === arr[0])) return 'red';
@@ -272,7 +283,8 @@ export default function Gameboard({ route, navigation }) {
     const throwDices = useCallback(() => {
         if (nbrOfThrowsLeft > 0) {
             setIsRolling(true);
-            audioManager.playSfx();
+            // SFX tästä
+            playSfx();
             setTimeout(() => {
                 setBoard((prevBoard) => {
                     const newBoard = [...prevBoard];
@@ -295,7 +307,7 @@ export default function Gameboard({ route, navigation }) {
             setStatus('No throws left');
             setNbrOfThrowsLeft(NBR_OF_THROWS);
         }
-    }, [nbrOfThrowsLeft, selectedDices, rolledDices, checkAndUnlockYatzy]);
+    }, [nbrOfThrowsLeft, selectedDices, rolledDices, checkAndUnlockYatzy, playSfx]);
 
     const handleStartGame = useCallback(() => {
         if (tokens > 0) {
@@ -371,7 +383,7 @@ export default function Gameboard({ route, navigation }) {
             <View style={[styles.overlay, { alignSelf: 'stretch', width: '100%' }]}>
                 <FlatList
                     data={data}
-                    renderItem={({ index, item }) => (
+                    renderItem={({ index }) => (
                         <GridField
                             index={index}
                             scoringCategories={scoringCategories}
@@ -379,7 +391,8 @@ export default function Gameboard({ route, navigation }) {
                             minorPoints={minorPoints}
                             selectedField={selectedField}
                             setSelectedField={setSelectedField}
-                            audioManager={audioManager}
+                            // välitetään samassa muodossa kuin ennen:
+                            audioManager={audioApi}
                             setStatus={setStatus}
                             isSmallScreen={isSmallScreen}
                             gameboardstyles={gameboardstyles}
