@@ -54,10 +54,9 @@ const styles = StyleSheet.create({
         width: 72,
         height: 72,
         marginTop: 40,
-        marginLeft: 10,
         justifyContent: 'center',
         alignItems: 'center',
-        padding: 10,
+        padding: 5,
         borderRadius: 100,
         borderWidth: 3,
         borderColor: COLORS.secondaryDark,
@@ -142,7 +141,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         marginTop: SPACING.sm,
-        left: -10,
+        left: -7,
     },
 
     // Text styles
@@ -177,14 +176,14 @@ const styles = StyleSheet.create({
         color: COLORS.textLight,
         fontFamily: TYPOGRAPHY.fontFamily.montserratExtraBold,
         fontSize: TYPOGRAPHY.fontSize.md,
-        paddingRight: SPACING.xs,
+        paddingRight: 15,
     },
-    centeredText: {
-        color: COLORS.textLight,
-        fontSize: TYPOGRAPHY.fontSize.lg,
-        textAlign: 'center',
-        zIndex: 1000,
-    },
+    // centeredText: {
+    //     color: COLORS.textLight,
+    //     fontSize: TYPOGRAPHY.fontSize.sm,
+    //     textAlign: 'center',
+    //     zIndex: 1000,
+    // },
     // Icons
     icon: {
         justifyContent: 'center',
@@ -192,7 +191,6 @@ const styles = StyleSheet.create({
         color: COLORS.textLight,
         marginTop: -7,
     },
-    // NEW: a light wrapper for the footer (dice row + buttons)
     footerWrap: {
         alignItems: 'center',
         paddingVertical: 8,
@@ -209,7 +207,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: COLORS.black,
-        marginTop: 8,     // small, positive spacing
+        marginTop: 3,     // small, positive spacing
         marginBottom: 2,  // small, positive spacing
     },
 });

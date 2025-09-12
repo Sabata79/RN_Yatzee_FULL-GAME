@@ -53,9 +53,11 @@ const RenderDices = React.memo(function RenderDices({
   scoringCategories,
   setRounds,
   diceRow,
+  totalPoints
 }) {
   return (
-    <View style={gameboardstyles.footerWrap}>
+    <View style={gameboardstyles.footerWrap}>         
+                <Text style={gameboardstyles.scoreText}>Total: {totalPoints}</Text>
       <View style={gameboardstyles.diceBorder}>
         <View style={[gameboardstyles.gameboardContainer, { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }]}>
           {diceRow}
@@ -78,6 +80,7 @@ const RenderDices = React.memo(function RenderDices({
         MAX_SPOTS={MAX_SPOTS}
         NBR_OF_THROWS={NBR_OF_THROWS}
         MaterialCommunityIcons={MaterialCommunityIcons}
+        totalPoints={totalPoints}
       />
     </View>
   );
@@ -351,6 +354,7 @@ export default function Gameboard({ route, navigation }) {
         scoringCategories={scoringCategories}
         setRounds={setRounds}
         diceRow={diceRow}
+        totalPoints={totalPoints}
       />
     ),
     [
@@ -368,6 +372,7 @@ export default function Gameboard({ route, navigation }) {
       scoringCategories,
       setRounds,
       diceRow,
+      totalPoints,
     ]
   );
 

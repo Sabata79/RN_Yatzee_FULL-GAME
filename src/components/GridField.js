@@ -472,12 +472,12 @@ function GridField({
                 </View>
             </Pressable>
         );
-    } else if (index === 29) {
-        return (
-            <View style={gameboardstyles.item}>
-                <Text style={gameboardstyles.scoreText}>Total: {totalPoints}</Text>
-            </View>
-        );
+    // } else if (index === 29) {
+    //     return (
+    //         // <View style={gameboardstyles.item}>
+    //         //     <Text style={gameboardstyles.scoreText}>Total: {totalPoints}</Text>
+    //         // </View>
+    //     );
     } else {
         return (
             <View style={gameboardstyles.item}>
