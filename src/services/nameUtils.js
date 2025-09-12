@@ -3,7 +3,8 @@
 
 import { dbGet } from './Firebase';
 
-export const sanitizeInput = (input) => input.replace(/[^a-zA-Z0-9 ]/g, '').trim();
+export const sanitizeInput = (input) =>
+  input.replace(/[^a-zA-Z0-9 äöåÄÖÅæøÆØ]/g, '').trim();
 
 export const checkIfNameExists = async (name) => {
   const snapshot = await dbGet('players');
