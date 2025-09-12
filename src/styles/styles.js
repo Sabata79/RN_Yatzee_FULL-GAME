@@ -20,6 +20,7 @@ export default styles = StyleSheet.create({
     container: {
         flex: 1,
         alignSelf: 'stretch',
+        backgroundColor: '#253445',
     },
     background: {
         flex: 1,
