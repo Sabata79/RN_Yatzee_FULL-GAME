@@ -26,7 +26,7 @@ const isBigScreen = height >= 1050;
 export default scoreboardStyles = StyleSheet.create({
     overlay: {
         flex: 1,
-        backgroundColor: COLORS.overlayDark,
+        backgroundColor: COLORS.overlayExtraDark,
     },
     background: {
         flex: 1,
@@ -37,10 +37,10 @@ export default scoreboardStyles = StyleSheet.create({
     },
     scoreboardContainer: {
         alignSelf: 'center',
-        marginTop: 40,
+        marginTop: -20,
         borderRadiusBottom: 5,
         backgroundColor: COLORS.overlayDark,
-        width: '95%',
+        width: '100%',
         textAlign: 'center',
         justifyContent: 'center',
 
@@ -72,6 +72,7 @@ export default scoreboardStyles = StyleSheet.create({
         backgroundColor: COLORS.overlayExtraDark,
         padding: SPACING.xs,
         zIndex: 1,
+        marginTop: -20,
     },
     tabText: {
         flex: 1,
@@ -205,6 +206,19 @@ export default scoreboardStyles = StyleSheet.create({
         fontSize: TYPOGRAPHY.lg,
         color: COLORS.textLight,
         textAlign: 'center',
+    },
+    durationCellContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+
+    timeDot: {
+        width: 12,
+        height: 12,
+        borderRadius: 6,
+        marginRight: 0,
+        borderWidth: 1,                
+        borderColor: 'rgba(0,0,0,0.25)',
     },
 
 });
