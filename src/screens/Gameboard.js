@@ -1,12 +1,8 @@
 /**
  * Gameboard.js - Main game screen for playing Yatzy (fixed)
- *
- * Key fixes to prevent FlatList re-render loop:
- *  - Moved dice/footer UI OUTSIDE FlatList (no ListFooterComponent).
- *  - Avoid mutating state (rolledDices); always use setRolledDices.
- *  - Removed unnecessary memo-wrapping of React state setters.
- *  - Stabilized data with useMemo and provided extraData to FlatList.
- *  - Kept callbacks memoized where useful, but avoided redefining component types per render.
+ * Main game screen for playing Yatzy. Handles dice rolling, scoring, and game state.
+ * Refactored 12.9.2025 to fix FlatList re-render loop issues.
+ * @module Gameboard    
  * @author Sabata79
  * @since 2025-08-29
  */
@@ -43,10 +39,6 @@ import GridField from '../components/GridField';
 const { height } = Dimensions.get('window');
 const isSmallScreen = height < 720;
 
-/**
- * RenderDices (pure, outside Gameboard) — doesn't close over changing props by definition.
- * Receives everything it needs via explicit props from parent.
- */
 const RenderDices = React.memo(function RenderDices({
     status,
     setStatus,
@@ -102,7 +94,7 @@ export default function Gameboard({ route, navigation }) {
     const gameContext = useGame();
     const { playSfx, playSelect, playDeselect } = useAudio();
 
-    // Adapteri GridFieldille: sama muoto kuin ennen
+    // Adater for Gridfield
     const audioApi = useMemo(
         () => ({ playSfx, playSelect, playDeselect }),
         [playSfx, playSelect, playDeselect]
@@ -125,7 +117,7 @@ export default function Gameboard({ route, navigation }) {
 
     const [isLayerVisible, setLayerVisible] = useState(true);
 
-    // Käynnistä ja pysäytä peliajan laskenta
+    // Start and stop game time counting
     useEffect(() => {
         if (gameStarted && !gameEnded) {
             if (!timer) {
@@ -265,7 +257,7 @@ export default function Gameboard({ route, navigation }) {
                 const d = [...prev];
                 const willSelect = !d[i];
                 d[i] = willSelect;
-                // soita ääni valinnan mukaan
+                // voice REFACTOR HERE
                 if (willSelect) { try { playSelect(); } catch { } }
                 else { try { playDeselect(); } catch { } }
                 return d;
@@ -283,7 +275,7 @@ export default function Gameboard({ route, navigation }) {
     const throwDices = useCallback(() => {
         if (nbrOfThrowsLeft > 0) {
             setIsRolling(true);
-            // SFX tästä
+            // SFX
             playSfx();
             setTimeout(() => {
                 setBoard((prevBoard) => {
@@ -335,7 +327,6 @@ export default function Gameboard({ route, navigation }) {
         ))
     ), [board, selectedDices, onSelectHandlers, diceAnimations, getDiceColor, isRolling]);
 
-    // Footer renderer inside FlatList to preserve original layout widths/paddings
     const renderFooter = useCallback(() => (
         <RenderDices
             status={status}
@@ -345,7 +336,7 @@ export default function Gameboard({ route, navigation }) {
             setNbrOfThrowsLeft={setNbrOfThrowsLeft}
             resetGame={resetGame}
             savePlayerPoints={async () => {
-                // Pysäytä ajastin ja tallenna viimeisin peliaika
+                // Stop timer and save last game time TO DO!!
                 if (timer) clearInterval(timer);
                 setTimer(null);
                 await savePlayerPoints();
@@ -367,7 +358,6 @@ export default function Gameboard({ route, navigation }) {
     return (
         <ImageBackground source={require('../../assets/diceBackground.webp')} style={styles.background}>
             <Header />
-
             {isLayerVisible && (
                 <Pressable
                     onPress={() => {
@@ -378,8 +368,6 @@ export default function Gameboard({ route, navigation }) {
                     <GlowingText>START GAME</GlowingText>
                 </Pressable>
             )}
-
-            {/* Ensure full width like before */}
             <View style={[styles.overlay, { alignSelf: 'stretch', width: '100%' }]}>
                 <FlatList
                     data={data}
@@ -391,7 +379,6 @@ export default function Gameboard({ route, navigation }) {
                             minorPoints={minorPoints}
                             selectedField={selectedField}
                             setSelectedField={setSelectedField}
-                            // välitetään samassa muodossa kuin ennen:
                             audioManager={audioApi}
                             setStatus={setStatus}
                             isSmallScreen={isSmallScreen}
@@ -413,7 +400,6 @@ export default function Gameboard({ route, navigation }) {
                     extraData={{ scoringCategories, totalPoints, minorPoints, selectedField, nbrOfThrowsLeft }}
                 />
             </View>
-
             <ModalAlert visible={modalVisible} message={modalMessage} onClose={() => setModalVisible(false)} />
         </ImageBackground>
     );
