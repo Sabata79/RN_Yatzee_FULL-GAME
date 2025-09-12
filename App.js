@@ -4,11 +4,6 @@
  * Contains the main navigation, context providers, and global SafeAreaView for the application.
  * All navigation stacks, modals, and status bar logic are defined here.
  *
- * Usage:
- *   import App from './App';
- *   ...
- *   <App />
- *
  * @module App
  * @author Sabata79
  * @since 2025-09-06
@@ -36,16 +31,18 @@ import Rules from './src/screens/Rules';
 import updateModalStyles from './src/styles/UpdateModalStyles';
 import EnergyTokenSystem from './src/components/EnergyTokenSystem';
 
+// Android nav bar control
+import { AppState, Platform } from 'react-native';
+import * as NavigationBar from 'expo-navigation-bar';
+
 const { height } = Dimensions.get('window');
 const isSmallScreen = height < 720;
 const isBigScreen = height >= 900;
 
-
-// Navigation stacks for the app
+// Navigation stacks
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
-// Main shell component containing navigation and modals
 function AppShell() {
   const [isUserRecognized, setIsUserRecognized] = useState(false);
   const [name, setName] = useState('');
@@ -57,7 +54,36 @@ function AppShell() {
 
   const insets = useSafeAreaInsets();
 
-  // Open app store link for updating the app
+  // Android navigation bar: hide app-wide (including LandingPage)
+  React.useEffect(() => {
+    if (Platform.OS !== 'android') return;
+
+    let mounted = true;
+
+    const apply = async () => {
+      if (!mounted) return;
+      try {
+        await NavigationBar.setBackgroundColorAsync('#000000');
+        await NavigationBar.setButtonStyleAsync('light');
+        try { await NavigationBar.setBehaviorAsync('overlay-swipe'); } catch {}
+        try { await NavigationBar.setPositionAsync('absolute'); } catch {}
+        await NavigationBar.setVisibilityAsync('hidden');
+      } catch {}
+    };
+
+    apply();
+
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') apply();
+    });
+
+    return () => {
+      mounted = false;
+      sub?.remove?.();
+      NavigationBar.setVisibilityAsync('visible').catch(() => {});
+    };
+  }, []);
+
   const handleUpdate = async () => {
     const url = 'https://play.google.com/store/apps/details?id=com.SimpleYatzee';
     const supported = await Linking.canOpenURL(url);
@@ -66,11 +92,10 @@ function AppShell() {
 
   const ICON_SIZE = isSmallScreen ? 22 : isBigScreen ? 28 : 26;
 
-  // Wrapper for tab bar icons to prevent clipping
   const IconWrap = ({ children }) => (
     <View
       style={{
-        width: ICON_SIZE + 14, // extra horizontal room so glyphs don't clip
+        width: ICON_SIZE + 14,
         alignItems: 'center',
         overflow: 'visible',
       }}
@@ -79,13 +104,11 @@ function AppShell() {
     </View>
   );
 
-  // Bottom tab navigator for main app screens
   const TabNavigator = () => {
     const baseHeight = isSmallScreen ? 56 : isBigScreen ? 84 : 68;
-    const bottomPad = insets.bottom > 8 ? insets.bottom : 0;
+    const bottomPad = Math.max(insets.bottom, 12);
 
     return (
-      // Tab navigator with custom icons and styles
       <Tab.Navigator
         sceneContainerStyle={{ backgroundColor: '#253445' }}
         screenOptions={({ route }) => ({
@@ -188,7 +211,7 @@ function AppShell() {
                 </IconWrap>
               );
             },
-            tabBarStyle: { display: 'none' }, // hide tab bar on Home
+            tabBarStyle: { display: 'none' },
           }}
         >
           {() => (
@@ -228,7 +251,6 @@ function AppShell() {
     <SafeAreaView style={{ flex: 1, backgroundColor: '#000' }} edges={['top', 'left', 'right']}>
       <EnergyTokenSystem hidden />
 
-      {/* Update modal */}
       <Modal
         visible={updateModalVisible}
         transparent
@@ -252,14 +274,13 @@ function AppShell() {
             headerShown: false,
             cardStyle: { backgroundColor: '#253445' },
 
-            // FADE TRANSITION
+            // Fade transition
             gestureEnabled: false,
             transitionSpec: {
               open: { animation: 'timing', config: { duration: 3000, easing: Easing.out(Easing.cubic) } },
               close: { animation: 'timing', config: { duration: 1900, easing: Easing.out(Easing.cubic) } },
             },
             cardStyleInterpolator: ({ current }) => ({
-              // Uusi screeni “liimataan” päälle ja haalistetaan sisään
               cardStyle: { opacity: current.progress },
             }),
           }}
@@ -277,15 +298,12 @@ function AppShell() {
         </Stack.Navigator>
       </NavigationContainer>
 
-      {/* Edge-to-edge: translucent so content can draw behind, we pad only where needed */}
       <StatusBar style="light" translucent backgroundColor="transparent" />
     </SafeAreaView>
   );
 }
 
-// Root component: loads fonts, provides context, and renders AppShell
 export default function App() {
-
   const [loaded] = useFonts({
     AntonRegular: require('./assets/fonts/Anton-Regular.ttf'),
     BangersRegular: require('./assets/fonts/Bangers-Regular.ttf'),
