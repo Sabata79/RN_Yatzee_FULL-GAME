@@ -6,6 +6,7 @@
  * @author Sabata79
  * @since 2025-09-06
  */
+
 import React, {
   createContext, useContext,
   useRef, useState, useEffect, useCallback
@@ -14,25 +15,25 @@ import { Audio } from 'expo-av';
 import { Platform } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 
-// --- Persist keys
+// ---- Persist keys
 const SFX_KEY = 'sfx_settings';
 const MUSIC_KEY = 'music_settings';
 
-// --- Assets
+// ---- Assets
 const SFX_PATH = require('../../assets/sounds/dice-sound.mp3');
 const MUSIC_PATH = require('../../assets/sounds/ambientBG.mp3');
 const SELECT_PATH = require('../../assets/sounds/select.mp3');
 const DESELECT_PATH = require('../../assets/sounds/deselect.mp3');
 
-// --- Context
+// ---- Context
 export const AudioContext = createContext(null);
 
+// Safe hook for consumers (returns no-ops if used outside provider)
 export const useAudio = () => {
   const ctx = useContext(AudioContext);
   if (!ctx) {
-    // Turvalliset no-opit jos hookkia käytetään providerin ulkopuolella
-    const noop = async () => { };
-    const setNoop = () => { };
+    const noop = async () => {};
+    const setNoop = () => {};
     return {
       ready: false,
       musicMuted: true,
@@ -48,13 +49,17 @@ export const useAudio = () => {
       playSfx: noop,
       playSelect: noop,
       playDeselect: noop,
+      prewarmSfx: noop,
     };
   }
   return ctx;
 };
 
 export function AudioProvider({ children }) {
-  // --- State
+  // ---- One-time init guard (MUST be inside component)
+  const didInitRef = useRef(false);
+
+  // ---- State
   const [ready, setReady] = useState(false);
 
   const [musicMuted, setMusicMuted] = useState(false);
@@ -62,13 +67,13 @@ export function AudioProvider({ children }) {
   const [musicVolume, setMusicVolume] = useState(0.05); // 0..1
   const [sfxVolume, setSfxVolume] = useState(0.5);      // 0..1
 
-  // --- Refs for loaded sounds
+  // ---- Refs for loaded sounds
   const musicSound = useRef(null);
   const sfxSound = useRef(null);
   const selectSound = useRef(null);
   const deselectSound = useRef(null);
 
-  // --- Helpers to (lazy) load each sound
+  // ---- Helpers to (lazy) load each sound
   const ensureMusic = useCallback(async () => {
     if (musicSound.current) return;
     const { sound } = await Audio.Sound.createAsync(
@@ -76,44 +81,47 @@ export function AudioProvider({ children }) {
       { isLooping: true, volume: musicMuted ? 0 : musicVolume }
     );
     musicSound.current = sound;
-    // console.log('[Audio] MUSIC loaded');
+    console.log('[Audio] MUSIC loaded');
   }, [musicMuted, musicVolume]);
 
   const ensureSfx = useCallback(async () => {
     if (sfxSound.current) return;
     const { sound } = await Audio.Sound.createAsync(
-      SFX_PATH, { volume: sfxMuted ? 0 : sfxVolume }
+      SFX_PATH,
+      { volume: sfxMuted ? 0 : sfxVolume }
     );
     sfxSound.current = sound;
-    // console.log('[Audio] SFX loaded');
+    console.log('[Audio] SFX loaded');
   }, [sfxMuted, sfxVolume]);
 
   const ensureSelect = useCallback(async () => {
     if (selectSound.current) return;
     const { sound } = await Audio.Sound.createAsync(
-      SELECT_PATH, { volume: sfxMuted ? 0 : sfxVolume }
+      SELECT_PATH,
+      { volume: sfxMuted ? 0 : sfxVolume }
     );
     selectSound.current = sound;
-    // console.log('[Audio] SELECT loaded');
+    console.log('[Audio] SELECT loaded');
   }, [sfxMuted, sfxVolume]);
 
   const ensureDeselect = useCallback(async () => {
     if (deselectSound.current) return;
     const { sound } = await Audio.Sound.createAsync(
-      DESELECT_PATH, { volume: sfxMuted ? 0 : sfxVolume }
+      DESELECT_PATH,
+      { volume: sfxMuted ? 0 : sfxVolume }
     );
     deselectSound.current = sound;
-    // console.log('[Audio] DESELECT loaded');
+    console.log('[Audio] DESELECT loaded');
   }, [sfxMuted, sfxVolume]);
 
   const unloadAll = useCallback(() => {
-    musicSound.current?.unloadAsync?.(); musicSound.current = null;
-    sfxSound.current?.unloadAsync?.(); sfxSound.current = null;
-    selectSound.current?.unloadAsync?.(); selectSound.current = null;
-    deselectSound.current?.unloadAsync?.(); deselectSound.current = null;
+    musicSound.current?.unloadAsync?.();   musicSound.current = null;
+    sfxSound.current?.unloadAsync?.();     sfxSound.current = null;
+    selectSound.current?.unloadAsync?.();  selectSound.current = null;
+    deselectSound.current?.unloadAsync?.();deselectSound.current = null;
   }, []);
 
-  // --- Persisted settings → state
+  // ---- Persisted settings → state
   const loadPersistedSettingsIntoState = useCallback(async () => {
     try {
       const sfx = await SecureStore.getItemAsync(SFX_KEY);
@@ -122,7 +130,7 @@ export function AudioProvider({ children }) {
         if (typeof volume === 'number') setSfxVolume(volume);
         if (typeof muted === 'boolean') setSfxMuted(muted);
       }
-    } catch { }
+    } catch {}
     try {
       const music = await SecureStore.getItemAsync(MUSIC_KEY);
       if (music) {
@@ -130,56 +138,80 @@ export function AudioProvider({ children }) {
         if (typeof volume === 'number') setMusicVolume(Math.round(volume * 10) / 10);
         if (typeof muted === 'boolean') setMusicMuted(muted);
       }
-    } catch { }
+    } catch {}
   }, []);
 
-  // --- INIT: audio mode, persisted settings, preload (sisällä komponentin!)
-useEffect(() => {
-  let alive = true;
-  (async () => {
-    try {
-      const hasIosConst =
-        typeof Audio?.INTERRUPTION_MODE_IOS_DO_NOT_MIX === 'number' ||
-        typeof Audio?.INTERRUPTION_MODE_IOS_DUCK_OTHERS === 'number';
+  // ---- INIT: audio mode, persisted settings, preload (run once)
+  useEffect(() => {
+    if (didInitRef.current) return;
+    didInitRef.current = true;
 
-      const hasAndroidConst =
-        typeof Audio?.INTERRUPTION_MODE_ANDROID_DO_NOT_MIX === 'number' ||
-        typeof Audio?.INTERRUPTION_MODE_ANDROID_DUCK_OTHERS === 'number';
-
-      const fullMode = {
-        allowsRecordingIOS: false,
-        playsInSilentModeIOS: true,
-        staysActiveInBackground: false,
-        ...(Platform.OS === 'ios' && hasIosConst
-          ? { interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS_DO_NOT_MIX }
-          : {}),
-        ...(Platform.OS === 'android' && hasAndroidConst
-          ? { interruptionModeAndroid: Audio.INTERRUPTION_MODE_ANDROID_DO_NOT_MIX,
-              shouldDuckAndroid: true,
-              playThroughEarpieceAndroid: false }
-          : {}),
-      };
-
+    let alive = true;
+    (async () => {
       try {
-        await Audio.setAudioModeAsync(fullMode);
-      } catch (e) {
-        console.warn('[Audio] setAudioModeAsync(full) failed, fallback:', e?.message || e);
-        await Audio.setAudioModeAsync({
+        // Build a safe audioMode object (skip invalid constants on older SDKs)
+        const hasIosConst =
+          typeof Audio?.INTERRUPTION_MODE_IOS_DO_NOT_MIX === 'number' ||
+          typeof Audio?.INTERRUPTION_MODE_IOS_DUCK_OTHERS === 'number';
+        const hasAndroidConst =
+          typeof Audio?.INTERRUPTION_MODE_ANDROID_DO_NOT_MIX === 'number' ||
+          typeof Audio?.INTERRUPTION_MODE_ANDROID_DUCK_OTHERS === 'number';
+
+        const fullMode = {
           allowsRecordingIOS: false,
           playsInSilentModeIOS: true,
-        });
-        console.log('[Audio] setAudioModeAsync (fallback) OK');
+          staysActiveInBackground: false,
+          ...(Platform.OS === 'ios' && hasIosConst
+            ? { interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS_DO_NOT_MIX }
+            : {}),
+          ...(Platform.OS === 'android' && hasAndroidConst
+            ? {
+                interruptionModeAndroid: Audio.INTERRUPTION_MODE_ANDROID_DO_NOT_MIX,
+                shouldDuckAndroid: true,
+                playThroughEarpieceAndroid: false,
+              }
+            : {}),
+        };
+
+        try {
+          await Audio.setAudioModeAsync(fullMode);
+        } catch (e) {
+          console.warn('[Audio] setAudioModeAsync(full) failed, fallback:', e?.message || e);
+          await Audio.setAudioModeAsync({
+            allowsRecordingIOS: false,
+            playsInSilentModeIOS: true,
+          });
+          console.log('[Audio] setAudioModeAsync (fallback) OK');
+        }
+
+        // 1) Load persisted settings BEFORE creating sounds
+        await loadPersistedSettingsIntoState();
+
+        // 2) Preload sounds (do not crash if one fails)
+        await Promise.allSettled([
+          ensureSfx(),
+          ensureSelect(),
+          ensureDeselect(),
+          ensureMusic(),
+        ]);
+      } catch (e) {
+        console.warn('[Audio] init failed (audio mode / preload)', e);
+      } finally {
+        if (alive) {
+          setReady(true);
+          console.log('[Audio] ready = true');
+        }
       }
-    } catch (e) {
-      console.warn('[Audio] init failed (audio mode / preload)', e);
-      if (alive) setReady(true);
-    }
-  })();
+    })();
 
-  return () => { alive = false; unloadAll(); };
-  }, [ensureSfx, ensureSelect, ensureDeselect, ensureMusic, unloadAll, loadPersistedSettingsIntoState]);
+    return () => {
+      alive = false;
+      unloadAll();
+    };
+    // Intentionally empty deps: run exactly once (guarded by didInitRef)
+  }, []);
 
-  // --- Actions
+  // ---- Actions
   const playMusic = useCallback(async (fadeIn = false) => {
     if (musicMuted || !ready) {
       console.log('[Audio] playMusic skipped (muted or not ready)', { musicMuted, ready });
@@ -206,22 +238,24 @@ useEffect(() => {
   }, [musicMuted, ready, ensureMusic, musicVolume]);
 
   const stopMusic = useCallback(async () => {
-    try { await musicSound.current?.stopAsync?.(); } catch { }
+    try { await musicSound.current?.stopAsync?.(); } catch {}
   }, []);
 
-  // AudioManager.js 
   const playSelect = useCallback(async () => {
     if (sfxMuted) return;
     await ensureSelect();
     const snd = selectSound.current;
     if (!snd) return;
     try {
-      await snd.setStatusAsync({ volume: sfxMuted ? 0 : sfxVolume, positionMillis: 0 });
-      await snd.stopAsync().catch(() => { });
-      await Promise.resolve();
-      await snd.replayAsync();
+      // Make sure it always starts from the beginning
+      await snd.stopAsync().catch(() => {});
+      await snd.setStatusAsync({
+        volume: sfxMuted ? 0 : sfxVolume,
+        positionMillis: 0,
+        shouldPlay: true,
+      });
     } catch (e) {
-    console.warn('[Audio] playSelect failed', e);
+      console.warn('[Audio] playSelect failed', e);
     }
   }, [sfxMuted, sfxVolume, ensureSelect]);
 
@@ -229,18 +263,18 @@ useEffect(() => {
     if (sfxMuted) return;
     await ensureSfx();
     const snd = sfxSound.current;
+    if (!snd) return;
     try {
-      await snd.stopAsync().catch(() => { });
+      await snd.stopAsync().catch(() => {});
       await snd.setStatusAsync({
         volume: sfxMuted ? 0 : sfxVolume,
         positionMillis: 0,
         shouldPlay: true,
       });
     } catch (e) {
-      console.warn('[SFX] playSelect failed', e);
+      console.warn('[Audio] playSfx failed', e);
     }
   }, [sfxMuted, sfxVolume, ensureSfx]);
-
 
   const playDeselect = useCallback(async () => {
     if (sfxMuted) return;
@@ -250,9 +284,10 @@ useEffect(() => {
     try {
       await sound.setStatusAsync({ volume: sfxVolume });
       await sound.replayAsync();
-    } catch { }
+    } catch {}
   }, [ensureDeselect, sfxMuted, sfxVolume]);
 
+  // Prewarm small samples so the first press is instant (Android sometimes needs this)
   const prewarmSfx = useCallback(async () => {
     await Promise.allSettled([ensureSfx(), ensureSelect(), ensureDeselect()]);
     try {
@@ -262,19 +297,22 @@ useEffect(() => {
         await snd.stopAsync();
         await snd.setStatusAsync({ volume: sfxMuted ? 0 : sfxVolume });
       }
-    } catch { }
+    } catch {}
   }, [ensureSfx, ensureSelect, ensureDeselect, sfxMuted, sfxVolume]);
 
-  // --- Persist & apply volumes/mutes
+  // ---- Persist & apply volumes/mutes
   useEffect(() => {
     // MUSIC
     const v = musicMuted ? 0 : musicVolume;
     musicSound.current?.setStatusAsync?.({ volume: v });
-    SecureStore.setItemAsync(MUSIC_KEY, JSON.stringify({ volume: musicVolume, muted: musicMuted })).catch(() => { });
+    SecureStore.setItemAsync(MUSIC_KEY, JSON.stringify({
+      volume: musicVolume, muted: musicMuted
+    })).catch(() => {});
+    // Auto-resume when unmuted and ready
     if (!musicMuted && ready) {
       musicSound.current?.getStatusAsync?.().then(st => {
         if (!st?.isPlaying) playMusic(false);
-      }).catch(() => { });
+      }).catch(() => {});
     }
   }, [musicMuted, musicVolume, ready, playMusic]);
 
@@ -284,7 +322,9 @@ useEffect(() => {
     sfxSound.current?.setStatusAsync?.({ volume: v });
     selectSound.current?.setStatusAsync?.({ volume: v });
     deselectSound.current?.setStatusAsync?.({ volume: v });
-    SecureStore.setItemAsync(SFX_KEY, JSON.stringify({ volume: sfxVolume, muted: sfxMuted })).catch(() => { });
+    SecureStore.setItemAsync(SFX_KEY, JSON.stringify({
+      volume: sfxVolume, muted: sfxMuted
+    })).catch(() => {});
   }, [sfxMuted, sfxVolume]);
 
   const value = {
@@ -307,10 +347,10 @@ useEffect(() => {
   );
 }
 
-//Optional: export if some old imports exist'
+// ---- Legacy default export (no-ops). Prefer: const {playSelect} = useAudio()
 const legacy = {
-  playSfx: async () => { }, playSelect: async () => { }, playDeselect: async () => { },
-  playMusic: async () => { }, stopMusic: async () => { },
-  setMusicMuted: () => { }, setSfxMuted: () => { },
+  playSfx: async () => {}, playSelect: async () => {}, playDeselect: async () => {},
+  playMusic: async () => {}, stopMusic: async () => {},
+  setMusicMuted: () => {}, setSfxMuted: () => {},
 };
 export default legacy;

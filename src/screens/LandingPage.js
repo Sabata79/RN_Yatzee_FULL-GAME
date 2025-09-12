@@ -14,7 +14,7 @@
  */
 import React, { useState, useEffect, useRef } from "react";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { View, Text, Image, Animated, Alert, Linking } from "react-native";
+import { View, Text, Image, Animated, Alert, Linking, InteractionManager } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { signInAnon, dbGet } from "../services/Firebase";
 import { useGame } from "../constants/GameContext";
@@ -55,9 +55,9 @@ export default function LandingPage({ navigation }) {
   const [remoteBlock, setRemoteBlock] = useState(false);
   const [videoError, setVideoError] = useState(false);
 
-  const rafRef = useRef(null); // progress animation rAF
+  const rafRef = useRef(null);
   const alertShownRef = useRef(false);
-  const bootStartedRef = useRef(false); // prevent double execution in Strict Mode
+  const bootStartedRef = useRef(false);
 
   // Smart progress state tracking
   const bootDoneRef = useRef(false);
@@ -94,14 +94,15 @@ export default function LandingPage({ navigation }) {
 
   // Video player setup (expo-video)
   const videoPlayer = useVideoPlayer(require('../../assets/video/backgroundVideo.m4v'), (p) => {
-    p.loop = false;       // no looping
-    p.muted = true;       // muted
-    p.playbackRate = 0.6; // slightly slower
+    p.loop = false;
+    p.muted = true;
+    p.playbackRate = 0.6;
   });
 
   // Start music once audio is ready and not muted
   useEffect(() => {
-    // console.log('[LandingPage Audio]', { ready, musicMuted, remoteBlock, bootDone, started: musicStartedRef.current });
+    // Näytä ehdot, helpottaa jos taas “ei lähde”
+    console.log('[LandingPage Audio]', { ready, musicMuted, remoteBlock, bootDone, started: musicStartedRef.current });
 
     if (!ready) return;
     if (musicMuted) return;
@@ -109,16 +110,22 @@ export default function LandingPage({ navigation }) {
     if (musicStartedRef.current) return;
 
     let alive = true;
-    (async () => {
-      try {
-        await playMusic(true);
+
+    // Odota, että mahdolliset layoutit/animoinnit on ajettu → sitten pieni viive
+    InteractionManager.runAfterInteractions(() => {
+      if (!alive) return;
+      setTimeout(async () => {
         if (!alive) return;
-        musicStartedRef.current = true;
-        // console.log('[LandingPage]Music started');
-      } catch (e) {
-        console.log('[LandingPage]Music start failed:', e);
-      }
-    })();
+        try {
+          await playMusic(true);
+          if (!alive) return;
+          musicStartedRef.current = true;
+          console.log('[LandingPage] Music started');
+        } catch (e) {
+          console.log('[LandingPage] Music start failed:', e);
+        }
+      }, 120); // pieni hengähdys UI:lle
+    });
 
     return () => { alive = false; };
   }, [ready, musicMuted, remoteBlock, playMusic, bootDone]);
@@ -177,7 +184,6 @@ export default function LandingPage({ navigation }) {
       const elapsed = now - start;
       const base = Math.min(elapsed / minMs, 1) * holdAt;
 
-      // when boot or remote block done, start finishing
       if ((bootDoneRef.current || remoteBlockRef.current) && !finishing) {
         finishing = true;
         finishStart = now;
@@ -191,7 +197,6 @@ export default function LandingPage({ navigation }) {
         target = holdAt + (1 - holdAt) * eased;
       }
 
-      // suodatettu lähestyminen
       displayed = displayed + (target - displayed) * smooth;
 
       const pct = Math.round(Math.max(0, Math.min(100, displayed * 100)));
@@ -222,7 +227,7 @@ export default function LandingPage({ navigation }) {
   const getOrCreateUserId = async () => {
     try {
       let userId = await SecureStore.getItemAsync("user_id");
-      if (!userId) userId = await doSignInAnonymously();
+    if (!userId) userId = await doSignInAnonymously();
       return userId;
     } catch (error) {
       console.error("Virhe getOrCreateUserId-funktiossa:", error);
@@ -291,7 +296,6 @@ export default function LandingPage({ navigation }) {
   }, [remoteBlock]);
 
   useEffect(() => {
-    // prevent double execution in Strict Mode
     if (bootStartedRef.current) return;
     bootStartedRef.current = true;
 
@@ -335,21 +339,12 @@ export default function LandingPage({ navigation }) {
           const snapshot = await dbGet('players');
           const playersData = snapshot.val();
           const tmpScores = [];
-          const currentMonth = new Date().getMonth();
-          const currentYear = new Date().getFullYear();
-          const currentWeek = (() => {
-            const d = new Date();
-            const dayNum = d.getUTCDay() || 7;
-            d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-            const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-            return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-          })();
 
           if (playersData) {
             Object.keys(playersData).forEach(playerId => {
               const player = playersData[playerId];
               if (player.scores) {
-                let scoresToUse = Object.values(player.scores);
+                const scoresToUse = Object.values(player.scores);
                 if (scoresToUse.length > 0) {
                   let bestScore = null;
                   scoresToUse.forEach(score => {
@@ -386,7 +381,6 @@ export default function LandingPage({ navigation }) {
           }
         });
 
-        // All boot tasks done
         setBootDone(true);
       } catch (error) {
         console.error("Asset loading failed:", error);

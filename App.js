@@ -252,7 +252,7 @@ function AppShell() {
             headerShown: false,
             cardStyle: { backgroundColor: '#253445' },
 
-            // ✦ H I D A S  F A D E
+            // FADE TRANSITION
             gestureEnabled: false,
             transitionSpec: {
               open: { animation: 'timing', config: { duration: 3000, easing: Easing.out(Easing.cubic) } },
