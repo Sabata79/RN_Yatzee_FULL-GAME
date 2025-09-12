@@ -3,6 +3,7 @@
  *
  * JSDoc comments and inline code comments must always be in English.
  * This file provides functions for fetching and using remote config from Firebase.
+ * @module RemoteConfigService
  * @author Sabata79
  * @since 2025-08-29
  */

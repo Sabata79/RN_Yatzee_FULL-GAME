@@ -1,6 +1,11 @@
-// src/services/nameUtils.js
-// Common name utilities for player name handling
-
+/**
+* src/services/nameUtils.js
+* Common name utilities for player name handling
+*
+* @module nameUtils
+* @author Sabata79
+* @since 2025-08-29
+*/
 import { dbGet } from './Firebase';
 
 export const sanitizeInput = (input) =>
