@@ -13,8 +13,8 @@
  * @author Sabata79
  * @since 2025-09-06
  */
-import { useState } from 'react';
-import { View, Text, Pressable, Modal, Linking, Dimensions } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, Pressable, Modal, Linking, Dimensions, Easing } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { FontAwesome5 } from '@expo/vector-icons';
 import Feather from '@expo/vector-icons/Feather';
@@ -25,6 +25,7 @@ import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from 'react-native-
 import { useFonts } from 'expo-font';
 
 import { GameProvider } from './src/constants/GameContext';
+import { AudioProvider } from './src/services/AudioManager';
 import LandingPage from './src/screens/LandingPage';
 import Home from './src/screens/Home';
 import Gameboard from './src/screens/Gameboard';
@@ -46,7 +47,6 @@ const Tab = createBottomTabNavigator();
 
 // Main shell component containing navigation and modals
 function AppShell() {
-  console.log('[APP] AppShell render');
   const [isUserRecognized, setIsUserRecognized] = useState(false);
   const [name, setName] = useState('');
   const [playerId, setPlayerId] = useState('');
@@ -81,21 +81,20 @@ function AppShell() {
 
   // Bottom tab navigator for main app screens
   const TabNavigator = () => {
-    console.log('[APP] TabNavigator render');
     const baseHeight = isSmallScreen ? 56 : isBigScreen ? 84 : 68;
     const bottomPad = insets.bottom > 8 ? insets.bottom : 0;
 
     return (
       // Tab navigator with custom icons and styles
       <Tab.Navigator
-        sceneContainerStyle={{ backgroundColor: '#000' }}
+        sceneContainerStyle={{ backgroundColor: '#253445' }}
         screenOptions={({ route }) => ({
           headerShown: false,
           tabBarStyle: {
             height: baseHeight + bottomPad,
             paddingBottom: bottomPad,
             paddingTop: 6,
-            backgroundColor: '#000000E6',
+            backgroundColor: '#253445',
             borderTopWidth: 0,
             position: 'absolute',
             left: 0,
@@ -226,9 +225,8 @@ function AppShell() {
   };
 
   return (
-    // Main app view, now wrapped in SafeAreaView for edge-to-edge support
     <SafeAreaView style={{ flex: 1, backgroundColor: '#000' }} edges={['top', 'left', 'right']}>
-  <EnergyTokenSystem hidden />
+      <EnergyTokenSystem hidden />
 
       {/* Update modal */}
       <Modal
@@ -249,7 +247,23 @@ function AppShell() {
       </Modal>
 
       <NavigationContainer>
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Navigator
+          screenOptions={{
+            headerShown: false,
+            cardStyle: { backgroundColor: '#253445' },
+
+            // ✦ H I D A S  F A D E
+            gestureEnabled: false,
+            transitionSpec: {
+              open: { animation: 'timing', config: { duration: 3000, easing: Easing.out(Easing.cubic) } },
+              close: { animation: 'timing', config: { duration: 1900, easing: Easing.out(Easing.cubic) } },
+            },
+            cardStyleInterpolator: ({ current }) => ({
+              // Uusi screeni “liimataan” päälle ja haalistetaan sisään
+              cardStyle: { opacity: current.progress },
+            }),
+          }}
+        >
           <Stack.Screen name="LandingPage" component={LandingPage} />
           <Stack.Screen
             name="MainApp"
@@ -271,6 +285,7 @@ function AppShell() {
 
 // Root component: loads fonts, provides context, and renders AppShell
 export default function App() {
+
   const [loaded] = useFonts({
     AntonRegular: require('./assets/fonts/Anton-Regular.ttf'),
     BangersRegular: require('./assets/fonts/Bangers-Regular.ttf'),
@@ -289,9 +304,11 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      <GameProvider>
-        <AppShell />
-      </GameProvider>
+      <AudioProvider>
+        <GameProvider>
+          <AppShell />
+        </GameProvider>
+      </AudioProvider>
     </SafeAreaProvider>
   );
 }
