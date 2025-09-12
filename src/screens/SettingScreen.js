@@ -23,7 +23,6 @@ import { useAudio } from '../services/AudioManager';
 import { sanitizeInput, checkIfNameExists } from '../services/nameUtils';
 
 const SettingScreen = () => {
-  // ⬅️ Haetaan useAudio vain KERRAN, ei duplikaatteja
   const { musicMuted, setMusicMuted, sfxMuted, setSfxMuted, playSelect } = useAudio();
 
   const [isLoaded, setIsLoaded] = useState(false);
@@ -38,7 +37,6 @@ const SettingScreen = () => {
   const [isLinkModalVisible, setIsLinkModalVisible] = useState(false);
   const { playerId, playerName, isLinked, setIsLinked, setPlayerId, setPlayerName } = useGame();
 
-  // Mute handlerit: Provider hoitaa pause/resume → ei stop/play kutsuja
   const handleMusicMuted = (muted) => {
     setMusicMuted(muted);
   };
