@@ -1,16 +1,13 @@
 /**
  * App.js - Main entry point for the Yatzy app
-  * Sets up navigation, context providers, and global styles.
-  * Usage:
-  * import App from './App';
-  *   ...
-  *   <App />
-  * @module App
-  * @author Sabata79
-  * @since 2025-08-30
+ * Sets up navigation, context providers, and global styles.
+ * @module App
+ * @author Sabata79
+ * @since 2025-08-30
  */
+
 import React, { useState } from 'react';
-import { View, Text, Pressable, Modal, Linking, Dimensions, Easing } from 'react-native';
+import { View, Text, Pressable, Modal, Linking, Dimensions, Easing, AppState, Platform, Keyboard } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { FontAwesome5 } from '@expo/vector-icons';
 import Feather from '@expo/vector-icons/Feather';
@@ -32,8 +29,6 @@ import Rules from './src/screens/Rules';
 import updateModalStyles from './src/styles/UpdateModalStyles';
 import EnergyTokenSystem from './src/components/EnergyTokenSystem';
 
-// Android nav bar control
-import { AppState, Platform } from 'react-native';
 import * as NavigationBar from 'expo-navigation-bar';
 
 const { height } = Dimensions.get('window');
@@ -47,7 +42,7 @@ const navTheme = {
   ...DefaultTheme,
   colors: {
     ...DefaultTheme.colors,
-    background: 'transparent', // transparent
+    background: 'transparent',
   },
 };
 
@@ -62,32 +57,63 @@ function AppShell() {
 
   const insets = useSafeAreaInsets();
 
-  // Android navigation bar: hide app-wide (including LandingPage)
+  // Android navigation bar control: immersive by default, show when keyboard is visible
   React.useEffect(() => {
     if (Platform.OS !== 'android') return;
 
     let mounted = true;
+    const kbVisibleRef = { current: false };
 
-    const apply = async () => {
-      if (!mounted) return;
+    const showForKeyboard = async () => {
+      try {
+        // Make room for IME and keep nav bar visible while typing
+        await NavigationBar.setBehaviorAsync('inset-swipe'); // layout resizes
+        await NavigationBar.setPositionAsync('relative');    // not overlay
+        await NavigationBar.setVisibilityAsync('visible');   // show bar
+        await NavigationBar.setButtonStyleAsync('light');
+      } catch {}
+    };
+
+    const hideImmersive = async () => {
       try {
         await NavigationBar.setBackgroundColorAsync('transparent');
         await NavigationBar.setButtonStyleAsync('light');
         try { await NavigationBar.setBehaviorAsync('overlay-swipe'); } catch {}
         try { await NavigationBar.setPositionAsync('absolute'); } catch {}
-        await NavigationBar.setVisibilityAsync('hidden');
+        await NavigationBar.setVisibilityAsync('immersive'); // or 'leanback'
       } catch {}
     };
 
+    const apply = async () => {
+      if (!mounted) return;
+      if (kbVisibleRef.current) await showForKeyboard();
+      else await hideImmersive();
+    };
+
+    // Initial state
     apply();
 
-    const sub = AppState.addEventListener('change', (state) => {
+    // Re-apply when returning to foreground
+    const appSub = AppState.addEventListener('change', (state) => {
       if (state === 'active') apply();
+    });
+
+    // Keyboard listeners: show bar while keyboard is up
+    const k1 = Keyboard.addListener('keyboardDidShow', () => {
+      kbVisibleRef.current = true;
+      showForKeyboard();
+    });
+    const k2 = Keyboard.addListener('keyboardDidHide', () => {
+      kbVisibleRef.current = false;
+      hideImmersive();
     });
 
     return () => {
       mounted = false;
-      sub?.remove?.();
+      appSub?.remove?.();
+      k1?.remove?.();
+      k2?.remove?.();
+      // (Optional) restore visible when unmounting
       NavigationBar.setVisibilityAsync('visible').catch(() => {});
     };
   }, []);

@@ -22,6 +22,7 @@
       "bundleIdentifier": "com.SimpleYatzee"
     },
     "android": {
+      "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
         "foregroundImage": "./assets/desktopIcon.png",
         "backgroundColor": "#2c3e50"
