@@ -1,19 +1,24 @@
 /**
  * Home.js - Main screen for player login, linking, recovery, and welcome video
  *
- * Handles player login, account linking, recovery, and welcome video.
- *
- * Usage:
- *   import Home from './Home';
- *   ...
- *   <Home />
+ * Uses KeyboardAvoidingView + ScrollView to keep inputs visible with hidden nav bar.
  *
  * @module screens/Home
- * @author Sabata79
+ * @author
  * @since 2025-09-06
  */
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { View, Text, TextInput, Alert, Image, Animated } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  Alert,
+  Image,
+  Animated,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+} from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { FontAwesome5 } from '@expo/vector-icons';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -29,6 +34,7 @@ import PlayerCard from "../components/PlayerCard";
 import HomeScreenButton from "../components/HomeScreenButton";
 import { useAudio } from '../services/AudioManager';
 import BackgroundVideo from '../components/BackgroundVideo';
+import { MAX_TOKENS } from '../constants/Game';
 
 export default function Home({ setPlayerId }) {
   // Local state
@@ -97,6 +103,7 @@ export default function Home({ setPlayerId }) {
       level: 'beginner',
       progresspoints: 0,
       dateJoined: playerData?.dateJoined || formattedDate,
+      tokens: MAX_TOKENS,
     });
 
     await SecureStore.setItemAsync('user_id', userId);
@@ -134,7 +141,6 @@ export default function Home({ setPlayerId }) {
   };
 
   const handlePlay = async () => {
-    // Ensure SFX is warm on user gesture
     if (!ready) {
       await prewarmSfx().catch(() => {});
     }
@@ -149,103 +155,125 @@ export default function Home({ setPlayerId }) {
   return (
     <View style={{ flex: 1 }}>
       <BackgroundVideo isActive={isFocused} />
-      <Animated.View style={[homeStyles.homeContainer, { opacity: fadeAnim }]}>
-        {!userRecognized ? (
-          <View style={homeStyles.homeContainer}>
-            <Text style={homeStyles.homeText}>Hi, Stranger!</Text>
-            <Text style={homeStyles.homeText}>Can you tell your nickname?</Text>
-            <Text style={homeStyles.homeAuxillaryText}>(Nickname must be 3-10 characters long)</Text>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={16}
+      >
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{
+            flexGrow: 1,
+            alignItems: 'center',
+            justifyContent: 'center',
+            paddingBottom: 24,
+          }}
+          showsVerticalScrollIndicator={false}
+        >
+          <Animated.View style={[homeStyles.homeContainer, { opacity: fadeAnim, alignSelf: 'stretch' }]}>
+            {!userRecognized ? (
+              <View style={homeStyles.homeContainer}>
+                <Text style={homeStyles.homeText}>Hi, Stranger!</Text>
+                <Text style={homeStyles.homeText}>Can you tell your nickname?</Text>
+                <Text style={homeStyles.homeAuxillaryText}>(Nickname must be 3-10 characters long)</Text>
 
-            <Image source={require("../../assets/register.webp")} style={stylesGlobal.registerImage} />
+                <Image source={require("../../assets/register.webp")} style={stylesGlobal.registerImage} />
 
-            <TextInput
-              ref={inputRef}
-              style={homeStyles.input}
-              placeholder="Enter your nickname"
-              placeholderTextColor={"#222f3e"}
-              value={localName}
-              onChangeText={(text) => setLocalName(sanitizeInput(text))}
-            />
+                <TextInput
+                  ref={inputRef}
+                  style={homeStyles.input}
+                  placeholder="Enter your nickname"
+                  placeholderTextColor={"#222f3e"}
+                  value={localName}
+                  onChangeText={(text) => setLocalName(sanitizeInput(text))}
+                  returnKeyType="done"
+                  blurOnSubmit={false}
+                  onSubmitEditing={handlePress}
+                />
 
-            <HomeScreenButton
-              label="OK"
-              icon={<FontAwesome5 name="check" size={30} color="black" style={{ marginLeft: 8 }} />}
-              onPress={handlePress}
-            />
-            <HomeScreenButton
-              label="Recover linked player"
-              icon={<FontAwesome5 name="redo" size={30} color="black" style={{ marginLeft: 8 }} />}
-              onPress={() => setIsRecoverModalVisible(true)}
-            />
-            <Recover
-              isVisible={isRecoverModalVisible}
-              onClose={() => setIsRecoverModalVisible(false)}
-            />
-          </View>
-        ) : (
-          <View style={homeStyles.homeContainer}>
-            <Text style={[homeStyles.homeText]}>Hi {playerName},</Text>
+                <HomeScreenButton
+                  label="OK"
+                  icon={<FontAwesome5 name="check" size={30} color="black" style={{ marginLeft: 8 }} />}
+                  onPress={handlePress}
+                />
 
-            <View style={homeStyles.tokenRow}>
-              <Text style={[homeStyles.homeText]}>you have</Text>
-              <Text style={homeStyles.tokenText}>{tokens}</Text>
-              <View style={homeStyles.energyIcon}>
-                <MaterialCommunityIcons name="flash" size={18} color='#f1c40f' />
+                <HomeScreenButton
+                  label="Recover linked player"
+                  icon={<FontAwesome5 name="redo" size={30} color="black" style={{ marginLeft: 8 }} />}
+                  onPress={() => setIsRecoverModalVisible(true)}
+                />
+
+                <Recover
+                  isVisible={isRecoverModalVisible}
+                  onClose={() => setIsRecoverModalVisible(false)}
+                />
               </View>
-              <Text style={[homeStyles.homeText, { left: -5 }]}>energy left.</Text>
-            </View>
-
-            {tokens > 0 ? (
-              <Text style={homeStyles.homeText}>Ready to roll the dice?</Text>
             ) : (
-              <View style={homeStyles.tokenRow}>
-                <Text style={homeStyles.homeText}>Next energy</Text>
-                <View style={[homeStyles.energyIcon, { left: -5 }]}>
-                  <MaterialCommunityIcons name="flash" size={18} color='#f1c40f' />
+              <View style={homeStyles.homeContainer}>
+                <Text style={[homeStyles.homeText]}>Hi {playerName},</Text>
+
+                <View style={homeStyles.tokenRow}>
+                  <Text style={[homeStyles.homeText]}>you have</Text>
+                  <Text style={homeStyles.tokenText}>{tokens}</Text>
+                  <View style={homeStyles.energyIcon}>
+                    <MaterialCommunityIcons name="flash" size={18} color='#f1c40f' />
+                  </View>
+                  <Text style={[homeStyles.homeText, { left: -5 }]}>energy left.</Text>
                 </View>
-                <Text style={[homeStyles.homeText, { left: -5 }]}>in {timeToNextToken}</Text>
+
+                {tokens > 0 ? (
+                  <Text style={homeStyles.homeText}>Ready to roll the dice?</Text>
+                ) : (
+                  <View style={homeStyles.tokenRow}>
+                    <Text style={homeStyles.homeText}>Next energy</Text>
+                    <View style={[homeStyles.energyIcon, { left: -5 }]}>
+                      <MaterialCommunityIcons name="flash" size={18} color='#f1c40f' />
+                    </View>
+                    <Text style={[homeStyles.homeText, { left: -5 }]}>in {timeToNextToken}</Text>
+                  </View>
+                )}
+
+                <Animated.Image
+                  source={require('../../assets/animations/hiThereAnimation.gif')}
+                  style={homeStyles.hiThereImage}
+                  resizeMode="contain"
+                />
+
+                <HomeScreenButton
+                  label="PLAY"
+                  icon={<FontAwesome5 name="play" size={30} color="black" style={{ marginLeft: 8 }} />}
+                  onPress={handlePlay}
+                />
+
+                <HomeScreenButton
+                  label="View Player Card"
+                  icon={<FontAwesome5 name="id-card" size={30} color="black" style={{ marginLeft: 8 }} />}
+                  onPress={handleViewPlayerCard}
+                />
+                <HomeScreenButton
+                  label="View Scoreboard"
+                  icon={<FontAwesome5 name="trophy" size={30} color="black" style={{ marginLeft: 8 }} />}
+                  onPress={handleScore}
+                />
+                <HomeScreenButton
+                  label="Settings"
+                  icon={<FontAwesome5 name="cog" size={30} color="black" style={{ marginLeft: 8 }} />}
+                  onPress={handleSettings}
+                />
               </View>
             )}
 
-            <Animated.Image
-              source={require('../../assets/animations/hiThereAnimation.gif')}
-              style={homeStyles.hiThereImage}
-              resizeMode="contain"
-            />
-
-            <HomeScreenButton
-              label="PLAY"
-              icon={<FontAwesome5 name="play" size={30} color="black" style={{ marginLeft: 8 }} />}
-              onPress={handlePlay}
-            />
-
-            <HomeScreenButton
-              label="View Player Card"
-              icon={<FontAwesome5 name="id-card" size={30} color="black" style={{ marginLeft: 8 }} />}
-              onPress={handleViewPlayerCard}
-            />
-            <HomeScreenButton
-              label="View Scoreboard"
-              icon={<FontAwesome5 name="trophy" size={30} color="black" style={{ marginLeft: 8 }} />}
-              onPress={handleScore}
-            />
-            <HomeScreenButton
-              label="Settings"
-              icon={<FontAwesome5 name="cog" size={30} color="black" style={{ marginLeft: 8 }} />}
-              onPress={handleSettings}
-            />
-          </View>
-        )}
-
-        {isModalVisible && selectedPlayer && (
-          <PlayerCard
-            playerId={selectedPlayer.playerId}
-            playerName={selectedPlayer.playerName}
-            isModalVisible={isModalVisible}
-            setModalVisible={setModalVisible}
-          />
-        )}
-      </Animated.View>
+            {isModalVisible && selectedPlayer && (
+              <PlayerCard
+                playerId={selectedPlayer.playerId}
+                playerName={selectedPlayer.playerName}
+                isModalVisible={isModalVisible}
+                setModalVisible={setModalVisible}
+              />
+            )}
+          </Animated.View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </View>
   );
 }

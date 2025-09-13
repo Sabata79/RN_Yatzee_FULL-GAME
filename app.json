@@ -22,6 +22,7 @@
       "bundleIdentifier": "com.SimpleYatzee"
     },
     "android": {
+      "edgeToEdgeEnabled": true,
       "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
         "foregroundImage": "./assets/desktopIcon.png",

@@ -5,9 +5,18 @@
  * @author Sabata79
  * @since 2025-08-30
  */
-
-import React, { useState } from 'react';
-import { View, Text, Pressable, Modal, Linking, Dimensions, Easing, AppState, Platform, Keyboard } from 'react-native';
+import React, { useState, useRef } from 'react';
+import {
+  View,
+  Text,
+  Pressable,
+  Modal,
+  Linking,
+  Dimensions,
+  Easing,
+  AppState,
+  Platform,
+} from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { FontAwesome5 } from '@expo/vector-icons';
 import Feather from '@expo/vector-icons/Feather';
@@ -51,69 +60,39 @@ function AppShell() {
   const [name, setName] = useState('');
   const [playerId, setPlayerId] = useState('');
   const [updateModalVisible, setUpdateModalVisible] = useState(false);
-
-  const updateMessage =
-    'A new version of the app is available. Please update to get the latest features and improvements.';
-
   const insets = useSafeAreaInsets();
 
-  // Android navigation bar control: immersive by default, show when keyboard is visible
+  // --- ANDROID NAV BAR: keep hidden; do NOT react to keyboard events ---
+  const navHiddenOnceRef = useRef(false);
+
+  const applyHidden = async (reason = '') => {
+    if (Platform.OS !== 'android') return;
+    try {
+      await NavigationBar.setButtonStyleAsync('light');
+      await NavigationBar.setVisibilityAsync('hidden');
+    } catch {
+      // ignore
+    }
+  };
+
   React.useEffect(() => {
     if (Platform.OS !== 'android') return;
 
-    let mounted = true;
-    const kbVisibleRef = { current: false };
+    // Hide on mount
+    const t0 = setTimeout(() => {
+      applyHidden('mount');
+      navHiddenOnceRef.current = true;
+    }, 0);
 
-    const showForKeyboard = async () => {
-      try {
-        // Make room for IME and keep nav bar visible while typing
-        await NavigationBar.setBehaviorAsync('inset-swipe'); // layout resizes
-        await NavigationBar.setPositionAsync('relative');    // not overlay
-        await NavigationBar.setVisibilityAsync('visible');   // show bar
-        await NavigationBar.setButtonStyleAsync('light');
-      } catch {}
-    };
-
-    const hideImmersive = async () => {
-      try {
-        await NavigationBar.setBackgroundColorAsync('transparent');
-        await NavigationBar.setButtonStyleAsync('light');
-        try { await NavigationBar.setBehaviorAsync('overlay-swipe'); } catch {}
-        try { await NavigationBar.setPositionAsync('absolute'); } catch {}
-        await NavigationBar.setVisibilityAsync('immersive'); // or 'leanback'
-      } catch {}
-    };
-
-    const apply = async () => {
-      if (!mounted) return;
-      if (kbVisibleRef.current) await showForKeyboard();
-      else await hideImmersive();
-    };
-
-    // Initial state
-    apply();
-
-    // Re-apply when returning to foreground
-    const appSub = AppState.addEventListener('change', (state) => {
-      if (state === 'active') apply();
-    });
-
-    // Keyboard listeners: show bar while keyboard is up
-    const k1 = Keyboard.addListener('keyboardDidShow', () => {
-      kbVisibleRef.current = true;
-      showForKeyboard();
-    });
-    const k2 = Keyboard.addListener('keyboardDidHide', () => {
-      kbVisibleRef.current = false;
-      hideImmersive();
+    // Re-hide whenever app returns to foreground (OEMs may reset)
+    const sub = AppState.addEventListener('change', (s) => {
+      if (s === 'active') applyHidden('app active');
     });
 
     return () => {
-      mounted = false;
-      appSub?.remove?.();
-      k1?.remove?.();
-      k2?.remove?.();
-      // (Optional) restore visible when unmounting
+      clearTimeout(t0);
+      sub?.remove?.();
+      // Optionally restore visible on unmount:
       NavigationBar.setVisibilityAsync('visible').catch(() => {});
     };
   }, []);
@@ -199,7 +178,7 @@ function AppShell() {
                 </IconWrap>
               );
             },
-            tabBarStyle: { display: 'none' }, // hide tab bar on Home
+            tabBarStyle: { display: 'none' },
           }}
         >
           {() => (
@@ -223,6 +202,7 @@ function AppShell() {
     <SafeAreaView style={{ flex: 1, backgroundColor: 'black' }} edges={['top', 'left', 'right']}>
       <EnergyTokenSystem hidden />
 
+      {/* Update modal */}
       <Modal
         visible={updateModalVisible}
         transparent
@@ -232,7 +212,9 @@ function AppShell() {
         <View style={updateModalStyles.updateModalOverlay}>
           <View style={updateModalStyles.updateModalContent}>
             <Text style={updateModalStyles.updateModalTitle}>New Update Available!</Text>
-            <Text style={updateModalStyles.updateModalMessage}>{updateMessage}</Text>
+            <Text style={updateModalStyles.updateModalMessage}>
+              A new version of the app is available. Please update to get the latest features and improvements.
+            </Text>
             <Pressable style={updateModalStyles.updateModalUpdateButton} onPress={handleUpdate}>
               <Text style={updateModalStyles.updateModalUpdateButtonText}>Update</Text>
             </Pressable>
@@ -240,7 +222,12 @@ function AppShell() {
         </View>
       </Modal>
 
-      <NavigationContainer theme={navTheme}>
+      <NavigationContainer
+        theme={navTheme}
+        onStateChange={() => {
+          setTimeout(() => applyHidden('route change'), 60);
+        }}
+      >
         <Stack.Navigator
           screenOptions={{
             headerShown: false,
@@ -260,6 +247,7 @@ function AppShell() {
         </Stack.Navigator>
       </NavigationContainer>
 
+      {/* Edge-to-edge: translucent so content can draw behind, we pad only where needed */}
       <StatusBar style="light" translucent backgroundColor="transparent" />
     </SafeAreaView>
   );
