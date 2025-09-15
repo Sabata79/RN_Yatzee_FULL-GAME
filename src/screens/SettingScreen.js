@@ -3,24 +3,26 @@
 * account linking, and data wiping.
 *
 * Usage: import SettingScreen from './SettingScreen';
-*   
+*
 * @module screens/SettingScreen
 * @author Sabata79
 * @since 2025-08-29
 */
 import { useState, useEffect, useRef } from 'react';
-import { View, Text, Pressable, ImageBackground, TouchableOpacity, Modal, TextInput, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, Pressable, ImageBackground, TouchableOpacity, TextInput, Alert, Platform, BackHandler } from 'react-native';
 import { Ionicons, MaterialCommunityIcons, Feather, FontAwesome5 } from '@expo/vector-icons';
-import Linked from '../services/Linked';
+import LinkedModal from '../components/modals/LinkedModal';
 import settingScreenStyles from '../styles/SettingScreenStyles';
 import { useGame } from '../constants/GameContext';
 import * as SecureStore from 'expo-secure-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { remove, dbRef, dbUpdate } from '../services/Firebase';
-import { BackHandler } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAudio } from '../services/AudioManager';
 import { sanitizeInput, checkIfNameExists } from '../services/nameUtils';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import WipeModal from '../components/modals/WipeModal';
+import CustomKeyboard from '../components/CustomKeyboard';
 
 const SettingScreen = () => {
   const { musicMuted, setMusicMuted, sfxMuted, setSfxMuted, playSelect } = useAudio();
@@ -29,13 +31,18 @@ const SettingScreen = () => {
   const isInitialLoad = useRef(true);
 
   const navigation = useNavigation();
-  const [wipeDataModalVisible, setWipeDataModalVisible] = useState(false);
-  const [wipeNameInput, setWipeNameInput] = useState('');
-  const [wipeError, setWipeError] = useState('');
-  const [wiping, setWiping] = useState(false);
-
   const [isLinkModalVisible, setIsLinkModalVisible] = useState(false);
+
   const { playerId, playerName, isLinked, setIsLinked, setPlayerId, setPlayerName } = useGame();
+
+  const insets = useSafeAreaInsets();
+
+  // Custom-näppis nimen editointiin
+  const [kbVisible, setKbVisible] = useState(false);
+
+  // WipeModal
+  const [wipeOpen, setWipeOpen] = useState(false);
+  const [wiping, setWiping] = useState(false);
 
   const handleMusicMuted = (muted) => {
     setMusicMuted(muted);
@@ -43,7 +50,9 @@ const SettingScreen = () => {
 
   const handleSfxMuted = async (muted) => {
     setSfxMuted(muted);
-    if (!muted) { try { await playSelect(); } catch {} }
+    if (!muted) {
+      try { await playSelect(); } catch { }
+    }
   };
 
   useEffect(() => {
@@ -62,6 +71,7 @@ const SettingScreen = () => {
   useEffect(() => { setEditName(playerName); }, [playerName]);
 
   const editNameInputRef = useRef(null);
+
   const handleSaveName = async () => {
     const cleanedName = sanitizeInput(editName);
     if (cleanedName === '') {
@@ -72,6 +82,7 @@ const SettingScreen = () => {
       return;
     } else if (cleanedName === playerName) {
       setIsEditingName(false);
+      setKbVisible(false);
       return;
     } else {
       const nameExists = await checkIfNameExists(cleanedName);
@@ -83,6 +94,42 @@ const SettingScreen = () => {
     await dbUpdate(`players/${playerId}`, { name: cleanedName });
     setPlayerName(cleanedName);
     setIsEditingName(false);
+    setKbVisible(false);
+  };
+
+  // Wipe account function
+  const wipeAccount = async () => {
+    if (wiping) return;
+    setWiping(true);
+    try {
+      await remove(dbRef(`players/${playerId}`));
+      await SecureStore.deleteItemAsync('user_id');
+      await AsyncStorage.clear();
+
+      setIsLinked(false);
+      setPlayerId('');
+      setPlayerName('');
+
+      setWipeOpen(false);
+      Alert.alert(
+        'All data deleted',
+        'Your account and all data have been wiped.',
+        [{
+          text: 'OK',
+          onPress: () => {
+            try { BackHandler.exitApp(); }
+            catch {
+              if (navigation && navigation.navigate) navigation.navigate('Home');
+            }
+          }
+        }]
+      );
+    } catch (e) {
+      console.log('Wipe error:', e);
+      Alert.alert('Error', e?.message || String(e));
+    } finally {
+      setWiping(false);
+    }
   };
 
   return (
@@ -107,20 +154,30 @@ const SettingScreen = () => {
                 maxLength={10}
                 autoFocus
                 onSubmitEditing={handleSaveName}
-                onBlur={() => setIsEditingName(false)}
-                placeholder="Enter name"
-                placeholderTextColor="#888"
-                returnKeyType="done"
+                showSoftInputOnFocus={false}
+                onFocus={() => setKbVisible(true)}
+                onBlur={() => setKbVisible(false)}
               />
             ) : (
               <Text style={settingScreenStyles.name}>{playerName}</Text>
             )}
             {isEditingName ? (
               <TouchableOpacity onPress={handleSaveName}>
-                <Feather name="check" size={18} color="#FFD600" style={settingScreenStyles.editIcon} />
+                <View style={settingScreenStyles.rowLabel}>
+                  <Text style={[settingScreenStyles.linkButtonText, { paddingLeft: 4, paddingTop: 2, color: "#FFD600" }]}>OK</Text>
+                  <Feather name="check" size={24} color="#FFD600" style={settingScreenStyles.editIcon} />
+                </View>
               </TouchableOpacity>
             ) : (
-              <TouchableOpacity onPress={() => { setEditName(playerName); setIsEditingName(true); setTimeout(() => editNameInputRef.current && editNameInputRef.current.focus(), 100); }}>
+              <TouchableOpacity
+                onPress={() => {
+                  setEditName(playerName);
+                  setIsEditingName(true);
+                  setTimeout(() => {
+                    if (editNameInputRef.current) editNameInputRef.current.focus();
+                  }, 100);
+                }}
+              >
                 <Feather name="edit-2" size={18} color="#FFD600" style={settingScreenStyles.editIcon} />
               </TouchableOpacity>
             )}
@@ -147,6 +204,7 @@ const SettingScreen = () => {
             <Text style={settingScreenStyles.rowLabel}>SFX {sfxMuted ? 'Off' : 'On'}</Text>
           </View>
 
+          {/* Link account */}
           <View style={settingScreenStyles.linkButtonContainer}>
             <View style={settingScreenStyles.linkShadowLayer} />
             <Pressable
@@ -163,9 +221,12 @@ const SettingScreen = () => {
             </Pressable>
           </View>
 
-          <Linked
-            isVisible={isLinkModalVisible}
+          <LinkedModal
+            visible={isLinkModalVisible}
             onClose={() => setIsLinkModalVisible(false)}
+            bottomInset={insets.bottom}
+            bottomOffset={75}
+            dark
           />
 
           {/* Wipe all data button */}
@@ -176,94 +237,47 @@ const SettingScreen = () => {
                 settingScreenStyles.wipeButton,
                 pressed && settingScreenStyles.wipeButtonPressed,
               ]}
-              onPress={() => {
-                setWipeDataModalVisible(true);
-                setWipeNameInput('');
-                setWipeError('');
-              }}
+              onPress={() => setWipeOpen(true)}
             >
               <FontAwesome5 name="trash" size={16} color="#fff" style={{ marginRight: 8 }} />
               <Text style={settingScreenStyles.wipeButtonText}>Wipe all your data</Text>
             </Pressable>
           </View>
 
-          {/* Wipe confirmation modal */}
-          <Modal
-            transparent
-            visible={wipeDataModalVisible}
-            animationType="fade"
-            onRequestClose={() => setWipeDataModalVisible(false)}
-          >
-            <View style={settingScreenStyles.modalOverlay}>
-              <View style={settingScreenStyles.modalContent}>
-                <Text style={settingScreenStyles.modalTitle}>Delete all your data?</Text>
-                <Text style={settingScreenStyles.modalWarning}>
-                  This will permanently delete your account, all progress, and linked info. This cannot be undone!
-                </Text>
-                <Text style={settingScreenStyles.modalLabel}>Type your player name to confirm:</Text>
-                <TextInput
-                  style={settingScreenStyles.modalInput}
-                  value={wipeNameInput}
-                  onChangeText={setWipeNameInput}
-                  autoCapitalize="none"
-                  placeholder="Player name"
-                  editable={!wiping}
-                />
-                {!!wipeError && <Text style={settingScreenStyles.modalError}>{wipeError}</Text>}
-                <View style={{ flexDirection: 'row', marginTop: 18, justifyContent: 'space-between' }}>
-                  <Pressable
-                    style={settingScreenStyles.modalCancelBtn}
-                    onPress={() => setWipeDataModalVisible(false)}
-                    disabled={wiping}
-                  >
-                    <Text style={settingScreenStyles.modalCancelText}>Cancel</Text>
-                  </Pressable>
-                  <Pressable
-                    style={settingScreenStyles.modalOkBtn}
-                    onPress={async () => {
-                      setWipeError('');
-                      if (wipeNameInput.trim() !== playerName) {
-                        setWipeError('Name does not match.');
-                        return;
-                      }
-                      setWiping(true);
-                      try {
-                        await remove(dbRef(`players/${playerId}`));
-                        await SecureStore.deleteItemAsync('user_id');
-                        await AsyncStorage.clear();
-                        setIsLinked(false);
-                        setPlayerId('');
-                        setPlayerName('');
-                        setWipeDataModalVisible(false);
-                        Alert.alert(
-                          'All data deleted',
-                          'Your account and all data have been wiped.',
-                          [{
-                            text: 'OK',
-                            onPress: () => {
-                              try { BackHandler.exitApp(); }
-                              catch {
-                                if (navigation && navigation.navigate) navigation.navigate('Home');
-                              }
-                            }
-                          }]
-                        );
-                      } catch (e) {
-                        console.log('Wipe error:', e);
-                        setWipeError('Error deleting data: ' + (e?.message || e?.toString() || 'Unknown error'));
-                      } finally {
-                        setWiping(false);
-                      }
-                    }}
-                    disabled={wiping}
-                  >
-                    {wiping ? <ActivityIndicator color='#F5F5F5' /> : <Text style={settingScreenStyles.modalOkText}>OK</Text>}
-                  </Pressable>
-                </View>
-              </View>
-            </View>
-          </Modal>
+          {/* WipeModal (ohut UI), varsinainen wipeAccount tässä komponentissa */}
+          <WipeModal
+            visible={wipeOpen}
+            onCancel={() => setWipeOpen(false)}
+            onConfirm={wipeAccount}
+            confirmWord={playerName}
+            title="Delete all your data?"
+            description="This will permanently delete your account, all progress, and linked info. This cannot be undone!"
+            bottomInset={insets.bottom}
+            bottomOffset={75}
+            okLabel="OK"
+            cancelLabel="Cancel"
+            dark
+            busy={wiping}
+          />
         </View>
+
+        {Platform.OS === "android" && (
+          <CustomKeyboard
+            visible={kbVisible}
+            bottomInset={insets.bottom}
+            bottomOffset={75}
+            enableSpecials={false}
+            onInsert={(ch) => {
+              setEditName((prev) => (prev + ch).slice(0, 10));
+            }}
+            onBackspace={() => setEditName((prev) => prev.slice(0, -1))}
+            onSubmit={handleSaveName}
+            onHide={() => {
+              editNameInputRef.current?.blur();
+              setKbVisible(false);
+            }}
+          />
+        )}
       </ImageBackground>
     </View>
   );
