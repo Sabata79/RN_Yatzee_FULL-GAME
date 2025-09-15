@@ -62,40 +62,37 @@ function AppShell() {
   const [updateModalVisible, setUpdateModalVisible] = useState(false);
   const insets = useSafeAreaInsets();
 
-  // --- ANDROID NAV BAR: keep hidden; do NOT react to keyboard events ---
-  const navHiddenOnceRef = useRef(false);
-
-  const applyHidden = async (reason = '') => {
+  // --- ANDROID NAV BAR: immersive (overlay + hidden). Ei keyboard-kikkailuja. ---
+  const applyHidden = React.useCallback(async () => {
     if (Platform.OS !== 'android') return;
     try {
+      // Edge-to-edge ja painikkeet vaaleiksi
+      await NavigationBar.setBackgroundColorAsync('transparent');
       await NavigationBar.setButtonStyleAsync('light');
+      // Immersive-käyttäytyminen tuetuilla arvoilla
+      await NavigationBar.setBehaviorAsync('overlay-swipe');
       await NavigationBar.setVisibilityAsync('hidden');
     } catch {
-      // ignore
+      // silent failure
     }
-  };
+  }, []);
 
   React.useEffect(() => {
     if (Platform.OS !== 'android') return;
 
-    // Hide on mount
-    const t0 = setTimeout(() => {
-      applyHidden('mount');
-      navHiddenOnceRef.current = true;
-    }, 0);
+    // Hide nav bar on mount
+    const t0 = setTimeout(applyHidden, 0);
 
-    // Re-hide whenever app returns to foreground (OEMs may reset)
+    // Hide again when app returns to foreground
     const sub = AppState.addEventListener('change', (s) => {
-      if (s === 'active') applyHidden('app active');
+      if (s === 'active') applyHidden();
     });
 
     return () => {
       clearTimeout(t0);
       sub?.remove?.();
-      // Optionally restore visible on unmount:
-      NavigationBar.setVisibilityAsync('visible').catch(() => {});
     };
-  }, []);
+  }, [applyHidden]);
 
   const handleUpdate = async () => {
     const url = 'https://play.google.com/store/apps/details?id=com.SimpleYatzee';
@@ -178,7 +175,7 @@ function AppShell() {
                 </IconWrap>
               );
             },
-            tabBarStyle: { display: 'none' },
+            tabBarStyle: { display: 'none' }, // hide tab bar on Home
           }}
         >
           {() => (
@@ -224,9 +221,8 @@ function AppShell() {
 
       <NavigationContainer
         theme={navTheme}
-        onStateChange={() => {
-          setTimeout(() => applyHidden('route change'), 60);
-        }}
+        onReady={() => setTimeout(applyHidden, 50)}
+        onStateChange={() => setTimeout(applyHidden, 50)}
       >
         <Stack.Navigator
           screenOptions={{
