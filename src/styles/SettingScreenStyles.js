@@ -64,6 +64,7 @@ const settingScreenStyles = StyleSheet.create({
     },
     editIcon: {
         marginLeft: 8,
+        marginTop: -4,
         
     },
     playerId: {
@@ -136,6 +137,7 @@ const settingScreenStyles = StyleSheet.create({
         fontSize: TYPOGRAPHY.fontSize.sm,
         fontFamily: TYPOGRAPHY.fontFamily.montserratBold,
         letterSpacing: 0.5,
+        textAlign: 'center',
     },
     linkShadowLayer: {
         position: 'absolute',
