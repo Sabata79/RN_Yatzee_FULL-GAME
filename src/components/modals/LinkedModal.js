@@ -198,24 +198,6 @@ export default function LinkedModal({
               <FontAwesome5 name={showPw ? "eye-slash" : "eye"} size={18} color="#b9c0c7" />
             </Pressable>
           </View>
-
-          {/* Shortcut chips for email symbols */}
-          <View style={styles.chipsRow}>
-            {["@","",".","_","-"].map((s) => (
-              <Pressable
-                key={s || "dot"}
-                onPress={() => insertShortcut(s)}
-                disabled={!focused || busy}
-                style={({ pressed }) => [
-                  styles.chip,
-                  pressed && styles.chipPressed,
-                ]}
-              >
-                <Text style={styles.chipText}>{s === "" ? "." : s}</Text>
-              </Pressable>
-            ))}
-          </View>
-
           {!!error && <Text style={styles.error}>{error}</Text>}
 
           <View style={styles.row}>
@@ -270,8 +252,9 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   sheet: {
+    position: 'absolute',
     marginHorizontal: 16,
-    marginBottom: 96,
+    top:"15%",
     borderRadius: 16,
     padding: 16,
     backgroundColor: "#12161a",

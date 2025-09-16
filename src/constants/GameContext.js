@@ -198,25 +198,25 @@ export const GameProvider = ({ children }) => {
   }, [playerId]);
 
   // ===== TOKENS: Realtime listener (this was missing) =====
-  useEffect(() => {
-    if (!playerId) return;
+useEffect(() => {
+  if (!playerId) return;
 
-    const path = `players/${playerId}/tokens`;
-    const handleTokens = (snapshot) => {
-      const raw = snapshot.val();
-      const n = Number.isFinite(raw) ? raw : 0;
-      const clamped = Math.max(0, Math.min(MAX_TOKENS, Math.trunc(n)));
-      setTokens(clamped);
-      hydratedRef.current = true; // mark that we have an authoritative value from Firebase
-    };
+  const path = `players/${playerId}/tokens`;
+  const handleTokens = (snapshot) => {
+    const raw = snapshot.val();
+    const n = Number.isFinite(raw) ? raw : 0;
+    const clamped = Math.max(0, Math.min(MAX_TOKENS, Math.trunc(n)));
+    setTokens(clamped);
+    hydratedRef.current = true;
+  };
 
-    const unsubscribe = dbOnValue(path, handleTokens);
-    return () => { 
-      hydratedRef.current = false;
-      if (typeof unsubscribe === 'function') unsubscribe(); 
-      else dbOff(path, handleTokens); 
-    };
-  }, [playerId]);
+  const unsubscribe = dbOnValue(path, handleTokens);
+  return () => { 
+    hydratedRef.current = false;
+    if (typeof unsubscribe === 'function') unsubscribe(); 
+    else dbOff(path, handleTokens); 
+  };
+}, [playerId]);
 
   // Write-through on local changes (after hydration)
   useEffect(() => {

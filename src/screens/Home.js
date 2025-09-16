@@ -24,6 +24,7 @@ import { useAudio } from '../services/AudioManager';
 import BackgroundVideo from '../components/BackgroundVideo';
 import CustomKeyboard from '../components/CustomKeyboard'; // ⬅ custom keyboard
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { MAX_TOKENS } from "../constants/Game";
 
 export default function Home({ setPlayerId }) {
   // Local state
@@ -93,6 +94,7 @@ export default function Home({ setPlayerId }) {
       level: 'beginner',
       progresspoints: 0,
       dateJoined: playerData?.dateJoined || formattedDate,
+      tokens: MAX_TOKENS 
     });
 
     await SecureStore.setItemAsync('user_id', userId);

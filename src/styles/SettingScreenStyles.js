@@ -1,12 +1,12 @@
- /**
- * SettingScreenStyles.js - Styles for the SettingScreen view
- *
+/**
+* SettingScreenStyles.js - Styles for the SettingScreen view
+*
 * Contains all style definitions for the SettingScreen view, including containers, text styles,
- *
- * @module styles/SettingScreenStyles
- * @author Sabata79
- * @since 2025-09-09
- */
+*
+* @module styles/SettingScreenStyles
+* @author Sabata79
+* @since 2025-09-09
+*/
 import { StyleSheet } from 'react-native';
 import COLORS from '../constants/colors';
 import SPACING from '../constants/spacing';
@@ -51,9 +51,11 @@ const settingScreenStyles = StyleSheet.create({
         letterSpacing: 1,
     },
     nameRow: {
+        fontFamily: TYPOGRAPHY.fontFamily.montserratRegular,
         flexDirection: 'row',
         alignItems: 'center',
         marginBottom: 8,
+        textAlign: 'center',
     },
     name: {
         fontSize: TYPOGRAPHY.fontSize.md,
@@ -65,16 +67,16 @@ const settingScreenStyles = StyleSheet.create({
     editIcon: {
         marginLeft: 8,
         marginTop: -4,
-        
+
     },
     playerId: {
-        fontSize: TYPOGRAPHY.fontSize.sm,
-        lineHeight: TYPOGRAPHY.fontSize.sm,
+        fontSize: TYPOGRAPHY.fontSize.xs,
+        lineHeight: TYPOGRAPHY.fontSize.lg,
         color: COLORS.textLight,
         fontFamily: TYPOGRAPHY.fontFamily.montserratRegular,
+
         marginBottom: 0,
         marginLeft: 0,
-        letterSpacing: -0.6,
     },
     idIcon: {
         marginRight: 4,
@@ -106,6 +108,8 @@ const settingScreenStyles = StyleSheet.create({
         alignItems: 'center',
         marginTop: 10,
         marginBottom: 4,
+        position: 'relative',
+        alignSelf: 'center',        // <-- estää venymisen koko kortin leveydelle
     },
     linkButton: {
         flexDirection: 'row',
@@ -124,6 +128,8 @@ const settingScreenStyles = StyleSheet.create({
         shadowOpacity: 0.12,
         shadowRadius: 3,
         elevation: 2,
+        zIndex: 1,                      // <-- varmistaa että on shadowin yläpuolella Androidilla
+        position: 'relative',
     },
     linkButtonPressed: {
         backgroundColor: COLORS.accentLight,
@@ -132,6 +138,14 @@ const settingScreenStyles = StyleSheet.create({
     linkButtonDisabled: {
         opacity: 0.5,
     },
+
+    linkShadowLayer: {
+        ...StyleSheet.absoluteFillObject,
+        transform: [{ translateX: 4 }, { translateY: 4 }],
+        backgroundColor: 'rgba(255,255,255,0.6)',
+        borderRadius: 6,
+        zIndex: 0,
+    },
     linkButtonText: {
         color: COLORS.textLight,
         fontSize: TYPOGRAPHY.fontSize.sm,
@@ -139,16 +153,7 @@ const settingScreenStyles = StyleSheet.create({
         letterSpacing: 0.5,
         textAlign: 'center',
     },
-    linkShadowLayer: {
-        position: 'absolute',
-        top: 4,
-        left: 34,
-        width: '78%',
-        height: 43,
-        backgroundColor: 'rgba(255,255,255,0.6)',
-        borderRadius: 6,
-        zIndex: 0,
-    },
+
     wipeButton: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -162,6 +167,8 @@ const settingScreenStyles = StyleSheet.create({
         minWidth: 160,
         minHeight: 36,
         marginTop: 0,
+        zIndex: 1,                      // <-- sama kuin linkButton
+        position: 'relative',
     },
     wipeButtonPressed: {
         backgroundColor: '#b71c1c',
