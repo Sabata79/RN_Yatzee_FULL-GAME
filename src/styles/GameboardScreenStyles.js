@@ -23,12 +23,13 @@ import TYPOGRAPHY from '../constants/typography';
 const { width, height } = Dimensions.get('window');
 const isSmallScreen = height < 650;
 const isBigScreen = height >= 1050;
+const isNarrow = width < 360;
 
 const styles = StyleSheet.create({
     // Containers
     gameboardContainer: {
-        flex: 1,
-        alignSelf: 'stretch',
+        width: '100%',
+        alignSelf: 'center',
     },
     gameboard: {
         flex: 1,
@@ -61,16 +62,6 @@ const styles = StyleSheet.create({
         borderWidth: 3,
         borderColor: COLORS.secondaryDark,
         backgroundColor: COLORS.success,
-    },
-    diceBorder: {
-        width: '84%',
-        height: isSmallScreen ? 60 : 75,
-        borderWidth: 2,
-        borderColor: '#ccc9c9',
-        borderRadius: 4,
-        alignItems: 'center',
-        backgroundColor: '#000000',
-        marginTop: '-65%',
     },
     filterLayer: {
         position: 'absolute',
@@ -178,13 +169,6 @@ const styles = StyleSheet.create({
         fontSize: TYPOGRAPHY.fontSize.md,
         paddingRight: 15,
     },
-    // centeredText: {
-    //     color: COLORS.textLight,
-    //     fontSize: TYPOGRAPHY.fontSize.sm,
-    //     textAlign: 'center',
-    //     zIndex: 1000,
-    // },
-    // Icons
     icon: {
         justifyContent: 'center',
         alignItems: 'center',
@@ -197,18 +181,16 @@ const styles = StyleSheet.create({
         // IMPORTANT: do NOT put flex:1 here
     },
 
-    // FIX: dice area box, no negative margin, center content
     diceBorder: {
-        width: '90%',
-        height: 75, // tai laske isSmallScreen mukaan jos haluat
+        width: '92%',                  // prosentilla -> skaalaa leveys
+        alignSelf: 'center',
+        backgroundColor: '#0a0a0a',    // boksin tausta
         borderWidth: 2,
-        borderColor: '#ccc9c9',
-        borderRadius: 6,
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: COLORS.black,
-        marginTop: 3,     // small, positive spacing
-        marginBottom: 2,  // small, positive spacing
+        borderColor: '#eee',           // valkoinen kehys
+        borderRadius: 8,
+        paddingHorizontal: isNarrow ? 8 : 12,
+        paddingVertical: isNarrow ? 2 : 2,
+        minHeight: 68, // varmistaa ettei romahda kapeilla näytöillä
     },
 });
 
