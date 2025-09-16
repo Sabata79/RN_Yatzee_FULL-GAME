@@ -1,9 +1,35 @@
 /**
- * RenderFirstRow - Renders the top row of the game UI, including timer and category labels.
- * Uses a stopwatch and writes elapsed seconds into GameContext.
- * Stops immediately when `rounds` reaches 0.
+ * RenderFirstRow – Stopwatch and section labels for the game header row.
+ * Runs a stopwatch via react-timer-hook, writes elapsed seconds into GameContext,
+ * pauses immediately when `rounds` reaches 0, and resets when `isGameSaved` toggles true.
+ *
+ * Usage:
+ *   import RenderFirstRow from '@/components/RenderFirstRow';
+ *
+ *   <FlatList
+ *     {...other props...}
+ *     ListHeaderComponent={<RenderFirstRow rounds={rounds} />}
+ *   />
+ *
+ * Props:
+ *   @param {number} rounds - Remaining rounds; when 0, the stopwatch pauses and the final time is stored.
+ *
+ * Behavior:
+ * - Starts the stopwatch when `gameStarted` becomes true (from GameContext).
+ * - On `rounds === 0`: pauses the stopwatch and calls `setElapsedTimeContext(totalSeconds)`.
+ * - On each tick: syncs `totalSeconds` to GameContext (capped at MAX_SECS).
+ * - On `isGameSaved === true`: pauses + resets stopwatch, writes 0 to context, clears local glow animation.
+ * - Timer color follows a "traffic light" scheme: <150s = success, 150–300s = warning, >300s = error.
+ * - Includes a subtle glow animation while running.
+ *
+ * Dependencies:
+ * - GameContext: { gameStarted, gameEnded, setElapsedTimeContext, isGameSaved, setIsGameSaved }
+ * - react-timer-hook: useStopwatch
+ * - react-native: Animated (glow), MaterialCommunityIcons (timer icon)
+ *
+ * @module components/RenderFirstRow
  * @author Sabata79
- * @since 2025-08-29
+ * @since 2025-09-16
  */
 import { useEffect, useState } from 'react';
 import { View, Text, Animated } from 'react-native';
