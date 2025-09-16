@@ -132,7 +132,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         marginTop: SPACING.sm,
-        left: -7,
     },
 
     // Text styles
@@ -173,7 +172,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         color: COLORS.textLight,
-        marginTop: -7,
+        marginTop: SPACING.xxs,
     },
     footerWrap: {
         alignItems: 'center',

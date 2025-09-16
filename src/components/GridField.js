@@ -28,9 +28,10 @@
  * @author Sabata79
  * @since 2025-09-16
  */
-import { View, Pressable, Text } from 'react-native';
+import { View, Pressable, Text, Image } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAudio } from '../services/AudioManager';
+import { dicefaces } from '../constants/DicePaths';
 
 function GridField({
     index,
@@ -85,10 +86,13 @@ function GridField({
     if (index === 0) {
         return (
             <View style={gameboardstyles.item}>
-                <MaterialCommunityIcons
-                    name="dice-1"
-                    size={isSmallScreen ? 45 : 50}
-                    style={gameboardstyles.icon}
+                <Image
+                    source={dicefaces[0]?.display}
+                    resizeMode="contain"
+                    style={{
+                        width: isSmallScreen ? 30 : 40,
+                        height: isSmallScreen ? 30 : 40,
+                    }}
                 />
             </View>
         );
@@ -160,10 +164,13 @@ function GridField({
     } else if (index === 4) {
         return (
             <View style={gameboardstyles.item}>
-                <MaterialCommunityIcons
-                    name="dice-2"
-                    size={isSmallScreen ? 45 : 50}
-                    style={gameboardstyles.icon}
+                <Image
+                    source={dicefaces[1]?.display}
+                    resizeMode="contain"
+                    style={{
+                        width: isSmallScreen ? 30 : 40,
+                        height: isSmallScreen ? 30 : 40,
+                    }}
                 />
             </View>
         );
@@ -212,10 +219,13 @@ function GridField({
     } else if (index === 8) {
         return (
             <View style={gameboardstyles.item}>
-                <MaterialCommunityIcons
-                    name="dice-3"
-                    size={isSmallScreen ? 45 : 50}
-                    style={gameboardstyles.icon}
+                <Image
+                    source={dicefaces[2]?.display}
+                    resizeMode="contain"
+                    style={{
+                        width: isSmallScreen ? 30 : 40,
+                        height: isSmallScreen ? 30 : 40,
+                    }}
                 />
             </View>
         );
@@ -270,10 +280,13 @@ function GridField({
     } else if (index === 12) {
         return (
             <View style={gameboardstyles.item}>
-                <MaterialCommunityIcons
-                    name="dice-4"
-                    size={isSmallScreen ? 45 : 50}
-                    style={gameboardstyles.icon}
+                <Image
+                    source={dicefaces[3]?.display}
+                    resizeMode="contain"
+                    style={{
+                        width: isSmallScreen ? 30 : 40,
+                        height: isSmallScreen ? 30 : 40,
+                    }}
                 />
             </View>
         );
@@ -326,10 +339,13 @@ function GridField({
     } else if (index === 16) {
         return (
             <View style={gameboardstyles.item}>
-                <MaterialCommunityIcons
-                    name="dice-5"
-                    size={isSmallScreen ? 45 : 50}
-                    style={gameboardstyles.icon}
+                <Image
+                    source={dicefaces[4]?.display}
+                    resizeMode="contain"
+                    style={{
+                        width: isSmallScreen ? 30 : 40,
+                        height: isSmallScreen ? 30 : 40,
+                    }}
                 />
             </View>
         );
@@ -383,10 +399,13 @@ function GridField({
     } else if (index === 20) {
         return (
             <View style={gameboardstyles.item}>
-                <MaterialCommunityIcons
-                    name="dice-6"
-                    size={isSmallScreen ? 45 : 50}
-                    style={gameboardstyles.icon}
+                <Image
+                    source={dicefaces[5]?.display}
+                    resizeMode="contain"
+                    style={{
+                        width: isSmallScreen ? 30 : 40,
+                        height: isSmallScreen ? 30 : 40,
+                    }}
                 />
             </View>
         );

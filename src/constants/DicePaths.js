@@ -6,7 +6,6 @@
  * @author Sabata79
  * @since 2025-08-29
  */
-// Dice face paths for the game
 export const dicefaces = [
     { path: '../../assets/dicesides/1-dice.webp', display: require('../../assets/dicesides/1-dice.webp') },
     { path: '../../assets/dicesides/2-dice.webp', display: require('../../assets/dicesides/2-dice.webp') },
