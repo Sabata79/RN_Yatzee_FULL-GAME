@@ -168,10 +168,10 @@ export default function RecoverModal({
       <View style={styles.backdrop}>
         <Pressable style={RNStyleSheet.absoluteFill} onPress={busy ? undefined : onClose} />
         <View style={styles.sheet}>
-          <Text style={styles.title}>
-            Recover <FontAwesome5 name="redo" size={16} color="#f2f4f5" />
-          </Text>
-
+          <View style={styles.titleRow}>
+            <Text style={styles.title}>Recover</Text>
+            <FontAwesome5 name="redo" size={24} color="#F5F5F5" style={styles.titleIcon} />
+          </View>
           {resetMode ? (
             <>
               <Text style={styles.desc}>Enter your email to reset your password.</Text>
@@ -307,7 +307,7 @@ export default function RecoverModal({
                   ) : (
                     <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
                       <Text style={styles.btnPrimaryText}>Recover Account</Text>
-                      <FontAwesome5 name="redo" size={16} color="#fff" />
+                      <FontAwesome5 name="redo" size={16} color='#F5F5F5' />
                     </View>
                   )}
                 </Pressable>
@@ -331,35 +331,49 @@ export default function RecoverModal({
         onSubmit={closeKb}
         onHide={closeKb}
       />
-    </Modal>
+    </Modal >
   );
 }
+
+import COLORS from "../../constants/colors";
+import TYPOGRAPHY from "../../constants/typography";
+import SPACING from "../../constants/spacing";
 
 const styles = StyleSheet.create({
   backdrop: {
     ...RNStyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.55)",
+    backgroundColor: COLORS.overlayDark,
     justifyContent: "flex-end",
   },
   sheet: {
     marginHorizontal: 16,
-    marginBottom: 300,
+    marginBottom: "65%",
     borderRadius: 16,
     padding: 16,
     backgroundColor: "#12161a",
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.08)",
   },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   title: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#f2f4f5",
-    marginBottom: 6
+    fontFamily: TYPOGRAPHY.fontFamily.bangers,
+    fontSize: TYPOGRAPHY.fontSize.xxl,
+    color: COLORS.textLight,
+    marginRight: SPACING.sm,
+  },
+  titleIcon: {
+    marginTop: SPACING.sm,
   },
   desc: {
-    fontSize: 14,
-    color: "#b9c0c7",
-    marginBottom: 12
+    fontFamily: TYPOGRAPHY.fontFamily.montserratLight,
+    fontSize: TYPOGRAPHY.fontSize.sm,
+    color: COLORS.textLight,
+    marginBottom: SPACING.md,
+    textAlign: "center",
   },
   input: {
     minHeight: 44,
@@ -367,68 +381,70 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     paddingHorizontal: 12,
     justifyContent: "center",
-    marginBottom: 10,
+    marginBottom: SPACING.sm,
   },
   inputActive: {
-    borderColor: "#4c9aff",
-    borderWidth: 2
+    borderColor: "#ffffff",
+    borderWidth: 5
   },
   inputDark: {
     backgroundColor: "#0e1216",
-    borderColor: "#2b3136"
+    borderColor: COLORS.border,
   },
   inputLight: {
     backgroundColor: "#f1f5f9",
-    borderColor: "#e2e8f0"
+    borderColor: COLORS.border,
   },
   inputText: {
-    fontSize: 16,
-    color: "#e6eaee",
-    fontWeight: "600"
+    fontFamily: TYPOGRAPHY.fontFamily.montserratMedium,
+    fontSize: TYPOGRAPHY.fontSize.md,
+    color: COLORS.textLight,
   },
   placeholderText: {
-    color: "#8b98a5",
-    fontWeight: "500"
+    fontFamily: TYPOGRAPHY.fontFamily.montserratLight,
+    color: COLORS.disabled,
   },
   row: {
     flexDirection: "row",
-    gap: 8,
+    gap: SPACING.sm,
     justifyContent: "flex-end",
-    marginTop: 8,
+    marginTop: SPACING.sm,
     flexWrap: "wrap"
   },
   btn: {
     height: 40,
-    paddingHorizontal: 14,
+    paddingHorizontal: SPACING.md,
     borderRadius: 10,
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "center"
   },
   btnGhost: {
     backgroundColor: "transparent"
   },
   btnGhostText: {
-    color: "#b9c0c7",
-    fontWeight: "700"
+    fontFamily: TYPOGRAPHY.fontFamily.montserratSemiBold,
+    fontSize: TYPOGRAPHY.fontSize.md,
+    color: COLORS.textLight,
   },
   btnPrimary: {
-    backgroundColor: "#2e7d32"
+    backgroundColor: COLORS.success
   },
   btnPrimaryText: {
-    color: "#fff",
-    fontWeight: "800"
+    fontFamily: TYPOGRAPHY.fontFamily.montserratBold,
+    fontSize: TYPOGRAPHY.fontSize.md,
+    color: COLORS.textLight,
   },
   btnDisabled: {
     opacity: 0.5
   },
   error: {
-    color: "#ff6b6b",
-    fontSize: 13,
-    marginBottom: 4
+    color: COLORS.warning,
+    fontSize: TYPOGRAPHY.fontSize.xs,
+    marginBottom: SPACING.xs
   },
   info: {
-    color: "#8ab4f8",
-    fontSize: 13,
-    marginBottom: 4
+    color: COLORS.primary,
+    fontSize: TYPOGRAPHY.fontSize.xs,
+    marginBottom: SPACING.xs
   },
 });

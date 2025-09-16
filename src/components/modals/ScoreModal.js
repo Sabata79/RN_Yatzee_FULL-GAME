@@ -1,0 +1,281 @@
+/**
+ * ScoreModal – End-of-game summary with time-based bonus and Save/Cancel actions.
+ * Displays elapsed time, base score, time bonus, and total. Save delegates to parent onSave().
+ *
+ * Usage:
+ *   import ScoreModal from '@/components/modals/ScoreModal';
+ *   <ScoreModal
+ *     visible={scoreOpen}
+ *     onClose={() => setScoreOpen(false)}
+ *     onCancel={() => { setScoreOpen(false); resetGame(); }}
+ *     onSave={handleSaveScoreFromModal}
+ *     points={totalPoints}
+ *     elapsedSecs={elapsedTime}
+ *     fastThreshold={150}
+ *     slowThreshold={300}
+ *     fastBonus={10}
+ *     slowBonus={-10}
+ *     bottomInset={insets.bottom}
+ *     bottomOffset={75}
+ *     dark
+ *   />
+ *
+ * Notes:
+ * - Save expects onSave to return boolean; on true, modal calls onClose().
+ * - Cancel should close the modal and let parent reset the game/timer.
+ * - Bonus coloring mirrors scoreboard “traffic light” scheme.
+ *
+ * @module components/modals/ScoreModal.js
+ * @author Sabata79
+ * @since 2025-09-16
+ */
+import React, { useMemo, useState, useEffect, useCallback } from "react";
+import {
+    Modal,
+    View,
+    Text,
+    Pressable,
+    StyleSheet,
+    StyleSheet as RNStyleSheet,
+    ActivityIndicator,
+} from "react-native";
+
+function formatTime(secs = 0) {
+    const m = Math.floor(secs / 60);
+    const s = Math.floor(secs % 60);
+    return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+}
+
+export default function ScoreModal({
+    visible,
+    onClose,
+    onSave,
+    onCancel,
+    points = 0,
+    elapsedSecs = 0,
+    bottomInset = 0,
+    bottomOffset = 0,
+    dark = true,
+    // bonus thresholds
+    fastThreshold = 150,
+    slowThreshold = 300,
+    fastBonus = 10,
+    slowBonus = -10,
+    okColor = COLORS.success,
+    warnColor = COLORS.warning,
+    errColor = COLORS.error,
+    goodColor = COLORS.secondaryDark,
+}) {
+    const [busy, setBusy] = useState(false);
+
+    useEffect(() => {
+        if (!visible) setBusy(false);
+    }, [visible]);
+
+    const { bonus, dotColor } = useMemo(() => {
+        if (elapsedSecs > slowThreshold) return { bonus: slowBonus, dotColor: errColor };
+        if (elapsedSecs > fastThreshold) return { bonus: 0, dotColor: warnColor };
+        return { bonus: fastBonus, dotColor: goodColor };
+    }, [elapsedSecs, fastThreshold, slowThreshold, fastBonus, slowBonus, errColor, warnColor, goodColor]);
+
+    const total = useMemo(() => points + bonus, [points, bonus]);
+
+    const handleSave = useCallback(async () => {
+        if (busy) {
+            console.log("[ScoreModal] Save pressed while busy – ignored");
+            return;
+        }
+        console.log("[ScoreModal] Save pressed", { points, bonus, total, elapsedSecs, busy });
+
+        if (typeof onSave !== "function") {
+            console.warn("[ScoreModal] onSave is not provided or not a function");
+            onClose?.();
+            return;
+        }
+
+        setBusy(true);
+        try {
+            const ok = await onSave({ baseScore: points, bonus, total, elapsedSecs });
+            console.log("[ScoreModal] onSave result:", ok);
+            if (ok) {
+                onClose?.(); // close on success
+            }
+        } catch (e) {
+            console.log("[ScoreModal] onSave threw:", e?.message || String(e));
+        } finally {
+            setBusy(false);
+        }
+    }, [busy, onSave, points, bonus, total, elapsedSecs, onClose]);
+
+    if (!visible) return null;
+
+    return (
+        <Modal visible transparent animationType="fade" onRequestClose={onClose}>
+            <View style={styles.backdrop}>
+                <Pressable style={RNStyleSheet.absoluteFill} onPress={busy ? undefined : (onCancel || onClose)} />
+                <View style={styles.sheet}>
+                    <Text style={styles.title}>Game Over</Text>
+                    <Text style={styles.desc}>Here’s your run summary.</Text>
+
+                    {/* Duration */}
+                    <View style={styles.rowBetween}>
+                        <Text style={styles.label}>Time</Text>
+                        <View style={styles.rowCenter}>
+                            <View style={[styles.dot, { backgroundColor: dotColor }]} />
+                            <Text style={styles.value}>{formatTime(elapsedSecs)}</Text>
+                        </View>
+                    </View>
+
+                    {/* Base points */}
+                    <View style={styles.rowBetween}>
+                        <Text style={styles.label}>Score</Text>
+                        <Text style={styles.value}>{points} pts</Text>
+                    </View>
+
+                    {/* Bonus row */}
+                    <View style={styles.rowBetween}>
+                        <Text style={styles.label}>Time bonus</Text>
+                        <Text style={[styles.value, { color: bonus > 0 ? goodColor : bonus < 0 ? errColor : "#b9c0c7" }]}>
+                            {bonus > 0 ? `+${bonus}` : bonus} pts
+                        </Text>
+                    </View>
+
+                    <View style={styles.divider} />
+
+                    {/* Total */}
+                    <View style={styles.rowBetween}>
+                        <Text style={styles.totalLabel}>Total</Text>
+                        <Text style={styles.totalValue}>{total} pts</Text>
+                    </View>
+
+                    <View style={styles.actions}>
+                        <Pressable
+                            onPress={onCancel || onClose}
+                            disabled={busy}
+                            style={[styles.btn, styles.btnGhost, busy && styles.btnDisabled]}
+                        >
+                            <Text style={styles.btnGhostText}>Cancel</Text>
+                        </Pressable>
+
+                        <Pressable
+                            onPress={handleSave}
+                            disabled={busy}
+                            style={[styles.btn, { backgroundColor: okColor }, busy && styles.btnDisabled]}
+                        >
+                            {busy ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnPrimaryText}>Save score</Text>}
+                        </Pressable>
+                    </View>
+                </View>
+            </View>
+
+            {/* Spacer to avoid system gesture bar */}
+            <View style={{ height: bottomOffset + Math.max(bottomInset, 8) }} />
+        </Modal>
+    );
+}
+
+import COLORS from "../../constants/colors";
+import TYPOGRAPHY from "../../constants/typography";
+import SPACING from "../../constants/spacing";
+
+const styles = StyleSheet.create({
+    backdrop: {
+        ...RNStyleSheet.absoluteFillObject,
+        backgroundColor: COLORS.overlayDark,
+        justifyContent: "flex-end",
+    },
+    sheet: {
+        marginHorizontal: 16,
+        marginBottom: "65%",
+        borderRadius: 16,
+        padding: 20,
+        backgroundColor: "#12161a",
+        borderWidth: 1,
+        borderColor: COLORS.border,
+    },
+    title: {
+        fontFamily: TYPOGRAPHY.fontFamily.bangers,
+        fontSize: TYPOGRAPHY.fontSize.xxl,
+        color: COLORS.textLight,
+        textAlign: "center"
+    },
+    desc: {
+        fontFamily: TYPOGRAPHY.fontFamily.montserratLight,
+        fontSize: TYPOGRAPHY.fontSize.sm,
+        color: COLORS.textLight,
+        marginBottom: SPACING.md,
+        textAlign: "center",
+    },
+    rowBetween: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        marginBottom: SPACING.sm,
+    },
+    rowCenter: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: SPACING.sm,
+    },
+    label: {
+        fontFamily: TYPOGRAPHY.fontFamily.montserratSemiBold,
+        fontSize: 17,
+        color: COLORS.textLight,
+    },
+    value: {
+        fontFamily: TYPOGRAPHY.fontFamily.montserratBold,
+        fontSize: TYPOGRAPHY.fontSize.md,
+        color: COLORS.textLight,
+       
+    },
+    divider: {
+        height: 1,
+        backgroundColor: COLORS.accent,
+        marginVertical: 10
+    },
+    totalLabel: {
+        fontSize: TYPOGRAPHY.fontSize.sm,
+        color: COLORS.textLight,
+        
+    },
+    totalValue: {
+        fontFamily: TYPOGRAPHY.fontFamily.montserratBold,
+        fontSize: TYPOGRAPHY.fontSize.lg,
+        color: COLORS.textLight,
+      
+    },
+    actions: {
+        flexDirection: "row",
+        gap: SPACING.sm,
+        justifyContent: "flex-end",
+        marginTop: 12
+    },
+    btn: {
+        height: 40,
+        paddingHorizontal: SPACING.md,
+        borderRadius: 10,
+        alignItems: "center",
+        justifyContent: "center"
+    },
+    btnGhost: {
+        backgroundColor: "transparent"
+    },
+    btnGhostText: {
+        fontFamily: TYPOGRAPHY.fontFamily.montserratSemiBold,
+        fontSize: TYPOGRAPHY.fontSize.md,
+        color: COLORS.textLight,     
+    },
+    btnPrimaryText: {
+        fontFamily: TYPOGRAPHY.fontFamily.montserratBold,
+        fontSize: TYPOGRAPHY.fontSize.md,
+        color: COLORS.textLight, 
+    },
+    btnDisabled: {
+        opacity: 0.6
+    },
+    dot: {
+        width: 10,
+        height: 10,
+        borderRadius: 5
+    },
+});
