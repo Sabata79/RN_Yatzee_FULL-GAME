@@ -18,7 +18,6 @@ function GridField({
     selectedField,
     setSelectedField,
     audioManager,
-    setStatus,
     isSmallScreen,
     gameboardstyles,
     rolledDices,
@@ -44,8 +43,6 @@ function GridField({
                 setSelectedField(idx);
                 sfx.playSelect?.();
             }
-        } else {
-            setStatus('Cannot select field at this time');
         }
     };
 
