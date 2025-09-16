@@ -1,10 +1,32 @@
 /**
-*  GridField.js
-*  Yatzy game grid field component
-*  Refactored 2024-09-15
-*  @module GridField
-*  @author Sabata79
-*  @since 2024-09-15
+ * GridField – Single scoring cell renderer for the score grid.
+ * Handles selection, displays points, and integrates dice-based scoring.
+ *
+ * Usage:
+ *   import GridField from '@/components/GridField';
+ *   <GridField
+ *     index={index}
+ *     scoringCategories={scoringCategories}
+ *     totalPoints={totalPoints}
+ *     minorPoints={minorPoints}
+ *     selectedField={selectedField}
+ *     setSelectedField={setSelectedField}
+ *     audioManager={audioApi}
+ *     isSmallScreen={isSmallScreen}
+ *     gameboardstyles={gameboardstyles}
+ *     rolledDices={rolledDices}
+ *     BONUS_POINTS_LIMIT={BONUS_POINTS_LIMIT}
+ *     styles={styles}
+ *     nbrOfThrowsLeft={nbrOfThrowsLeft}
+ *     NBR_OF_THROWS={NBR_OF_THROWS}
+ *   />
+ *
+ * Notes:
+ * - Visual and interaction logic only; actual scoring application is done in Gameboard.handleSetPoints().
+ *
+ * @module components/GridField.js
+ * @author Sabata79
+ * @since 2025-09-16
  */
 import { View, Pressable, Text } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
