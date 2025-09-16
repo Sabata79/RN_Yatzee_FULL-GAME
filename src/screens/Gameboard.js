@@ -124,7 +124,7 @@ export default function Gameboard({ route, navigation }) {
   const { playerId, setPlayerId } = gameContext;
   const [modalVisible, setModalVisible] = useState(false);
   const [modalMessage, setModalMessage] = useState('');
-  const [scoreOpen, setScoreOpen] = useState(true);
+  const [scoreOpen, setScoreOpen] = useState(false);
 
   const {
     gameStarted,
