@@ -101,6 +101,7 @@ export const createGameboardButtonStyles = (
       fontSize: titleFont,
       textAlign: 'center',
       fontFamily: TYPOGRAPHY.fontFamily.bangers,
+      bottom: 3,
     },
 
     nbrThrowsTextContainer: {
