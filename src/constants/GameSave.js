@@ -1,12 +1,26 @@
 /**
- * GameSave - Utility for saving player scores and game progress.
+ * GameSave – Persist player scores and duration to Firebase.
  *
- * JSDoc comments and inline code comments must always be in English.
- * This file provides functions for saving player scores to the database and secure storage.
+ * Usage:
+ *   import GameSave from '@/constants/GameSave';
+ *   const { savePlayerPoints } = GameSave({ totalPoints, durationOverride });
+ *   const ok = await savePlayerPoints();
+ *
+ * Behavior:
+ * - Resolves playerId from GameContext or SecureStore.
+ * - Creates/updates `players/{uid}/scores` with:
+ *   { key, date (fi-FI), time (locale), points, duration }
+ * - Merges prior entries, sorts by (points desc, duration asc, date asc), and trims to TOPSCORELIMIT.
+ * - Calls `saveGame()` in context when successful (used to reset timer in RenderFirstRow).
+ *
+ * Params:
+ * - totalPoints {number} – required total score to save.
+ * - durationOverride {number} – optional elapsed seconds; defaults to context elapsedTime.
+ *
+ * @module constants/GameSave.js
  * @author Sabata79
- * @since 2025-08-29
+ * @since 2025-09-16
  */
-// GameSave utility for saving player scores
 import * as SecureStore from 'expo-secure-store';
 import { useGame } from './GameContext';
 import { dbGet, dbSet, dbRef, push } from '../services/Firebase';
