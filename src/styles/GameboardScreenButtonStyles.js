@@ -1,4 +1,17 @@
-// src/styles/GameboardScreenButtonStyles.js
+/**
+ * GameboardScreenButtonStyles – Styles for GameboardButtons.
+ *
+ * Usage:
+ *   import gameboardBtnstyles from '@/styles/GameboardScreenButtonStyles';
+ *
+ * Notes:
+ * - `buttonGhost`/`invisible` keep footer width and spacing when rounds <= 0.
+ * - `minHeight` on container prevents layout collapse during state transitions.
+ *
+ * @module styles/GameboardScreenButtonStyles.js
+ * @author Sabata79
+ * @since 2025-09-16
+ */
 import { Dimensions, StyleSheet } from 'react-native';
 import COLORS from '../constants/colors';
 import TYPOGRAPHY from '../constants/typography';
@@ -8,9 +21,7 @@ const { height } = Dimensions.get('window');
 const isSmallScreen = height < 650;
 
 const styles = StyleSheet.create({
-  // container for the two buttons side by side
   buttonContainer: {
-    // IMPORTANT: do NOT use flex:1 here (footer will stretch!)
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: '92%',
@@ -25,12 +36,10 @@ const styles = StyleSheet.create({
     marginVertical: SPACING.sm,
   },
 
-  // full-width wrapper used when rounds === 0
-  fullWidthButtonWrapper: {
-    width: '100%',
-    alignSelf: 'center',
-    alignItems: 'center',
-    position: 'relative',
+  // Ghost button to keep layout intact when rounds <= 0
+  buttonGhost: {
+    width: '48%',
+    height: isSmallScreen ? 60 : 64,
     marginVertical: SPACING.sm,
   },
 
