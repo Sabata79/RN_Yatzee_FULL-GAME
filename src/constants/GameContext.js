@@ -1,10 +1,30 @@
 /**
- * GameContext - Context provider for global game state management.
+ * GameContext – Global state provider for the game.
+ * Exposes player identity, scores, tokens, UI flags, elapsed time, and helpers.
  *
- * JSDoc comments and inline code comments must always be in English.
- * This file provides the React context for sharing game state across components.
+ * Usage:
+ *   import { GameProvider, useGame } from '@/constants/GameContext';
+ *   <GameProvider>
+ *     <App />
+ *   </GameProvider>
+ *
+ * Highlights:
+ * - Realtime Firebase listeners: players (scoreboard), player level, avatar, tokens.
+ * - `elapsedTime` is written by RenderFirstRow; `isGameSaved` triggers stopwatch reset.
+ * - Scoreboard helpers (best score selection and all-time rank).
+ * - Token write-through with hydration guard.
+ *
+ * Exposed API (selection):
+ * - gameStarted, gameEnded, startGame(), endGame()
+ * - totalPoints, setTotalPoints
+ * - elapsedTime, setElapsedTime, setElapsedTimeContext (alias)
+ * - isGameSaved, setIsGameSaved
+ * - tokens, setTokens, energyModalVisible, setEnergyModalVisible
+ * - playerId, setPlayerId, playerName, setPlayerName, isLinked, setIsLinked
+ *
+ * @module constants/GameContext
  * @author Sabata79
- * @since 2025-08-29
+ * @since 2025-09-16
  */
 import { createContext, useState, useContext, useEffect, useMemo, useRef } from 'react';
 import { dbOnValue, dbOff, dbGet, dbSet } from '../services/Firebase';
