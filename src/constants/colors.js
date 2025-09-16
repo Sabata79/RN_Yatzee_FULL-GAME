@@ -75,7 +75,7 @@ export const COLORS = {
 
   info: '#2980b9',
   disabled: '#b2bec3',
-  border: '#dfe4ea',
+  border: '#65696d',
 
   white: '#ffffff',
   black: '#000000',
