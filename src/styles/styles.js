@@ -125,11 +125,6 @@ export default styles = StyleSheet.create({
         paddingTop: 5,
         textAlign: 'center',
     },
-    diceContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-    },
     rowButtons: {
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -280,17 +275,14 @@ export default styles = StyleSheet.create({
         color: 'white',
         width: 60,
     },
-    // lockedTextColor: {
-    //     color: 'black',
+    // cell: {
+    //     flex: 1,
+    //     justifyContent: 'center',
+    //     alignItems: 'center',
+    //     height: isSmallScreen ? 65 : 65,
+    //     padding: 0,
+    //     margin: 0,
     // },
-    cell: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: isSmallScreen ? 65 : 65,
-        padding: 0,
-        margin: 0,
-    },
 
     medalCell: {
         justifyContent: 'center',

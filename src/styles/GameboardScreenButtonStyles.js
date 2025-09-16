@@ -1,15 +1,17 @@
+// src/styles/GameboardScreenButtonStyles.js
 /**
- * GameboardScreenButtonStyles – Styles for GameboardButtons.
+ * GameboardScreenButtonStyles – Responsive styles for GameboardButtons.
  *
- * Usage:
+ * Usage (responsive):
+ *   import { createGameboardButtonStyles } from '@/styles/GameboardScreenButtonStyles';
+ *   const { width } = useWindowDimensions();
+ *   const gameboardBtnstyles = useMemo(() => createGameboardButtonStyles(width), [width]);
+ *
+ * Legacy (non-responsive, computed at load):
  *   import gameboardBtnstyles from '@/styles/GameboardScreenButtonStyles';
  *
- * Notes:
- * - `buttonGhost`/`invisible` keep footer width and spacing when rounds <= 0.
- * - `minHeight` on container prevents layout collapse during state transitions.
- *
  * @module styles/GameboardScreenButtonStyles.js
- * @author Sabata79
+ * @author
  * @since 2025-09-16
  */
 import { Dimensions, StyleSheet } from 'react-native';
@@ -17,93 +19,113 @@ import COLORS from '../constants/colors';
 import TYPOGRAPHY from '../constants/typography';
 import SPACING from '../constants/spacing';
 
-const { height } = Dimensions.get('window');
-const isSmallScreen = height < 650;
+const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
 
-const styles = StyleSheet.create({
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '92%',
-    alignSelf: 'center',
-    paddingVertical: 8,
-  },
+export const createGameboardButtonStyles = (
+  width = Dimensions.get('window').width
+) => {
+  // --- Responsive tokens ---
+  const containerWidthPct = 0.92;
+  const buttonHeight = Math.round(clamp(width * 0.16, 52, 72)); // 16% of width, clamped
+  const shadowOffsetX = 4;
+  const shadowOffsetY = 3;
 
-  buttonWrapper: {
-    width: '48%',
-    alignItems: 'center',
-    position: 'relative',
-    marginVertical: SPACING.sm,
-  },
+  const bubbleSize = Math.round(buttonHeight * 0.62);
+  const bubbleBorder = Math.max(2, Math.round(buttonHeight * 0.03));
 
-  // Ghost button to keep layout intact when rounds <= 0
-  buttonGhost: {
-    width: '48%',
-    height: isSmallScreen ? 60 : 64,
-    marginVertical: SPACING.sm,
-  },
+  const titleFont = Math.round(
+    clamp(width * 0.048, TYPOGRAPHY.fontSize.lg, TYPOGRAPHY.fontSize.xl)
+  );
+  const bubbleTextFont = Math.round(
+    clamp(width * 0.06, TYPOGRAPHY.fontSize.lg, TYPOGRAPHY.fontSize.xxl)
+  );
 
-  button: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: COLORS.accent,
-    borderColor: COLORS.accentLight,
-    borderWidth: 2,
-    borderRadius: 8,
-    width: '100%',
-    height: isSmallScreen ? 60 : 64,
-  },
+  return StyleSheet.create({
+    buttonContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      width: `${containerWidthPct * 100}%`,
+      alignSelf: 'center',
+      paddingVertical: 8,
+    },
 
-  shadowLayer: {
-    position: 'absolute',
-    top: 3,
-    left: 4,
-    right: 10,
-    width: '100%',
-    height: isSmallScreen ? 60 : 64,
-    backgroundColor: 'rgba(255,255,255,0.6)',
-    borderRadius: 8,
-  },
+    buttonWrapper: {
+      width: '48%',
+      alignItems: 'center',
+      position: 'relative',
+      marginVertical: SPACING.sm,
+    },
 
-  iconContainer: {
-    marginLeft: SPACING.md,
-    color: 'black',
-  },
+    // Ghost button to keep layout intact when rounds <= 0
+    buttonGhost: {
+      width: '48%',
+      height: buttonHeight,
+      marginVertical: SPACING.sm,
+    },
 
-  buttonPressed: {
-    backgroundColor: COLORS.accentLight,
-    transform: [{ translateX: 4 }, { translateY: 3 }],
-  },
+    button: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: COLORS.accent,
+      borderColor: COLORS.accentLight,
+      borderWidth: 2,
+      borderRadius: 8,
+      width: '100%',
+      height: buttonHeight,
+    },
 
-  buttonText: {
-    color: 'black',
-    fontSize: TYPOGRAPHY.fontSize.lg,
-    textAlign: 'center',
-    fontFamily: TYPOGRAPHY.fontFamily.bangers,
-  },
+    shadowLayer: {
+      position: 'absolute',
+      top: shadowOffsetY,
+      left: shadowOffsetX,
+      right: 10,
+      width: '100%',
+      height: buttonHeight,
+      backgroundColor: 'rgba(255,255,255,0.6)',
+      borderRadius: 8,
+    },
 
-  nbrThrowsTextContainer: {
-    marginLeft: SPACING.md,
-  },
+    iconContainer: {
+      marginLeft: SPACING.md,
+      color: 'black',
+    },
 
-  nbrThrowsText: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    borderWidth: 2,
-    backgroundColor: COLORS.error,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+    buttonPressed: {
+      backgroundColor: COLORS.accentLight,
+      transform: [{ translateX: shadowOffsetX }, { translateY: shadowOffsetY }],
+    },
 
-  nbrThrowsTextValue: {
-    fontSize: TYPOGRAPHY.fontSize.xl,
-    fontFamily: TYPOGRAPHY.fontFamily.bangers,
-    color: 'black',
-    textAlign: 'center',
-    lineHeight: 24,
-  },
-});
+    buttonText: {
+      color: 'black',
+      fontSize: titleFont,
+      textAlign: 'center',
+      fontFamily: TYPOGRAPHY.fontFamily.bangers,
+    },
 
-export default styles;
+    nbrThrowsTextContainer: {
+      marginLeft: SPACING.md,
+    },
+
+    nbrThrowsText: {
+      width: bubbleSize,
+      height: bubbleSize,
+      borderRadius: Math.round(bubbleSize / 2),
+      borderWidth: bubbleBorder,
+      backgroundColor: COLORS.error,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+
+    nbrThrowsTextValue: {
+      fontSize: bubbleTextFont,
+      fontFamily: TYPOGRAPHY.fontFamily.bangers,
+      color: 'black',
+      textAlign: 'center',
+      lineHeight: Math.round(bubbleTextFont * 1.1),
+    },
+  });
+};
+
+// Legacy default (non-responsive after load). Prefer createGameboardButtonStyles + useWindowDimensions.
+export default createGameboardButtonStyles();

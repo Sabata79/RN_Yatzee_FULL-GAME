@@ -48,6 +48,8 @@ const GameboardButtons = ({
   MaterialCommunityIcons,
 }) => {
   if (rounds <= 0) {
+    const { width } = useWindowDimensions();
+    const gameboardBtnstyles = useMemo(() => createGameboardButtonStyles(width), [width]);
     // Render two "ghost buttons" to keep width and alignment intact  TODO 
     return (
       <View style={gameboardBtnstyles.buttonContainer}>
