@@ -9,6 +9,7 @@
  * - Auto-scrolls to current user's row on the active page
  *
  * @module screens/Scoreboard
+ * @author Sabata79 
  * @since 2025-09-06 (streamlined 2025-09-17)
  */
 
