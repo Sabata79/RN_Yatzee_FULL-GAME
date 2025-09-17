@@ -24,7 +24,7 @@ const gameRulesStyles = StyleSheet.create({
   TabBarStyle: {
     backgroundColor: COLORS.overlayDark,
     marginTop: 0,
-    height: 100,
+    height: 60,
     textAlign: 'center',
     justifyContent: 'center',
     alignItems: 'center',

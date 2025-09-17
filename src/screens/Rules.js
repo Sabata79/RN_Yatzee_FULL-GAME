@@ -56,7 +56,7 @@ export default function RulesScreen() {
           onIndexChange={setIndex}
           initialLayout={initialLayout}
           swipeEnabled={true}
-          commonOptions={{ labelStyle: {fontSize: 14, fontFamily: TYPOGRAPHY.fontFamily.montserratRegular } }}
+          commonOptions={{ labelStyle: {fontSize: 12, fontFamily: TYPOGRAPHY.fontFamily.montserratRegular } }}
           renderTabBar={props => (
             <TabBar
               {...props}

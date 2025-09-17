@@ -49,7 +49,6 @@ export default scoreboardStyles = StyleSheet.create({
         fontSize: TYPOGRAPHY.sm,
         textAlign: 'center',
         fontFamily: TYPOGRAPHY.fontFamily.montserratBold,
-        fontWeight: '800',
         color: COLORS.textLight,
         paddingVertical: 5,
         lineHeight: 60,
@@ -74,10 +73,11 @@ export default scoreboardStyles = StyleSheet.create({
         minHeight: 60,
     },
     tabText: {
-        fontFamily: TYPOGRAPHY.fontFamily.montserratBold,
-        fontSize: TYPOGRAPHY.md,
+        fontFamily: TYPOGRAPHY.fontFamily.montserratRegular,
+        fontSize: TYPOGRAPHY.fontSize.xs,
         color: COLORS.textLight,
         textAlign: 'center',
+        height: 35,
     },
     activeTab: {
         flex: 1,
@@ -86,6 +86,12 @@ export default scoreboardStyles = StyleSheet.create({
     },
     inactiveTab: {
         flex: 1,
+    },
+    tabTextActive: {
+        color: COLORS.white,
+    },
+    tabTextInactive: {
+        color: COLORS.disabled,
     },
     rankHeaderCell: {
         flex: 1.2,

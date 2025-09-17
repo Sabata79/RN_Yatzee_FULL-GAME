@@ -173,13 +173,13 @@ export default function Scoreboard() {
       return { slice, idx };
     };
 
-    const all  = makeFor('allTime');
-    const mon  = makeFor('monthly');
+    const all = makeFor('allTime');
+    const mon = makeFor('monthly');
     const week = makeFor('weekly');
 
     return {
       slices: { allTime: all.slice, monthly: mon.slice, weekly: week.slice },
-      indices:{ allTime: all.idx,  monthly: mon.idx,  weekly: week.idx   },
+      indices: { allTime: all.idx, monthly: mon.idx, weekly: week.idx },
     };
   }, [scoreboardData, userId]);
 
@@ -242,11 +242,20 @@ export default function Scoreboard() {
       <TouchableOpacity
         style={[
           { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 6 },
-        scoreType === 'allTime' ? scoreboardStyles.activeTab : scoreboardStyles.inactiveTab,
+          scoreType === 'allTime' ? scoreboardStyles.activeTab : scoreboardStyles.inactiveTab,
         ]}
         onPress={() => goToType('allTime')}
       >
-        <Text style={scoreboardStyles.tabText}>All Time</Text>
+        <Text
+          style={[
+            scoreboardStyles.tabText,
+            scoreType === 'allTime'
+              ? scoreboardStyles.tabTextActive
+              : scoreboardStyles.tabTextInactive,
+          ]}
+        >
+          All Time
+        </Text>
       </TouchableOpacity>
 
       <TouchableOpacity
@@ -256,7 +265,16 @@ export default function Scoreboard() {
         ]}
         onPress={() => goToType('monthly')}
       >
-        <Text style={scoreboardStyles.tabText}>Monthly</Text>
+        <Text
+          style={[
+            scoreboardStyles.tabText,
+            scoreType === 'monthly'
+              ? scoreboardStyles.tabTextActive
+              : scoreboardStyles.tabTextInactive,
+          ]}
+        >
+          Monthly
+        </Text>
       </TouchableOpacity>
 
       <TouchableOpacity
@@ -266,7 +284,16 @@ export default function Scoreboard() {
         ]}
         onPress={() => goToType('weekly')}
       >
-        <Text style={scoreboardStyles.tabText}>Weekly</Text>
+        <Text
+          style={[
+            scoreboardStyles.tabText,
+            scoreType === 'weekly'
+              ? scoreboardStyles.tabTextActive
+              : scoreboardStyles.tabTextInactive,
+          ]}
+        >
+          Weekly
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -338,13 +365,13 @@ export default function Scoreboard() {
               style={
                 isCurrentUser
                   ? [
-                      scoreboardStyles.playerNameText,
-                      {
-                        color: COLORS.white,
-                        fontFamily: TYPOGRAPHY.fontFamily.montserratBold,
-                        fontSize: TYPOGRAPHY.fontSize.md,
-                      },
-                    ]
+                    scoreboardStyles.playerNameText,
+                    {
+                      color: COLORS.white,
+                      fontFamily: TYPOGRAPHY.fontFamily.montserratBold,
+                      fontSize: TYPOGRAPHY.fontSize.md,
+                    },
+                  ]
                   : scoreboardStyles.playerNameText
               }
             >
@@ -381,7 +408,6 @@ export default function Scoreboard() {
         style={scoreboardStyles.background}
       >
         <View style={scoreboardStyles.overlay}>
-          <Header />
           <Tabs />
 
           <ScrollView
