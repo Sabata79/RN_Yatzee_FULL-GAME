@@ -11,7 +11,8 @@
  * @since 2025-09-17
  */
 
-import { Dimensions, useWindowDimensions } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Dimensions } from 'react-native';
 
 export function computeBreakpoints({ width, height }) {
   const shortest = Math.min(width, height);
@@ -48,10 +49,21 @@ export function getBreakpoints() {
   return computeBreakpoints({ width, height });
 }
 
-// Hook for components (reacts to rotation / window size changes)
+// Hook for components (reacts to rotation / window size changes) — legacy-safe
 export function useBreakpoints() {
-  const { width, height } = useWindowDimensions();
-  return computeBreakpoints({ width, height });
+  const [dims, setDims] = useState(() => Dimensions.get('window'));
+
+  useEffect(() => {
+    const sub = Dimensions.addEventListener('change', ({ window }) => {
+      setDims(window);
+    });
+    return () => {
+      // RN >= 0.65: sub.remove();  RN < 0.65: Dimensions.removeEventListener
+      sub?.remove?.();
+    };
+  }, []);
+
+  return computeBreakpoints({ width: dims.width, height: dims.height });
 }
 
 // Helper: pick a value based on breakpoints (small / normal / big)
@@ -68,7 +80,7 @@ export function clamp(n, min, max) {
 export function makeSizes(bp) {
   const BASE = pick(bp, 35, 40, 50); // base unit: small / normal / big
 
-  const SCALE = 0.90;                 // ← ADJUST THIS
+  const SCALE = 0.90;                 // ← ADJUST THIS to shrink/grow vertical size
   // e.g. 0.92 (taller), 0.88 or 0.85 (shorter)
 
   const DIE_SIZE = Math.round(BASE * SCALE); // score-field height (drives dice/icons)

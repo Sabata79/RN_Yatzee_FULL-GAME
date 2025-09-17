@@ -29,77 +29,78 @@
  * @author Sabata79
  * @since 2025-09-16
  */
+import React, { useMemo } from 'react';
 import { Pressable, Text, View } from 'react-native';
-import gameboardBtnstyles from '../styles/GameboardScreenButtonStyles';
+import styles from '../styles/GameboardScreenButtonStyles';
 
-const GameboardButtons = ({
-  rounds,
-  nbrOfThrowsLeft,
-  startGame,
-  throwDices,
-  selectedField,
-  handleSetPoints,
-  setNbrOfThrowsLeft,
-  resetDiceSelection,
-  scoringCategories,
-  setRounds,
-  MAX_SPOTS,
-  NBR_OF_THROWS,
-  MaterialCommunityIcons,
-}) => {
+const GameboardButtons = (props) => {
+
+  const {
+    rounds,
+    nbrOfThrowsLeft,
+    startGame,
+    throwDices,
+    selectedField,
+    handleSetPoints,
+    setNbrOfThrowsLeft,
+    resetDiceSelection,
+    scoringCategories,
+    setRounds,
+    MAX_SPOTS,
+    NBR_OF_THROWS,
+    MaterialCommunityIcons,
+  } = props;
+
   if (rounds <= 0) {
-    const { width } = useWindowDimensions();
-    const gameboardBtnstyles = useMemo(() => createGameboardButtonStyles(width), [width]);
-    // Render two "ghost buttons" to keep width and alignment intact  TODO 
+    // “Ghost”-napit pitävät layoutin leveyden
     return (
-      <View style={gameboardBtnstyles.buttonContainer}>
-        <View style={gameboardBtnstyles.buttonGhost} />
-        <View style={gameboardBtnstyles.buttonGhost} />
+      <View style={styles.buttonContainer}>
+        <View style={styles.buttonGhost} />
+        <View style={styles.buttonGhost} />
       </View>
     );
   }
 
   return (
-    <View style={gameboardBtnstyles.buttonContainer}>
-      <View style={gameboardBtnstyles.buttonWrapper}>
-        <View style={gameboardBtnstyles.shadowLayer} />
+    <View style={styles.buttonContainer}>
+      <View style={styles.buttonWrapper}>
+        <View style={styles.shadowLayer} />
         <Pressable
           disabled={nbrOfThrowsLeft <= 0}
-          style={({ pressed }) => [gameboardBtnstyles.button, pressed && gameboardBtnstyles.buttonPressed]}
+          style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
           onPress={() => {
             if (rounds === MAX_SPOTS && nbrOfThrowsLeft === NBR_OF_THROWS) startGame();
             if (nbrOfThrowsLeft <= 0) return;
             throwDices();
           }}
         >
-          <Text style={gameboardBtnstyles.buttonText}>Roll Dices</Text>
-          <View style={gameboardBtnstyles.nbrThrowsTextContainer}>
+          <Text style={styles.buttonText}>Roll Dices</Text>
+          <View style={styles.nbrThrowsTextContainer}>
             {rounds > 0 && (
-              <View style={gameboardBtnstyles.nbrThrowsText}>
-                <Text style={gameboardBtnstyles.nbrThrowsTextValue}>{nbrOfThrowsLeft}</Text>
+              <View style={styles.nbrThrowsText}>
+                <Text style={styles.nbrThrowsTextValue}>{nbrOfThrowsLeft}</Text>
               </View>
             )}
           </View>
         </Pressable>
       </View>
 
-      <View style={gameboardBtnstyles.buttonWrapper}>
-        <View style={gameboardBtnstyles.shadowLayer} />
+      <View style={styles.buttonWrapper}>
+        <View style={styles.shadowLayer} />
         <Pressable
           disabled={!selectedField}
-          style={({ pressed }) => [gameboardBtnstyles.button, pressed && gameboardBtnstyles.buttonPressed]}
+          style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
           onPress={() => {
             handleSetPoints();
             setNbrOfThrowsLeft(NBR_OF_THROWS);
             resetDiceSelection();
-
             const selectedCategory = scoringCategories.find((c) => c.index === selectedField);
             const shouldDecrease = !selectedCategory || selectedCategory.name !== 'yatzy' || selectedCategory.points === 0;
             if (shouldDecrease) setRounds((prev) => Math.max(prev - 1, 0));
           }}
         >
-          <Text style={gameboardBtnstyles.buttonText}>Set Points</Text>
-          <MaterialCommunityIcons name="beaker-plus" size={25} style={gameboardBtnstyles.iconContainer} />
+          <Text style={styles.buttonText}>Set Points</Text>
+          <MaterialCommunityIcons name="beaker-plus" size={25} style={styles.iconContainer} />
         </Pressable>
       </View>
     </View>

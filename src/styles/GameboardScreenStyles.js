@@ -14,7 +14,7 @@ import { StyleSheet } from 'react-native';
 import COLORS from '../constants/colors';
 import SPACING from '../constants/spacing';
 import TYPOGRAPHY from '../constants/typography';
-import { getBreakpoints, makeSizes, pick } from '../utils/breackpoints';
+import { getBreakpoints, makeSizes, pick } from '../utils/breakpoints';
 
 // Compute breakpoints statically for styles
 const bp = getBreakpoints();

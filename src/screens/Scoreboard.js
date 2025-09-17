@@ -1,12 +1,15 @@
 /**
  * Scoreboard.js - Screen for displaying player rankings and player cards
  *
- * Scroll-aware row reveal (Animated.FlatList + viewability).
- * Tabs hide first, then header, using diffClamp + interpolate (useNativeDriver).
+ * Streamlined version:
+ * - Swipe between All Time / Monthly / Weekly (ScrollView + pagingEnabled)
+ * - Tabs stay in sync with swipe; tab press scrolls pager
+ * - Weekly is default (also reset on focus)
+ * - Derives rows synchronously (useMemo), no drip-in renders
+ * - Auto-scrolls to current user's row on the active page
  *
  * @module screens/Scoreboard
- * @author ...
- * @since 2025-09-06 (stagger refactor 2025-09-12)
+ * @since 2025-09-06 (streamlined 2025-09-17)
  */
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
@@ -16,8 +19,9 @@ import {
   ImageBackground,
   TouchableOpacity,
   Image,
-  Animated,
   FlatList,
+  Dimensions,
+  ScrollView,
 } from 'react-native';
 import { DataTable } from 'react-native-paper';
 import { FontAwesome5 } from '@expo/vector-icons';
@@ -31,52 +35,43 @@ import { useGame } from '../constants/GameContext';
 import { avatars } from '../constants/AvatarPaths';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
+import { useFocusEffect } from '@react-navigation/native';
 import Header from './Header';
 
-const AFlatList = Animated.createAnimatedComponent(FlatList);
+const ROW_H = 56; // approx row height for getItemLayout/scroll math
+const SCREEN_WIDTH = Dimensions.get('window').width;
 
-// Layout constants
-const HEADER_H = 70;
-const TABS_H = 50;
-const ROW_H = 56; // approx row height for auto-scroll
+const TYPE_TO_INDEX = { allTime: 0, monthly: 1, weekly: 2 };
+const INDEX_TO_TYPE = ['allTime', 'monthly', 'weekly'];
 
 const getDurationDotColor = (secs) =>
   secs > 300 ? COLORS.error : secs > 150 ? COLORS.warning : COLORS.success;
 
+// ISO week helper (yksi, uudelleenkäytettävä)
+function getWeekNumber(date) {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+}
+
 export default function Scoreboard() {
-  // Animated scroll
-  const scrollY = useRef(new Animated.Value(0)).current;
-  // diffClamp ensures 0..HEADER_H+TABS_H
-  const clampedY = Animated.diffClamp(scrollY, 0, HEADER_H + TABS_H);
-
-  // Tabs hide first: 0..TABS_H -> translate 0..-TABS_H
-  const tabsTranslateY = clampedY.interpolate({
-    inputRange: [0, TABS_H],
-    outputRange: [0, -TABS_H],
-    extrapolate: 'clamp',
-  });
-
-  // Then header: TABS_H..(TABS_H+HEADER_H) -> 0..-HEADER_H
-  const headerTranslateY = clampedY.interpolate({
-    inputRange: [TABS_H, TABS_H + HEADER_H],
-    outputRange: [0, -HEADER_H],
-    extrapolate: 'clamp',
-  });
-
-  // Pulse for current user
-  const scaleAnim = useRef(new Animated.Value(1)).current;
-
-  // Data/state
-  const [scores, setScores] = useState([]);
-  const [scoreType, setScoreType] = useState('allTime'); // allTime | monthly | weekly
+  // UI state
+  const [scoreType, setScoreType] = useState('weekly'); // default Weekly
   const [userId, setUserId] = useState('');
 
   // Modal
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState(null);
 
-  // Refs
-  const listRef = useRef(null);
+  // Pager + list refit
+  const pagerRef = useRef(null);
+  const listRefs = {
+    allTime: useRef(null),
+    monthly: useRef(null),
+    weekly: useRef(null),
+  };
 
   // Context
   const { setViewingPlayerId, setViewingPlayerName, scoreboardData } = useGame();
@@ -96,24 +91,6 @@ export default function Scoreboard() {
     return m;
   }, []);
 
-  // Per-row appearance anims
-  const animMap = useRef(new Map()).current;  // key -> Animated.Value(0..1)
-  const revealedSet = useRef(new Set()).current;
-
-  const getAnimForKey = (key) => {
-    if (!animMap.has(key)) animMap.set(key, new Animated.Value(0));
-    return animMap.get(key);
-  };
-
-  // ISO week helper
-  function getWeekNumber(date) {
-    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-    const dayNum = d.getUTCDay() || 7;
-    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-    return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-  }
-
   // Load user id once
   useEffect(() => {
     SecureStore.getItemAsync('user_id').then((storedUserId) => {
@@ -121,11 +98,20 @@ export default function Scoreboard() {
     });
   }, []);
 
-  // Filter/sort per scoreType
-  useEffect(() => {
-    if (!scoreboardData) {
-      setScores([]);
-      return;
+  // Ensure Weekly every time this screen focuses
+  useFocusEffect(
+    React.useCallback(() => {
+      setScoreType('weekly');
+    }, [])
+  );
+
+  // Laske kaikki kolme datasettiä yhdellä kertaa
+  const { slices, indices } = useMemo(() => {
+    if (!scoreboardData || scoreboardData.length === 0) {
+      return {
+        slices: { allTime: [], monthly: [], weekly: [] },
+        indices: { allTime: -1, monthly: -1, weekly: -1 },
+      };
     }
 
     const now = new Date();
@@ -133,101 +119,102 @@ export default function Scoreboard() {
     const currentYear = now.getFullYear();
     const currentWeek = getWeekNumber(now);
 
-    const filtered = scoreboardData
-      .map((player) => {
-        let pool = player.scores || [];
-        if (scoreType === 'monthly') {
-          pool = pool.filter((score) => {
-            const parts = (score.date || '').split('.');
-            if (parts.length !== 3) return false;
-            const d = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
-            return !isNaN(d) && d.getMonth() === currentMonth && d.getFullYear() === currentYear;
-          });
-        } else if (scoreType === 'weekly') {
-          pool = pool.filter((score) => {
-            const parts = (score.date || '').split('.');
-            if (parts.length !== 3) return false;
-            const d = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
-            return !isNaN(d) && getWeekNumber(d) === currentWeek;
-          });
-        }
-
-        let best = null;
-        pool.forEach((s) => {
-          if (
-            !best ||
-            s.points > best.points ||
-            (s.points === best.points && s.duration < best.duration) ||
-            (s.points === best.points && s.duration === best.duration &&
-              new Date(s.date) < new Date(best.date))
-          ) {
-            best = s;
+    const makeFor = (mode) => {
+      const filtered = scoreboardData
+        .map((player) => {
+          let pool = player.scores || [];
+          if (mode === 'monthly') {
+            pool = pool.filter((score) => {
+              const parts = (score.date || '').split('.');
+              if (parts.length !== 3) return false;
+              const d = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+              return !isNaN(d) && d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+            });
+          } else if (mode === 'weekly') {
+            pool = pool.filter((score) => {
+              const parts = (score.date || '').split('.');
+              if (parts.length !== 3) return false;
+              const d = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+              return !isNaN(d) && getWeekNumber(d) === currentWeek;
+            });
           }
+
+          let best = null;
+          for (const s of pool) {
+            if (
+              !best ||
+              s.points > best.points ||
+              (s.points === best.points && s.duration < best.duration) ||
+              (s.points === best.points && s.duration === best.duration &&
+                new Date(s.date) < new Date(best.date))
+            ) {
+              best = s;
+            }
+          }
+          if (!best) return null;
+          return {
+            ...best,
+            name: player.name,
+            playerId: player.playerId,
+            avatar: player.avatar || null,
+            scores: player.scores,
+          };
+        })
+        .filter(Boolean)
+        .sort((a, b) => {
+          if (b.points !== a.points) return b.points - a.points;
+          if (a.duration !== b.duration) return a.duration - b.duration;
+          return new Date(a.date) - new Date(b.date);
         });
 
-        if (!best) return null;
-        return {
-          ...best,
-          name: player.name,
-          playerId: player.playerId,
-          avatar: player.avatar || null,
-          scores: player.scores,
-        };
-      })
-      .filter(Boolean)
-      .sort((a, b) => {
-        if (b.points !== a.points) return b.points - a.points;
-        if (a.duration !== b.duration) return a.duration - b.duration;
-        return new Date(a.date) - new Date(b.date);
-      });
+      const slice = filtered.slice(0, NBR_OF_SCOREBOARD_ROWS);
+      const idx = slice.findIndex((s) => s.playerId === userId);
+      return { slice, idx };
+    };
 
-    setScores(filtered);
-    // reset reveal when data changes
-    animMap.clear();
-    revealedSet.clear();
-  }, [scoreType, scoreboardData]); // eslint-disable-line react-hooks/exhaustive-deps
+    const all  = makeFor('allTime');
+    const mon  = makeFor('monthly');
+    const week = makeFor('weekly');
 
-  // Auto-scroll to user + pulse
+    return {
+      slices: { allTime: all.slice, monthly: mon.slice, weekly: week.slice },
+      indices:{ allTime: all.idx,  monthly: mon.idx,  weekly: week.idx   },
+    };
+  }, [scoreboardData, userId]);
+
+  // Synkkaa tabin klikkaus -> pager
+  const goToType = (type) => {
+    setScoreType(type);
+    const page = TYPE_TO_INDEX[type] ?? 0;
+    pagerRef.current?.scrollTo({ x: SCREEN_WIDTH * page, animated: true });
+  };
+
+  // Synkkaa pager swipe -> tab
+  const onPageScrollEnd = ({ nativeEvent }) => {
+    const page = Math.round(nativeEvent.contentOffset.x / nativeEvent.layoutMeasurement.width);
+    const newType = INDEX_TO_TYPE[page] || 'allTime';
+    if (newType !== scoreType) setScoreType(newType);
+  };
+
+  // Scroll to active tab page when scoreType changes (e.g., focus reset)
   useEffect(() => {
-    if (!listRef.current || !userId || scores.length === 0) return;
-    const idx = scores.findIndex((s) => s.playerId === userId);
-    if (idx !== -1) {
-      setTimeout(() => {
-        listRef.current.scrollToOffset({
-          offset: (HEADER_H + TABS_H + 10) + ROW_H * idx,
-          animated: true,
-        });
-      }, 400);
+    const page = TYPE_TO_INDEX[scoreType] ?? 0;
+    pagerRef.current?.scrollTo({ x: SCREEN_WIDTH * page, animated: true });
+  }, [scoreType]);
 
-      Animated.sequence([
-        Animated.timing(scaleAnim, { toValue: 1.04, duration: 160, useNativeDriver: true }),
-        Animated.spring(scaleAnim, { toValue: 1, friction: 5, useNativeDriver: true }),
-      ]).start();
-    }
-  }, [userId, scores, scaleAnim]);
-
-  // Reveal rows when they become visible
-  const onViewableItemsChanged = useRef(({ viewableItems }) => {
-    viewableItems.forEach(({ item, index }) => {
-      if (!item) return;
-      const key = `${item.playerId}-${index}`;
-      if (revealedSet.has(key)) return;
-      revealedSet.add(key);
-
-      const anim = getAnimForKey(key);
-      Animated.timing(anim, {
-        toValue: 1,
-        duration: 260,
-        delay: (index % 6) * 40,
-        useNativeDriver: true,
-      }).start();
+  // Auto-scrollaa käyttäjän riviin aktiivisella sivulla
+  useEffect(() => {
+    const ref = listRefs[scoreType]?.current;
+    const idx = indices[scoreType];
+    if (!ref || idx < 0) return;
+    requestAnimationFrame(() => {
+      try {
+        ref.scrollToIndex({ index: idx, animated: true });
+      } catch {
+        ref.scrollToOffset({ offset: ROW_H * idx, animated: true });
+      }
     });
-  }).current;
-
-  const viewabilityConfig = useRef({
-    itemVisiblePercentThreshold: 40,
-    minimumViewTime: 40,
-  }).current;
+  }, [scoreType, indices]);
 
   // Avatar style helper
   const getAvatarStyle = (avatarPath) => {
@@ -248,59 +235,39 @@ export default function Scoreboard() {
     requestAnimationFrame(() => setModalVisible(true));
   };
 
-  // Sticky header + tabs (absolute)
-  const renderStickyBars = () => (
-    <>
-      <Animated.View
-        style={{
-          transform: [{ translateY: headerTranslateY }],
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: HEADER_H,
-          zIndex: 20,
-        }}
-      >
-        <Header />
-      </Animated.View>
-
-      <Animated.View
+  // Tabs (kevyt, ei riippuvuutta erillisestä tabButton-tyylistä)
+  const Tabs = () => (
+    <View style={scoreboardStyles.tabContainer}>
+      <TouchableOpacity
         style={[
-          scoreboardStyles.tabContainer,
-          {
-            position: 'absolute',
-            top: HEADER_H,
-            left: 0,
-            right: 0,
-            height: TABS_H,
-            zIndex: 10,
-            transform: [{ translateY: tabsTranslateY }],
-          },
+          { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 6 },
+        scoreType === 'allTime' ? scoreboardStyles.activeTab : scoreboardStyles.inactiveTab,
         ]}
+        onPress={() => goToType('allTime')}
       >
-        <TouchableOpacity
-          style={scoreType === 'allTime' ? scoreboardStyles.activeTab : scoreboardStyles.inactiveTab}
-          onPress={() => setScoreType('allTime')}
-        >
-          <Text style={scoreboardStyles.tabText}>All Time</Text>
-        </TouchableOpacity>
+        <Text style={scoreboardStyles.tabText}>All Time</Text>
+      </TouchableOpacity>
 
-        <TouchableOpacity
-          style={scoreType === 'monthly' ? scoreboardStyles.activeTab : scoreboardStyles.inactiveTab}
-          onPress={() => setScoreType('monthly')}
-        >
-          <Text style={scoreboardStyles.tabText}>Monthly</Text>
-        </TouchableOpacity>
+      <TouchableOpacity
+        style={[
+          { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 6 },
+          scoreType === 'monthly' ? scoreboardStyles.activeTab : scoreboardStyles.inactiveTab,
+        ]}
+        onPress={() => goToType('monthly')}
+      >
+        <Text style={scoreboardStyles.tabText}>Monthly</Text>
+      </TouchableOpacity>
 
-        <TouchableOpacity
-          style={scoreType === 'weekly' ? scoreboardStyles.activeTab : scoreboardStyles.inactiveTab}
-          onPress={() => setScoreType('weekly')}
-        >
-          <Text style={scoreboardStyles.tabText}>Weekly</Text>
-        </TouchableOpacity>
-      </Animated.View>
-    </>
+      <TouchableOpacity
+        style={[
+          { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 6 },
+          scoreType === 'weekly' ? scoreboardStyles.activeTab : scoreboardStyles.inactiveTab,
+        ]}
+        onPress={() => goToType('weekly')}
+      >
+        <Text style={scoreboardStyles.tabText}>Weekly</Text>
+      </TouchableOpacity>
+    </View>
   );
 
   // Table header row
@@ -321,68 +288,55 @@ export default function Scoreboard() {
     </DataTable.Header>
   );
 
-  // Render each row with appear animation (+ pulse if current user)
+  // Render each row (no animations)
   const renderItem = ({ item, index }) => {
     if (!item || index >= NBR_OF_SCOREBOARD_ROWS) return null;
-
-    const key = `${item.playerId}-${index}`;
-    const appear = getAnimForKey(key); // 0..1
     const isCurrentUser = item.playerId === userId;
 
-    const rowTransforms = [
-      { translateY: appear.interpolate({ inputRange: [0, 1], outputRange: [12, 0] }) },
-    ];
-    if (isCurrentUser) rowTransforms.push({ scale: scaleAnim });
-
     return (
-      <Animated.View
-        style={{
-          opacity: appear,
-          transform: rowTransforms,
-        }}
+      <DataTable.Row
+        onPress={() => openPlayerCard(item.playerId, item.name, item.scores)}
+        style={isCurrentUser ? { backgroundColor: '#d3bd867a' } : null}
       >
-        <DataTable.Row
-          onPress={() => openPlayerCard(item.playerId, item.name, item.scores)}
-          style={isCurrentUser ? { backgroundColor: '#d3bd867a' } : null}
-        >
-          <DataTable.Cell style={[scoreboardStyles.rankCell]}>
-            {index === 0 && (
-              <View style={scoreboardStyles.medalWrapper}>
-                <Image source={require('../../assets/medals/firstMedal.webp')} style={scoreboardStyles.medal} />
-              </View>
-            )}
-            {index === 1 && (
-              <View style={scoreboardStyles.medalWrapper}>
-                <Image source={require('../../assets/medals/silverMedal.webp')} style={scoreboardStyles.medal} />
-              </View>
-            )}
-            {index === 2 && (
-              <View style={scoreboardStyles.medalWrapper}>
-                <Image source={require('../../assets/medals/bronzeMedal.webp')} style={scoreboardStyles.medal} />
-              </View>
-            )}
-            {index > 2 && <Text style={scoreboardStyles.rankText}>{index + 1}.</Text>}
-          </DataTable.Cell>
+        <DataTable.Cell style={[scoreboardStyles.rankCell]}>
+          {index === 0 && (
+            <View style={scoreboardStyles.medalWrapper}>
+              <Image source={require('../../assets/medals/firstMedal.webp')} style={scoreboardStyles.medal} />
+            </View>
+          )}
+          {index === 1 && (
+            <View style={scoreboardStyles.medalWrapper}>
+              <Image source={require('../../assets/medals/silverMedal.webp')} style={scoreboardStyles.medal} />
+            </View>
+          )}
+          {index === 2 && (
+            <View style={scoreboardStyles.medalWrapper}>
+              <Image source={require('../../assets/medals/bronzeMedal.webp')} style={scoreboardStyles.medal} />
+            </View>
+          )}
+          {index > 2 && <Text style={scoreboardStyles.rankText}>{index + 1}.</Text>}
+        </DataTable.Cell>
 
-          <DataTable.Cell style={[scoreboardStyles.playerCell]}>
-            <View style={scoreboardStyles.playerWrapper}>
-              {(() => {
-                const avatarObj =
-                  avatarMap.get(item.avatar) ||
-                  avatarMap.get((item.avatar || '').split('/').pop());
-                if (avatarObj && avatarObj.display) {
-                  return <Image source={avatarObj.display} style={getAvatarStyle(avatarObj.path)} />;
-                }
-                return (
-                  <View style={scoreboardStyles.defaultAvatarIcon}>
-                    <FontAwesome5 name="user" size={22} color="#d1d8e0" />
-                  </View>
-                );
-              })()}
-              <Text
-                style={
-                  isCurrentUser
-                    ? [
+        <DataTable.Cell style={[scoreboardStyles.playerCell]}>
+          <View style={scoreboardStyles.playerWrapper}>
+            {(() => {
+              const avatarObj =
+                avatarMap.get(item.avatar) ||
+                avatarMap.get((item.avatar || '').split('/').pop());
+              if (avatarObj && avatarObj.display) {
+                return <Image source={avatarObj.display} style={getAvatarStyle(avatarObj.path)} />;
+              }
+              return (
+                <View style={scoreboardStyles.defaultAvatarIcon}>
+                  <FontAwesome5 name="user" size={22} color="#d1d8e0" />
+                </View>
+              );
+            })()}
+
+            <Text
+              style={
+                isCurrentUser
+                  ? [
                       scoreboardStyles.playerNameText,
                       {
                         color: COLORS.white,
@@ -390,41 +344,34 @@ export default function Scoreboard() {
                         fontSize: TYPOGRAPHY.fontSize.md,
                       },
                     ]
-                    : scoreboardStyles.playerNameText
-                }
-              >
-                {item.name}
-              </Text>
-            </View>
-          </DataTable.Cell>
+                  : scoreboardStyles.playerNameText
+              }
+            >
+              {item.name}
+            </Text>
+          </View>
+        </DataTable.Cell>
 
-          <DataTable.Cell style={[scoreboardStyles.durationCell]}>
-            <View style={scoreboardStyles.durationCellContent}>
-              <View
-                style={[
-                  scoreboardStyles.timeDot,
-                  { backgroundColor: getDurationDotColor(item.duration) },
-                ]}
-              />
-              <Text style={scoreboardStyles.durationText}>{item.duration}s</Text>
-            </View>
-          </DataTable.Cell>
+        <DataTable.Cell style={[scoreboardStyles.durationCell]}>
+          <View style={scoreboardStyles.durationCellContent}>
+            <View
+              style={[
+                scoreboardStyles.timeDot,
+                { backgroundColor: getDurationDotColor(item.duration) },
+              ]}
+            />
+            <Text style={scoreboardStyles.durationText}>{item.duration}s</Text>
+          </View>
+        </DataTable.Cell>
 
-
-          <DataTable.Cell style={[scoreboardStyles.pointsCell]}>
-            <Text style={scoreboardStyles.pointsText}>{item.points}</Text>
-          </DataTable.Cell>
-        </DataTable.Row>
-      </Animated.View>
+        <DataTable.Cell style={[scoreboardStyles.pointsCell]}>
+          <Text style={scoreboardStyles.pointsText}>{item.points}</Text>
+        </DataTable.Cell>
+      </DataTable.Row>
     );
   };
 
-  const keyExtractor = (item, index) => `${item.playerId}-${index}`;
-
-  const dataSlice = useMemo(
-    () => scores.slice(0, NBR_OF_SCOREBOARD_ROWS),
-    [scores]
-  );
+  const keyExtractor = (item) => item.playerId;
 
   return (
     <View style={{ flex: 1 }}>
@@ -433,33 +380,76 @@ export default function Scoreboard() {
         style={scoreboardStyles.background}
       >
         <View style={scoreboardStyles.overlay}>
+          <Header />
+          <Tabs />
 
-          {renderStickyBars()}
+          <ScrollView
+            ref={pagerRef}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            onMomentumScrollEnd={onPageScrollEnd}
+          >
+            {/* All Time */}
+            <View style={{ width: SCREEN_WIDTH }}>
+              <DataTable style={scoreboardStyles.scoreboardContainer}>
+                {listTableHeader()}
+              </DataTable>
+              <FlatList
+                ref={listRefs.allTime}
+                data={slices.allTime}
+                keyExtractor={keyExtractor}
+                renderItem={renderItem}
+                contentContainerStyle={{ paddingBottom: insets.bottom + tabBarHeight + 16 }}
+                showsVerticalScrollIndicator={false}
+                initialNumToRender={NBR_OF_SCOREBOARD_ROWS}
+                maxToRenderPerBatch={NBR_OF_SCOREBOARD_ROWS}
+                windowSize={3}
+                removeClippedSubviews={false}
+                getItemLayout={(data, index) => ({ length: ROW_H, offset: ROW_H * index, index })}
+              />
+            </View>
 
-          <AFlatList
-            ref={listRef}
-            data={dataSlice}
-            keyExtractor={keyExtractor}
-            renderItem={renderItem}
-            ListHeaderComponent={() => (
-              <View style={{ paddingTop: HEADER_H + TABS_H + 10 }}>
-                <DataTable style={scoreboardStyles.scoreboardContainer}>
-                  {listTableHeader()}
-                </DataTable>
-              </View>
-            )}
-            contentContainerStyle={{
-              paddingBottom: insets.bottom + tabBarHeight + 16,
-            }}
-            showsVerticalScrollIndicator={false}
-            scrollEventThrottle={16}
-            onScroll={Animated.event(
-              [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-              { useNativeDriver: true }
-            )}
-            viewabilityConfig={viewabilityConfig}
-            onViewableItemsChanged={onViewableItemsChanged}
-          />
+            {/* Monthly */}
+            <View style={{ width: SCREEN_WIDTH }}>
+              <DataTable style={scoreboardStyles.scoreboardContainer}>
+                {listTableHeader()}
+              </DataTable>
+              <FlatList
+                ref={listRefs.monthly}
+                data={slices.monthly}
+                keyExtractor={keyExtractor}
+                renderItem={renderItem}
+                contentContainerStyle={{ paddingBottom: insets.bottom + tabBarHeight + 16 }}
+                showsVerticalScrollIndicator={false}
+                initialNumToRender={NBR_OF_SCOREBOARD_ROWS}
+                maxToRenderPerBatch={NBR_OF_SCOREBOARD_ROWS}
+                windowSize={3}
+                removeClippedSubviews={false}
+                getItemLayout={(data, index) => ({ length: ROW_H, offset: ROW_H * index, index })}
+              />
+            </View>
+
+            {/* Weekly */}
+            <View style={{ width: SCREEN_WIDTH }}>
+              <DataTable style={scoreboardStyles.scoreboardContainer}>
+                {listTableHeader()}
+              </DataTable>
+              <FlatList
+                ref={listRefs.weekly}
+                data={slices.weekly}
+                keyExtractor={keyExtractor}
+                renderItem={renderItem}
+                contentContainerStyle={{ paddingBottom: insets.bottom + tabBarHeight + 16 }}
+                showsVerticalScrollIndicator={false}
+                initialNumToRender={NBR_OF_SCOREBOARD_ROWS}
+                maxToRenderPerBatch={NBR_OF_SCOREBOARD_ROWS}
+                windowSize={3}
+                removeClippedSubviews={false}
+                getItemLayout={(data, index) => ({ length: ROW_H, offset: ROW_H * index, index })}
+              />
+            </View>
+          </ScrollView>
 
           {modalVisible && selectedPlayer && (
             <PlayerCard

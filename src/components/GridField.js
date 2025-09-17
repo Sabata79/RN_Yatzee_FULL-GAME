@@ -32,7 +32,7 @@ import { View, Pressable, Text, Image } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAudio } from '../services/AudioManager';
 import { dicefaces } from '../constants/DicePaths';
-import { getBreakpoints, makeSizes } from '../utils/breackpoints';
+import { getBreakpoints, makeSizes } from '../utils/breakpoints';
 
 const { DIE_SIZE } = makeSizes(getBreakpoints());
 const ICON = Math.round(DIE_SIZE * 0.70); // MaterialCommunityIcons size

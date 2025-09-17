@@ -25,6 +25,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
+import './src/polyfills/reactNativeUseWindowDimensionsPolyfill';
 
 import { GameProvider } from './src/constants/GameContext';
 import { AudioProvider } from './src/services/AudioManager';
