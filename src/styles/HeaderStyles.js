@@ -8,95 +8,79 @@
  */
 // NOTICE: These styles are made whit section flex and flexDirection row. The styles are used in the Header.js component
 
-import { StyleSheet, Dimensions, StatusBar, Platform } from 'react-native';
+import { StyleSheet, Dimensions } from 'react-native';
 import COLORS from '../constants/colors';
 import TYPOGRAPHY from '../constants/typography';
 import SPACING from '../constants/spacing';
 
 const { height, width } = Dimensions.get('window');
-const isSmallScreen = height < 650;
-const statusBarHeight = Platform.OS === 'android' ? StatusBar.currentHeight || 20 : 0;
+const isNarrow = width < 360 || height < 650;
 
 const headerStyles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: SPACING.sm,
-    height: 70,
+    height: isNarrow ? 60 : 70,
     backgroundColor: COLORS.black,
-    marginTop: statusBarHeight,
-    overflow: 'hidden',
-    marginTop: 0,
-    position: 'relative',
+    width: '100%',
   },
-  section3: {
-    width: 80,
-    alignItems: 'flex-start',
-    justifyContent: 'center',
-  },
-  section2: {
-    flex: 1,
-    alignItems: 'flex-start',
-    justifyContent: 'center',
-  },
-  centerOverlay: {
-    position: 'absolute',
-    left: -95,
-    right: 0,
-    top: 0,
-    bottom: 0,
+
+  // Left slot
+  sectionLeft: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    pointerEvents: 'none',
-    zIndex: 2,
-  },
-  section3: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  section4: {
-    flex: 1,
-    alignItems: 'flex-end',
-    justifyContent: 'center',
-  },
-  headerTitle: {
-    fontSize: isSmallScreen ? 18 : width * 0.05,
-    alignSelf: 'center',
-    fontFamily: 'AntonRegular',
-    color: COLORS.textLight,
+    flexShrink: 1,   // ennen oli 0
   },
   headerImage: {
-    alignSelf: 'flex-start',
-    height: 50,
-    width: undefined,
-    aspectRatio: 3,
-    marginLeft: -36,
+    width: isNarrow ? 56 : 74, // fixed width for predictable size
+    aspectRatio: 2,
     resizeMode: 'contain',
+    marginRight: 8,
+    marginLeft: -10,
+  },
+  energyWrap: {
+    flexShrink: 1,
+    maxWidth: isNarrow ? 160 : 220,
+    transform: [{ scale: isNarrow ? 0.88 : 1 }],
+  },
+
+  // Center slot
+  sectionCenter: {
+    flex: 1,
+    alignItems: 'stretch',
+    justifyContent: 'center',
+    paddingHorizontal: 2,
+    marginLeft: 10,
   },
   userName: {
     fontFamily: TYPOGRAPHY.fontFamily.montserratExtraBold,
     fontSize: TYPOGRAPHY.fontSize.xs,
-    position: 'absolute',
-    left: '50%',
-    top: 33,
+    color: COLORS.textLight,
     textAlign: 'center',
-    width: 95, 
-    color: 'white',
-    textAlign: 'center',
+    width: '100%',
+  },
+  userNamePressable: {
+    width: '100%',
+    alignSelf: 'stretch',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+  },
+
+  // Right slot (width set from JS)
+  sectionRight: {
+    alignItems: 'flex-end',
     justifyContent: 'center',
   },
+
   headerAvatarImage: {
-    width: isSmallScreen ? 50 : 60,
-    height: isSmallScreen ? 50 : 60,
-    borderRadius: isSmallScreen ? 25 : 30,
+    width: isNarrow ? 46 : 60,
+    height: isNarrow ? 46 : 60,
+    borderRadius: isNarrow ? 23 : 30,
     marginLeft: SPACING.sm,
-    marginTop: SPACING.sm,
     resizeMode: 'cover',
   },
   beginnerAvatar: {
-    borderRadius: 0,
     width: 50,
     height: 35,
     resizeMode: 'cover',
@@ -106,7 +90,7 @@ const headerStyles = StyleSheet.create({
     borderColor: '#4f4c4c36',
   },
   defaultUserIcon: {
-    fontSize: isSmallScreen ? 20 : 26,
+    fontSize: isNarrow ? 20 : 26,
     color: 'white',
     marginLeft: SPACING.sm,
     marginRight: SPACING.md,

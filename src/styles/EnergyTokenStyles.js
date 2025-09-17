@@ -31,8 +31,9 @@ const styles = StyleSheet.create({
   },
   progressWrap: {
     position: 'relative',
-    width: 100,
-    height: 20,
+    width: 90,
+    height: 15,
+    marginBottom: 2,
   },
   progressOverlay: {
     position: 'absolute',
@@ -43,7 +44,7 @@ const styles = StyleSheet.create({
   progressBar: {
     width: '100%',
     height: '100%',
-    borderRadius: 6,
+    borderRadius: 4,
     overflow: 'hidden',
     backgroundColor: 'transparent',
     borderWidth: 1,

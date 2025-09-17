@@ -1,20 +1,17 @@
 /**
  * Header.js - App header component with logo, avatar, and energy tokens
  *
- * Displays the app header, logo, avatar, and energy token system.
- *
- * Usage:
- *   import Header from './Header';
- *   ...
- *   <Header />
+ * Keeps the player name perfectly centered by mirroring the left slot width
+ * (logo + energy bar) to the right slot (avatar). This avoids absolute layouts
+ * and keeps the center aligned on all screen widths.
  *
  * @module screens/Header
  * @author Sabata79
  * @since 2025-09-06
  */
 
-import { useState } from 'react';
-import { View, Text, Pressable, Image, Modal } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, Pressable, Image, Modal, Dimensions } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import PlayerCard from '../components/PlayerCard';
 import EnergyTokenSystem from '../components/EnergyTokenSystem';
@@ -24,6 +21,13 @@ import { avatars } from '../constants/AvatarPaths';
 
 export default function Header() {
   const [isModalVisible, setModalVisible] = useState(false);
+  const [leftWidth, setLeftWidth] = useState(0);
+
+  const { width: SCREEN_WIDTH } = Dimensions.get('window');
+  const CENTER_MIN = Math.floor(SCREEN_WIDTH * 0.4);
+  const MIN_RIGHT = 56;
+  const MAX_MIRROR = Math.floor(SCREEN_WIDTH * 0.4); // clamp so left cannot push name off-center
+
   const {
     playerId,
     playerName,
@@ -35,7 +39,7 @@ export default function Header() {
   const userAvatar = avatars.find((avatar) => avatar.path === avatarUrl)?.display;
 
   const isBeginnerAvatar = (avatarPath) => {
-    const avatar = avatars.find(av => av.path === avatarPath);
+    const avatar = avatars.find((av) => av.path === avatarPath);
     return avatar && avatar.level === 'Beginner';
   };
 
@@ -44,33 +48,44 @@ export default function Header() {
     playerName: playerName,
   };
 
+  const mirroredWidth = Math.max(
+    MIN_RIGHT,
+    Math.min(leftWidth, Math.max(0, SCREEN_WIDTH - leftWidth - CENTER_MIN))
+  )
+
   return (
     <View style={headerStyles.header}>
-      {/* Header/Logo */}
-      <View style={headerStyles.section1}>
-        <Image source={require('../../assets/whiteDicesHeaderLogo.webp')} style={headerStyles.headerImage} />
+      {/* Left: logo + energy (measured) */}
+      <View
+        style={headerStyles.sectionLeft}
+        onLayout={(e) => setLeftWidth(e.nativeEvent.layout.width)}
+      >
+        <Image
+          source={require('../../assets/whiteDicesHeaderLogo.webp')}
+          style={headerStyles.headerImage}
+        />
+        {userRecognized && (
+          <View style={headerStyles.energyWrap}>
+            <EnergyTokenSystem />
+          </View>
+        )}
       </View>
 
-      {/* EnergyTokenSystem */}
-      {userRecognized && (
-        <View style={headerStyles.centerOverlay}>
-          <EnergyTokenSystem />
-        </View>
-      )}
+      {/* Center: always centered name */}
+      <View style={headerStyles.sectionCenter}>
+        {userRecognized && !!playerName && (
+          <Pressable onPress={() => setModalVisible(true)} style={headerStyles.userNamePressable}>
+            <Text style={headerStyles.userName} numberOfLines={1} ellipsizeMode="tail">
+              {playerName}
+            </Text>
+          </Pressable>
+        )}
+      </View>
 
-      {/* UserName */}
-      {userRecognized && playerName && (
+      {/* Right: avatar – width mirrored from left */}
+      {userRecognized ? (
         <Pressable onPress={() => setModalVisible(true)}>
-          <View style={headerStyles.section3}>
-            <Text style={headerStyles.userName}>{playerName}</Text>
-          </View>
-        </Pressable>
-      )}
-
-      {/* Avatar */}
-      {userRecognized && (
-        <Pressable onPress={() => setModalVisible(true)}>
-          <View style={headerStyles.section4}>
+          <View style={[headerStyles.sectionRight, { width: mirroredWidth }]}>
             <View style={{ position: 'relative' }}>
               {userAvatar ? (
                 <Image
@@ -103,19 +118,21 @@ export default function Header() {
             </View>
           </View>
         </Pressable>
+      ) : (
+        <View style={[headerStyles.sectionRight, { width: mirroredWidth }]} />
       )}
 
       {/* PlayerCard modal */}
       <Modal
         animationType="fade"
-        transparent={true}
+        transparent
         visible={isModalVisible}
         onRequestClose={() => setModalVisible(false)}
       >
         <View style={{ flex: 1 }}>
           <PlayerCard
-            playerId={selectedPlayer?.playerId ?? ""}
-            playerName={selectedPlayer?.playerName ?? ""}
+            playerId={selectedPlayer?.playerId ?? ''}
+            playerName={selectedPlayer?.playerName ?? ''}
             isModalVisible={isModalVisible}
             setModalVisible={setModalVisible}
             playerScores={selectedPlayer?.playerScores ?? []}
