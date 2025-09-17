@@ -1,29 +1,30 @@
 /**
  * GameboardScreenStyles.js - Styles for the Gameboard screen only
  *
- * Contains all style definitions for the Gameboard screen, including containers, score fields,
- * section bonuses, dice area, overlays, and text styles. All color and font constants are imported
- * from the constants folder for consistency.
- *
- * Usage:
- *   import styles from '../styles/GameboardScreenStyles';
- *   ...
- *   <View style={styles.gameboardContainer}>...</View>
- *
+ * Breakpoint-aware: uses src/utils/breakpoints to compute sizes once at import time.
+ * If you need rotation-reactive styles, convert this file into a factory
+ * (export default bp => StyleSheet.create(...)) and pass useBreakpoints() from the component.
  *
  * @module styles/GameboardScreenStyles
  * @author Sabata79
- * @since 2025-09-04
+ * @since 2025-09-04 (breakpoints integration 2025-09-17)
  */
 
-import { StyleSheet, Dimensions } from 'react-native';
+import { StyleSheet } from 'react-native';
 import COLORS from '../constants/colors';
 import SPACING from '../constants/spacing';
 import TYPOGRAPHY from '../constants/typography';
-const { width, height } = Dimensions.get('window');
-const isSmallScreen = height < 650;
-const isBigScreen = height >= 1050;
-const isNarrow = width < 360;
+import { getBreakpoints, makeSizes, pick } from '../utils/breackpoints';
+
+// Compute breakpoints statically for styles
+const bp = getBreakpoints();
+const S = makeSizes(bp); // e.g., { DIE_SIZE, HEADER_HEIGHT, AVATAR }
+const FIELD_W = Math.round(S.DIE_SIZE * 1.9); // score-kentän leveys
+const FACE = Math.round(S.DIE_SIZE * 0.90);
+
+// Preserve your original size logic with breakpoint helpers
+const GRID_H = pick(bp, 35, 40, 40); // was: isSmallScreen ? 35 : isBigScreen ? 40 : 40
+const GRID_W = pick(bp, 35, 40, 60); // was: isSmallScreen ? 35 : isBigScreen ? 60 : 40
 
 const styles = StyleSheet.create({
     // Containers
@@ -33,7 +34,7 @@ const styles = StyleSheet.create({
     },
     gameboard: {
         flex: 1,
-        marginTop: 90,
+        marginTop: Math.max(8, S.HEADER_HEIGHT - 4), // ennen 90
         alignItems: 'center',
         justifyContent: 'center',
         maxWidth: 500,
@@ -84,7 +85,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         color: COLORS.overlayLight,
-        width: 80,
+        width: FIELD_W,
+        height: S.DIE_SIZE,
         marginRight: SPACING.md,
         marginTop: SPACING.xs,
         fontSize: TYPOGRAPHY.fontSize.lg,
@@ -100,7 +102,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         color: COLORS.black,
-        width: 80,
+        width: FIELD_W,
+        height: S.DIE_SIZE,
         marginRight: SPACING.md,
         marginTop: SPACING.xs,
         fontSize: TYPOGRAPHY.fontSize.lg,
@@ -115,7 +118,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         color: COLORS.black,
-        width: 80,
+        width: FIELD_W,
+        height: S.DIE_SIZE,
         marginRight: 15,
         marginTop: SPACING.xs,
         fontSize: TYPOGRAPHY.fontSize.lg,
@@ -125,10 +129,12 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         backgroundColor: COLORS.success,
     },
+
+    // Dice grid item (uses breakpoint DIE_SIZE)
     item: {
         flex: 1,
-        height: isSmallScreen ? 35 : isBigScreen ? 60 : 40,
-        width: isSmallScreen ? 35 : isBigScreen ? 60 : 40,
+        width: S.DIE_SIZE,   // was: isSmallScreen ? 35 : 40
+        height: S.DIE_SIZE,  // was: isSmallScreen ? 35 : 40
         alignItems: 'center',
         justifyContent: 'center',
         marginTop: SPACING.sm,
@@ -150,8 +156,8 @@ const styles = StyleSheet.create({
         lineHeight: TYPOGRAPHY.fontSize.lg,
     },
     gridTxt: {
-        height: isSmallScreen ? 35 : isBigScreen ? 40 : 40,
-        width: isSmallScreen ? 35 : isBigScreen ? 60 : 40,
+        height: GRID_H, // was: isSmallScreen ? 35 : isBigScreen ? 40 : 40
+        width: GRID_W,  // was: isSmallScreen ? 35 : isBigScreen ? 60 : 40
         fontFamily: TYPOGRAPHY.fontFamily.bangers,
         color: COLORS.textDark,
         fontSize: TYPOGRAPHY.fontSize.md,
@@ -176,20 +182,24 @@ const styles = StyleSheet.create({
     },
     footerWrap: {
         alignItems: 'center',
-        paddingVertical: 8,
-        // IMPORTANT: do NOT put flex:1 here
+        paddingVertical: 4, // oli 8
     },
 
     diceBorder: {
-        width: '92%',                  // prosentilla -> skaalaa leveys
+        width: '92%',
         alignSelf: 'center',
-        backgroundColor: '#0a0a0a',    // boksin tausta
+        backgroundColor: '#0a0a0a',
         borderWidth: 2,
-        borderColor: '#eee',           // valkoinen kehys
+        borderColor: '#eee',
         borderRadius: 8,
-        paddingHorizontal: isNarrow ? 8 : 12,
-        paddingVertical: isNarrow ? 2 : 2,
-        minHeight: 68, // varmistaa ettei romahda kapeilla näytöillä
+        paddingHorizontal: bp.isNarrow ? 8 : 12,
+        paddingVertical: bp.isNarrow ? 2 : 2,
+        minHeight: Math.round(S.DIE_SIZE * 1.6), // oli 68
+    },
+    dieFace: {
+        width: FACE,
+        height: FACE,
+        resizeMode: 'contain'
     },
 });
 

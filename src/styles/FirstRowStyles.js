@@ -42,8 +42,8 @@ export default firstRowStyles = StyleSheet.create({
         zIndex: 10,
     },
     firstRowCategoryText: {
-        fontFamily: TYPOGRAPHY.fontFamily.montserratExtraBold,
-        fontSize: TYPOGRAPHY.fontSize.lg,
+        fontFamily: TYPOGRAPHY.fontFamily.bangers,
+        fontSize: TYPOGRAPHY.fontSize.xl,
         color: COLORS.textLight,
         marginVertical: 0,
     },

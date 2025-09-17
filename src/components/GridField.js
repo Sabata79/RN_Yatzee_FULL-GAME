@@ -32,6 +32,11 @@ import { View, Pressable, Text, Image } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAudio } from '../services/AudioManager';
 import { dicefaces } from '../constants/DicePaths';
+import { getBreakpoints, makeSizes } from '../utils/breackpoints';
+
+const { DIE_SIZE } = makeSizes(getBreakpoints());
+const ICON = Math.round(DIE_SIZE * 0.70); // MaterialCommunityIcons size
+const LABEL = Math.round(DIE_SIZE * 0.28); // “FullHouse/small/large/Yatzy” fontti
 
 function GridField({
     index,
@@ -71,6 +76,7 @@ function GridField({
 
     const isSelected = selectedField === index;
 
+
     const isLocked = (categoryName) => {
         const category = scoringCategories.find((category) => category.name === categoryName);
         return category ? category.locked : false;
@@ -86,14 +92,7 @@ function GridField({
     if (index === 0) {
         return (
             <View style={gameboardstyles.item}>
-                <Image
-                    source={dicefaces[0]?.display}
-                    resizeMode="contain"
-                    style={{
-                        width: isSmallScreen ? 30 : 40,
-                        height: isSmallScreen ? 30 : 40,
-                    }}
-                />
+                <Image source={dicefaces[0]?.display} style={gameboardstyles.dieFace} />
             </View>
         );
         // Sum of ones
@@ -164,14 +163,7 @@ function GridField({
     } else if (index === 4) {
         return (
             <View style={gameboardstyles.item}>
-                <Image
-                    source={dicefaces[1]?.display}
-                    resizeMode="contain"
-                    style={{
-                        width: isSmallScreen ? 30 : 40,
-                        height: isSmallScreen ? 30 : 40,
-                    }}
-                />
+                <Image source={dicefaces[1]?.display} style={gameboardstyles.dieFace} />
             </View>
         );
         // Sum of twos
@@ -219,14 +211,7 @@ function GridField({
     } else if (index === 8) {
         return (
             <View style={gameboardstyles.item}>
-                <Image
-                    source={dicefaces[2]?.display}
-                    resizeMode="contain"
-                    style={{
-                        width: isSmallScreen ? 30 : 40,
-                        height: isSmallScreen ? 30 : 40,
-                    }}
-                />
+                <Image source={dicefaces[2]?.display} style={gameboardstyles.dieFace} />
             </View>
         );
         // Sum of Threes
@@ -253,10 +238,10 @@ function GridField({
             <View style={gameboardstyles.item}>
                 <MaterialCommunityIcons
                     name="home"
-                    size={isSmallScreen ? 22 : 25}
+                    size={ICON}
                     style={gameboardstyles.icon}
                 />
-                <Text style={{ fontSize: 10, color: 'white' }}>FullHouse</Text>
+                <Text style={{ fontSize: LABEL, color: 'white' }}>FullHouse</Text>
             </View>
         );
     } else if (index === 15) {
@@ -280,14 +265,7 @@ function GridField({
     } else if (index === 12) {
         return (
             <View style={gameboardstyles.item}>
-                <Image
-                    source={dicefaces[3]?.display}
-                    resizeMode="contain"
-                    style={{
-                        width: isSmallScreen ? 30 : 40,
-                        height: isSmallScreen ? 30 : 40,
-                    }}
-                />
+                <Image source={dicefaces[3]?.display} style={gameboardstyles.dieFace} />
             </View>
         );
     } else if (index === 13) {
@@ -312,10 +290,10 @@ function GridField({
             <View style={gameboardstyles.item}>
                 <MaterialCommunityIcons
                     name="cards-outline"
-                    size={isSmallScreen ? 22 : 25}
+                    size={ICON}
                     style={gameboardstyles.icon}
                 />
-                <Text style={{ fontSize: 10, color: 'white' }}>small</Text>
+                <Text style={{ fontSize: LABEL, color: 'white' }}>small</Text>
             </View>
         );
         // Small straight
@@ -339,14 +317,7 @@ function GridField({
     } else if (index === 16) {
         return (
             <View style={gameboardstyles.item}>
-                <Image
-                    source={dicefaces[4]?.display}
-                    resizeMode="contain"
-                    style={{
-                        width: isSmallScreen ? 30 : 40,
-                        height: isSmallScreen ? 30 : 40,
-                    }}
-                />
+                <Image source={dicefaces[4]?.display} style={gameboardstyles.dieFace} />
             </View>
         );
         // Sum of Fives
@@ -372,10 +343,10 @@ function GridField({
             <View style={gameboardstyles.item}>
                 <MaterialCommunityIcons
                     name="cards-outline"
-                    size={isSmallScreen ? 22 : 25}
+                    size={ICON}
                     style={gameboardstyles.icon}
                 />
-                <Text style={{ fontSize: 10, color: 'white' }}>large</Text>
+                <Text style={{ fontSize: LABEL, color: 'white' }}>large</Text>
             </View>
         );
         // Large straight
@@ -399,14 +370,7 @@ function GridField({
     } else if (index === 20) {
         return (
             <View style={gameboardstyles.item}>
-                <Image
-                    source={dicefaces[5]?.display}
-                    resizeMode="contain"
-                    style={{
-                        width: isSmallScreen ? 30 : 40,
-                        height: isSmallScreen ? 30 : 40,
-                    }}
-                />
+                <Image source={dicefaces[5]?.display} style={gameboardstyles.dieFace} />
             </View>
         );
         // Sum of Sixes
@@ -432,10 +396,10 @@ function GridField({
             <View style={gameboardstyles.item}>
                 <MaterialCommunityIcons
                     name="star-outline"
-                    size={isSmallScreen ? 22 : 25}
+                    size={ICON}
                     style={gameboardstyles.icon}
                 />
-                <Text style={{ fontSize: 10, color: 'white' }}>Yatzy</Text>
+                <Text style={{ fontSize: LABEL, color: 'white' }}>Yatzy</Text>
             </View>
         );
         // YATZY
@@ -486,10 +450,10 @@ function GridField({
             <View style={gameboardstyles.item}>
                 <MaterialCommunityIcons
                     name="account-question-outline"
-                    size={isSmallScreen ? 22 : 25}
+                    size={ICON}
                     style={gameboardstyles.icon}
                 />
-                <Text style={{ fontSize: 10, color: 'white' }}>Change</Text>
+                <Text style={{ fontSize: LABEL, color: 'white' }}>Change</Text>
             </View>
         );
         // Sum of Faces
