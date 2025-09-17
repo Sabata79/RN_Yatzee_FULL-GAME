@@ -290,6 +290,22 @@ const settingScreenStyles = StyleSheet.create({
         textShadowOffset: { width: 0, height: 1 },
         textShadowRadius: 2,
     },
+    linkInfoPill: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 12,
+        paddingHorizontal: 10,
+        borderRadius: 10,
+        backgroundColor: '#0d0d0f',
+        borderWidth: 2,
+        borderColor: COLORS.success,
+    },
+    linkInfoText: {
+        color: COLORS.textLight,
+        fontFamily: TYPOGRAPHY.fontFamily.montserratBold,
+        fontSize: TYPOGRAPHY.fontSize.xs,
+    },
 });
 
 export default settingScreenStyles;

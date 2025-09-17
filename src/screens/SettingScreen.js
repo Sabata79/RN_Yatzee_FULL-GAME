@@ -206,28 +206,37 @@ const SettingScreen = () => {
 
           {/* Link account */}
           <View style={settingScreenStyles.linkButtonContainer}>
-            <View style={settingScreenStyles.linkShadowLayer} />
-            <Pressable
-              style={({ pressed }) => [
-                settingScreenStyles.linkButton,
-                isLinked && settingScreenStyles.linkButtonDisabled,
-                pressed && settingScreenStyles.linkButtonPressed,
-              ]}
-              onPress={() => setIsLinkModalVisible(true)}
-              disabled={isLinked}
-            >
-              <FontAwesome5 name="link" size={18} color='#f1c40f' style={{ marginRight: 8 }} />
-              <Text style={settingScreenStyles.linkButtonText}>Link your account</Text>
-            </Pressable>
+            {isLinked ? (
+              <View style={settingScreenStyles.linkInfoPill}>
+                <FontAwesome5 name="thumbs-up" size={16} color="#27ae60" style={{ marginRight: 8 }} />
+                <Text style={settingScreenStyles.linkInfoText}>Your user is already linked</Text>
+              </View>
+            ) : (
+              <>
+                <View style={settingScreenStyles.linkShadowLayer} />
+                <Pressable
+                  style={({ pressed }) => [
+                    settingScreenStyles.linkButton,
+                    pressed && settingScreenStyles.linkButtonPressed,
+                  ]}
+                  onPress={() => setIsLinkModalVisible(true)}
+                >
+                  <FontAwesome5 name="link" size={18} color="#f1c40f" style={{ marginRight: 8 }} />
+                  <Text style={settingScreenStyles.linkButtonText}>Link your account</Text>
+                </Pressable>
+              </>
+            )}
           </View>
 
-          <LinkedModal
-            visible={isLinkModalVisible}
-            onClose={() => setIsLinkModalVisible(false)}
-            bottomInset={insets.bottom}
-            bottomOffset={75}
-            dark
-          />
+          {!isLinked && (
+            <LinkedModal
+              visible={isLinkModalVisible}
+              onClose={() => setIsLinkModalVisible(false)}
+              bottomInset={insets.bottom}
+              bottomOffset={75}
+              dark
+            />
+          )}
 
           {/* Wipe all data button */}
           <View style={settingScreenStyles.linkButtonContainer}>
