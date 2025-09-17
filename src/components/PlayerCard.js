@@ -120,17 +120,18 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     return a.date < b.date;
   };
 
-const _norm = (s) => String(s || '').replace(/\\/g, '/').replace(/^\.\//, '');
-const _last2 = (s) => _norm(s).split('/').slice(-2).join('/'); // e.g. "advancedAvatars/Advanced17.webp"
+  const _norm = (s) => String(s || '').replace(/\\/g, '/').replace(/^\.\//, '');
+  const _last2 = (s) => _norm(s).split('/').slice(-2).join('/');
 
-const getAvatarImage = (avatarPath) => {
-  const target = _norm(avatarPath);
-  const hit = avatars.find(av => {
-    const ap = _norm(av.path);
-    return ap === target || ap.endsWith(_last2(target)) || target.endsWith(_last2(ap));
-  });
-  return hit ? hit.display : require('../../assets/whiteDices.webp');
-};
+  const getAvatarImage = (avatarPath) => {
+    const target = _norm(avatarPath);
+    if (!target) return null; // ← tärkeä: ei oletuskuvaa
+    const hit = avatars.find(av => {
+      const ap = _norm(av.path);
+      return ap === target || ap.endsWith(_last2(target)) || target.endsWith(_last2(ap));
+    });
+    return hit ? hit.display : null; // ← ei fallback-kuvaa
+  };
 
   const isBeginnerAvatar = (avatarPath) => {
     const avatar = avatars.find(av => av.path === avatarPath);
@@ -480,6 +481,7 @@ const getAvatarImage = (avatarPath) => {
     return null;
   }
 
+  const avatarSrc = getAvatarImage(getAvatarToDisplay());
 
   return (
     <View style={styles.playerCardContainer}>
@@ -522,13 +524,25 @@ const getAvatarImage = (avatarPath) => {
             <View style={styles.playerInfoContainer}>
               <View style={{ position: 'relative' }}>
                 <View style={styles.avatarContainer}>
-                  <Image
-                    style={[
-                      styles.avatar,
-                      isBeginnerAvatar(getAvatarToDisplay()) ? styles.beginnerAvatar : styles.defaultAvatar,
-                    ]}
-                    source={getAvatarImage(getAvatarToDisplay())}
-                  />
+                  {avatarSrc ? (
+                    <Image
+                      style={[
+                        styles.avatar,
+                        isBeginnerAvatar(getAvatarToDisplay()) ? styles.beginnerAvatar : styles.defaultAvatar,
+                      ]}
+                      source={avatarSrc}
+                    />
+                  ) : (
+                    <View
+                      style={[
+                        styles.avatar,
+                        styles.defaultAvatar,
+                        { alignItems: 'center', justifyContent: 'center' },
+                      ]}
+                    >
+                      <FontAwesome5 name="user" size={36} color="#000000" />
+                    </View>
+                  )}
                 </View>
                 {idToUse === playerId && (
                   <Pressable style={styles.editAvatarButton} onPress={() => setIsAvatarModalVisible(true)}>
