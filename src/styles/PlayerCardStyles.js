@@ -337,6 +337,12 @@ export default styles = StyleSheet.create({
         color: COLORS.textDark,
         textAlign: 'center',
     },
+    rankSlotText: {
+       fontFamily: TYPOGRAPHY.fontFamily.bangers,
+        fontSize: TYPOGRAPHY.fontSize.xxl,
+        color: COLORS.textDark,
+        textAlign: 'center',
+    },
     playerCardCloseButton: {
         position: 'absolute',
         right: 10,

@@ -19,6 +19,19 @@ import headerStyles from '../styles/HeaderStyles';
 import { useGame } from '../constants/GameContext';
 import { avatars } from '../constants/AvatarPaths';
 
+const _norm = (s) => String(s || '').replace(/\\/g, '/').replace(/^\.\//, '');
+const _last2 = (s) => _norm(s).split('/').slice(-2).join('/').toLowerCase();
+
+function resolveUserAvatarDisplay(rawPath) {
+  const target = _norm(rawPath);
+  const key    = _last2(target);
+  const hit = avatars.find(av => {
+    const ap = _norm(av.path);
+    return ap === target || _last2(ap) === key;
+  });
+  return hit?.display; // require(...) reference
+}
+
 export default function Header() {
   const [isModalVisible, setModalVisible] = useState(false);
   const [leftWidth, setLeftWidth] = useState(0);
@@ -36,7 +49,7 @@ export default function Header() {
     isLinked,
   } = useGame();
 
-  const userAvatar = avatars.find((avatar) => avatar.path === avatarUrl)?.display;
+ const userAvatar = resolveUserAvatarDisplay(avatarUrl);
 
   const isBeginnerAvatar = (avatarPath) => {
     const avatar = avatars.find((av) => av.path === avatarPath);

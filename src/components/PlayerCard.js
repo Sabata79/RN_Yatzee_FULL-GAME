@@ -87,13 +87,25 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
   };
 
   const saveAvatarToDatabase = async (avatarPath) => {
-    if (!avatarPath) {
+    // guard
+    const path = String(avatarPath || '').trim();
+    if (!path) {
       console.error('Avatar path is empty!');
       return;
     }
+
+    // optional: skip write if unchanged
+    if (path === avatarUrl) {
+      setAvatarUrl(path);
+      return;
+    }
+
     try {
-      await dbUpdate(`players/${playerId}`, { avatar: avatarPath });
-      setAvatarUrl(avatarPath);
+      await dbUpdate(`players/${playerId}`, {
+        avatar: path,
+        avatarUrl: path, // keep backward compatibility with readers using avatarUrl
+      });
+      setAvatarUrl(path);
     } catch (e) {
       console.error('Error saving avatar to Firebase:', e);
     }
@@ -108,10 +120,17 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     return a.date < b.date;
   };
 
-  const getAvatarImage = (avatarPath) => {
-    const avatar = avatars.find(av => av.path === avatarPath);
-    return avatar ? avatar.display : require('../../assets/whiteDices.webp');
-  };
+const _norm = (s) => String(s || '').replace(/\\/g, '/').replace(/^\.\//, '');
+const _last2 = (s) => _norm(s).split('/').slice(-2).join('/'); // e.g. "advancedAvatars/Advanced17.webp"
+
+const getAvatarImage = (avatarPath) => {
+  const target = _norm(avatarPath);
+  const hit = avatars.find(av => {
+    const ap = _norm(av.path);
+    return ap === target || ap.endsWith(_last2(target)) || target.endsWith(_last2(ap));
+  });
+  return hit ? hit.display : require('../../assets/whiteDices.webp');
+};
 
   const isBeginnerAvatar = (avatarPath) => {
     const avatar = avatars.find(av => av.path === avatarPath);
@@ -132,36 +151,29 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
 
   // UUSI: levelInfo valitaan sen mukaan katsotaanko omaa vai toisen korttia
   const getPlayerLevelInfo = () => {
-    if (viewingPlayerId && viewingPlayerId !== playerId) {
-      // Katsotaan toisen pelaajan korttia, palautetaan vain level
-      return { level: viewingPlayerLevel || '', progress: 1 };
-    }
-    // Oma kortti, käytetään vanhaa logiikkaa
+    // pelejä lasketaan aina idToUse:lle (oma tai katsottava)
     const games = playedGames;
+
+    // tasoalueet peleistä
     let computed = { level: 'beginner', min: 0, max: 400 };
     if (games >= 2000) computed = { level: 'legendary', min: 2000, max: 2000 };
     else if (games >= 1201) computed = { level: 'elite', min: 1201, max: 2000 };
     else if (games >= 801) computed = { level: 'advanced', min: 801, max: 1200 };
     else if (games >= 401) computed = { level: 'basic', min: 401, max: 800 };
-    const progress = computed.max === computed.min ? 1 : (games - computed.min) / (computed.max - computed.min);
-    computed = { ...computed, progress: Math.min(progress, 1) };
-    const defaults = ['beginner', 'basic', 'advanced', 'elite', 'legendary'];
-    if (storedLevel) {
-      const storedIdx = defaults.indexOf(storedLevel);
-      const computedIdx = defaults.indexOf(computed.level);
-      if (storedIdx === -1) {
-        return { level: storedLevel, progress: 1, min: computed.min, max: computed.max };
-      }
-      if (computedIdx > storedIdx) {
-        dbUpdate(`players/${idToUse}`, { level: computed.level })
-          .then(() => console.log('Level updated to computed level'))
-          .catch(err => console.error('Error updating level', err));
-        return computed;
-      }
-      if (computedIdx === storedIdx) return computed;
-      return { level: storedLevel, progress: 1, min: computed.min, max: computed.max };
-    }
-    return computed;
+
+    const progress =
+      computed.max === computed.min
+        ? 1
+        : (games - computed.min) / (computed.max - computed.min);
+
+    // clamp 0..1
+    const clamped = Math.max(0, Math.min(1, progress));
+
+    // Näytettävä level: käytä tallennettua tai katsottavan leveliä jos saatavilla
+    const levelLabel =
+      storedLevel ?? viewingPlayerLevel ?? computed.level;
+
+    return { ...computed, level: levelLabel, progress: clamped };
   };
 
   const previousMonthRank = currentMonth > 0 ? monthlyRanks[currentMonth - 1] : '--';
@@ -387,14 +399,15 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     subs.push({ path: playersPath, cb: allTimeCb });
 
     // AVATAR & LINKED
-    const avatarPath = `players/${idToUse}/avatar`;
+    const profilePath = `players/${idToUse}`;
     const avatarCb = (snapshot) => {
-      const path = snapshot.val();
-      if (idToUse === playerId) setAvatarUrl(path || '');
-      else setViewingPlayerAvatar(path || '');
+      const data = snapshot.val() || {};
+      const path = data.avatar || data.avatarUrl || ''; // ← backward compatible
+      if (idToUse === playerId) setAvatarUrl(path);
+      else setViewingPlayerAvatar(path);
     };
-    dbOnValue(avatarPath, avatarCb);
-    subs.push({ path: avatarPath, cb: avatarCb });
+    dbOnValue(profilePath, avatarCb);
+    subs.push({ path: profilePath, cb: avatarCb });
 
     const linkedPath = `players/${idToUse}/isLinked`;
     const linkedCb = (snapshot) => setPlayerIsLinked(!!snapshot.val());
@@ -452,9 +465,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     }
     return (
       <Text
-        style={[
-          styles.playerCardMonthText,,
-        ]}
+        style={styles.rankSlotText}
       >
         {rank}.
       </Text>
