@@ -48,7 +48,7 @@ const INDEX_TO_TYPE = ['allTime', 'monthly', 'weekly'];
 const getDurationDotColor = (secs) =>
   secs > 300 ? COLORS.error : secs > 150 ? COLORS.warning : COLORS.success;
 
-// ISO week helper (yksi, uudelleenkäytettävä)
+// ISO week helper
 function getWeekNumber(date) {
   const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
   const dayNum = d.getUTCDay() || 7;
