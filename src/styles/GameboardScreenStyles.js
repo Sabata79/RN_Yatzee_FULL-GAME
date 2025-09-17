@@ -19,10 +19,10 @@ import { getBreakpoints, makeSizes, pick } from '../utils/breackpoints';
 // Compute breakpoints statically for styles
 const bp = getBreakpoints();
 const S = makeSizes(bp); // e.g., { DIE_SIZE, HEADER_HEIGHT, AVATAR }
-const FIELD_W = Math.round(S.DIE_SIZE * 1.9); // score-kentän leveys
+const FIELD_W = Math.round(S.DIE_SIZE * 1.9); 
 const FACE = Math.round(S.DIE_SIZE * 0.90);
 
-// Preserve your original size logic with breakpoint helpers
+// Preserve original size logic with breakpoint helpers
 const GRID_H = pick(bp, 35, 40, 40); // was: isSmallScreen ? 35 : isBigScreen ? 40 : 40
 const GRID_W = pick(bp, 35, 40, 60); // was: isSmallScreen ? 35 : isBigScreen ? 60 : 40
 
@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
     },
     gameboard: {
         flex: 1,
-        marginTop: Math.max(8, S.HEADER_HEIGHT - 4), // ennen 90
+        marginTop: Math.max(8, S.HEADER_HEIGHT - 4),
         alignItems: 'center',
         justifyContent: 'center',
         maxWidth: 500,
@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
     sectionContainer: {
         width: 70,
         height: 70,
-        marginTop: 50,
+        marginTop: 90,
         marginLeft: 30,
         justifyContent: 'center',
         alignItems: 'center',
@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
     sectionContainerAchieved: {
         width: 72,
         height: 72,
-        marginTop: 40,
+        marginTop: 90,
         justifyContent: 'center',
         alignItems: 'center',
         padding: 5,
@@ -133,8 +133,8 @@ const styles = StyleSheet.create({
     // Dice grid item (uses breakpoint DIE_SIZE)
     item: {
         flex: 1,
-        width: S.DIE_SIZE,   // was: isSmallScreen ? 35 : 40
-        height: S.DIE_SIZE,  // was: isSmallScreen ? 35 : 40
+        width: S.DIE_SIZE,   
+        height: S.DIE_SIZE,  
         alignItems: 'center',
         justifyContent: 'center',
         marginTop: SPACING.sm,
@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
     },
     footerWrap: {
         alignItems: 'center',
-        paddingVertical: 4, // oli 8
+        paddingVertical: 4,
     },
 
     diceBorder: {
@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         paddingHorizontal: bp.isNarrow ? 8 : 12,
         paddingVertical: bp.isNarrow ? 2 : 2,
-        minHeight: Math.round(S.DIE_SIZE * 1.6), // oli 68
+        minHeight: Math.round(S.DIE_SIZE * 1.6), 
     },
     dieFace: {
         width: FACE,

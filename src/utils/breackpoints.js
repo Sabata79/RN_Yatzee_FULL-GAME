@@ -1,6 +1,15 @@
 // src/utils/breakpoints.js
-// Yksi paikka breakpointeille. Käytä getBreakpoints() tyylitiedostoissa ja
-// useBreakpoints() komponenteissa (päivittyy rotaatiossa).
+/**
+ * breakpoints.js — Single source of truth for responsive breakpoints and sizes.
+ *
+ * Provides helpers to compute viewport-aware breakpoints and a small size system.
+ * Use `getBreakpoints()` in style files (static at import time) and
+ * `useBreakpoints()` in components (reactive to orientation/size changes).
+ *
+ * @module utils/breakpoints
+ * @author Sabata79
+ * @since 2025-09-17
+ */
 
 import { Dimensions, useWindowDimensions } from 'react-native';
 
@@ -11,13 +20,13 @@ export function computeBreakpoints({ width, height }) {
   const isPortrait = height >= width;
   const isLandscape = !isPortrait;
 
-  // Leveyteen perustuvat breakpoints
-  const isNarrow = shortest < 360;     // kapea puhelin
-  const isTablet = shortest >= 600;    // tablet/fold
+  // Width-based breakpoints
+  const isNarrow = shortest < 360;     // small/compact phones
+  const isTablet = shortest >= 600;    // tablets / folds
 
-  // Pituuteen perustuvat (statusbar/header-tilan takia)
-  const isSmallScreen = longest < 650; // vähän pystytilaa
-  const isBigScreen = longest >= 900;  // isot puhelimet / tabletit
+  // Height-based breakpoints (useful for header/status-bar vertical space)
+  const isSmallScreen = longest < 650; // limited vertical space
+  const isBigScreen = longest >= 900;  // large phones / tablets
 
   return {
     width,
@@ -33,32 +42,47 @@ export function computeBreakpoints({ width, height }) {
   };
 }
 
-// Staattinen versio tyylitiedostoihin (ei päivity automaattisesti rotaatiossa)
+// Static variant for style files (does NOT react to rotation automatically)
 export function getBreakpoints() {
   const { width, height } = Dimensions.get('window');
   return computeBreakpoints({ width, height });
 }
 
-// Hook komponenteille (päivittyy rotaatiossa)
+// Hook for components (reacts to rotation / window size changes)
 export function useBreakpoints() {
   const { width, height } = useWindowDimensions();
   return computeBreakpoints({ width, height });
 }
 
-// Apuri: valitse arvojen joukosta breakpointeilla
+// Helper: pick a value based on breakpoints (small / normal / big)
 export function pick(bp, small, normal, big) {
   return bp.isSmallScreen ? small : bp.isBigScreen ? big : normal;
 }
 
-// Apuri: clamp (jos tarvitset peilattuja leveyksiä tms.)
+// Helper: clamp number into a range
 export function clamp(n, min, max) {
   return Math.max(min, Math.min(n, max));
 }
 
-// Esimerkkikoot yhdessä paikassa; voit laajentaa tarpeen mukaan
+// Common sizes — adjust SCALE to tweak vertical density across the app
 export function makeSizes(bp) {
+  const BASE = pick(bp, 35, 40, 50); // base unit: small / normal / big
+
+  const SCALE = 0.90;                 // ← ADJUST THIS
+  // e.g. 0.92 (taller), 0.88 or 0.85 (shorter)
+
+  const DIE_SIZE = Math.round(BASE * SCALE); // score-field height (drives dice/icons)
+
+  // Optional derived sizes if you want to use them directly
+  const FACE  = Math.round(DIE_SIZE * 0.90); // dice image size
+  const ICON  = Math.round(DIE_SIZE * 0.70); // MaterialCommunityIcons
+  const LABEL = Math.round(DIE_SIZE * 0.28); // labels like "FullHouse", "small", ...
+
   return {
-    DIE_SIZE: pick(bp, 35, 40, 50),           // pienet / normi / isot
+    DIE_SIZE,
+    FACE,
+    ICON,
+    LABEL,
     HEADER_HEIGHT: bp.isNarrow ? 60 : 70,
     AVATAR: bp.isNarrow ? 46 : 60,
   };
