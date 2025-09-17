@@ -38,6 +38,8 @@ const { DIE_SIZE } = makeSizes(getBreakpoints());
 const ICON = Math.round(DIE_SIZE * 0.70); // MaterialCommunityIcons size
 const LABEL = Math.round(DIE_SIZE * 0.28); // “FullHouse/small/large/Yatzy” fontti
 
+
+
 function GridField({
     index,
     scoringCategories,
@@ -75,6 +77,7 @@ function GridField({
     };
 
     const isSelected = selectedField === index;
+
 
 
     const isLocked = (categoryName) => {

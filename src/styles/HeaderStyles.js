@@ -12,9 +12,13 @@ import { StyleSheet, Dimensions } from 'react-native';
 import COLORS from '../constants/colors';
 import TYPOGRAPHY from '../constants/typography';
 import SPACING from '../constants/spacing';
+import { getBreakpoints, makeSizes, pick } from '../utils/breakpoints';
 
 const { height, width } = Dimensions.get('window');
 const isNarrow = width < 360 || height < 650;
+const S = makeSizes(getBreakpoints());
+const bp = getBreakpoints();
+
 
 const headerStyles = StyleSheet.create({
   header: {
@@ -55,7 +59,7 @@ const headerStyles = StyleSheet.create({
   },
   userName: {
     fontFamily: TYPOGRAPHY.fontFamily.montserratExtraBold,
-    fontSize: TYPOGRAPHY.fontSize.xs,
+    fontSize: isNarrow ?  TYPOGRAPHY.fontSize.md : TYPOGRAPHY.xs,
     color: COLORS.textLight,
     textAlign: 'center',
     width: '100%',
@@ -74,9 +78,9 @@ const headerStyles = StyleSheet.create({
   },
 
   headerAvatarImage: {
-    width: isNarrow ? 46 : 60,
-    height: isNarrow ? 46 : 60,
-    borderRadius: isNarrow ? 23 : 30,
+    width: S.AVATAR,
+    height: S.AVATAR,
+    borderRadius: S.AVATAR/2,
     marginLeft: SPACING.sm,
     resizeMode: 'cover',
   },
@@ -90,7 +94,7 @@ const headerStyles = StyleSheet.create({
     borderColor: '#4f4c4c36',
   },
   defaultUserIcon: {
-    fontSize: isNarrow ? 20 : 26,
+    fontSize: S.ICON,
     color: 'white',
     marginLeft: SPACING.sm,
     marginRight: SPACING.md,

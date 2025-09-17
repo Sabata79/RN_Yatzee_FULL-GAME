@@ -16,18 +16,19 @@ import { Dimensions } from 'react-native';
 
 export function computeBreakpoints({ width, height }) {
   const shortest = Math.min(width, height);
-  const longest = Math.max(width, height);
+  const longest  = Math.max(width, height);
 
-  const isPortrait = height >= width;
+  const isPortrait  = height >= width;
   const isLandscape = !isPortrait;
 
   // Width-based breakpoints
-  const isNarrow = shortest < 360;     // small/compact phones
-  const isTablet = shortest >= 600;    // tablets / folds
+  const isNarrow    = shortest < 360;   // small/compact phones
+  const isTablet    = shortest >= 600;  // tablets / folds
+  const isWidePhone = width >= 392;     // e.g., Pixel 7 / 7 Pro & similar
 
   // Height-based breakpoints (useful for header/status-bar vertical space)
-  const isSmallScreen = longest < 650; // limited vertical space
-  const isBigScreen = longest >= 900;  // large phones / tablets
+  const isSmallScreen = longest < 650;  // limited vertical space
+  const isBigScreen   = longest >= 820; // lowered from 900 to catch tall flagships
 
   return {
     width,
@@ -38,6 +39,7 @@ export function computeBreakpoints({ width, height }) {
     isLandscape,
     isNarrow,
     isTablet,
+    isWidePhone,
     isSmallScreen,
     isBigScreen,
   };
@@ -58,7 +60,7 @@ export function useBreakpoints() {
       setDims(window);
     });
     return () => {
-      // RN >= 0.65: sub.remove();  RN < 0.65: Dimensions.removeEventListener
+      // RN >= 0.65: sub.remove();  RN < 0.65: Dimensions.removeEventListener(...)
       sub?.remove?.();
     };
   }, []);
@@ -78,17 +80,21 @@ export function clamp(n, min, max) {
 
 // Common sizes — adjust SCALE to tweak vertical density across the app
 export function makeSizes(bp) {
-  const BASE = pick(bp, 35, 40, 50); // base unit: small / normal / big
+  // Base unit chosen from width/height heuristics
+  const BASE =
+    bp.isWidePhone ? 54 :     // give wide phones (Pixel 7/Pro etc.) a larger base
+    bp.isBigScreen ? 50 :     // tall/large phones
+    bp.isSmallScreen ? 36 :   // compact devices
+    44;                       // default mid-size
 
-  const SCALE = 0.90;                 // ← ADJUST THIS to shrink/grow vertical size
-  // e.g. 0.92 (taller), 0.88 or 0.85 (shorter)
+  const SCALE = 0.87;         // global fine-tune (0.92–0.96 typical)
 
-  const DIE_SIZE = Math.round(BASE * SCALE); // score-field height (drives dice/icons)
+  const DIE_SIZE = Math.round(BASE * SCALE); // drives score-field size
 
-  // Optional derived sizes if you want to use them directly
-  const FACE  = Math.round(DIE_SIZE * 0.90); // dice image size
-  const ICON  = Math.round(DIE_SIZE * 0.70); // MaterialCommunityIcons
-  const LABEL = Math.round(DIE_SIZE * 0.28); // labels like "FullHouse", "small", ...
+  // Derived sizes used across UI so everything scales in sync
+  const FACE  = Math.round(DIE_SIZE * 0.92); // dice image
+  const ICON  = Math.round(DIE_SIZE * 0.72); // MDI icons
+  const LABEL = Math.round(DIE_SIZE * 0.28); // small label text blocks
 
   return {
     DIE_SIZE,

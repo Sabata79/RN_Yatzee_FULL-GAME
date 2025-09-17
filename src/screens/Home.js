@@ -169,7 +169,7 @@ export default function Home({ setPlayerId }) {
             <Text style={homeStyles.homeText}>Can you tell your nickname?</Text>
             <Text style={homeStyles.homeAuxillaryText}>(Nickname must be 3-10 characters long)</Text>
 
-            <Image source={require("../../assets/register.webp")} style={stylesGlobal.registerImage} />
+            <Image source={require("../../assets/register.webp")} style={homeStyles.registerImage} />
 
             <TextInput
               ref={inputRef}
@@ -189,7 +189,7 @@ export default function Home({ setPlayerId }) {
               onPress={() => setIsRecoverModalVisible(true)}
             />
             <RecoverModal
-              visible={isRecoverModalVisible}                 // <- was isVisible
+              visible={isRecoverModalVisible}                
               onClose={() => setIsRecoverModalVisible(false)}
               bottomInset={insets.bottom}
               bottomOffset={0}

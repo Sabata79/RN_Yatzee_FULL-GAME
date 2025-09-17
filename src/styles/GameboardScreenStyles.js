@@ -18,8 +18,8 @@ import { getBreakpoints, makeSizes, pick } from '../utils/breakpoints';
 
 // Compute breakpoints statically for styles
 const bp = getBreakpoints();
-const S = makeSizes(bp); // e.g., { DIE_SIZE, HEADER_HEIGHT, AVATAR }
-const FIELD_W = Math.round(S.DIE_SIZE * 1.9); 
+const S = makeSizes(bp);
+const FIELD_W = Math.round(S.DIE_SIZE * 1.9);
 const FACE = Math.round(S.DIE_SIZE * 0.90);
 
 // Preserve original size logic with breakpoint helpers
@@ -133,8 +133,8 @@ const styles = StyleSheet.create({
     // Dice grid item (uses breakpoint DIE_SIZE)
     item: {
         flex: 1,
-        width: S.DIE_SIZE,   
-        height: S.DIE_SIZE,  
+        width: S.DIE_SIZE,
+        height: S.DIE_SIZE,
         alignItems: 'center',
         justifyContent: 'center',
         marginTop: SPACING.sm,
@@ -156,8 +156,8 @@ const styles = StyleSheet.create({
         lineHeight: TYPOGRAPHY.fontSize.lg,
     },
     gridTxt: {
-        height: GRID_H, // was: isSmallScreen ? 35 : isBigScreen ? 40 : 40
-        width: GRID_W,  // was: isSmallScreen ? 35 : isBigScreen ? 60 : 40
+        height: S.DIE_SIZE,
+        width: S.DIE_SIZE,
         fontFamily: TYPOGRAPHY.fontFamily.bangers,
         color: COLORS.textDark,
         fontSize: TYPOGRAPHY.fontSize.md,
@@ -192,13 +192,13 @@ const styles = StyleSheet.create({
         borderWidth: 2,
         borderColor: '#eee',
         borderRadius: 8,
-        paddingHorizontal: bp.isNarrow ? 8 : 12,
-        paddingVertical: bp.isNarrow ? 2 : 2,
-        minHeight: Math.round(S.DIE_SIZE * 1.6), 
+        paddingHorizontal: 12,
+        paddingVertical: 2,
+        minHeight: Math.round(S.DIE_SIZE * 1.5),
     },
     dieFace: {
-        width: FACE,
-        height: FACE,
+        width: S.FACE,
+        height: S.FACE,
         resizeMode: 'contain'
     },
 });
