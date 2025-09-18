@@ -1,13 +1,14 @@
 /**
  * PlayerCard - Modal component for displaying player profile, stats, and trophies.
  *
- * JSDoc comments and inline code comments must always be in English.
+ * 
  * This file displays the player's card with avatar, stats, top scores, and trophies.
+ * @module PlayerCard
  * @author Sabata79
  * @since 2025-08-29
  */
 import { useState, useEffect } from 'react';
-import { View, Text, Modal, Pressable, Image } from 'react-native';
+import { View, Text, Modal, Pressable, Image, ActivityIndicator } from 'react-native'; 
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useGame } from '../constants/GameContext';
 import styles from '../styles/PlayerCardStyles';
@@ -49,6 +50,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
   const [viewingAllTimeRank, setViewingAllTimeRank] = useState('-');
   const [weeklyWins, setWeeklyWins] = useState(0);
   const [modalHeight, setModalHeight] = useState(0);
+  const [isBgLoading, setIsBgLoading] = useState(true);
 
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
@@ -496,7 +498,17 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
             style={[styles.playerCardModalContainer, isDarkBg && styles.playerCardModalContainerDark]}
             onLayout={(event) => setModalHeight(event.nativeEvent.layout.height)}
           >
-            <Image source={playerCardBg} style={styles.avatarModalBackgroundImage} />
+            {isBgLoading && (
+              <View style={[styles.avatarModalBackgroundImage, { justifyContent: 'center', alignItems: 'center', position: 'absolute', zIndex: 2 }]}> 
+                <ActivityIndicator size="large" color="#fff" />
+              </View>
+            )}
+            <Image
+              source={playerCardBg}
+              style={styles.avatarModalBackgroundImage}
+              onLoadStart={() => setIsBgLoading(true)}
+              onLoadEnd={() => setIsBgLoading(false)}
+            />
             <CoinLayer weeklyWins={weeklyWins} modalHeight={modalHeight - 2} />
 
             {/* HEADER */}
