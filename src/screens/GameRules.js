@@ -13,7 +13,7 @@
  * @author Sabata79
  * @since 2025-09-06
  */
-import { View, Text, ScrollView } from 'react-native';
+import { View, Text, ScrollView, Image } from 'react-native';
 import gameRulesStyles from '../styles/GameRulesStyles';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { rulesTextContent, combinationsData, SCORE_COMPARSION_TEXT } from '../constants/Game';
@@ -56,6 +56,29 @@ export default function GameRules() {
           </View>
         </View>
       ))}
+
+      {/* Time bonus section */}
+      <View style={gameRulesStyles.sectionHeader}>
+        <Text style={gameRulesStyles.sectionTitle}>Time Bonus</Text>
+      </View>
+
+      <View style={[gameRulesStyles.scoreItem, { flexDirection: 'row', alignItems: 'center' }]}>
+        <Image
+          source={require('../../assets/trafficlights.webp')}
+          style={gameRulesStyles.trafficImage}
+        />
+        <View style={{ flex: 1 }}>
+          <View style={gameRulesStyles.bonusRow}>
+            <Text style={[gameRulesStyles.bonusText, { color: '#e74c3c' }]}>Red (over 300 sec): -10 pts</Text>
+          </View>
+          <View style={gameRulesStyles.bonusRow}>
+            <Text style={[gameRulesStyles.bonusText, { color: '#f39c12' }]}>Orange (151–299 sec): +0 pts</Text>
+          </View>
+          <View style={gameRulesStyles.bonusRow}>
+            <Text style={[gameRulesStyles.bonusText, { color: '#27ae60' }]}>Green (under 150 sec): +10 pts</Text>
+          </View>
+        </View>
+      </View>
 
       {/* Scores Comparison Section Title with Icon */}
       <View style={gameRulesStyles.sectionHeader}>

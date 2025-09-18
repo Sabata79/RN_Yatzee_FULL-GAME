@@ -105,6 +105,19 @@ const gameRulesStyles = StyleSheet.create({
     fontFamily: TYPOGRAPHY.fontFamily.montserratRegular,
     lineHeight: 20,
   },
+    bonusRow: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      marginTop: 2,
+      marginBottom: 2,
+    },
+    bonusText: {
+      color: COLORS.textLight,
+      fontSize: TYPOGRAPHY.fontSize.md,
+      fontFamily: TYPOGRAPHY.fontFamily.montserratRegular,
+      textAlign: 'left',
+      marginLeft: -30,
+    },
 
   // Info box styles
   infoBox: {
@@ -152,6 +165,12 @@ const gameRulesStyles = StyleSheet.create({
     color: COLORS.black,
     fontSize: TYPOGRAPHY.fontSize.md,
     fontFamily: TYPOGRAPHY.fontFamily.montserratRegular,
+  },
+  trafficImage: {
+    width: 80,
+    height: 100,
+    resizeMode: 'contain',
+    left: -20,
   },
 });
 
