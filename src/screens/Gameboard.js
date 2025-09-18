@@ -101,7 +101,6 @@ const RenderDices = React.memo(function RenderDices({
         setRounds={setRounds}
         MAX_SPOTS={MAX_SPOTS}
         NBR_OF_THROWS={NBR_OF_THROWS}
-        MaterialCommunityIcons={MaterialCommunityIcons}
         totalPoints={totalPoints}
       />
     </View>

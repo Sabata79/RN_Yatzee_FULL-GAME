@@ -32,6 +32,7 @@
 import React, { useMemo } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import styles from '../styles/GameboardScreenButtonStyles';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 const GameboardButtons = (props) => {
 
@@ -48,7 +49,6 @@ const GameboardButtons = (props) => {
     setRounds,
     MAX_SPOTS,
     NBR_OF_THROWS,
-    MaterialCommunityIcons,
   } = props;
 
   if (rounds <= 0) {
