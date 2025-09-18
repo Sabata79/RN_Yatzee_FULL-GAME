@@ -1,9 +1,16 @@
-// src/screens/Home.js
 /**
- * Home.js - Main screen for player login, linking, recovery, and welcome video
- * - Android: uses CustomKeyboard; its OK triggers handlePress
- * - iOS: uses system keyboard; return key triggers handlePress
+ * Home – main screen for player login, linking, recovery, and welcome video.
+ * Android uses CustomKeyboard (OK triggers handlePress), iOS uses system keyboard (return triggers handlePress).
+ *
+ * Props:
+ *  - navigation: object (React Navigation)
+ *  - route: object (React Navigation)
+ *
+ * @module Home
+ * @author Sabata79
+ * @since 2025-09-18
  */
+// src/screens/Home.js
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { View, Text, TextInput, Alert, Image, Animated, Platform } from "react-native";

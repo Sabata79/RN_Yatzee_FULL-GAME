@@ -1,10 +1,14 @@
 /**
- * Gameboard – Main game screen for playing Yatzy.
- * - Päättely ja handlerit memoitu, footerin renderointi kevyt.
- * - Kun rounds === 0 → avaa ScoreModal ja pysäyttää pelin.
- * - Resetoi pelin turvallisesti resetGame():lla.
+ * Gameboard – main game screen for playing Yatzy.
+ * Handles game logic, memoized handlers, and lightweight footer rendering.
+ * Opens ScoreModal and stops the game when rounds === 0. Resets game safely with resetGame().
  *
- * @module screens/Gameboard
+ * Props:
+ *  - navigation: object (React Navigation)
+ *  - route: object (React Navigation)
+ *
+ * @module Gameboard
+ * @author Sabata79
  * @since 2025-09-16 (cleaned 2025-09-18)
  */
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
@@ -41,13 +45,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 const { height } = Dimensions.get('window');
 const isSmallScreen = height < 720;
 
-// Aikabonukset (ScoreModal käyttää näitä)
+// TIME BONUS
 const FAST_THRESHOLD = 150; // < 2:30 → +10
 const SLOW_THRESHOLD = 300; // > 5:00 → -10
 const FAST_BONUS = 10;
 const SLOW_BONUS = -10;
 
-// Kevyt footer (nopat + napit)
+// Renders the dice row and action buttons in the footer.
 const RenderDices = React.memo(function RenderDices({
   rounds,
   nbrOfThrowsLeft,
@@ -115,7 +119,7 @@ export default function Gameboard({ route, navigation }) {
   const [rounds, setRounds] = useState(MAX_SPOTS);
   const [rolledDices, setRolledDices] = useState(new Array(NBR_OF_DICES).fill(0));
 
-  // Peli käyntiin (vähentää tokenin; overlay ei käynnistä peliä)
+  // Start the game (decreases a token; overlay does not start the game)
   const beginGame = useCallback(() => {
     if (gameStarted) return true;
     if ((tokens ?? 0) > 0) {
@@ -127,7 +131,7 @@ export default function Gameboard({ route, navigation }) {
     return false;
   }, [gameStarted, tokens, setTokens, startGame, setEnergyModalVisible]);
 
-  // Kun kierrokset loppuu → päätä peli ja avaa tallennusmodal
+  // When rounds reach 0, end the game and open the score modal
   useEffect(() => {
     if (rounds === 0 && !gameEnded) {
       endGame();
@@ -135,7 +139,7 @@ export default function Gameboard({ route, navigation }) {
     }
   }, [rounds, gameEnded, endGame]);
 
-  // Pistelogiiikan kategoriat
+  // Scoring categories
   const [scoringCategories, setScoringCategories] = useState(
     scoringCategoriesConfig.map((cat) => {
       let calculateScore = null;
@@ -172,7 +176,7 @@ export default function Gameboard({ route, navigation }) {
   }, [route?.params?.playerId, setPlayerId]);
 
   const resetGame = useCallback(() => {
-    setIsGameSaved(true); // ilmoittaa RenderFirstRow:lle resetoida stopwatch
+    setIsGameSaved(true); // Notify RenderFirstRow to reset stopwatch
     setScoringCategories((prev) =>
       prev.map((category) => ({
         ...category,
@@ -191,7 +195,7 @@ export default function Gameboard({ route, navigation }) {
     setRolledDices(new Array(NBR_OF_DICES).fill(0));
   }, [resetDiceSelection, setTotalPoints, setIsGameSaved]);
 
-  // Gridin data (stabiili)
+  // Grid data (stable)
   const data = useMemo(() => Array.from({ length: 32 }, (_, index) => ({ key: String(index + 2) })), []);
 
   const handleSetPoints = useCallback(() => {
@@ -234,7 +238,7 @@ export default function Gameboard({ route, navigation }) {
     setSelectedField(null);
   }, [selectedField, scoringCategories, rolledDices, hasAppliedBonus, minorPoints, totalPoints, setTotalPoints]);
 
-  // Yatzyn “uudelleenavauksen” tarkistus
+  // Yatzy "reopen" check
   const checkAndUnlockYatzy = useCallback(
     (currRoll) => {
       const yatzyCategory = scoringCategories.find((c) => c.name === 'yatzy');
@@ -302,19 +306,19 @@ export default function Gameboard({ route, navigation }) {
     }
   }, [nbrOfThrowsLeft, selectedDices, rolledDices, checkAndUnlockYatzy, playSfx]);
 
-  // Ensimmäinen heitto käynnistää pelin; overlay vain piilottaa
+  // First roll starts the game; overlay only hides
   const onRollPress = useCallback(() => {
     if (rounds <= 0) return;
 
     if (!gameStarted) {
       const ok = beginGame();
-      if (!ok) return; // ei tokeneita → energia-modal auki
+      if (!ok) return; // not enough tokens -> open energy modal
     }
     if (nbrOfThrowsLeft <= 0) return;
     throwDices();
   }, [rounds, gameStarted, beginGame, nbrOfThrowsLeft, throwDices]);
 
-  // Set Points -napin kokonaislogiikka (kierrokset, heitot, valinnat)
+  // Set Points button logic (rounds, throws, selections)
   const onSetPointsPress = useCallback(() => {
     const sel = selectedField;
     if (sel == null) return;
@@ -355,7 +359,7 @@ export default function Gameboard({ route, navigation }) {
     [board, selectedDices, onSelectHandlers, diceAnimations, getDiceColor, isRolling, canSelectNow, rollingGlobal]
   );
 
-  // ScoreModal -> tallennus
+  // ScoreModal -> save score and reset game if successful
   const handleSaveScoreFromModal = useCallback(
     async ({ total, elapsedSecs }) => {
       const ok = await savePlayerPoints({ totalPoints: total, duration: elapsedSecs });
@@ -397,7 +401,7 @@ export default function Gameboard({ route, navigation }) {
 
       {isLayerVisible && !gameStarted && (
         <Pressable
-          onPress={() => setLayerVisible(false)}  // vain piilota overlay
+          onPress={() => setLayerVisible(false)}  // only hide overlay
           pointerEvents="auto"
           style={gameboardstyles.filterLayer}
         >

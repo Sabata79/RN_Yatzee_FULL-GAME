@@ -32,20 +32,20 @@ export default function GameRules() {
       ]}
       showsVerticalScrollIndicator={false}
     >
-  <View style={gameRulesStyles.sectionHeader}>
+      <View style={gameRulesStyles.sectionHeader}>
         <MaterialCommunityIcons
           name="book-open-page-variant-outline"
           size={26}
           color="gold"
         />
-  <Text style={gameRulesStyles.sectionTitle}>Gameplay Rules</Text>
+        <Text style={gameRulesStyles.sectionTitle}>Gameplay Rules</Text>
       </View>
 
-  <Text style={gameRulesStyles.paragraph}>{rulesTextContent}</Text>
+      <Text style={gameRulesStyles.paragraph}>{rulesTextContent}</Text>
 
       {/* Combinations Section Title with Icon */}
-  <View style={gameRulesStyles.sectionHeader}>
-  <Text style={gameRulesStyles.sectionTitle}>Combinations</Text>
+      <View style={gameRulesStyles.sectionHeader}>
+        <Text style={gameRulesStyles.sectionTitle}>Combinations</Text>
       </View>
 
       {combinationsData.map((combination, index) => (
@@ -58,8 +58,8 @@ export default function GameRules() {
       ))}
 
       {/* Scores Comparison Section Title with Icon */}
-  <View style={gameRulesStyles.sectionHeader}>
-  <Text style={gameRulesStyles.sectionTitle}>{SCORE_COMPARSION_TEXT.title}</Text>
+      <View style={gameRulesStyles.sectionHeader}>
+        <Text style={gameRulesStyles.sectionTitle}>{SCORE_COMPARSION_TEXT.title}</Text>
       </View>
 
       {/* Score Items */}
