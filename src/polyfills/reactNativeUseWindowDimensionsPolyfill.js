@@ -1,4 +1,14 @@
-// Polyfill for React Native's useWindowDimensions on older RN versions.
+/**
+ * reactNativeUseWindowDimensionsPolyfill – polyfill for React Native's useWindowDimensions hook.
+ * Provides a compatible useWindowDimensions implementation for older React Native versions.
+ *
+ * Usage:
+ *  - Automatically adds useWindowDimensions to ReactNative if missing.
+ *
+ * @module reactNativeUseWindowDimensionsPolyfill
+ * @author Sabata79
+ * @since 2025-09-18
+ */
 import * as ReactNative from 'react-native';
 import React, { useEffect, useState } from 'react';
 
