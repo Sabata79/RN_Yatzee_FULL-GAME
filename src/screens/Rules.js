@@ -31,7 +31,7 @@ export default function RulesScreen() {
   const [index, setIndex] = useState(0);
   const [routes] = useState([
     { key: 'rules', title: '🎲 Rules' },
-    { key: 'link', title: '🔗 Link' },
+    { key: 'linking', title: '🔗 Link' },
     { key: 'interface', title: '🧭 Guide' },
     { key: 'about', title: '⚙️ About' },
   ]);

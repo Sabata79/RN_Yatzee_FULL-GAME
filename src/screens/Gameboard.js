@@ -1,32 +1,12 @@
 /**
  * Gameboard – Main game screen for playing Yatzy.
- * Drives dice rolling, category scoring, round countdown, and end-of-game flow.
- * Opens ScoreModal when rounds reach 0; saving uses GameSave prepared at render top (no hooks in handlers).
- *
- * Usage:
- *   import Gameboard from '@/screens/Gameboard';
- *   <Gameboard />
- *
- * Key points:
- * - Passes `rounds` to RenderFirstRow so timer stops at 0.
- * - Calls `endGame()` in a useEffect when `rounds === 0` and opens ScoreModal.
- * - Keeps footer layout stable by rendering ghost buttons when `rounds <= 0`.
- * - `resetGame()` also resets elapsed time and toggles `setIsGameSaved(true)` to reset the stopwatch in RenderFirstRow.
- *
- * Dependencies:
- * - GameContext (state: totalPoints, elapsedTime, tokens, etc.)
- * - GameSave (persist scores with duration)
- * - GridField (scoring grid)
- * - GameboardButtons (roll & set points)
- * - ScoreModal (summary + save)
+ * Streamlined: stable callbacks, memoized footer, minimal button props.
  *
  * @module screens/Gameboard
- * @author Sabata79
- * @since 2025-09-16
+ * @since 2025-09-16 (perf pass 2025-09-18)
  */
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { FlatList, Text, View, Pressable, ImageBackground, Animated, Dimensions } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import styles from '../styles/styles';
 import gameboardstyles from '../styles/GameboardScreenStyles';
 import { NBR_OF_THROWS, NBR_OF_DICES, MAX_SPOTS, BONUS_POINTS, BONUS_POINTS_LIMIT } from '../constants/Game';
@@ -59,23 +39,15 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 const { height } = Dimensions.get('window');
 const isSmallScreen = height < 720;
 
-// Footer with dice row and buttons
+/** Footer with dice row + buttons (no heavy props) */
 const RenderDices = React.memo(function RenderDices({
   rounds,
   nbrOfThrowsLeft,
-  setNbrOfThrowsLeft,
-  resetGame,
-  savePlayerPoints,
-  navigation,
-  startGame,
-  throwDices,
-  selectedField,
-  handleSetPoints,
-  resetDiceSelection,
-  scoringCategories,
-  setRounds,
   diceRow,
-  totalPoints
+  totalPoints,
+  canSetPoints,
+  onRollPress,
+  onSetPointsPress,
 }) {
   return (
     <View style={gameboardstyles.footerWrap}>
@@ -88,18 +60,9 @@ const RenderDices = React.memo(function RenderDices({
       <GameboardButtons
         rounds={rounds}
         nbrOfThrowsLeft={nbrOfThrowsLeft}
-        savePlayerPoints={savePlayerPoints}
-        resetGame={resetGame}
-        navigation={navigation}
-        startGame={startGame}
-        throwDices={throwDices}
-        selectedField={selectedField}
-        handleSetPoints={handleSetPoints}
-        setNbrOfThrowsLeft={setNbrOfThrowsLeft}
-        resetDiceSelection={resetDiceSelection}
-        scoringCategories={scoringCategories}
-        setRounds={setRounds}
-        totalPoints={totalPoints}
+        canSetPoints={canSetPoints}
+        onRollPress={onRollPress}
+        onSetPointsPress={onSetPointsPress}
       />
     </View>
   );
@@ -138,21 +101,19 @@ export default function Gameboard({ route, navigation }) {
     setIsGameSaved,
   } = gameContext;
 
-  // Bonus time thresholds and values
+  // Time bonus
   const FAST_THRESHOLD = 150;   // < 2:30 → +10
   const SLOW_THRESHOLD = 300;   // > 5:00 → -10
   const FAST_BONUS = 10;
   const SLOW_BONUS = -10;
 
-  // Calculate time bonus and final score (store this)
   const timeBonus =
     elapsedTime > SLOW_THRESHOLD ? SLOW_BONUS :
-      elapsedTime > FAST_THRESHOLD ? 0 :
-        FAST_BONUS;
+    elapsedTime > FAST_THRESHOLD ? 0 : FAST_BONUS;
 
   const finalTotal = totalPoints + timeBonus;
 
-  // Prepare save at HIGH LEVEL (do not call hooks in handlers)
+  // Save prepared at top-level (no hooks in handlers)
   const { savePlayerPoints: saveFinalScore } = GameSave({
     totalPoints: finalTotal,
     durationOverride: elapsedTime,
@@ -160,18 +121,18 @@ export default function Gameboard({ route, navigation }) {
 
   const [isLayerVisible, setLayerVisible] = useState(true);
 
-  // Game logic state
+  // Game state
   const [nbrOfThrowsLeft, setNbrOfThrowsLeft] = useState(NBR_OF_THROWS);
   const [selectedDices, setSelectedDices] = useState(new Array(NBR_OF_DICES).fill(false));
   const resetDiceSelection = useCallback(() => setSelectedDices(new Array(NBR_OF_DICES).fill(false)), []);
   const [rounds, setRounds] = useState(MAX_SPOTS);
   const [rolledDices, setRolledDices] = useState(new Array(NBR_OF_DICES).fill(0));
 
-  // Stop game immediately in a safe effect when rounds hit 0
+  // End game when rounds hit 0
   useEffect(() => {
     if (rounds === 0 && !gameEnded) {
       endGame();
-      setScoreOpen(true); // avaa ScoreModal
+      setScoreOpen(true);
     }
   }, [rounds, gameEnded, endGame]);
 
@@ -180,21 +141,21 @@ export default function Gameboard({ route, navigation }) {
     scoringCategoriesConfig.map((cat) => {
       let calculateScore = null;
       switch (cat.name) {
-        case 'ones': calculateScore = (r) => calculateDiceSum(r, 1); break;
-        case 'twos': calculateScore = (r) => calculateDiceSum(r, 2); break;
-        case 'threes': calculateScore = (r) => calculateDiceSum(r, 3); break;
-        case 'fours': calculateScore = (r) => calculateDiceSum(r, 4); break;
-        case 'fives': calculateScore = (r) => calculateDiceSum(r, 5); break;
-        case 'sixes': calculateScore = (r) => calculateDiceSum(r, 6); break;
-        case 'twoOfKind': calculateScore = (r) => calculateTwoOfKind(r); break;
-        case 'threeOfAKind': calculateScore = (r) => calculateThreeOfAKind(r); break;
-        case 'fourOfAKind': calculateScore = (r) => calculateFourOfAKind(r); break;
-        case 'yatzy': calculateScore = (r) => calculateYatzy(r); break;
-        case 'fullHouse': calculateScore = (r) => (calculateFullHouse(r) ? 25 : 0); break;
-        case 'smallStraight': calculateScore = (r) => calculateSmallStraight(r); break;
-        case 'largeStraight': calculateScore = (r) => calculateLargeStraight(r); break;
-        case 'chance': calculateScore = (r) => calculateChange(r); break;
-        default: calculateScore = null;
+        case 'ones':           calculateScore = (r) => calculateDiceSum(r, 1); break;
+        case 'twos':           calculateScore = (r) => calculateDiceSum(r, 2); break;
+        case 'threes':         calculateScore = (r) => calculateDiceSum(r, 3); break;
+        case 'fours':          calculateScore = (r) => calculateDiceSum(r, 4); break;
+        case 'fives':          calculateScore = (r) => calculateDiceSum(r, 5); break;
+        case 'sixes':          calculateScore = (r) => calculateDiceSum(r, 6); break;
+        case 'twoOfKind':      calculateScore = (r) => calculateTwoOfKind(r); break;
+        case 'threeOfAKind':   calculateScore = (r) => calculateThreeOfAKind(r); break;
+        case 'fourOfAKind':    calculateScore = (r) => calculateFourOfAKind(r); break;
+        case 'yatzy':          calculateScore = (r) => calculateYatzy(r); break;
+        case 'fullHouse':      calculateScore = (r) => (calculateFullHouse(r) ? 25 : 0); break;
+        case 'smallStraight':  calculateScore = (r) => calculateSmallStraight(r); break;
+        case 'largeStraight':  calculateScore = (r) => calculateLargeStraight(r); break;
+        case 'chance':         calculateScore = (r) => calculateChange(r); break;
+        default:               calculateScore = null;
       }
       return { ...cat, calculateScore, locked: false, points: 0 };
     })
@@ -232,7 +193,7 @@ export default function Gameboard({ route, navigation }) {
     setElapsedTime(0);
   }, [resetDiceSelection, setTotalPoints, setElapsedTime, setIsGameSaved]);
 
-  // Stable data array
+  // Data source (stable)
   const data = useMemo(() => Array.from({ length: 32 }, (_, index) => ({ key: String(index + 2) })), []);
 
   const handleSetPoints = useCallback(() => {
@@ -302,7 +263,7 @@ export default function Gameboard({ route, navigation }) {
         next[i] = !next[i];
         return next;
       });
-      Promise.resolve(playDiceTouch?.()).catch(() => { });
+      Promise.resolve(playDiceTouch?.()).catch(() => {});
     },
     [nbrOfThrowsLeft, playDiceTouch]
   );
@@ -375,7 +336,44 @@ export default function Gameboard({ route, navigation }) {
       )),
     [board, selectedDices, onSelectHandlers, diceAnimations, getDiceColor, isRolling, canSelectNow, rollingGlobal]
   );
-  // Modal save handler
+
+  // Stable button handlers (pass to GameboardButtons)
+  const onRollPress = useCallback(() => {
+    if (rounds === MAX_SPOTS && nbrOfThrowsLeft === NBR_OF_THROWS) startGame();
+    if (nbrOfThrowsLeft <= 0) return;
+    throwDices();
+  }, [rounds, nbrOfThrowsLeft, startGame, throwDices]);
+
+  const onSetPointsPress = useCallback(() => {
+    handleSetPoints();
+    setNbrOfThrowsLeft(NBR_OF_THROWS);
+    resetDiceSelection();
+
+    const selectedCategory = scoringCategories.find((c) => c.index === selectedField);
+    const shouldDecrease = !selectedCategory || selectedCategory.name !== 'yatzy' || selectedCategory.points === 0;
+    if (shouldDecrease) setRounds((prev) => Math.max(prev - 1, 0));
+  }, [handleSetPoints, setNbrOfThrowsLeft, resetDiceSelection, scoringCategories, selectedField, setRounds]);
+
+  // Footer element (not a function) to avoid recreations
+  const footerEl = useMemo(() => (
+    <RenderDices
+      rounds={rounds}
+      nbrOfThrowsLeft={nbrOfThrowsLeft}
+      diceRow={diceRow}
+      totalPoints={totalPoints}
+      canSetPoints={!!selectedField}
+      onRollPress={onRollPress}
+      onSetPointsPress={onSetPointsPress}
+    />
+  ), [rounds, nbrOfThrowsLeft, diceRow, totalPoints, selectedField, onRollPress, onSetPointsPress]);
+
+  // Memo extraData to avoid referential churn
+  const listExtra = useMemo(
+    () => ({ scoringCategories, totalPoints, minorPoints, selectedField, nbrOfThrowsLeft, rounds }),
+    [scoringCategories, totalPoints, minorPoints, selectedField, nbrOfThrowsLeft, rounds]
+  );
+
+  // Save from modal
   const handleSaveScoreFromModal = useCallback(
     async () => {
       const ok = await saveFinalScore();
@@ -383,54 +381,9 @@ export default function Gameboard({ route, navigation }) {
         resetGame();
         navigation.navigate('Scoreboard', { tab: 'week', playerId });
       }
-      return ok; // Score Modal closes itself on onClose() when ok === true
+      return ok;
     },
     [saveFinalScore, resetGame, navigation, playerId]
-  );
-
-  const renderFooter = useCallback(
-    () => (
-      <RenderDices
-        rounds={rounds}
-        nbrOfThrowsLeft={nbrOfThrowsLeft}
-        setNbrOfThrowsLeft={setNbrOfThrowsLeft}
-        resetGame={resetGame}
-        savePlayerPoints={async () => {
-          const ok = await saveFinalScore();
-          if (ok) {
-            resetGame();
-            navigation.navigate('Scoreboard', { tab: 'week', playerId });
-          }
-        }}
-        navigation={navigation}
-        startGame={startGame}
-        throwDices={throwDices}
-        selectedField={selectedField}
-        handleSetPoints={handleSetPoints}
-        resetDiceSelection={resetDiceSelection}
-        scoringCategories={scoringCategories}
-        setRounds={setRounds}
-        diceRow={diceRow}
-        totalPoints={totalPoints}
-      />
-    ),
-    [
-      rounds,
-      nbrOfThrowsLeft,
-      resetGame,
-      saveFinalScore,
-      navigation,
-      playerId,
-      startGame,
-      throwDices,
-      selectedField,
-      handleSetPoints,
-      resetDiceSelection,
-      scoringCategories,
-      setRounds,
-      diceRow,
-      totalPoints,
-    ]
   );
 
   return (
@@ -472,15 +425,15 @@ export default function Gameboard({ route, navigation }) {
           contentContainerStyle={gameboardstyles.gameboardContainer}
           ListEmptyComponent={null}
           ListHeaderComponent={<RenderFirstRow rounds={rounds} />}
-          ListFooterComponent={renderFooter}
-          extraData={{ scoringCategories, totalPoints, minorPoints, selectedField, nbrOfThrowsLeft, rounds }}
+          ListFooterComponent={footerEl}
+          extraData={listExtra}
         />
       </View>
 
       <ScoreModal
         visible={scoreOpen}
-        onClose={() => setScoreOpen(false)}                               // Save modal closes itself on successful save
-        onCancel={() => { setScoreOpen(false); resetGame(); }}            // Cancel resets the game and timer
+        onClose={() => setScoreOpen(false)}
+        onCancel={() => { setScoreOpen(false); resetGame(); }}
         onSave={handleSaveScoreFromModal}
         points={totalPoints}
         elapsedSecs={elapsedTime}
