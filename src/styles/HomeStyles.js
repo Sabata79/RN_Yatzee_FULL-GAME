@@ -21,7 +21,7 @@ const IMG_SIDE = clamp(
   Math.round(
     BP.shortest * (
       BP.isTablet ? 0.55 :
-        isSmallishPhone ? 0.7 : 
+        isSmallishPhone ? 0.7 :
           BP.isNarrow ? 0.60 :
             0.62
     )
@@ -30,7 +30,7 @@ const IMG_SIDE = clamp(
   520
 );
 
-// Input min-height skaalattuna, mutta rajattu järkeviin rajoihin
+// Input min-height scaled with die size
 const INPUT_HEIGHT = clamp(Math.round(S.DIE_SIZE + 10), 44, 56);
 
 // Energiakuvakkeelle kevyt skaala
@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
 
   overlayTransparent: {
     flex: 1,
-    backgroundColor: 'red', // debug overlay; vaihda tai poista kun et enää tarvitse
+    backgroundColor: 'red', // debug overlay
     justifyContent: 'center',
     alignItems: 'center',
   },

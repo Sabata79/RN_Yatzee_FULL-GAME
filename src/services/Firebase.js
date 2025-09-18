@@ -1,7 +1,7 @@
 /**
  * Firebase - Centralized Firebase utility for authentication, database, and remote config.
  *
- * JSDoc comments and inline code comments must always be in English.
+ * 
  * This file provides modular access to Firebase services for the app.
  * @author Sabata79
  * @since 2025-08-29

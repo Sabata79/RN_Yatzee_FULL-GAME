@@ -7,7 +7,6 @@
  * @since 2025-08-29
  */
 // NOTICE: These styles are made whit section flex and flexDirection row. The styles are used in the Header.js component
-
 import { StyleSheet, Dimensions } from 'react-native';
 import COLORS from '../constants/colors';
 import TYPOGRAPHY from '../constants/typography';
@@ -34,10 +33,10 @@ const headerStyles = StyleSheet.create({
   sectionLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    flexShrink: 1,   // ennen oli 0
+    flexShrink: 1,
   },
   headerImage: {
-    width: isNarrow ? 56 : 74, // fixed width for predictable size
+    width: isNarrow ? 56 : 74,
     aspectRatio: 2,
     resizeMode: 'contain',
     marginRight: 8,
@@ -59,7 +58,7 @@ const headerStyles = StyleSheet.create({
   },
   userName: {
     fontFamily: TYPOGRAPHY.fontFamily.montserratExtraBold,
-    fontSize: isNarrow ?  TYPOGRAPHY.fontSize.md : TYPOGRAPHY.xs,
+    fontSize: isNarrow ? TYPOGRAPHY.fontSize.md : TYPOGRAPHY.xs,
     color: COLORS.textLight,
     textAlign: 'center',
     width: '100%',
@@ -80,7 +79,7 @@ const headerStyles = StyleSheet.create({
   headerAvatarImage: {
     width: S.AVATAR,
     height: S.AVATAR,
-    borderRadius: S.AVATAR/2,
+    borderRadius: S.AVATAR / 2,
     marginLeft: SPACING.sm,
     resizeMode: 'cover',
   },

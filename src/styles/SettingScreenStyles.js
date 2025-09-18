@@ -109,7 +109,7 @@ const settingScreenStyles = StyleSheet.create({
         marginTop: 10,
         marginBottom: 4,
         position: 'relative',
-        alignSelf: 'center',        // <-- estää venymisen koko kortin leveydelle
+        alignSelf: 'center',
     },
     linkButton: {
         flexDirection: 'row',
@@ -128,7 +128,7 @@ const settingScreenStyles = StyleSheet.create({
         shadowOpacity: 0.12,
         shadowRadius: 3,
         elevation: 2,
-        zIndex: 1,                      // <-- varmistaa että on shadowin yläpuolella Androidilla
+        zIndex: 1,
         position: 'relative',
     },
     linkButtonPressed: {
@@ -167,7 +167,7 @@ const settingScreenStyles = StyleSheet.create({
         minWidth: 160,
         minHeight: 36,
         marginTop: 0,
-        zIndex: 1,                      // <-- sama kuin linkButton
+        zIndex: 1,
         position: 'relative',
     },
     wipeButtonPressed: {

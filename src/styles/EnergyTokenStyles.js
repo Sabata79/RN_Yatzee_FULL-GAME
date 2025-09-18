@@ -16,7 +16,7 @@ const styles = StyleSheet.create({
     height: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    pointerEvents: 'none',   // No interaction (for passive bar)
+    pointerEvents: 'none',
     left: 0,
   },
   energyIcon: {

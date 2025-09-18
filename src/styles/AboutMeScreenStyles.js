@@ -84,8 +84,8 @@ const aboutMeStyles = StyleSheet.create({
   },
   footerText: {
     fontSize: TYPOGRAPHY.fontSize.xxs,
-    color:  COLORS.textLight,
-    fontFamily: TYPOGRAPHY.fontFamily.montserratRegular ,
+    color: COLORS.textLight,
+    fontFamily: TYPOGRAPHY.fontFamily.montserratRegular,
   },
   headerInfoBox: {
     flexDirection: 'row',

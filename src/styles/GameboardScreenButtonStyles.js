@@ -1,4 +1,3 @@
-// src/styles/GameboardScreenButtonStyles.js
 /**
  * GameboardScreenButtonStyles – Responsive styles for GameboardButtons.
  *

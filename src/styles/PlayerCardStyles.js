@@ -338,7 +338,7 @@ export default styles = StyleSheet.create({
         textAlign: 'center',
     },
     rankSlotText: {
-       fontFamily: TYPOGRAPHY.fontFamily.bangers,
+        fontFamily: TYPOGRAPHY.fontFamily.bangers,
         fontSize: TYPOGRAPHY.fontSize.xxl,
         color: COLORS.textDark,
         textAlign: 'center',

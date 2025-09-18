@@ -106,7 +106,7 @@ const gameRulesStyles = StyleSheet.create({
     lineHeight: 20,
   },
 
-  // Yhteiset tab-tyylit (AccountLinking, InterfaceGuide, GameRules)
+  // Info box styles
   infoBox: {
     backgroundColor: COLORS.overlayDark,
     padding: SPACING.md,
