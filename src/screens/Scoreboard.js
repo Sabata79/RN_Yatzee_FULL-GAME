@@ -210,7 +210,7 @@ export default function Scoreboard() {
     if (!ref || idx < 0) return;
     requestAnimationFrame(() => {
       try {
-        ref.scrollToIndex({ index: idx, animated: true });
+        ref.scrollToIndex({ index: idx, animated: true, viewPosition: 0.5 });
       } catch {
         ref.scrollToOffset({ offset: ROW_H * idx, animated: true });
       }
@@ -239,12 +239,11 @@ export default function Scoreboard() {
   // Tabs (kevyt, ei riippuvuutta erillisestä tabButton-tyylistä)
   const Tabs = () => (
     <View style={scoreboardStyles.tabContainer}>
-      <TouchableOpacity
+      <View
         style={[
           { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 6 },
           scoreType === 'allTime' ? scoreboardStyles.activeTab : scoreboardStyles.inactiveTab,
         ]}
-        onPress={() => goToType('allTime')}
       >
         <Text
           style={[
@@ -256,14 +255,13 @@ export default function Scoreboard() {
         >
           All Time
         </Text>
-      </TouchableOpacity>
+      </View>
 
-      <TouchableOpacity
+      <View
         style={[
           { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 6 },
           scoreType === 'monthly' ? scoreboardStyles.activeTab : scoreboardStyles.inactiveTab,
         ]}
-        onPress={() => goToType('monthly')}
       >
         <Text
           style={[
@@ -275,14 +273,13 @@ export default function Scoreboard() {
         >
           Monthly
         </Text>
-      </TouchableOpacity>
+      </View>
 
-      <TouchableOpacity
+      <View
         style={[
           { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 6 },
           scoreType === 'weekly' ? scoreboardStyles.activeTab : scoreboardStyles.inactiveTab,
         ]}
-        onPress={() => goToType('weekly')}
       >
         <Text
           style={[
@@ -294,7 +291,7 @@ export default function Scoreboard() {
         >
           Weekly
         </Text>
-      </TouchableOpacity>
+      </View>
     </View>
   );
 
