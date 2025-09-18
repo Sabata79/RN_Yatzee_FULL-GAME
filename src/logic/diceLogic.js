@@ -1,6 +1,17 @@
-// diceLogic.js
-// Yatzy-pelin noppalaskujen logiikka eriytettynä
 
+/**
+ * diceLogic – core dice calculation logic for Yatzy game.
+ * Contains helper functions for calculating dice sums, pairs, and other scoring logic.
+ *
+ * Exports:
+ *  - calculateDiceSum(rolledDices, diceValue): number
+ *  - calculateTwoOfKind(rolledDices): number
+ *  - ...other dice logic helpers
+ *
+ * @module diceLogic
+ * @author Sabata79
+ * @since 2025-09-18
+ */
 export function calculateDiceSum(rolledDices, diceValue) {
     return rolledDices.reduce((sum, dice) => (dice === diceValue ? sum + dice : sum), 0);
 }
