@@ -99,8 +99,6 @@ const RenderDices = React.memo(function RenderDices({
         resetDiceSelection={resetDiceSelection}
         scoringCategories={scoringCategories}
         setRounds={setRounds}
-        MAX_SPOTS={MAX_SPOTS}
-        NBR_OF_THROWS={NBR_OF_THROWS}
         totalPoints={totalPoints}
       />
     </View>

@@ -33,6 +33,7 @@ import React, { useMemo } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import styles from '../styles/GameboardScreenButtonStyles';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { MAX_SPOTS, NBR_OF_THROWS } from '../constants/Game';
 
 const GameboardButtons = (props) => {
 
@@ -47,9 +48,20 @@ const GameboardButtons = (props) => {
     resetDiceSelection,
     scoringCategories,
     setRounds,
-    MAX_SPOTS,
-    NBR_OF_THROWS,
   } = props;
+
+  // console.log('Rendering GameboardButtons, rounds:', rounds);
+  // console.log('nbrOfThrowsLeft:', nbrOfThrowsLeft);
+  // console.log('startGame function:', startGame);
+  // console.log('throwDices function:', throwDices);
+  // console.log('selectedField:', selectedField);
+  // console.log('handleSetPoints function:', handleSetPoints);
+  // console.log('setNbrOfThrowsLeft function:', setNbrOfThrowsLeft);
+  // console.log('scoringCategories:', scoringCategories);
+  // console.log('resetDiceSelection function:', resetDiceSelection);
+  // console.log('setRounds function:', setRounds);
+  console.log('MAX_SPOTS:', MAX_SPOTS);
+  console.log('NBR_OF_THROWS:', NBR_OF_THROWS);
 
   if (rounds <= 0) {
     // “Ghost”-napit pitävät layoutin leveyden
