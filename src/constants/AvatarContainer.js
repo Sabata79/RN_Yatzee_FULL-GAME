@@ -1,7 +1,7 @@
 /**
  * AvatarContainer - Modal component for selecting player avatar.
  *
- * JSDoc comments and inline code comments must always be in English.
+ * 
  * This file provides a modal for avatar selection with tabs and avatar grid.
  * @author Sabata79
  * @since 2025-08-29

@@ -1,7 +1,14 @@
-// src/constants/ElapsedTimeContext.js
 /**
- * ElapsedTimeContext — lightweight, render-safe stopwatch state.
- * Ei riipu GameContextista.
+ * ElapsedTimeContext – lightweight, render-safe stopwatch state for tracking elapsed seconds.
+ * Independent from GameContext. Used for timing game rounds and saving elapsed time.
+ *
+ * Provides:
+ *  - useElapsedTime: hook for accessing elapsed time and controls
+ *  - ElapsedTimeProvider: context provider
+ *
+ * @module ElapsedTimeContext
+ * @author Sabata79
+ * @since 2025-09-18
  */
 import React, {
   createContext,

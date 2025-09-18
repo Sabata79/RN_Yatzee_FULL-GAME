@@ -1,3 +1,14 @@
+/**
+ * GameSave – hooks and helpers for saving game results and player progress.
+ * Provides useGameSave hook for saving points, duration, and player data to backend.
+ *
+ * Exports:
+ *  - useGameSave: () => { savePlayerPoints, ... }
+ *
+ * @module GameSave
+ * @author Sabata79
+ * @since 2025-09-18
+ */
 import { useCallback } from 'react';
 import { useElapsedTime } from './ElapsedTimeContext';
 // React hook: useGameSave

@@ -1,7 +1,7 @@
 /**
  * PlayercardBg - Player card background image definitions by level.
  *
- * JSDoc comments and inline code comments must always be in English.
+ * 
  * This file defines the background images and their properties for player cards.
  * @author Sabata79
  * @since 2025-08-29

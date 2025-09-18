@@ -1,5 +1,5 @@
 /**
- * colors.js - Global color palette for BubbleApp
+ * colors.js - Global color palette for Yatzy game application.
  *
  * Centralizes all main color definitions, including dark and light shades, for easy theme management and consistency.
  * Import COLORS to use e.g. COLORS.primary, COLORS.secondary, etc. throughout the app.

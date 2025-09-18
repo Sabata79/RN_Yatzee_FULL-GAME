@@ -1,6 +1,15 @@
-// scoringCategoriesConfig.js
-// Yatzy-pelin pistelaskukategoriat, ilman funktioita
 
+/**
+ * scoringCategoriesConfig – configuration for Yatzy scoring categories.
+ * Defines the available scoring categories and their indices for the game logic and UI.
+ *
+ * Exports:
+ *  - scoringCategoriesConfig: Array<{ name: string, index?: number }>
+ *
+ * @module scoringCategoriesConfig
+ * @author Sabata79
+ * @since 2025-09-18
+ */
 export const scoringCategoriesConfig = [
     { name: 'ones', index: 1 },
     { name: 'twos', index: 5 },

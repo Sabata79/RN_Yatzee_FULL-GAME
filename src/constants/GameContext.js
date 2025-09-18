@@ -1,19 +1,22 @@
 /**
- * GameContext – Global state provider for the game.
+ * GameContext – global state provider for the game and player session.
+ * Provides realtime Firebase listeners, scoreboard helpers, and player/session state for the app.
+ * Elapsed time is managed separately in ElapsedTimeContext.
  *
- * Highlights:
- * - Realtime Firebase listeners: players (scoreboard), player level, avatar, tokens.
- * - Scoreboard helpers (best score selection and all-time rank).
- * - Token write-through with hydration guard.
- * - Elapsed time siirretty erilliseen ElapsedTimeContextiin (ei sekuntivetoisia re-renderöintejä täällä).
+ * Props:
+ *  - children: ReactNode
  *
  * Exposed API (selection):
- * - gameStarted, gameEnded, startGame(), endGame()
- * - totalPoints, setTotalPoints
- * - isGameSaved, setIsGameSaved
- * - tokens, setTokens, energyModalVisible, setEnergyModalVisible
- * - playerId, setPlayerId, playerName, setPlayerName, isLinked, setIsLinked
- * - avatarUrl, setAvatarUrl, scoreboardData
+ *  - gameStarted, gameEnded, startGame(), endGame()
+ *  - totalPoints, setTotalPoints
+ *  - isGameSaved, setIsGameSaved
+ *  - tokens, setTokens, energyModalVisible, setEnergyModalVisible
+ *  - playerId, setPlayerId, playerName, setPlayerName, isLinked, setIsLinked
+ *  - avatarUrl, setAvatarUrl, scoreboardData
+ *
+ * @module GameContext
+ * @author Sabata79
+ * @since 2025-09-18
  */
 
 import { createContext, useState, useContext, useEffect, useMemo, useRef, useCallback } from 'react';
