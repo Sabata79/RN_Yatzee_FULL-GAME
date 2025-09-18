@@ -72,14 +72,17 @@ export default function Home({ setPlayerId }) {
 
   const isFocused = useIsFocused();
 
-  // Animate in when loaded
+  // Animate in only when Home is focused (visible)
   useEffect(() => {
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 700,
-      useNativeDriver: true,
-    }).start();
-  }, [fadeAnim]);
+    if (isFocused) {
+      fadeAnim.setValue(0);
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 700,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [isFocused, fadeAnim]);
 
   // Sync context when localName/playerId change
   useEffect(() => {
