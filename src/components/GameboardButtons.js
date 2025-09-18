@@ -1,4 +1,21 @@
-// components/GameboardButtons.jsx
+/**
+ * GameboardButtons – action buttons for the main gameboard UI.
+ * Renders throw, set points, and start game buttons with dynamic states and icons.
+ *
+ * Props:
+ *  - rounds: number
+ *  - nbrOfThrowsLeft: number
+ *  - gameStarted: boolean
+ *  - beginGame: () => void
+ *  - throwDices: () => void
+ *  - canSetPoints: boolean
+ *  - onRollPress?: () => void
+ *  - onSetPointsPress: () => void
+ *
+ * @module GameboardButtons
+ * @author Sabata79
+ * @since 2025-09-18
+ */
 import React, { useCallback } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import styles from '../styles/GameboardScreenButtonStyles';
@@ -28,8 +45,8 @@ function GameboardButtons({
     if (rounds <= 0) return;
 
     if (!gameStarted) {
-      beginGame();     // vähennä token, nollaa kellon jne.
-      throwDices();    // aloita heti ensimmäinen heitto
+      beginGame();
+      throwDices();
       return;
     }
 

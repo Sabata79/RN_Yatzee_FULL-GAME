@@ -1,12 +1,14 @@
 /**
- * RenderFirstRow – Stopwatch and section labels for the game header row.
+ * RenderFirstRow – stopwatch and section labels for the game header row.
+ * Writes elapsed seconds to ElapsedTimeContext (not GameContext).
+ * Starts when gameStarted === true. Stops the timer when rounds === 0 (and saves time to context).
+ * Resets when isGameSaved becomes true.
  *
- * - Kirjoittaa sekunnit ElapsedTimeContextiin (ei GameContextiin).
- * - Käynnistyy kun gameStarted === true.
- * - Pysäyttää kellon heti kun rounds === 0 (ja tallettaa ajan kontekstiin).
- * - Resetoi, kun isGameSaved muuttuu trueksi.
+ * Props:
+ *  - none (uses context)
  *
- * @module components/RenderFirstRow
+ * @module RenderFirstRow
+ * @author Sabata79
  * @since 2025-09-16 (updated 2025-09-18)
  */
 import React, { useEffect, useRef } from 'react';
@@ -52,7 +54,6 @@ export default function RenderFirstRow({ rounds = null }) {
     }
   }, [gameStarted, start, glowAnim]);
 
-  // Pysäytä kun kierrokset loppuvat TAI peli on merkitty päättyneeksi
   useEffect(() => {
     if (rounds === 0 || gameEnded) {
       pause();
@@ -60,18 +61,15 @@ export default function RenderFirstRow({ rounds = null }) {
     }
   }, [rounds, gameEnded, pause, totalSeconds, setElapsedTime]);
 
-  // Synkkaa jokaisella tikillä (ja katkaise MAX_SECS kohdalla)
   useEffect(() => {
     if (totalSeconds >= MAX_SECS) {
       pause();
       setElapsedTime(MAX_SECS);
     } else {
-      // Vältä turhia päivityksiä jos arvo ei muutu
       if (elapsedTime !== totalSeconds) setElapsedTime(totalSeconds);
     }
   }, [totalSeconds, pause, setElapsedTime, elapsedTime]);
 
-  // Resetoi kun peli on tallennettu/aloitetaan uusi
   useEffect(() => {
     if (isGameSaved) {
       pause();

@@ -1,4 +1,22 @@
-// src/components/CustomKeyboard.js
+/**
+ * CustomKeyboard – on-screen keyboard for secure and custom input.
+ * Used in modals (RecoverModal, WipeModal, etc) for email, password, and PIN entry. Supports special characters and dark/light themes.
+ *
+ * Props:
+ *  - visible: boolean
+ *  - bottomInset?: number
+ *  - bottomOffset?: number
+ *  - dark?: boolean
+ *  - enableSpecials?: boolean (show @ . _)
+ *  - onInsert: (char: string) => void
+ *  - onBackspace: () => void
+ *  - onSubmit: () => void
+ *  - onHide: () => void
+ *
+ * @module CustomKeyboard
+ * @author Sabata79
+ * @since 2025-09-18
+ */
 import React, { useMemo, useState, useCallback } from "react";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import {
@@ -54,8 +72,8 @@ export default function CustomKeyboard({
     dark = true,
     bottomOffset = 0,
     sheetStyle,
-    okColor = "#2e7d32",    // COLORS.succeed tms.
-    enableSpecials = true,   // true: @ . _ näkyvissä (email); false: vain space + OK
+    okColor = "#2e7d32",
+    enableSpecials = true,
 }) {
     const [capsLock, setCapsLock] = useState(false);
     const [oneShotShift, setOneShotShift] = useState(false);
@@ -94,13 +112,13 @@ export default function CustomKeyboard({
     );
 
     const handleShiftPress = useCallback(() => {
-        // Tap: toggle one-shot SHIFT päälle/pois (jos CAPS ei ole aktiivinen)
-        if (capsLock) return;            // CAPS-tila ohjataan long pressillä kuten ennen
-        setOneShotShift((v) => !v);      // <-- nyt napauttamalla saa Shift* myös pois
+        // Tap: toggle one-shot SHIFT on/off (if CAPS is not active)
+        if (capsLock) return;            // CAPS state is handled by long press as before
+        setOneShotShift((v) => !v);
     }, [capsLock]);
 
     const handleShiftLong = useCallback(() => {
-        setCapsLock((v) => !v);               // caps päälle/pois
+        setCapsLock((v) => !v);               // caps on/off
         setOneShotShift(false);
     }, []);
 

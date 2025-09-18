@@ -1,7 +1,20 @@
+
 /**
- * ScoreModal – End-of-game summary with time-based bonus and Save/Cancel actions.
- * - Save delegoi parentin onSave():lle (odottaa booleanin).
- * - Cancel kutsuu onCancel() (jos annettu) JA sulkee modaalin; fallbackina sulkee + nollaa kellon.
+ * ScoreModal – end-of-game summary modal with time-based bonus and Save/Cancel actions.
+ * UI/UX matches RecoverModal/WipeModal. Shows time, score, and bonus. Delegates save/cancel to parent.
+ *
+ * Props:
+ *  - visible: boolean
+ *  - onSave: (scoreObj) => Promise<boolean>
+ *  - onCancel?: () => void
+ *  - time: number (seconds)
+ *  - score: number
+ *  - bonus: number
+ *  - dark?: boolean
+ *
+ * @module ScoreModal
+ * @author Sabata79
+ * @since 2025-09-18
  */
 
 import React, { useMemo, useState, useEffect, useCallback } from "react";
@@ -43,7 +56,7 @@ export default function ScoreModal({
   goodColor = COLORS.secondaryDark,
 }) {
   const [busy, setBusy] = useState(false);
-  const { setIsGameSaved } = useGame(); // fallback-kellon nollaukseen, jos parent ei tee sitä
+  const { setIsGameSaved } = useGame();
 
   useEffect(() => {
     if (!visible) setBusy(false);
@@ -60,7 +73,6 @@ export default function ScoreModal({
   const handleSave = useCallback(async () => {
     if (busy) return;
 
-    // Jos onSave puuttuu, tulkitaan OK:ksi ja suljetaan
     if (typeof onSave !== "function") {
       onClose?.();
       return;
@@ -68,15 +80,12 @@ export default function ScoreModal({
 
     setBusy(true);
     try {
-      // Sallitaan payloadin välitys, vaikka parent ei sitä käyttäisikään
       const result = await onSave({ baseScore: points, bonus, total, elapsedSecs });
 
-      // Sulje, ellei parent palauta nimenomaan falsea
       if (result !== false) {
         onClose?.();
       }
     } catch (e) {
-      // Virheessä pidetään modal auki (voit halutessasi näyttää virheilmon)
       console.warn("[ScoreModal] onSave error:", e?.message || String(e));
     } finally {
       setBusy(false);
@@ -86,10 +95,10 @@ export default function ScoreModal({
   const handleCancel = useCallback(() => {
     if (busy) return;
     if (typeof onCancel === "function") {
-      onCancel(); // parent sulkee + resetGame
+      onCancel();
       return;
     }
-    // fallback: sulje ja nollaa kello
+    // fallback
     onClose?.();
     setIsGameSaved?.(true);
   }, [busy, onCancel, onClose, setIsGameSaved]);

@@ -1,12 +1,16 @@
 /**
- * Coin - Animated coin component for use in CoinLayer.
+ * Coin – animated coin image for CoinLayer and rewards.
+ * Used in CoinLayer and other animated reward UIs. Supports position and rotation via props.
  *
- * JSDoc comments and inline code comments must always be in English.
- * This file renders a single animated coin image.
+ * Props:
+ *  - left: number (horizontal position)
+ *  - translateY: Animated.Value (vertical animation)
+ *  - rotation: Animated.Value (rotation animation)
+ *
+ * @module Coin
  * @author Sabata79
- * @since 2025-08-29
+ * @since 2025-09-18
  */
-// components/Coin.js
 import { Animated, StyleSheet } from 'react-native';
 
 const coinImage = require('../../assets/coins/coin.webp');
