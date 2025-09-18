@@ -1,58 +1,45 @@
 /**
  * RenderFirstRow – Stopwatch and section labels for the game header row.
- * Runs a stopwatch via react-timer-hook, writes elapsed seconds into GameContext,
- * pauses immediately when `rounds` reaches 0, and resets when `isGameSaved` toggles true.
  *
- * Usage:
- *   import RenderFirstRow from '@/components/RenderFirstRow';
- *
- *   <FlatList
- *     {...other props...}
- *     ListHeaderComponent={<RenderFirstRow rounds={rounds} />}
- *   />
- *
- * Props:
- *   @param {number} rounds - Remaining rounds; when 0, the stopwatch pauses and the final time is stored.
- *
- * Behavior:
- * - Starts the stopwatch when `gameStarted` becomes true (from GameContext).
- * - On `rounds === 0`: pauses the stopwatch and calls `setElapsedTimeContext(totalSeconds)`.
- * - On each tick: syncs `totalSeconds` to GameContext (capped at MAX_SECS).
- * - On `isGameSaved === true`: pauses + resets stopwatch, writes 0 to context, clears local glow animation.
- * - Timer color follows a "traffic light" scheme: <150s = success, 150–300s = warning, >300s = error.
- * - Includes a subtle glow animation while running.
- *
- * Dependencies:
- * - GameContext: { gameStarted, gameEnded, setElapsedTimeContext, isGameSaved, setIsGameSaved }
- * - react-timer-hook: useStopwatch
- * - react-native: Animated (glow), MaterialCommunityIcons (timer icon)
+ * - Kirjoittaa sekunnit ElapsedTimeContextiin (ei GameContextiin).
+ * - Käynnistyy kun gameStarted === true.
+ * - Pysäyttää kellon heti kun rounds === 0 (ja tallettaa ajan kontekstiin).
+ * - Resetoi, kun isGameSaved muuttuu trueksi.
  *
  * @module components/RenderFirstRow
- * @author Sabata79
- * @since 2025-09-16
+ * @since 2025-09-16 (updated 2025-09-18)
  */
-import { useEffect, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { View, Text, Animated } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useGame } from '../constants/GameContext';
 import { useStopwatch } from 'react-timer-hook';
+import { useGame } from '../constants/GameContext';
+import { useElapsedTime } from '../constants/ElapsedTimeContext';
 import firstRowStyles from '../styles/FirstRowStyles';
 import COLORS from '../constants/colors';
 
 export default function RenderFirstRow({ rounds = null }) {
-  const { gameStarted, gameEnded, setElapsedTimeContext, isGameSaved, setIsGameSaved } = useGame();
+  // Game flags lives in GameContext
+  const { gameStarted, gameEnded, isGameSaved, setIsGameSaved } = useGame();
+
+  // Seconds live in ElapsedTimeContext
+  const { setElapsedTime, elapsedTime } = useElapsedTime();
+
   const { totalSeconds, start, reset, pause } = useStopwatch({ autoStart: false });
 
-  // Timer color mapping
-  let timerColor = COLORS.success;
-  if (totalSeconds > 300) timerColor = COLORS.error;
-  else if (totalSeconds > 150) timerColor = COLORS.warning;
+  // Glow animaatio (kevyt)
+  const glowAnimRef = useRef(new Animated.Value(1));
+  const glowAnim = glowAnimRef.current;
 
-  // Local glow effect
-  const [glowAnim] = useState(new Animated.Value(1));
   const MAX_SECS = 9999;
 
-  // Start on game start
+  // Väri liikennevaloilla
+  const timerColor =
+    totalSeconds > 300 ? COLORS.error :
+    totalSeconds > 150 ? COLORS.warning :
+    COLORS.success;
+
+  // Käynnistä kello kun peli alkaa
   useEffect(() => {
     if (gameStarted) {
       start();
@@ -65,35 +52,36 @@ export default function RenderFirstRow({ rounds = null }) {
     }
   }, [gameStarted, start, glowAnim]);
 
-  // Stop immediately when rounds are over
+  // Pysäytä kun kierrokset loppuvat TAI peli on merkitty päättyneeksi
   useEffect(() => {
-    if (rounds === 0) {
+    if (rounds === 0 || gameEnded) {
       pause();
-      setElapsedTimeContext(totalSeconds);
+      setElapsedTime(totalSeconds);
     }
-  }, [rounds, pause, totalSeconds, setElapsedTimeContext]);
+  }, [rounds, gameEnded, pause, totalSeconds, setElapsedTime]);
 
-  // Cap to MAX_SECS and sync to context
+  // Synkkaa jokaisella tikillä (ja katkaise MAX_SECS kohdalla)
   useEffect(() => {
     if (totalSeconds >= MAX_SECS) {
       pause();
-      setElapsedTimeContext(MAX_SECS);
+      setElapsedTime(MAX_SECS);
     } else {
-      setElapsedTimeContext(totalSeconds);
+      // Vältä turhia päivityksiä jos arvo ei muutu
+      if (elapsedTime !== totalSeconds) setElapsedTime(totalSeconds);
     }
-  }, [totalSeconds, pause, setElapsedTimeContext]);
+  }, [totalSeconds, pause, setElapsedTime, elapsedTime]);
 
-  // Reset after score save
+  // Resetoi kun peli on tallennettu/aloitetaan uusi
   useEffect(() => {
     if (isGameSaved) {
       pause();
       reset();
-      setElapsedTimeContext(0);
+      setElapsedTime(0);
       setIsGameSaved(false);
       glowAnim.stopAnimation();
       glowAnim.setValue(1);
     }
-  }, [isGameSaved, pause, reset, setElapsedTimeContext, setIsGameSaved, glowAnim]);
+  }, [isGameSaved, pause, reset, setElapsedTime, setIsGameSaved, glowAnim]);
 
   return (
     <View style={firstRowStyles.firstRow}>

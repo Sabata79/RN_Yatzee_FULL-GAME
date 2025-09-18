@@ -1,10 +1,19 @@
 // components/GameboardButtons.jsx
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import styles from '../styles/GameboardScreenButtonStyles';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
-function GameboardButtons({ rounds, nbrOfThrowsLeft, canSetPoints, onRollPress, onSetPointsPress }) {
+function GameboardButtons({
+  rounds,
+  nbrOfThrowsLeft,
+  gameStarted,
+  beginGame,
+  throwDices,
+  canSetPoints,
+  onRollPress,       // optional override
+  onSetPointsPress,
+}) {
   if (rounds <= 0) {
     return (
       <View style={styles.buttonContainer}>
@@ -14,14 +23,30 @@ function GameboardButtons({ rounds, nbrOfThrowsLeft, canSetPoints, onRollPress, 
     );
   }
 
+  // default roll handler (used if onRollPress prop not provided)
+  const defaultRollPress = useCallback(() => {
+    if (rounds <= 0) return;
+
+    if (!gameStarted) {
+      beginGame();     // vähennä token, nollaa kellon jne.
+      throwDices();    // aloita heti ensimmäinen heitto
+      return;
+    }
+
+    if (nbrOfThrowsLeft <= 0) return;
+    throwDices();
+  }, [rounds, gameStarted, beginGame, throwDices, nbrOfThrowsLeft]);
+
+  const rollHandler = onRollPress ?? defaultRollPress;
+
   return (
     <View style={styles.buttonContainer}>
       <View style={styles.buttonWrapper}>
         <View style={styles.shadowLayer} />
         <Pressable
-          disabled={nbrOfThrowsLeft <= 0}
+          disabled={rounds <= 0 || (gameStarted && nbrOfThrowsLeft <= 0)}
           style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
-          onPress={onRollPress}
+          onPress={rollHandler}
         >
           <Text style={styles.buttonText}>Roll Dices</Text>
           <View style={styles.nbrThrowsTextContainer}>

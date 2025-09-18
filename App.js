@@ -28,6 +28,7 @@ import { useFonts } from 'expo-font';
 import './src/polyfills/reactNativeUseWindowDimensionsPolyfill';
 
 import { GameProvider } from './src/constants/GameContext';
+import { ElapsedTimeProvider } from './src/constants/ElapsedTimeContext';
 import { AudioProvider } from './src/services/AudioManager';
 import LandingPage from './src/screens/LandingPage';
 import Home from './src/screens/Home';
@@ -270,9 +271,11 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <AudioProvider>
-        <GameProvider>
-          <AppShell />
-        </GameProvider>
+        <ElapsedTimeProvider>
+          <GameProvider>
+            <AppShell />
+          </GameProvider>
+        </ElapsedTimeProvider>
       </AudioProvider>
     </SafeAreaProvider>
   );

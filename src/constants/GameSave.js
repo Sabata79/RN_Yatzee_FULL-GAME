@@ -1,3 +1,92 @@
+import { useCallback } from 'react';
+import { useElapsedTime } from './ElapsedTimeContext';
+// React hook: useGameSave
+export function useGameSave() {
+  const { playerId, saveGame } = useGame();
+  const { elapsedTime } = useElapsedTime();
+
+  const resolvePlayerId = useCallback(async () => {
+    if (playerId) return playerId;
+    try {
+      const stored = await SecureStore.getItemAsync('user_id');
+      return stored || '';
+    } catch {
+      return '';
+    }
+  }, [playerId]);
+
+  const savePlayerPoints = useCallback(
+    async ({ totalPoints, duration } = {}) => {
+      const uid = await resolvePlayerId();
+      if (!uid) {
+        console.error('[GameSave] Missing playerId');
+        return false;
+      }
+      if (typeof totalPoints !== 'number' || Number.isNaN(totalPoints)) {
+        console.error('[GameSave] totalPoints is not a valid number');
+        return false;
+      }
+
+      try {
+        const snap = await dbGet(`players/${uid}`);
+        const playerData = snap.val() || {};
+
+        const prevEntries = playerData.scores
+          ? Object.entries(playerData.scores).map(([key, val]) => ({
+              ...val,
+              key: val?.key || key,
+            }))
+          : [];
+
+        const scoresPath = `players/${uid}/scores`;
+        const newRef = push(dbRef(scoresPath));
+        const newKey = newRef.key;
+
+        const now = new Date();
+        const durationSecs =
+          typeof duration === 'number'
+            ? duration
+            : typeof elapsedTime === 'number'
+            ? elapsedTime
+            : 0;
+
+        const entry = {
+          key: newKey,
+          date: now.toLocaleDateString('fi-FI'),
+          time: now.toLocaleTimeString(),
+          points: totalPoints,
+          duration: durationSecs,
+        };
+
+        const updated = [...prevEntries, entry]
+          .sort((a, b) => {
+            if (b.points !== a.points) return b.points - a.points;
+            if ((a.duration ?? 0) !== (b.duration ?? 0)) return (a.duration ?? 0) - (b.duration ?? 0);
+            const da = new Date(a.date.split('.').reverse().join('-'));
+            const db = new Date(b.date.split('.').reverse().join('-'));
+            return da - db;
+          })
+          .slice(0, TOPSCORELIMIT);
+
+        const scoresObj = updated.reduce((acc, s) => {
+          acc[s.key] = s;
+          return acc;
+        }, {});
+
+        await dbSet(scoresPath, scoresObj);
+
+        if (typeof saveGame === 'function') saveGame();
+        return true;
+      } catch (err) {
+        console.error('[GameSave] Save error:', err?.message || String(err));
+        return false;
+      }
+    },
+    [resolvePlayerId, elapsedTime, saveGame]
+  );
+
+  return { savePlayerPoints };
+}
 /**
  * GameSave – Persist player scores and duration to Firebase.
  *
@@ -26,7 +115,7 @@ import { useGame } from './GameContext';
 import { dbGet, dbSet, dbRef, push } from '../services/Firebase';
 import { TOPSCORELIMIT } from './Game';
 
-const GameSave = ({ totalPoints }) => {
+export const GameSave = ({ totalPoints }) => {
   const { playerId, elapsedTime, saveGame } = useGame();
 
   // Fallback: if playerId is missing from context, fetch from SecureStore
@@ -176,6 +265,4 @@ const GameSave = ({ totalPoints }) => {
   };
 
   return { savePlayerPoints };
-};
-
-export default GameSave;
+}

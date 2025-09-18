@@ -1,9 +1,11 @@
 /**
  * Gameboard – Main game screen for playing Yatzy.
- * Streamlined: stable callbacks, memoized footer, minimal button props.
+ * - Päättely ja handlerit memoitu, footerin renderointi kevyt.
+ * - Kun rounds === 0 → avaa ScoreModal ja pysäyttää pelin.
+ * - Resetoi pelin turvallisesti resetGame():lla.
  *
  * @module screens/Gameboard
- * @since 2025-09-16 (perf pass 2025-09-18)
+ * @since 2025-09-16 (cleaned 2025-09-18)
  */
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { FlatList, Text, View, Pressable, ImageBackground, Animated, Dimensions } from 'react-native';
@@ -12,12 +14,12 @@ import gameboardstyles from '../styles/GameboardScreenStyles';
 import { NBR_OF_THROWS, NBR_OF_DICES, MAX_SPOTS, BONUS_POINTS, BONUS_POINTS_LIMIT } from '../constants/Game';
 import DiceAnimation from '../components/DiceAnimation';
 import { useAudio } from '../services/AudioManager';
-import ModalAlert from '../constants/ModalAlert';
 import { useGame } from '../constants/GameContext';
+import { useElapsedTime } from '../constants/ElapsedTimeContext';
 import RenderFirstRow from '../components/RenderFirstRow';
 import Header from './Header';
 import GlowingText from '../components/AnimatedText';
-import GameSave from '../constants/GameSave';
+import { useGameSave } from '../constants/GameSave';
 import { dicefaces } from '../constants/DicePaths';
 import GameboardButtons from '../components/GameboardButtons';
 import { scoringCategoriesConfig } from '../constants/scoringCategoriesConfig';
@@ -39,14 +41,20 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 const { height } = Dimensions.get('window');
 const isSmallScreen = height < 720;
 
-/** Footer with dice row + buttons (no heavy props) */
+// Aikabonukset (ScoreModal käyttää näitä)
+const FAST_THRESHOLD = 150; // < 2:30 → +10
+const SLOW_THRESHOLD = 300; // > 5:00 → -10
+const FAST_BONUS = 10;
+const SLOW_BONUS = -10;
+
+// Kevyt footer (nopat + napit)
 const RenderDices = React.memo(function RenderDices({
   rounds,
   nbrOfThrowsLeft,
   diceRow,
   totalPoints,
-  canSetPoints,
   onRollPress,
+  canSetPoints,
   onSetPointsPress,
 }) {
   return (
@@ -60,8 +68,8 @@ const RenderDices = React.memo(function RenderDices({
       <GameboardButtons
         rounds={rounds}
         nbrOfThrowsLeft={nbrOfThrowsLeft}
-        canSetPoints={canSetPoints}
         onRollPress={onRollPress}
+        canSetPoints={canSetPoints}
         onSetPointsPress={onSetPointsPress}
       />
     </View>
@@ -70,7 +78,8 @@ const RenderDices = React.memo(function RenderDices({
 
 export default function Gameboard({ route, navigation }) {
   const insets = useSafeAreaInsets();
-  const gameContext = useGame();
+  const { savePlayerPoints } = useGameSave();
+  const { elapsedTime } = useElapsedTime();
   const { playSfx, playSelect, playDeselect, playDiceTouch } = useAudio();
 
   const audioApi = useMemo(
@@ -81,12 +90,9 @@ export default function Gameboard({ route, navigation }) {
   const [selectedField, setSelectedField] = useState(null);
   const [board, setBoard] = useState(Array(NBR_OF_DICES).fill(1));
 
-  const { playerId, setPlayerId } = gameContext;
-  const [modalVisible, setModalVisible] = useState(false);
-  const [modalMessage, setModalMessage] = useState('');
-  const [scoreOpen, setScoreOpen] = useState(false);
-
   const {
+    playerId,
+    setPlayerId,
     gameStarted,
     gameEnded,
     startGame,
@@ -96,29 +102,10 @@ export default function Gameboard({ route, navigation }) {
     tokens,
     setTokens,
     setEnergyModalVisible,
-    elapsedTime,
-    setElapsedTime,
     setIsGameSaved,
-  } = gameContext;
+  } = useGame();
 
-  // Time bonus
-  const FAST_THRESHOLD = 150;   // < 2:30 → +10
-  const SLOW_THRESHOLD = 300;   // > 5:00 → -10
-  const FAST_BONUS = 10;
-  const SLOW_BONUS = -10;
-
-  const timeBonus =
-    elapsedTime > SLOW_THRESHOLD ? SLOW_BONUS :
-    elapsedTime > FAST_THRESHOLD ? 0 : FAST_BONUS;
-
-  const finalTotal = totalPoints + timeBonus;
-
-  // Save prepared at top-level (no hooks in handlers)
-  const { savePlayerPoints: saveFinalScore } = GameSave({
-    totalPoints: finalTotal,
-    durationOverride: elapsedTime,
-  });
-
+  const [scoreOpen, setScoreOpen] = useState(false);
   const [isLayerVisible, setLayerVisible] = useState(true);
 
   // Game state
@@ -128,7 +115,19 @@ export default function Gameboard({ route, navigation }) {
   const [rounds, setRounds] = useState(MAX_SPOTS);
   const [rolledDices, setRolledDices] = useState(new Array(NBR_OF_DICES).fill(0));
 
-  // End game when rounds hit 0
+  // Peli käyntiin (vähentää tokenin; overlay ei käynnistä peliä)
+  const beginGame = useCallback(() => {
+    if (gameStarted) return true;
+    if ((tokens ?? 0) > 0) {
+      setTokens(prev => Math.max(0, (prev ?? 0) - 1));
+      startGame();
+      return true;
+    }
+    setEnergyModalVisible(true);
+    return false;
+  }, [gameStarted, tokens, setTokens, startGame, setEnergyModalVisible]);
+
+  // Kun kierrokset loppuu → päätä peli ja avaa tallennusmodal
   useEffect(() => {
     if (rounds === 0 && !gameEnded) {
       endGame();
@@ -136,26 +135,26 @@ export default function Gameboard({ route, navigation }) {
     }
   }, [rounds, gameEnded, endGame]);
 
-  // Scoring categories
+  // Pistelogiiikan kategoriat
   const [scoringCategories, setScoringCategories] = useState(
     scoringCategoriesConfig.map((cat) => {
       let calculateScore = null;
       switch (cat.name) {
-        case 'ones':           calculateScore = (r) => calculateDiceSum(r, 1); break;
-        case 'twos':           calculateScore = (r) => calculateDiceSum(r, 2); break;
-        case 'threes':         calculateScore = (r) => calculateDiceSum(r, 3); break;
-        case 'fours':          calculateScore = (r) => calculateDiceSum(r, 4); break;
-        case 'fives':          calculateScore = (r) => calculateDiceSum(r, 5); break;
-        case 'sixes':          calculateScore = (r) => calculateDiceSum(r, 6); break;
-        case 'twoOfKind':      calculateScore = (r) => calculateTwoOfKind(r); break;
-        case 'threeOfAKind':   calculateScore = (r) => calculateThreeOfAKind(r); break;
-        case 'fourOfAKind':    calculateScore = (r) => calculateFourOfAKind(r); break;
-        case 'yatzy':          calculateScore = (r) => calculateYatzy(r); break;
-        case 'fullHouse':      calculateScore = (r) => (calculateFullHouse(r) ? 25 : 0); break;
-        case 'smallStraight':  calculateScore = (r) => calculateSmallStraight(r); break;
-        case 'largeStraight':  calculateScore = (r) => calculateLargeStraight(r); break;
-        case 'chance':         calculateScore = (r) => calculateChange(r); break;
-        default:               calculateScore = null;
+        case 'ones': calculateScore = (r) => calculateDiceSum(r, 1); break;
+        case 'twos': calculateScore = (r) => calculateDiceSum(r, 2); break;
+        case 'threes': calculateScore = (r) => calculateDiceSum(r, 3); break;
+        case 'fours': calculateScore = (r) => calculateDiceSum(r, 4); break;
+        case 'fives': calculateScore = (r) => calculateDiceSum(r, 5); break;
+        case 'sixes': calculateScore = (r) => calculateDiceSum(r, 6); break;
+        case 'twoOfKind': calculateScore = (r) => calculateTwoOfKind(r); break;
+        case 'threeOfAKind': calculateScore = (r) => calculateThreeOfAKind(r); break;
+        case 'fourOfAKind': calculateScore = (r) => calculateFourOfAKind(r); break;
+        case 'yatzy': calculateScore = (r) => calculateYatzy(r); break;
+        case 'fullHouse': calculateScore = (r) => (calculateFullHouse(r) ? 25 : 0); break;
+        case 'smallStraight': calculateScore = (r) => calculateSmallStraight(r); break;
+        case 'largeStraight': calculateScore = (r) => calculateLargeStraight(r); break;
+        case 'chance': calculateScore = (r) => calculateChange(r); break;
+        default: calculateScore = null;
       }
       return { ...cat, calculateScore, locked: false, points: 0 };
     })
@@ -173,7 +172,7 @@ export default function Gameboard({ route, navigation }) {
   }, [route?.params?.playerId, setPlayerId]);
 
   const resetGame = useCallback(() => {
-    setIsGameSaved(true);
+    setIsGameSaved(true); // ilmoittaa RenderFirstRow:lle resetoida stopwatch
     setScoringCategories((prev) =>
       prev.map((category) => ({
         ...category,
@@ -190,10 +189,9 @@ export default function Gameboard({ route, navigation }) {
     setHasAppliedBonus(false);
     setBoard(Array(NBR_OF_DICES).fill(1));
     setRolledDices(new Array(NBR_OF_DICES).fill(0));
-    setElapsedTime(0);
-  }, [resetDiceSelection, setTotalPoints, setElapsedTime, setIsGameSaved]);
+  }, [resetDiceSelection, setTotalPoints, setIsGameSaved]);
 
-  // Data source (stable)
+  // Gridin data (stabiili)
   const data = useMemo(() => Array.from({ length: 32 }, (_, index) => ({ key: String(index + 2) })), []);
 
   const handleSetPoints = useCallback(() => {
@@ -236,6 +234,7 @@ export default function Gameboard({ route, navigation }) {
     setSelectedField(null);
   }, [selectedField, scoringCategories, rolledDices, hasAppliedBonus, minorPoints, totalPoints, setTotalPoints]);
 
+  // Yatzyn “uudelleenavauksen” tarkistus
   const checkAndUnlockYatzy = useCallback(
     (currRoll) => {
       const yatzyCategory = scoringCategories.find((c) => c.name === 'yatzy');
@@ -263,7 +262,7 @@ export default function Gameboard({ route, navigation }) {
         next[i] = !next[i];
         return next;
       });
-      Promise.resolve(playDiceTouch?.()).catch(() => {});
+      Promise.resolve(playDiceTouch?.()).catch(() => { });
     },
     [nbrOfThrowsLeft, playDiceTouch]
   );
@@ -303,14 +302,33 @@ export default function Gameboard({ route, navigation }) {
     }
   }, [nbrOfThrowsLeft, selectedDices, rolledDices, checkAndUnlockYatzy, playSfx]);
 
-  const handleStartGame = useCallback(() => {
-    if (tokens > 0) {
-      setLayerVisible(false);
-      setTokens((prev) => prev - 1);
-    } else {
-      setEnergyModalVisible(true);
+  // Ensimmäinen heitto käynnistää pelin; overlay vain piilottaa
+  const onRollPress = useCallback(() => {
+    if (rounds <= 0) return;
+
+    if (!gameStarted) {
+      const ok = beginGame();
+      if (!ok) return; // ei tokeneita → energia-modal auki
     }
-  }, [tokens, setTokens, setEnergyModalVisible]);
+    if (nbrOfThrowsLeft <= 0) return;
+    throwDices();
+  }, [rounds, gameStarted, beginGame, nbrOfThrowsLeft, throwDices]);
+
+  // Set Points -napin kokonaislogiikka (kierrokset, heitot, valinnat)
+  const onSetPointsPress = useCallback(() => {
+    const sel = selectedField;
+    if (sel == null) return;
+
+    handleSetPoints();
+    setNbrOfThrowsLeft(NBR_OF_THROWS);
+    resetDiceSelection();
+
+    const selectedCategory = scoringCategories.find((c) => c.index === sel);
+    const shouldDecrease =
+      !selectedCategory || selectedCategory.name !== 'yatzy' || selectedCategory.points === 0;
+
+    if (shouldDecrease) setRounds((prev) => Math.max(prev - 1, 0));
+  }, [selectedField, handleSetPoints, scoringCategories, resetDiceSelection]);
 
   const canSelectNow = nbrOfThrowsLeft < NBR_OF_THROWS;
   const rollingGlobal = isRolling;
@@ -337,68 +355,56 @@ export default function Gameboard({ route, navigation }) {
     [board, selectedDices, onSelectHandlers, diceAnimations, getDiceColor, isRolling, canSelectNow, rollingGlobal]
   );
 
-  // Stable button handlers (pass to GameboardButtons)
-  const onRollPress = useCallback(() => {
-    if (rounds === MAX_SPOTS && nbrOfThrowsLeft === NBR_OF_THROWS) startGame();
-    if (nbrOfThrowsLeft <= 0) return;
-    throwDices();
-  }, [rounds, nbrOfThrowsLeft, startGame, throwDices]);
-
-  const onSetPointsPress = useCallback(() => {
-    handleSetPoints();
-    setNbrOfThrowsLeft(NBR_OF_THROWS);
-    resetDiceSelection();
-
-    const selectedCategory = scoringCategories.find((c) => c.index === selectedField);
-    const shouldDecrease = !selectedCategory || selectedCategory.name !== 'yatzy' || selectedCategory.points === 0;
-    if (shouldDecrease) setRounds((prev) => Math.max(prev - 1, 0));
-  }, [handleSetPoints, setNbrOfThrowsLeft, resetDiceSelection, scoringCategories, selectedField, setRounds]);
-
-  // Footer element (not a function) to avoid recreations
-  const footerEl = useMemo(() => (
-    <RenderDices
-      rounds={rounds}
-      nbrOfThrowsLeft={nbrOfThrowsLeft}
-      diceRow={diceRow}
-      totalPoints={totalPoints}
-      canSetPoints={!!selectedField}
-      onRollPress={onRollPress}
-      onSetPointsPress={onSetPointsPress}
-    />
-  ), [rounds, nbrOfThrowsLeft, diceRow, totalPoints, selectedField, onRollPress, onSetPointsPress]);
-
-  // Memo extraData to avoid referential churn
-  const listExtra = useMemo(
-    () => ({ scoringCategories, totalPoints, minorPoints, selectedField, nbrOfThrowsLeft, rounds }),
-    [scoringCategories, totalPoints, minorPoints, selectedField, nbrOfThrowsLeft, rounds]
-  );
-
-  // Save from modal
+  // ScoreModal -> tallennus
   const handleSaveScoreFromModal = useCallback(
-    async () => {
-      const ok = await saveFinalScore();
+    async ({ total, elapsedSecs }) => {
+      const ok = await savePlayerPoints({ totalPoints: total, duration: elapsedSecs });
       if (ok) {
         resetGame();
         navigation.navigate('Scoreboard', { tab: 'week', playerId });
       }
       return ok;
     },
-    [saveFinalScore, resetGame, navigation, playerId]
+    [savePlayerPoints, resetGame, navigation, playerId]
+  );
+
+  const renderFooter = useCallback(
+    () => (
+      <RenderDices
+        rounds={rounds}
+        nbrOfThrowsLeft={nbrOfThrowsLeft}
+        diceRow={diceRow}
+        totalPoints={totalPoints}
+        onRollPress={onRollPress}
+        canSetPoints={Boolean(selectedField)}
+        onSetPointsPress={onSetPointsPress}
+      />
+    ),
+    [
+      rounds,
+      nbrOfThrowsLeft,
+      diceRow,
+      totalPoints,
+      onRollPress,
+      selectedField,
+      onSetPointsPress,
+    ]
   );
 
   return (
     <ImageBackground source={require('../../assets/diceBackground.webp')} style={styles.background}>
       <Header />
-      {isLayerVisible && (
+
+      {isLayerVisible && !gameStarted && (
         <Pressable
-          onPress={() => {
-            if (!gameStarted && rounds === MAX_SPOTS) handleStartGame();
-          }}
+          onPress={() => setLayerVisible(false)}  // vain piilota overlay
+          pointerEvents="auto"
           style={gameboardstyles.filterLayer}
         >
           <GlowingText>START GAME</GlowingText>
         </Pressable>
       )}
+
       <View style={[styles.overlay, { alignSelf: 'stretch', width: '100%' }]}>
         <FlatList
           data={data}
@@ -425,8 +431,8 @@ export default function Gameboard({ route, navigation }) {
           contentContainerStyle={gameboardstyles.gameboardContainer}
           ListEmptyComponent={null}
           ListHeaderComponent={<RenderFirstRow rounds={rounds} />}
-          ListFooterComponent={footerEl}
-          extraData={listExtra}
+          ListFooterComponent={renderFooter}
+          extraData={{ scoringCategories, totalPoints, minorPoints, selectedField, nbrOfThrowsLeft, rounds }}
         />
       </View>
 
@@ -445,8 +451,6 @@ export default function Gameboard({ route, navigation }) {
         bottomOffset={75}
         dark
       />
-
-      <ModalAlert visible={modalVisible} message={modalMessage} onClose={() => setModalVisible(false)} />
     </ImageBackground>
   );
 }
