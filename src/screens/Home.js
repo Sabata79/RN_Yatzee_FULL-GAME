@@ -17,7 +17,6 @@ import { View, Text, TextInput, Alert, Image, Animated, Platform } from "react-n
 import * as SecureStore from "expo-secure-store";
 import { FontAwesome5 } from '@expo/vector-icons';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import stylesGlobal from '../styles/styles';
 import homeStyles from '../styles/HomeStyles';
 import { dbGet, dbSet } from '../services/Firebase';
 import { sanitizeInput, checkIfNameExists } from '../services/nameUtils';

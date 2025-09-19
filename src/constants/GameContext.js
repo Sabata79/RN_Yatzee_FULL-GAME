@@ -1,3 +1,4 @@
+
 /**
  * GameContext – global state provider for the game and player session.
  * Provides realtime Firebase listeners, scoreboard helpers, and player/session state for the app.
@@ -57,8 +58,8 @@ export const GameProvider = ({ children }) => {
   const [nextLevel, setNextLevel] = useState('');
   const [allTimeRank, setAllTimeRank] = useState('--');
 
-  const [nextTokenTime, setNextTokenTime] = useState(null);
-  const [timeToNextToken, setTimeToNextToken] = useState('');
+  const [nextTokenTime, setNextTokenTime] = useState(null); // seuraavan tokenin aikaleima (Date tai ISO-string)
+  const [timeToNextToken, setTimeToNextToken] = useState(''); // countdown-string, esim. "1 h 23 min 10 s"
 
   const isBetterScore = (newScore, oldScore) => {
     if (Number(newScore.points) > Number(oldScore.points)) return true;
@@ -216,7 +217,7 @@ export const GameProvider = ({ children }) => {
     if (tokens == null) return;
 
     const clamped = Math.max(0, Math.min(MAX_TOKENS, Math.trunc(tokens)));
-    dbSet(`players/${playerId}/tokens`, clamped).catch(() => {});
+    dbSet(`players/${playerId}/tokens`, clamped).catch(() => { });
   }, [playerId, tokens]);
 
   // ----- Level helpers -----
@@ -297,15 +298,15 @@ export const GameProvider = ({ children }) => {
         setViewingPlayerName(null);
       },
 
-      // tokens
-      timeToNextToken,
-      setTimeToNextToken,
-      nextTokenTime,
-      setNextTokenTime,
-      tokens,
-      setTokens,
-      energyModalVisible,
-      setEnergyModalVisible,
+  // tokens
+  nextTokenTime,
+  setNextTokenTime,
+  timeToNextToken,
+  setTimeToNextToken,
+  tokens,
+  setTokens,
+  energyModalVisible,
+  setEnergyModalVisible,
 
       // misc
       isLinked,
@@ -342,8 +343,8 @@ export const GameProvider = ({ children }) => {
       userRecognized,
       viewingPlayerId,
       viewingPlayerName,
-      timeToNextToken,
-      nextTokenTime,
+  nextTokenTime,
+  timeToNextToken,
       tokens,
       energyModalVisible,
       isLinked,

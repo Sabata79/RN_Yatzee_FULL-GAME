@@ -40,6 +40,7 @@ import {
 } from '../logic/diceLogic';
 import GridField from '../components/GridField';
 import ScoreModal from '../components/modals/ScoreModal';
+import EnergyModal from '../components/modals/EnergyModal';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { height } = Dimensions.get('window');
@@ -105,7 +106,9 @@ export default function Gameboard({ route, navigation }) {
     setTotalPoints,
     tokens,
     setTokens,
+    energyModalVisible,
     setEnergyModalVisible,
+    timeToNextToken,
     setIsGameSaved,
   } = useGame();
 
@@ -127,9 +130,9 @@ export default function Gameboard({ route, navigation }) {
       startGame();
       return true;
     }
-    setEnergyModalVisible(true);
+    // Do not open modal here; modal opens only from START GAME overlay
     return false;
-  }, [gameStarted, tokens, setTokens, startGame, setEnergyModalVisible]);
+  }, [gameStarted, tokens, setTokens, startGame]);
 
   // When rounds reach 0, end the game and open the score modal
   useEffect(() => {
@@ -399,14 +402,30 @@ export default function Gameboard({ route, navigation }) {
     <ImageBackground source={require('../../assets/diceBackground.webp')} style={styles.background}>
       <Header />
 
+
       {isLayerVisible && !gameStarted && (
-        <Pressable
-          onPress={() => setLayerVisible(false)}  // only hide overlay
-          pointerEvents="auto"
-          style={gameboardstyles.filterLayer}
-        >
-          <GlowingText>START GAME</GlowingText>
-        </Pressable>
+        <>
+          <Pressable
+            onPress={() => {
+              if ((tokens ?? 0) === 0) {
+                setEnergyModalVisible(true);
+              } else {
+                setLayerVisible(false);
+              }
+            }}
+            pointerEvents="auto"
+            style={gameboardstyles.filterLayer}
+          >
+            <GlowingText>START GAME</GlowingText>
+          </Pressable>
+          <EnergyModal
+            visible={energyModalVisible}
+            onClose={() => setEnergyModalVisible(false)}
+            tokens={tokens}
+            maxTokens={10}
+            timeToNextToken={timeToNextToken}
+          />
+        </>
       )}
 
       <View style={[styles.overlay, { alignSelf: 'stretch', width: '100%' }]}>
