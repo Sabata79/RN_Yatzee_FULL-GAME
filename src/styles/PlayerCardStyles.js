@@ -136,7 +136,7 @@ export default styles = StyleSheet.create({
         marginTop: 10,
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: '#4f4d4d57',
+        backgroundColor: 'transparent',
     },
     avatarModalBackground: {
         flex: 1,

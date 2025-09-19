@@ -152,12 +152,12 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
 
   // ----- LEVEL COMPUTATION -----
 
-  // UUSI: levelInfo valitaan sen mukaan katsotaanko omaa vai toisen korttia
+  // levelInfo is selected based on whether viewing own or another's card
   const getPlayerLevelInfo = () => {
-    // pelejä lasketaan aina idToUse:lle (oma tai katsottava)
+    // played games
     const games = playedGames;
 
-    // tasoalueet peleistä
+    // level ranges based on games played
     let computed = { level: 'beginner', min: 0, max: 400 };
     if (games >= 2000) computed = { level: 'legendary', min: 2000, max: 2000 };
     else if (games >= 1201) computed = { level: 'elite', min: 1201, max: 2000 };
@@ -172,7 +172,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     // clamp 0..1
     const clamped = Math.max(0, Math.min(1, progress));
 
-    // Näytettävä level: käytä tallennettua tai katsottavan leveliä jos saatavilla
+    // Show displayed level: use stored or viewing player level if available
     const levelLabel =
       storedLevel ?? viewingPlayerLevel ?? computed.level;
 
@@ -182,7 +182,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
   const previousMonthRank = currentMonth > 0 ? monthlyRanks[currentMonth - 1] : '--';
   const levelInfo = getPlayerLevelInfo();
 
-  // Tumman taustan tunnistus
+  // Background info
   const bgInfo = PlayercardBg.find(bg => bg.level.toLowerCase() === levelInfo.level.toLowerCase());
   const isDarkBg = bgInfo?.isDark;
 
@@ -475,12 +475,9 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     );
   };
 
-
-  // Selvitetään oikea taustakuva, mutta älä renderöi beginnerBG:tä placeholderina
   const playerCardBg = getPlayerCardBackground(levelInfo.level);
   const isDefaultBg = playerCardBg === require('../../assets/playerCardBg/BeginnerBG.webp');
 
-  // Jos taustakuva ei ole vielä tiedossa (ja taso ei ole beginner), näytetään vain ActivityIndicator
   if (isModalVisible && isDefaultBg && levelInfo.level.toLowerCase() !== 'beginner') {
     return (
       <Modal
