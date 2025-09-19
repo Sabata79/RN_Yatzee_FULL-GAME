@@ -39,7 +39,7 @@ export default function InterfaceGuide() {
 
         {/* Info: How to access the player card */}
   <View style={gameRulesStyles.infoBox}>
-          <Text style={gameRulesStyles.infoTitle}>🧍 Accessing Player Card</Text>
+          <Text style={gameRulesStyles.infoTitle}>Accessing Player Card</Text>
           <Text style={gameRulesStyles.infoText}>
             🔸 Tap your avatar in the top-right corner of the screen to open your personal Player Card.
           </Text>
@@ -65,7 +65,7 @@ export default function InterfaceGuide() {
 
           <View style={gameRulesStyles.bulletRow}>
             <View style={gameRulesStyles.bullet}><Text style={gameRulesStyles.bulletText}>2</Text></View>
-            <Text style={gameRulesStyles.infoText}>Player level, progress bar, and statistics</Text>
+            <Text style={gameRulesStyles.infoText}>Player level, progress bar, and stats</Text>
           </View>
 
           <View style={gameRulesStyles.bulletRow}>

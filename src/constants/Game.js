@@ -53,12 +53,12 @@ export const rulesTextContent = `
 export const combinationsData = [
   {
     icon: 'dice-multiple',
-    description: 'Get the maximum of same side dice. Scores the sum of all same dice on the Minor side.',
+    description: 'Get the maximum of same side dice.',
     smallText: 'Minor Side ( Sum of same dice sides )'
   },
   {
     icon: 'numeric-3-box-multiple-outline',
-    description: 'Two, Three, & Four of a kind. Sums same side dice.',
+    description: 'Two, Three, & Four of a kind. \n(Sums same side dice.)',
     smallText: '2-4 Same ( Sum dice )'
   },
   {

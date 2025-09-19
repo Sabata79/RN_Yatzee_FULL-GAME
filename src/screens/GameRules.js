@@ -69,13 +69,13 @@ export default function GameRules() {
         />
         <View style={{ flex: 1 }}>
           <View style={gameRulesStyles.bonusRow}>
-            <Text style={[gameRulesStyles.bonusText, { color: '#e74c3c' }]}>Red (over 300 sec): -10 pts</Text>
+            <Text style={[gameRulesStyles.bonusText, { color: '#e74c3c' }]}>Red (over 150 sec): -10 pts</Text>
           </View>
           <View style={gameRulesStyles.bonusRow}>
-            <Text style={[gameRulesStyles.bonusText, { color: '#f39c12' }]}>Orange (151–299 sec): +0 pts</Text>
+            <Text style={[gameRulesStyles.bonusText, { color: '#f39c12' }]}>Orange (101-150 sec): +0 pts</Text>
           </View>
           <View style={gameRulesStyles.bonusRow}>
-            <Text style={[gameRulesStyles.bonusText, { color: '#27ae60' }]}>Green (under 150 sec): +10 pts</Text>
+            <Text style={[gameRulesStyles.bonusText, { color: '#27ae60' }]}>Green (under 100 sec): +10 pts</Text>
           </View>
         </View>
       </View>
