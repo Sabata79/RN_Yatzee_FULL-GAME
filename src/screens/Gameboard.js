@@ -112,7 +112,7 @@ export default function Gameboard({ route, navigation }) {
     setIsGameSaved,
   } = useGame();
 
-  const [scoreOpen, setScoreOpen] = useState(true);
+  const [scoreOpen, setScoreOpen] = useState(false);
   const [isLayerVisible, setLayerVisible] = useState(true);
 
   // Game state
@@ -464,7 +464,9 @@ export default function Gameboard({ route, navigation }) {
         onClose={() => setScoreOpen(false)}
         onCancel={() => { setScoreOpen(false); resetGame(); }}
         onSave={handleSaveScoreFromModal}
-        points={totalPoints}
+        points={totalPoints - (hasAppliedBonus ? BONUS_POINTS : 0)}
+        minorPoints={minorPoints}
+        sectionBonus={hasAppliedBonus ? BONUS_POINTS : 0}
         elapsedSecs={elapsedTime}
         fastThreshold={FAST_THRESHOLD}
         slowThreshold={SLOW_THRESHOLD}

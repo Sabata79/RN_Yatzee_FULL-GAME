@@ -43,6 +43,8 @@ export default function ScoreModal({
   onCancel,
   points = 0,
   elapsedSecs = 0,
+  minorPoints = 0,
+  sectionBonus = 0,
   bottomInset = 0,
   bottomOffset = 0,
   dark = true,
@@ -68,7 +70,26 @@ export default function ScoreModal({
     return { bonus: fastBonus, dotColor: goodColor };
   }, [elapsedSecs, fastThreshold, slowThreshold, fastBonus, slowBonus, errColor, warnColor, goodColor]);
 
-  const total = useMemo(() => points + bonus, [points, bonus]);
+  const total = useMemo(() => points + bonus + sectionBonus, [points, bonus, sectionBonus]);
+
+  // ANIMAATIO: summary rivit paljastuvat yksitellen
+  const [revealIndex, setRevealIndex] = useState(0);
+  useEffect(() => {
+    if (!visible) {
+      setRevealIndex(0);
+      return;
+    }
+    setRevealIndex(0);
+    let i = 0;
+    const lines = 5; // Time, Basic, Section bonus, Time bonus, Total
+    function next() {
+      i++;
+      if (i <= lines) setRevealIndex(i);
+      if (i < lines) setTimeout(next, 350);
+    }
+    setTimeout(next, 350);
+    return () => {};
+  }, [visible, points, bonus, sectionBonus, elapsedSecs]);
 
   const handleSave = useCallback(async () => {
     if (busy) return;
@@ -114,36 +135,63 @@ export default function ScoreModal({
           <Text style={styles.title}>Game Over</Text>
           <Text style={styles.desc}>Here’s your run summary.</Text>
 
+
+          {/* Labelit näkyvissä koko ajan, tulokset paljastuvat ylhäältä alas */}
           <View style={styles.rowBetween}>
             <Text style={styles.label}>Time</Text>
             <View style={styles.rowCenter}>
               <View style={[styles.dot, { backgroundColor: dotColor }]} />
-              <Text style={styles.value}>{formatTime(elapsedSecs)}</Text>
+              {revealIndex >= 1 ? (
+                <Text style={styles.value}>{formatTime(elapsedSecs)}</Text>
+              ) : (
+                <Text style={styles.value}> </Text>
+              )}
             </View>
           </View>
 
           <View style={styles.rowBetween}>
-            <Text style={styles.label}>Score</Text>
-            <Text style={styles.value}>{points} pts</Text>
+            <Text style={styles.label}>Basic</Text>
+            {revealIndex >= 2 ? (
+              <Text style={styles.value}>{points} pts</Text>
+            ) : (
+              <Text style={styles.value}> </Text>
+            )}
+          </View>
+
+          <View style={styles.rowBetween}>
+            <Text style={styles.label}>Section bonus</Text>
+            {revealIndex >= 3 ? (
+              <Text style={styles.value}>{sectionBonus > 0 ? `+${sectionBonus}` : sectionBonus} pts</Text>
+            ) : (
+              <Text style={styles.value}> </Text>
+            )}
           </View>
 
           <View style={styles.rowBetween}>
             <Text style={styles.label}>Time bonus</Text>
-            <Text
-              style={[
-                styles.value,
-                { color: bonus > 0 ? goodColor : bonus < 0 ? errColor : "#b9c0c7" },
-              ]}
-            >
-              {bonus > 0 ? `+${bonus}` : bonus} pts
-            </Text>
+            {revealIndex >= 4 ? (
+              <Text
+                style={[
+                  styles.value,
+                  { color: bonus > 0 ? goodColor : bonus < 0 ? errColor : "#b9c0c7" },
+                ]}
+              >
+                {bonus > 0 ? `+${bonus}` : bonus} pts
+              </Text>
+            ) : (
+              <Text style={styles.value}> </Text>
+            )}
           </View>
 
           <View style={styles.divider} />
 
           <View style={styles.rowBetween}>
             <Text style={styles.totalLabel}>Total</Text>
-            <Text style={styles.totalValue}>{total} pts</Text>
+            {revealIndex >= 5 ? (
+              <Text style={styles.totalValue}>{total} pts</Text>
+            ) : (
+              <Text style={styles.totalValue}> </Text>
+            )}
           </View>
 
           <View style={styles.actions}>
@@ -184,6 +232,7 @@ const styles = StyleSheet.create({
     padding: 20,
     borderWidth: 1,
     borderColor: COLORS.border,
+    minHeight: 250,
   },
   sheetDark: { backgroundColor: "#12161a" },
   sheetLight: { backgroundColor: "#222831" },
@@ -214,8 +263,8 @@ const styles = StyleSheet.create({
     gap: SPACING.sm,
   },
   label: {
-    fontFamily: TYPOGRAPHY.fontFamily.montserratSemiBold,
-    fontSize: 17,
+    fontFamily: TYPOGRAPHY.fontFamily.montserratRegular,
+    fontSize: TYPOGRAPHY.fontSize.md,
     color: COLORS.textLight,
   },
   value: {
@@ -229,7 +278,8 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   totalLabel: {
-    fontSize: TYPOGRAPHY.fontSize.sm,
+    fontFamily: TYPOGRAPHY.fontFamily.montserratBold,
+    fontSize: TYPOGRAPHY.fontSize.lg,
     color: COLORS.textLight,
   },
   totalValue: {
