@@ -8,14 +8,8 @@
  * @author Sabata79
  * @since 2025-08-29
  */
-import { Dimensions, StyleSheet } from 'react-native';
-import COLORS from '../constants/colors';
-import TYPOGRAPHY from '../constants/typography';
-import SPACING from '../constants/spacing';
+import { StyleSheet } from 'react-native';
 
-const { width, height } = Dimensions.get('window');
-const isSmallScreen = height < 650;
-const isBigScreen = height >= 1050;
 
 export default styles = StyleSheet.create({
 
