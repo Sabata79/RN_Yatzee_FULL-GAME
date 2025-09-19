@@ -17,7 +17,7 @@
  * @since 2025-09-18
  */
 
-import React, { useMemo, useState, useEffect, useCallback } from "react";
+import React, { useMemo, useState, useEffect, useCallback, useRef } from "react";
 import {
   Modal,
   View,
@@ -26,6 +26,8 @@ import {
   StyleSheet,
   ActivityIndicator,
   StyleSheet as RNStyleSheet,
+  Animated,
+  Easing,
 } from "react-native";
 import COLORS from "../../constants/colors";
 import TYPOGRAPHY from "../../constants/typography";
@@ -72,24 +74,42 @@ export default function ScoreModal({
 
   const total = useMemo(() => points + bonus + sectionBonus, [points, bonus, sectionBonus]);
 
-  // ANIMAATIO: summary rivit paljastuvat yksitellen
+  // ANIMAATIO: summary rivit paljastuvat yksitellen SLIDE-efektillä
   const [revealIndex, setRevealIndex] = useState(0);
+  const slideAnims = useRef([
+    new Animated.Value(300), // Time
+    new Animated.Value(300), // Basic
+    new Animated.Value(300), // Section bonus
+    new Animated.Value(300), // Time bonus
+    new Animated.Value(300), // Total
+  ]).current;
+
   useEffect(() => {
     if (!visible) {
       setRevealIndex(0);
+      slideAnims.forEach(anim => anim.setValue(300));
       return;
     }
     setRevealIndex(0);
+    slideAnims.forEach(anim => anim.setValue(300));
     let i = 0;
-    const lines = 5; // Time, Basic, Section bonus, Time bonus, Total
+    const lines = 5;
     function next() {
       i++;
-      if (i <= lines) setRevealIndex(i);
+      if (i <= lines) {
+        setRevealIndex(i);
+        Animated.timing(slideAnims[i - 1], {
+          toValue: 0,
+          duration: 350,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }).start();
+      }
       if (i < lines) setTimeout(next, 350);
     }
     setTimeout(next, 350);
     return () => {};
-  }, [visible, points, bonus, sectionBonus, elapsedSecs]);
+  }, [visible, points, bonus, sectionBonus, elapsedSecs, slideAnims]);
 
   const handleSave = useCallback(async () => {
     if (busy) return;
@@ -133,65 +153,76 @@ export default function ScoreModal({
 
         <View style={[styles.sheet, dark ? styles.sheetDark : styles.sheetLight]}>
           <Text style={styles.title}>Game Over</Text>
-          <Text style={styles.desc}>Here’s your run summary.</Text>
+          <Text style={styles.desc}>Here’s your run summary</Text>
 
 
           {/* Labelit näkyvissä koko ajan, tulokset paljastuvat ylhäältä alas */}
+
           <View style={styles.rowBetween}>
             <Text style={styles.label}>Time</Text>
             <View style={styles.rowCenter}>
               <View style={[styles.dot, { backgroundColor: dotColor }]} />
-              {revealIndex >= 1 ? (
-                <Text style={styles.value}>{formatTime(elapsedSecs)}</Text>
-              ) : (
-                <Text style={styles.value}> </Text>
-              )}
+              <Animated.View style={{ transform: [{ translateX: slideAnims[0] }] }}>
+                {revealIndex >= 1 ? (
+                  <Text style={styles.value}>{formatTime(elapsedSecs)}</Text>
+                ) : (
+                  <Text style={styles.value}> </Text>
+                )}
+              </Animated.View>
             </View>
           </View>
 
           <View style={styles.rowBetween}>
             <Text style={styles.label}>Basic</Text>
-            {revealIndex >= 2 ? (
-              <Text style={styles.value}>{points} pts</Text>
-            ) : (
-              <Text style={styles.value}> </Text>
-            )}
+            <Animated.View style={{ transform: [{ translateX: slideAnims[1] }] }}>
+              {revealIndex >= 2 ? (
+                <Text style={styles.value}>{points} pts</Text>
+              ) : (
+                <Text style={styles.value}> </Text>
+              )}
+            </Animated.View>
           </View>
 
           <View style={styles.rowBetween}>
             <Text style={styles.label}>Section bonus</Text>
-            {revealIndex >= 3 ? (
-              <Text style={styles.value}>{sectionBonus > 0 ? `+${sectionBonus}` : sectionBonus} pts</Text>
-            ) : (
-              <Text style={styles.value}> </Text>
-            )}
+            <Animated.View style={{ transform: [{ translateX: slideAnims[2] }] }}>
+              {revealIndex >= 3 ? (
+                <Text style={styles.value}>{sectionBonus > 0 ? `+${sectionBonus}` : sectionBonus} pts</Text>
+              ) : (
+                <Text style={styles.value}> </Text>
+              )}
+            </Animated.View>
           </View>
 
           <View style={styles.rowBetween}>
             <Text style={styles.label}>Time bonus</Text>
-            {revealIndex >= 4 ? (
-              <Text
-                style={[
-                  styles.value,
-                  { color: bonus > 0 ? goodColor : bonus < 0 ? errColor : "#b9c0c7" },
-                ]}
-              >
-                {bonus > 0 ? `+${bonus}` : bonus} pts
-              </Text>
-            ) : (
-              <Text style={styles.value}> </Text>
-            )}
+            <Animated.View style={{ transform: [{ translateX: slideAnims[3] }] }}>
+              {revealIndex >= 4 ? (
+                <Text
+                  style={[
+                    styles.value,
+                    { color: bonus > 0 ? goodColor : bonus < 0 ? errColor : "#b9c0c7" },
+                  ]}
+                >
+                  {bonus > 0 ? `+${bonus}` : bonus} pts
+                </Text>
+              ) : (
+                <Text style={styles.value}> </Text>
+              )}
+            </Animated.View>
           </View>
 
           <View style={styles.divider} />
 
           <View style={styles.rowBetween}>
             <Text style={styles.totalLabel}>Total</Text>
-            {revealIndex >= 5 ? (
-              <Text style={styles.totalValue}>{total} pts</Text>
-            ) : (
-              <Text style={styles.totalValue}> </Text>
-            )}
+            <Animated.View style={{ transform: [{ translateX: slideAnims[4] }] }}>
+              {revealIndex >= 5 ? (
+                <Text style={styles.totalValue}>{total} pts</Text>
+              ) : (
+                <Text style={styles.totalValue}> </Text>
+              )}
+            </Animated.View>
           </View>
 
           <View style={styles.actions}>
