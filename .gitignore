@@ -53,7 +53,7 @@ web-build/
 *.mobileprovision
 android/
 tools/
-
+polyfills/
 # Metro
 .metro-health-check*
 
