@@ -111,6 +111,17 @@ const aboutMeStyles = StyleSheet.create({
     fontSize: TYPOGRAPHY.fontSize.sm,
     fontFamily: TYPOGRAPHY.fontFamily.montserratLight,
   },
+nameItem: {
+  color: 'white',
+  fontSize: TYPOGRAPHY.fontSize.md,
+  lineHeight: SPACING.lg,
+  fontFamily: TYPOGRAPHY.fontFamily.montserratBold,
+  textAlign: 'center',
+  marginBottom: SPACING.xxs,
+},
+rose: {
+  fontSize: TYPOGRAPHY.fontSize.md, // pidä ruusu tekstin koossa
+},
 });
 
 export default aboutMeStyles;

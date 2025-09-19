@@ -71,6 +71,31 @@ export default function AboutMe() {
               <Text style={aboutMeStyles.infoText}>{aboutFeatures}</Text>
             </View>
 
+<Text style={aboutMeStyles.boxTitle}>Credits</Text>
+<View style={aboutMeStyles.infoBox}>
+  <Text style={aboutMeStyles.infoText}>🔸 Thanks to all testers! 🔸</Text>
+
+  <Text style={aboutMeStyles.infoText}>
+    Special thanks <Text style={aboutMeStyles.rose}>🌹</Text>:
+  </Text>
+
+  <Text style={aboutMeStyles.nameItem}>Terhi</Text>
+  <Text style={aboutMeStyles.nameItem}>Hiltsu</Text>
+  <Text style={aboutMeStyles.nameItem}>Matti</Text>
+
+  <Text style={aboutMeStyles.infoText}>
+    Thank you for your patience and feedback during development!
+  </Text>
+
+  <Text style={aboutMeStyles.infoText}>Music &amp; SFX:</Text>
+  <Text
+    style={aboutMeStyles.linkText}
+    onPress={() => Linking.openURL('https://pixabay.com/')}
+  >
+    Pixabay
+  </Text>
+</View>
+
             <Text style={aboutMeStyles.boxTitle}>Contact</Text>
             {/* Contact and external links */}
             <View style={aboutMeStyles.infoBox}>
