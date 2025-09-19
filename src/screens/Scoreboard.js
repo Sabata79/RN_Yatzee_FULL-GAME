@@ -46,7 +46,7 @@ const TYPE_TO_INDEX = { allTime: 0, monthly: 1, weekly: 2 };
 const INDEX_TO_TYPE = ['allTime', 'monthly', 'weekly'];
 
 const getDurationDotColor = (secs) =>
-  secs > 300 ? COLORS.error : secs > 150 ? COLORS.warning : COLORS.success;
+  secs > 150 ? COLORS.error : secs > 100 ? COLORS.warning : COLORS.success;
 
 // ISO week helper
 function getWeekNumber(date) {

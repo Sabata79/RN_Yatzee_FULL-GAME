@@ -37,8 +37,8 @@ export default function RenderFirstRow({ rounds = null }) {
 
   // Väri liikennevaloilla
   const timerColor =
-    totalSeconds > 300 ? COLORS.error :
-    totalSeconds > 150 ? COLORS.warning :
+    totalSeconds > 150 ? COLORS.error :
+    totalSeconds > 100 ? COLORS.warning :
     COLORS.success;
 
   // Käynnistä kello kun peli alkaa

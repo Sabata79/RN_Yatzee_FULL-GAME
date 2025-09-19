@@ -50,15 +50,16 @@ export default function ScoreModal({
   bottomInset = 0,
   bottomOffset = 0,
   dark = true,
-  fastThreshold = 150,
-  slowThreshold = 300,
-  fastBonus = 10,
-  slowBonus = -10,
   okColor = COLORS.success,
   warnColor = COLORS.warning,
   errColor = COLORS.error,
   goodColor = COLORS.secondaryDark,
 }) {
+
+  const FAST_THRESHOLD = 100;
+  const SLOW_THRESHOLD = 150;
+  const FAST_BONUS = 10;
+  const SLOW_BONUS = -10;
   const [busy, setBusy] = useState(false);
   const { setIsGameSaved } = useGame();
 
@@ -67,10 +68,10 @@ export default function ScoreModal({
   }, [visible]);
 
   const { bonus, dotColor } = useMemo(() => {
-    if (elapsedSecs > slowThreshold) return { bonus: slowBonus, dotColor: errColor };
-    if (elapsedSecs > fastThreshold) return { bonus: 0, dotColor: warnColor };
-    return { bonus: fastBonus, dotColor: goodColor };
-  }, [elapsedSecs, fastThreshold, slowThreshold, fastBonus, slowBonus, errColor, warnColor, goodColor]);
+    if (elapsedSecs > SLOW_THRESHOLD) return { bonus: SLOW_BONUS, dotColor: errColor };
+    if (elapsedSecs > FAST_THRESHOLD) return { bonus: 0, dotColor: warnColor };
+    return { bonus: FAST_BONUS, dotColor: goodColor };
+  }, [elapsedSecs, errColor, warnColor, goodColor]);
 
   const total = useMemo(() => points + bonus + sectionBonus, [points, bonus, sectionBonus]);
 
