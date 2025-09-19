@@ -19,16 +19,18 @@ import { getBreakpoints, makeSizes, pick } from '../utils/breakpoints';
 // Compute breakpoints statically for styles
 const bp = getBreakpoints();
 const S = makeSizes(bp);
-const FIELD_W = Math.round(S.DIE_SIZE * 1.9);
-const FACE = Math.round(S.DIE_SIZE * 0.90);
-const FIELD_H = Math.round(S.DIE_SIZE * 0.88);
-const BORDER_W = bp.isTablet ? 0.8 : bp.isBigScreen ? 2 : 1.5;  // Dice border width
-const MARGIN = bp.isTablet ? 0.8 : bp.isBigScreen ? 5 : 4;
+const FIELD_W = bp.isTablet ? 200 : bp.isBigScreen ? 80 : 80; // Score field width
+const FIELD_H = bp.isTablet ? 60 : bp.isBigScreen ? 40 : 40; // Score field height
+const BORDER_W = bp.isTablet ? 4 : bp.isBigScreen ? 2 : 1.5;  // Dice border width
+const BORDER_WIDTH = bp.isTablet ? "65%" : bp.isBigScreen ? "92%" : "92%";  // Dice border width
+const MARGIN = bp.isTablet ? 20 : bp.isBigScreen ? 7 : 7; // Margin for dice grid items
+const ICON_SIZE = bp.isTablet ? 60 : bp.isBigScreen ? 45 : 40; // Icon size in Gameboard
+const MARGINTOP = bp.isTablet ? -150 : bp.isBigScreen ? -8 : 6; // Margin top for dice row
+const SECTIONCONTAINER = bp.isTablet ? 100 : bp.isBigScreen ? 90 : 80; // Section container size
+const FONTSIZE = bp.isTablet ? 22 : bp.isBigScreen ? 15 : 13; // Font size for score text
+const DIEFACE_MARGINBOTTOM = bp.isTablet ? 15 : bp.isBigScreen ? 2 : 2; // Die face margin bottom
+const FOOTERWRAP_PADDINGVERTICAL = bp.isTablet ? 100 : bp.isBigScreen ? 0 : -2; // Footer wrap vertical padding
 
-
-// Preserve original size logic with breakpoint helpers
-const GRID_H = pick(bp, 35, 40, 40); // was: isSmallScreen ? 35 : isBigScreen ? 40 : 40
-const GRID_W = pick(bp, 35, 40, 60); // was: isSmallScreen ? 35 : isBigScreen ? 60 : 40
 
 const styles = StyleSheet.create({
     // Containers
@@ -40,32 +42,34 @@ const styles = StyleSheet.create({
         backgroundColor: COLORS.overlayDark,
         width: '100%',
     },
+    list: {
+    marginTop: MARGINTOP,
+    },
     gameboardContainer: {
         width: '100%',
-        alignSelf: 'center',
+        alignSelf: 'center',      
     },
     gameboard: {
         flex: 1,
-        marginTop: Math.max(8, S.HEADER_HEIGHT - 4),
         alignItems: 'center',
         justifyContent: 'center',
     },
     sectionContainer: {
-        width: 70,
-        height: 70,
+        width: SECTIONCONTAINER,
+        height: SECTIONCONTAINER,
         marginTop: 90,
-        marginLeft: 30,
+        marginLeft: 30, 
         justifyContent: 'center',
         alignItems: 'center',
         padding: SPACING.sm,
-        borderRadius: 100,
+        borderRadius: SECTIONCONTAINER / 2,
         borderWidth: 1,
         borderColor: 'white',
         backgroundColor: COLORS.backgroundGray,
     },
     sectionContainerAchieved: {
-        width: 72,
-        height: 72,
+        width: SECTIONCONTAINER,
+        height: SECTIONCONTAINER,
         marginTop: 90,
         marginLeft: 30,
         justifyContent: 'center',
@@ -101,7 +105,7 @@ const styles = StyleSheet.create({
         height: FIELD_H,
         marginRight: SPACING.md,
         marginTop: SPACING.xs,
-        fontSize: TYPOGRAPHY.fontSize.lg,
+        fontSize: FONTSIZE,
         textAlign: 'center',
         borderWidth: 1,
         borderColor: COLORS.white,
@@ -118,7 +122,7 @@ const styles = StyleSheet.create({
         height: FIELD_H,
         marginRight: SPACING.md,
         marginTop: SPACING.xs,
-        fontSize: TYPOGRAPHY.fontSize.lg,
+        fontSize: FONTSIZE,
         textAlign: 'center',
         borderWidth: 2,
         borderColor: COLORS.error,
@@ -134,7 +138,7 @@ const styles = StyleSheet.create({
         height: FIELD_H,
         marginRight: 15,
         marginTop: SPACING.xs,
-        fontSize: TYPOGRAPHY.fontSize.lg,
+        fontSize: FONTSIZE,
         textAlign: 'center',
         borderWidth: 2,
         borderColor: 'green',
@@ -154,28 +158,28 @@ const styles = StyleSheet.create({
 
     // Text styles
     sectionBonusTxt: {
-        fontSize: TYPOGRAPHY.fontSize.xs,
+        fontSize: FONTSIZE,
         textAlign: 'center',
         color: COLORS.textDark,
         fontFamily: TYPOGRAPHY.fontFamily.bangers,
     },
     inputIndexShown: {
-        fontSize: TYPOGRAPHY.fontSize.lg,
+        fontSize: FONTSIZE * 1.2,
         fontFamily: TYPOGRAPHY.fontFamily.montserratExtraBold,
         color: COLORS.textDark,
         textAlign: 'center',
         textAlignVertical: 'center',
-        lineHeight: TYPOGRAPHY.fontSize.lg,
+        lineHeight: FONTSIZE * 1.2,
     },
     gridTxt: {
-        height: S.DIE_SIZE,
-        width: S.DIE_SIZE,
+        height: ICON_SIZE,
+        width: ICON_SIZE,
         fontFamily: TYPOGRAPHY.fontFamily.bangers,
         color: COLORS.textDark,
-        fontSize: TYPOGRAPHY.fontSize.md,
+        fontSize: FONTSIZE * 1.2,
         textAlign: 'center',
         padding: SPACING.xs,
-        marginTop: -2,
+        marginTop: -5,                    //tähän säätö
         borderColor: COLORS.backgroundDark,
         borderRadius: 5,
         backgroundColor: COLORS.backgroundDark,
@@ -194,28 +198,28 @@ const styles = StyleSheet.create({
     },
     footerWrap: {
         alignItems: 'center',
-        paddingVertical: 4,
+        paddingVertical: FOOTERWRAP_PADDINGVERTICAL, // tähän säätö
     },
     diceRowContainer: {
         backgroundColor: '#0a0a0a',
         borderRadius: 8,
-        paddingHorizontal: 2,
+        paddingHorizontal: 0,
         paddingVertical: 2,
     },
-
     diceBorder: {
-        width: FIELD_W * 4,
+        width: BORDER_WIDTH,
         alignSelf: 'center',
         backgroundColor: '#0a0a0a',
-        borderWidth: BORDER_W,        // ← tästä säädät kehyksen paksuutta
+        borderWidth: BORDER_W,
         borderColor: '#eee',
         borderRadius: 8,
-        paddingHorizontal: 12,
+        paddingHorizontal: 10,
         paddingVertical: 2,
     },
     dieFace: {
-        width: S.FACE,
-        height: S.FACE,
+        width: ICON_SIZE,
+        height: ICON_SIZE,
+        marginBottom: DIEFACE_MARGINBOTTOM,
         resizeMode: 'contain'
     },
 });

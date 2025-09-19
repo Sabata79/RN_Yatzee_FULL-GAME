@@ -94,7 +94,7 @@ export default function Gameboard({ route, navigation }) {
 
  const tileSize =
   bp.isTablet
-    ? Math.round(SZ.FACE * 0.72)   // tabletit: pienempi noppa
+    ? Math.round(SZ.FACE * 1.8)   // tabletit: pienempi noppa
     : bp.isWidePhone
     ? Math.round(SZ.FACE * 1.4)   // leveät puhelimet (Pixel 7, S22)
     : Math.round(SZ.FACE * 1.4);  // peruspuhelimet
