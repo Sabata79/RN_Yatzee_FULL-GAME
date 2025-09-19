@@ -3,7 +3,7 @@
     "sdkVersion": "53.0.0",
     "name": "Yatzy",
     "slug": "SimpleYatzee",
-    "version": "2.2.2",
+    "version": "3.0.0",
     "orientation": "portrait",
     "icon": "./assets/desktopIcon.png",
     "userInterfaceStyle": "light",
@@ -17,8 +17,8 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "runtimeVersion": "2.2.2",
-      "buildNumber": "2.2.2",
+      "runtimeVersion": "3.0.0",
+      "buildNumber": "3.0.0",
       "bundleIdentifier": "com.SimpleYatzee"
     },
     "android": {
@@ -35,7 +35,7 @@
         "ACCESS_NETWORK_STATE",
         "WAKE_LOCK"
       ],
-      "runtimeVersion": "2.2.2"
+      "runtimeVersion": "3.0.0"
     },
     "web": {
       "favicon": "./assets/favicon.png"

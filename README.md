@@ -7,21 +7,21 @@ This mobile application is a digital version of the classic dice game Yatzy, bui
 
 **Note:** This repository does not include the `assets/` folder (images, sounds, etc.) for copyright and privacy reasons. The codebase is intended for code review and demonstration purposes only. If you wish to play the game, you can download it from the Google Play Store (see link below).
 
+
 ## Features
 
 - **Classic Yatzy Gameplay:** Experience the traditional Yatzy game with all standard rules and scoring.
-- **Optimized for Android:** The game is built and optimized for Android devices.
-- **Intuitive User Interface:** Easy-to-navigate screens for a smooth gaming experience.
+- **Fully Responsive Gameboard:** Complete support for both tablets and phones. Footer dice size is now adjustable for optimal experience on all devices.
+- **New Score Modal:** Redesigned score modal for improved clarity and usability.
+- **New Avatars & Elite Background:** Unlock new avatars and a special elite background for top players.
+- **Sound Effects:** Immersive sound effects added throughout the game.
+- **Refactored Codebase:** The entire project structure has been refactored for maintainability and performance.
+- **Credits Section:** Added a credits section to the About Me page.
+- **Unified Bonus Logic:** Bonus logic in ScoreModal and Scoreboard is now consistent and reliable.
+- **UI/UX Improvements:** Modernized look, improved dice/footer layout, and overall smoother user experience.
+- **Energy Token System:** Tokens regenerate automatically, even when the app is closed.
 - **Firebase Integration:** Manage and track your high scores using Firebase.
-- **Score Tracking:** Keep track of your high scores and personal records.
-- **User Device Recognition:** Improved user recognition for a better login experience.
-- **Player Top Scores:** View a player's top 5 scores with detailed information.
-- **Monthly Best Players:** Check the best players for each month.
-- **Weekly Best Players:** Check the best players for each week.
-- **PlayerCard with Trophies:** View a player's top scores along with a trophy case showing monthly rankings.
-- **Avatars:** Unlock and gain different avatars as you progress through the game.
-- **Modal for Score Rules:** Display score comparison rules in a user-friendly modal.
-- **Account Linking:** Linking your account with an email and password is optional but highly recommended. It ensures that your game data is securely stored in the cloud, allowing you to access your progress from any device. If you don't link your account, your progress is stored locally on your device only, which may lead to data loss if your device is lost or damaged.
+- **Account Linking:** Securely link your account with email and password for cloud saves and device sync.
 
 ## Folder Structure
 
@@ -56,6 +56,18 @@ This repository is intended for code review and demonstration purposes. The code
 After launching the game, you'll be greeted with a simple menu where you can start a new game, view high scores, or read the game rules. Tap 'Start Game' to begin your Yatzy adventure!
 
 ## Changelog
+
+### Version 3.0.0 (September 2025)
+- **Fully Responsive Gameboard:** Complete support for tablets and phones, with adjustable footer dice size.
+- **New Score Modal:** Redesigned for clarity and ease of use.
+- **New Avatars & Elite Background:** Unlockable avatars and a special elite background for top players.
+- **Sound Effects:** Added immersive sound effects throughout the game.
+- **Major Refactor:** The entire codebase has been refactored for better maintainability and performance.
+- **Credits Section:** Added to the About Me page.
+- **Unified Bonus Logic:** Bonus logic in ScoreModal and Scoreboard is now consistent.
+- **UI/UX Improvements:** Modernized look, improved dice/footer layout, and smoother user experience.
+- **Energy Token System:** Tokens regenerate automatically, even when the app is closed.
+- **Bug Fixes:** Fixed issues with energy tokens and modal logic.
 
 ### Version 2.2.2 (August 2025)
 - **Ads Removed:** All advertisements have been removed for a cleaner experience.
