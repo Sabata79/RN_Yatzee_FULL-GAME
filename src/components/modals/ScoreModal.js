@@ -187,7 +187,14 @@ export default function ScoreModal({
             <Text style={styles.label}>Section bonus</Text>
             <Animated.View style={{ transform: [{ translateX: slideAnims[2] }] }}>
               {revealIndex >= 3 ? (
-                <Text style={styles.value}>{sectionBonus > 0 ? `+${sectionBonus}` : sectionBonus} pts</Text>
+                <Text
+                  style={[
+                    styles.value,
+                    { color: sectionBonus > 0 ? goodColor : COLORS.textLight },
+                  ]}
+                >
+                  {sectionBonus > 0 ? `+${sectionBonus}` : sectionBonus} pts
+                </Text>
               ) : (
                 <Text style={styles.value}> </Text>
               )}
