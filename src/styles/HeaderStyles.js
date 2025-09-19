@@ -100,8 +100,8 @@ const headerStyles = StyleSheet.create({
   },
   linkIconContainer: {
     position: 'absolute',
-    top: 5,
-    left: SPACING.sm,
+    top: 4,
+    left: -6,
     padding: 2,
     borderRadius: 40,
     borderColor: '#4c4949',
