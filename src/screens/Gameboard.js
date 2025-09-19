@@ -97,7 +97,7 @@ export default function Gameboard({ route, navigation }) {
     ? Math.round(SZ.FACE * 0.72)   // tabletit: pienempi noppa
     : bp.isWidePhone
     ? Math.round(SZ.FACE * 1.4)   // leveät puhelimet (Pixel 7, S22)
-    : Math.round(SZ.FACE * 0.88);  // peruspuhelimet
+    : Math.round(SZ.FACE * 1.4);  // peruspuhelimet
 
   const diceRowMinH = Math.round(tileSize * 1.20);
 

@@ -23,7 +23,7 @@ const FIELD_W = Math.round(S.DIE_SIZE * 1.9);
 const FACE = Math.round(S.DIE_SIZE * 0.90);
 const FIELD_H = Math.round(S.DIE_SIZE * 0.88);
 const BORDER_W = bp.isTablet ? 0.8 : bp.isBigScreen ? 2 : 1.5;  // Dice border width
-const MARGIN = bp.isTablet ? 0.8 : bp.isBigScreen ? 5 : 0.8;
+const MARGIN = bp.isTablet ? 0.8 : bp.isBigScreen ? 5 : 4;
 
 
 // Preserve original size logic with breakpoint helpers
@@ -32,6 +32,14 @@ const GRID_W = pick(bp, 35, 40, 60); // was: isSmallScreen ? 35 : isBigScreen ? 
 
 const styles = StyleSheet.create({
     // Containers
+    centerHost: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        alignSelf: 'center',
+        backgroundColor: COLORS.overlayDark,
+        width: '100%',
+    },
     gameboardContainer: {
         width: '100%',
         alignSelf: 'center',
