@@ -42,6 +42,7 @@ import GridField from '../components/GridField';
 import ScoreModal from '../components/modals/ScoreModal';
 import EnergyModal from '../components/modals/EnergyModal';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useBreakpoints, makeSizes } from '../utils/breakpoints';
 
 const { height } = Dimensions.get('window');
 const isSmallScreen = height < 720;
@@ -61,15 +62,16 @@ const RenderDices = React.memo(function RenderDices({
   onRollPress,
   canSetPoints,
   onSetPointsPress,
+  diceRowMinH,
 }) {
   return (
     <View style={gameboardstyles.footerWrap}>
       <Text style={gameboardstyles.scoreText}>Total: {totalPoints}</Text>
-      <View style={gameboardstyles.diceBorder}>
-        <View style={[gameboardstyles.gameboardContainer, { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }]}>
-          {diceRow}
+        <View style={[gameboardstyles.diceBorder, { minHeight: diceRowMinH }]}>
+          <View style={[gameboardstyles.gameboardContainer, { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }]}>
+            {diceRow}
+          </View>
         </View>
-      </View>
       <GameboardButtons
         rounds={rounds}
         nbrOfThrowsLeft={nbrOfThrowsLeft}
@@ -86,6 +88,18 @@ export default function Gameboard({ route, navigation }) {
   const { savePlayerPoints } = useGameSave();
   const { elapsedTime } = useElapsedTime();
   const { playSfx, playSelect, playDeselect, playDiceTouch } = useAudio();
+
+  const bp = useBreakpoints();
+  const SZ = makeSizes(bp);
+
+ const tileSize =
+  bp.isTablet
+    ? Math.round(SZ.FACE * 0.72)   // tabletit: pienempi noppa
+    : bp.isWidePhone
+    ? Math.round(SZ.FACE * 1.4)   // leveät puhelimet (Pixel 7, S22)
+    : Math.round(SZ.FACE * 0.88);  // peruspuhelimet
+
+  const diceRowMinH = Math.round(tileSize * 1.20);
 
   const audioApi = useMemo(
     () => ({ playSfx, playSelect, playDeselect, playDiceTouch }),
@@ -345,6 +359,8 @@ export default function Gameboard({ route, navigation }) {
     [selectDice]
   );
 
+  const { width, height } = Dimensions.get('window');
+  const isTablet = Math.min(width, height) >= 600;
   const diceRow = useMemo(
     () =>
       Array.from({ length: NBR_OF_DICES }, (_, i) => (
@@ -357,9 +373,12 @@ export default function Gameboard({ route, navigation }) {
           color={getDiceColor(i)}
           isRolling={isRolling && !selectedDices[i]}
           canInteract={canSelectNow && !rollingGlobal}
+          tileSize={tileSize}       // ← uusi
+          columns={5}
+          hPadding={bp.isTablet ? 80 : 65}
         />
       )),
-    [board, selectedDices, onSelectHandlers, diceAnimations, getDiceColor, isRolling, canSelectNow, rollingGlobal]
+    [board, selectedDices, onSelectHandlers, diceAnimations, getDiceColor, isRolling, canSelectNow, rollingGlobal, tileSize, bp.isTablet]
   );
 
   // ScoreModal -> save score and reset game if successful
@@ -385,6 +404,7 @@ export default function Gameboard({ route, navigation }) {
         onRollPress={onRollPress}
         canSetPoints={Boolean(selectedField)}
         onSetPointsPress={onSetPointsPress}
+        diceRowMinH={diceRowMinH}
       />
     ),
     [
@@ -428,9 +448,13 @@ export default function Gameboard({ route, navigation }) {
         </>
       )}
 
-      <View style={[styles.overlay, { alignSelf: 'stretch', width: '100%' }]}>
+      <View style={gameboardstyles.centerHost}>
         <FlatList
+          style={gameboardstyles.list}
+          contentContainerStyle={gameboardstyles.listContent}
+          columnWrapperStyle={gameboardstyles.columnWrap}
           data={data}
+          numColumns={4}
           renderItem={({ index }) => (
             <GridField
               index={index}
@@ -449,12 +473,11 @@ export default function Gameboard({ route, navigation }) {
               NBR_OF_THROWS={NBR_OF_THROWS}
             />
           )}
-          numColumns={4}
           keyExtractor={(item) => item.key}
-          contentContainerStyle={gameboardstyles.gameboardContainer}
-          ListEmptyComponent={null}
           ListHeaderComponent={<RenderFirstRow rounds={rounds} />}
           ListFooterComponent={renderFooter}
+          ListHeaderComponentStyle={{ marginBottom: 6 }}
+          ListFooterComponentStyle={{ marginTop: 6 }}
           extraData={{ scoringCategories, totalPoints, minorPoints, selectedField, nbrOfThrowsLeft, rounds }}
         />
       </View>

@@ -53,14 +53,7 @@
  */
 import { useEffect, useMemo } from 'react';
 import {
-  Animated,
-  Image,
-  Pressable,
-  View,
-  StyleSheet,
-  Easing,
-  Platform,
-  useWindowDimensions,
+  Animated, Image, Pressable, View, StyleSheet, Easing, Platform, useWindowDimensions,
 } from 'react-native';
 
 const SPRITE_SHEET = require('../../assets/Spritesheet/dice_spritesheet.webp');
@@ -68,7 +61,7 @@ const SPRITE_WIDTH = 412;
 const SPRITE_HEIGHT = 4923;
 const TOTAL_FRAMES = 16;
 
-const DiceAnimation = ({
+export default function DiceAnimation({
   diceName,
   isSelected,
   onSelect,
@@ -76,24 +69,27 @@ const DiceAnimation = ({
   color,
   isRolling,
   canInteract = true,
-}) => {
+  // uudet, vapaaehtoiset
+  tileSize,              // numero: pakota nopan koko (px)
+  columns = 5,           // riveissä nopat vierekkäin
+  hPadding = 65,         // vanhan laskurin oletusmarginaali
+}) {
   const { width } = useWindowDimensions();
 
-  // --- Responsive sizing (5 dice across by default) ---
-  const columns = 5;
-  const H_PADDING = 65;                    // estimated horizontal padding of the row container
-  const marginEachSide = Math.max(3, Math.round(width * 0.01)); // per-side margin for each tile
-  const rawSize = Math.round(
-    (width - H_PADDING - columns * 2 * marginEachSide) / columns
+  // 1) Koko: jos tileSize annettu → käytä sitä. Muuten fallback vanhaan laskentaan
+  const marginEachSide = Math.max(3, Math.round(width * 0.01));
+  const computedRaw = Math.round(
+    (width - hPadding - columns * 2 * marginEachSide) / columns
   );
-  const SIZE = Math.max(44, Math.min(72, rawSize)); // clamp for usability on very small/large screens
+  const fallbackSize = Math.max(44, Math.min(72, computedRaw));
+  const SIZE = Math.round(tileSize ?? fallbackSize);
 
-  // Sprite scaling based on tile height
-  const frameHeightOriginal = SPRITE_HEIGHT / TOTAL_FRAMES;
-  const scaleFactor = SIZE / frameHeightOriginal;
-  const scaledSpriteHeight = Math.round(SPRITE_HEIGHT * scaleFactor);
+  // 2) Sprite-skaala
+  const frameH = SPRITE_HEIGHT / TOTAL_FRAMES;
+  const scale = SIZE / frameH;
+  const scaledSpriteHeight = Math.round(SPRITE_HEIGHT * scale);
 
-  // Interpolate sprite Y
+  // 3) Kehyksen scrollaus
   const translateY = useMemo(
     () =>
       animationValue.interpolate({
@@ -103,10 +99,10 @@ const DiceAnimation = ({
     [animationValue, SIZE]
   );
 
-  // Loop animation while rolling
+  // 4) Looppi heiton aikana
   useEffect(() => {
     if (isRolling) {
-      const loopAnimation = Animated.loop(
+      const loop = Animated.loop(
         Animated.timing(animationValue, {
           toValue: TOTAL_FRAMES - 1,
           duration: 500,
@@ -114,29 +110,20 @@ const DiceAnimation = ({
           useNativeDriver: true,
         })
       );
-      loopAnimation.start();
-      return () => loopAnimation.stop();
-    } else {
-      animationValue.stopAnimation();
-      animationValue.setValue(0);
+      loop.start();
+      return () => loop.stop();
     }
+    animationValue.stopAnimation();
+    animationValue.setValue(0);
   }, [isRolling, animationValue]);
 
-  // Runtime style overrides derived from SIZE
+  // 5) Runtime-tyylit koosta
   const r = useMemo(
     () => ({
-      container: {
-        width: SIZE,
-        height: SIZE,
-        margin: marginEachSide,
-      },
-      spriteContainer: {
-        width: SIZE + 1,   // +1 to avoid sub-pixel gaps
-        height: SIZE + 1,
-      },
+      container: { width: SIZE, height: SIZE, margin: marginEachSide },
+      spriteContainer: { width: SIZE + 1, height: SIZE + 1 },
       overlay: {
-        width: SIZE,
-        height: SIZE,
+        width: SIZE, height: SIZE,
         borderRadius: Math.round(SIZE * 0.1),
         borderWidth: Math.max(1, Math.round(SIZE * 0.04)),
       },
@@ -170,9 +157,7 @@ const DiceAnimation = ({
                 height: scaledSpriteHeight,
                 transform: [{ translateY }],
                 backfaceVisibility: 'hidden',
-                ...(Platform.OS === 'android'
-                  ? { renderToHardwareTextureAndroid: true }
-                  : null),
+                ...(Platform.OS === 'android' ? { renderToHardwareTextureAndroid: true } : null),
               }}
               resizeMode="cover"
             />
@@ -184,9 +169,7 @@ const DiceAnimation = ({
               width: '100%',
               height: '100%',
               resizeMode: 'contain',
-              ...(Platform.OS === 'android'
-                ? { renderToHardwareTextureAndroid: true }
-                : null),
+              ...(Platform.OS === 'android' ? { renderToHardwareTextureAndroid: true } : null),
             }}
           />
         )}
@@ -197,19 +180,10 @@ const DiceAnimation = ({
       </Pressable>
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
-  container: {
-    zIndex: 2,
-  },
-  spriteContainer: {
-    overflow: 'hidden',
-  },
-  overlay: {
-    position: 'absolute',
-    backgroundColor: '#00ff112c',
-  },
+  container: { zIndex: 2 },
+  spriteContainer: { overflow: 'hidden' },
+  overlay: { position: 'absolute', backgroundColor: '#00ff112c' },
 });
-
-export default DiceAnimation;

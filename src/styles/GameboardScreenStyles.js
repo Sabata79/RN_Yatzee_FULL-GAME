@@ -21,6 +21,10 @@ const bp = getBreakpoints();
 const S = makeSizes(bp);
 const FIELD_W = Math.round(S.DIE_SIZE * 1.9);
 const FACE = Math.round(S.DIE_SIZE * 0.90);
+const FIELD_H = Math.round(S.DIE_SIZE * 0.88);
+const BORDER_W = bp.isTablet ? 0.8 : bp.isBigScreen ? 2 : 1.5;  // Dice border width
+const MARGIN = bp.isTablet ? 0.8 : bp.isBigScreen ? 5 : 0.8;
+
 
 // Preserve original size logic with breakpoint helpers
 const GRID_H = pick(bp, 35, 40, 40); // was: isSmallScreen ? 35 : isBigScreen ? 40 : 40
@@ -37,7 +41,6 @@ const styles = StyleSheet.create({
         marginTop: Math.max(8, S.HEADER_HEIGHT - 4),
         alignItems: 'center',
         justifyContent: 'center',
-        maxWidth: 500,
     },
     sectionContainer: {
         width: 70,
@@ -56,6 +59,7 @@ const styles = StyleSheet.create({
         width: 72,
         height: 72,
         marginTop: 90,
+        marginLeft: 30,
         justifyContent: 'center',
         alignItems: 'center',
         padding: 5,
@@ -86,7 +90,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         color: COLORS.overlayLight,
         width: FIELD_W,
-        height: S.DIE_SIZE,
+        height: FIELD_H,
         marginRight: SPACING.md,
         marginTop: SPACING.xs,
         fontSize: TYPOGRAPHY.fontSize.lg,
@@ -103,7 +107,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         color: COLORS.black,
         width: FIELD_W,
-        height: S.DIE_SIZE,
+        height: FIELD_H,
         marginRight: SPACING.md,
         marginTop: SPACING.xs,
         fontSize: TYPOGRAPHY.fontSize.lg,
@@ -119,7 +123,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         color: COLORS.black,
         width: FIELD_W,
-        height: S.DIE_SIZE,
+        height: FIELD_H,
         marginRight: 15,
         marginTop: SPACING.xs,
         fontSize: TYPOGRAPHY.fontSize.lg,
@@ -137,7 +141,7 @@ const styles = StyleSheet.create({
         height: S.DIE_SIZE,
         alignItems: 'center',
         justifyContent: 'center',
-        marginTop: SPACING.sm,
+        marginTop: MARGIN,
     },
 
     // Text styles
@@ -184,17 +188,22 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingVertical: 4,
     },
+    diceRowContainer: {
+        backgroundColor: '#0a0a0a',
+        borderRadius: 8,
+        paddingHorizontal: 2,
+        paddingVertical: 2,
+    },
 
     diceBorder: {
-        width: '92%',
+        width: FIELD_W * 4,
         alignSelf: 'center',
         backgroundColor: '#0a0a0a',
-        borderWidth: 2,
+        borderWidth: BORDER_W,        // ← tästä säädät kehyksen paksuutta
         borderColor: '#eee',
         borderRadius: 8,
         paddingHorizontal: 12,
         paddingVertical: 2,
-        minHeight: Math.round(S.DIE_SIZE * 1.5),
     },
     dieFace: {
         width: S.FACE,
