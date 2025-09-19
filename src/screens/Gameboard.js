@@ -112,7 +112,7 @@ export default function Gameboard({ route, navigation }) {
     setIsGameSaved,
   } = useGame();
 
-  const [scoreOpen, setScoreOpen] = useState(false);
+  const [scoreOpen, setScoreOpen] = useState(true);
   const [isLayerVisible, setLayerVisible] = useState(true);
 
   // Game state

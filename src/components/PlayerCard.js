@@ -475,12 +475,25 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     );
   };
 
+
+  // Selvitetään oikea taustakuva, mutta älä renderöi beginnerBG:tä placeholderina
   const playerCardBg = getPlayerCardBackground(levelInfo.level);
   const isDefaultBg = playerCardBg === require('../../assets/playerCardBg/BeginnerBG.webp');
 
-  // Jos taustakuva ei ole oikea ja taso ei ole beginner, älä renderöi korttia
+  // Jos taustakuva ei ole vielä tiedossa (ja taso ei ole beginner), näytetään vain ActivityIndicator
   if (isModalVisible && isDefaultBg && levelInfo.level.toLowerCase() !== 'beginner') {
-    return null;
+    return (
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={isModalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="large" color="#fff" />
+        </View>
+      </Modal>
+    );
   }
 
   const avatarSrc = getAvatarImage(getAvatarToDisplay());
