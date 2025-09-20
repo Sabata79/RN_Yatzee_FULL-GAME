@@ -7,6 +7,9 @@
     "node": ">=20.19.4",
     "npm": ">=10.8.2"
   },
+  "overrides": {
+    "expo-modules-autolinking": "3.0.11"
+  },
   "scripts": {
     "start": "npx expo start --localhost --android",
     "android": "npx expo run:android",
