@@ -1,0 +1,36 @@
+# Dev / IDE
+.vscode/
+.expo/
+*.log
+
+# Paikalliset build-artefaktit
+dist/
+build/
+*.iml
+
+# Android/iOS paikalliset buildit & välimuistit
+android/.gradle/
+android/app/build/
+android/local.properties
+ios/Pods/
+ios/build/
+
+# Testit / työkalut
+tools/
+__tests__/
+__mocks__/
+coverage/
+docs/
+.storybook/
+
+# EAS asentaa nämä pilvessä lockfilestä
+node_modules/
+
+# Älä koskaan lähetä keystoreja
+*.keystore
+*.jks
+
+# (valinnainen) jätä pois EAS-arkistosta
+.github/
+.env
+.env.*

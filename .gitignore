@@ -70,4 +70,4 @@ yarn-error.*
 # Local-only / sensitive configs (optional to keep out of VCS)
 eas.json
 *.secret.json
-.easignore
+# .easignore
