@@ -1,15 +1,17 @@
-# Project root files to ignore
+# --- Project root files to ignore (keep repo clean)
 EnergyTokenSystem.js
-.easignore
 eas.config.js
 babel.config.js
 checkfonts.js
 metro.config.js
-.github
-# Editor settings
+
+# GitHub workflows (keep if private)
+.github/
+
+# Editor
 .vscode/
 
-# Firebase config
+# Firebase (don't commit secrets)
 google-services.json
 firebase-empty.js
 
@@ -17,69 +19,55 @@ firebase-empty.js
 *.log
 *.patch
 
-# Sertifikaatit ja avaimet
+# Certificates & keys
 *.keystore
 *.jks
 *.pem
 *.p12
 *.key
 *.p8
+*.mobileprovision
 
-# Ympäristömuuttujat
+# Environment files
 *.env
 *.env.*
 
-# Macin piilotiedostot
+# macOS
 .DS_Store
-# Hide assets folder from public repository
-assets/
-paches/
-# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
 
-# dependencies
+# Assets (IF you really want them private; otherwise remove this!)
+# assets/
+
+# Typo fix (was 'paches/')
+patches/
+
+# Dependencies
 node_modules/
 
-# Expo
+# Expo caches & web builds
 .expo/
 dist/
 web-build/
 
-# Native
+# Native (DO NOT ignore android/ in bare!)
 *.orig.*
-*.jks
-*.p8
-*.p12
-*.key
-*.mobileprovision
-android/
+
+# Local tools (keep if you don’t want to track scripts; otherwise remove)
 tools/
 polyfills/
+
 # Metro
 .metro-health-check*
 
-# debug
+# Debug logs
 npm-debug.*
 yarn-debug.*
 yarn-error.*
 
-# macOS
-.DS_Store
-*.pem
-
-# local env files
-.env*.local
-.env
-
-# typescript
+# TypeScript
 *.tsbuildinfo
 
-# Ignore config files that are sensitive or local-only
+# Local-only / sensitive configs (optional to keep out of VCS)
 eas.json
 *.secret.json
-
-# eas ignore
-eas.json
 .easignore
-
-# Energy Token System file
-EnergyTokenSystem.js".github/" 
