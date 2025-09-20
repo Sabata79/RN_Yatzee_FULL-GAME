@@ -1,11 +1,10 @@
 {
   "expo": {
-    "sdkVersion": "53.0.0",
     "name": "Yatzy",
     "slug": "SimpleYatzee",
     "version": "3.0.0",
     "orientation": "portrait",
-    "icon": "./assets/desktopIcon.png",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/splash.png",
@@ -17,17 +16,15 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "runtimeVersion": "3.0.0",
+      "bundleIdentifier": "com.SimpleYatzee",
       "buildNumber": "3.0.0",
-      "bundleIdentifier": "com.SimpleYatzee"
+      "runtimeVersion": {
+        "policy": "appVersion"
+      }
     },
     "android": {
       "edgeToEdgeEnabled": true,
       "softwareKeyboardLayoutMode": "resize",
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/desktopIcon.png",
-        "backgroundColor": "#2c3e50"
-      },
       "package": "com.SimpleYatzee",
       "googleServicesFile": "./google-services.json",
       "permissions": [
@@ -35,7 +32,9 @@
         "ACCESS_NETWORK_STATE",
         "WAKE_LOCK"
       ],
-      "runtimeVersion": "3.0.0"
+      "runtimeVersion": {
+        "policy": "appVersion"
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -66,7 +65,8 @@
           "image": "./assets/splash.png"
         }
       ],
-      "expo-video"
+      "expo-video",
+      "expo-asset"
     ],
     "updates": {
       "url": "https://u.expo.dev/d8c9a220-7647-4af7-906f-8ce3856b7189",
