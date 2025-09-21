@@ -65,7 +65,7 @@ yarn-error.*
 *.tsbuildinfo
 
 # Local-only / sensitive configs (optional to keep out of VCS)
-eas.json
+# eas.json
 *.secret.json
 
 # Native block
