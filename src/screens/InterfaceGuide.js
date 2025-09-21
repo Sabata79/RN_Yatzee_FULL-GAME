@@ -65,12 +65,12 @@ export default function InterfaceGuide() {
 
           <View style={gameRulesStyles.bulletRow}>
             <View style={gameRulesStyles.bullet}><Text style={gameRulesStyles.bulletText}>2</Text></View>
-            <Text style={gameRulesStyles.infoText}>Player level, progress bar, and stats</Text>
+            <Text style={gameRulesStyles.infoText}>level, progress bar, and stats</Text>
           </View>
 
           <View style={gameRulesStyles.bulletRow}>
             <View style={gameRulesStyles.bullet}><Text style={gameRulesStyles.bulletText}>3</Text></View>
-            <Text style={gameRulesStyles.infoText}>Top scores with duration and dates</Text>
+            <Text style={gameRulesStyles.infoText}>Scores with duration and dates</Text>
           </View>
 
           <View style={gameRulesStyles.bulletRow}>
