@@ -7,9 +7,9 @@
  * @since 2025-08-29
  */
 import { StyleSheet } from 'react-native';
-import COLORS from '../constants/colors';
-import TYPOGRAPHY from '../constants/typography';
-import SPACING from '../constants/spacing';
+// import COLORS from '../constants/colors';
+// import TYPOGRAPHY from '../constants/typography';
+// import SPACING from '../constants/spacing';
 
 const updateModalStyles = StyleSheet.create({
   updateModalOverlay: {
