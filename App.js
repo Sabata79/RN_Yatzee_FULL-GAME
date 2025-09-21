@@ -64,13 +64,13 @@ function AppShell() {
   const [updateModalVisible, setUpdateModalVisible] = useState(false);
   const insets = useSafeAreaInsets();
 
-  // --- ANDROID NAV BAR: immersive (overlay + hidden). Ei keyboard-kikkailuja. ---
+  // --- ANDROID NAV BAR ---
   const applyHidden = React.useCallback(async () => {
     if (Platform.OS !== 'android') return;
     try {
       // Edge-to-edge ja painikkeet vaaleiksi
       await NavigationBar.setButtonStyleAsync('light');
-      // Immersive-käyttäytyminen tuetuilla arvoilla
+      // Immersive status: nav bar overlay + hidden
       await NavigationBar.setVisibilityAsync('hidden');
     } catch {
       console.log('NavigationBar.applyHidden: ignored error / unsupported op', e);
