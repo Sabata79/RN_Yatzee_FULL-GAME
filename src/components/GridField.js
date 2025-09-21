@@ -480,7 +480,7 @@ function GridField({
     } else {
         return (
             <View style={gameboardstyles.item}>
-                <Text style={styles.text}></Text>
+                <Text style={{ fontSize: LABEL, color: 'white' }}></Text>
             </View>
         );
     }
