@@ -23,7 +23,7 @@ const { width, height } = Dimensions.get('window');
 const isSmallScreen = height < 650;
 const isBigScreen = height >= 1050;
 
-export default firstRowStyles = StyleSheet.create({
+const firstRowStyles = StyleSheet.create({
 
     firstRow: {
         marginTop: isBigScreen ? '30%' : 0,
@@ -54,3 +54,4 @@ export default firstRowStyles = StyleSheet.create({
         marginVertical: 5,
     },
 });
+export default firstRowStyles;

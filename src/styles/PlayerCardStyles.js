@@ -19,7 +19,7 @@ const avatarSize = isFoldScreen ? 75 : 80;
 
 
 
-export default styles = StyleSheet.create({
+const playerCardStyles = StyleSheet.create({
     playerCardMonthDark: {
         borderColor: '#F5F5F5',
     },
@@ -467,3 +467,4 @@ export default styles = StyleSheet.create({
         zIndex: 2,
     },
 });
+export default playerCardStyles;

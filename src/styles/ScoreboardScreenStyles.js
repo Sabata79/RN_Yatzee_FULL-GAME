@@ -23,7 +23,7 @@ const { width, height } = Dimensions.get('window');
 const isSmallScreen = height < 650;
 const isBigScreen = height >= 1050;
 
-export default scoreboardStyles = StyleSheet.create({
+const scoreboardStyles = StyleSheet.create({
     overlay: {
         flex: 1,
         backgroundColor: COLORS.overlayExtraDark,
@@ -223,3 +223,4 @@ export default scoreboardStyles = StyleSheet.create({
     },
 
 });
+export default scoreboardStyles;

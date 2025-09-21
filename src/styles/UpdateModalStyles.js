@@ -11,7 +11,7 @@ import COLORS from '../constants/colors';
 import TYPOGRAPHY from '../constants/typography';
 import SPACING from '../constants/spacing';
 
-export default updateModalStyles = StyleSheet.create({
+const updateModalStyles = StyleSheet.create({
   updateModalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -65,4 +65,5 @@ export default updateModalStyles = StyleSheet.create({
     fontWeight: 'bold',
   },
 });
+export default updateModalStyles;
 

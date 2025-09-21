@@ -11,7 +11,7 @@ import { useState, useEffect } from 'react';
 import { View, Text, Modal, Pressable, Image, ActivityIndicator } from 'react-native'; 
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useGame } from '../constants/GameContext';
-import styles from '../styles/PlayerCardStyles';
+import playerCardStyles from '../styles/PlayerCardStyles';
 import { dbOnValue, dbOff, dbGet, dbUpdate } from '../services/Firebase';
 import { avatars } from '../constants/AvatarPaths';
 import AvatarContainer from '../constants/AvatarContainer';
@@ -441,34 +441,34 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
   // Get trophy for specific month
   const getTrophyForMonth = (monthIndex) => {
     const rank = monthlyRanks[monthIndex];
-    if (rank === ' - ') return <Text style={styles.emptySlotText}> - </Text>;
+    if (rank === ' - ') return <Text style={playerCardStyles.emptySlotText}> - </Text>;
     if (rank === 1) {
       return (
-        <View style={styles.trophyContainer}>
-          <Image source={require('../../assets/trophies/goldTrophy.webp')} style={styles.playerCardTrophyImage} />
-          <Text style={styles.trophyText}>GOLD</Text>
+        <View style={playerCardStyles.trophyContainer}>
+          <Image source={require('../../assets/trophies/goldTrophy.webp')} style={playerCardStyles.playerCardTrophyImage} />
+          <Text style={playerCardStyles.trophyText}>GOLD</Text>
         </View>
       );
     }
     if (rank === 2) {
       return (
-        <View style={styles.trophyContainer}>
-          <Image source={require('../../assets/trophies/silverTrophy.webp')} style={styles.playerCardTrophyImage} />
-          <Text style={styles.trophyText}>SILVER</Text>
+        <View style={playerCardStyles.trophyContainer}>
+          <Image source={require('../../assets/trophies/silverTrophy.webp')} style={playerCardStyles.playerCardTrophyImage} />
+          <Text style={playerCardStyles.trophyText}>SILVER</Text>
         </View>
       );
     }
     if (rank === 3) {
       return (
-        <View style={styles.trophyContainer}>
-          <Image source={require('../../assets/trophies/bronzeTrophy.webp')} style={styles.playerCardTrophyImage} />
-          <Text style={styles.trophyText}>BRONZE</Text>
+        <View style={playerCardStyles.trophyContainer}>
+          <Image source={require('../../assets/trophies/bronzeTrophy.webp')} style={playerCardStyles.playerCardTrophyImage} />
+          <Text style={playerCardStyles.trophyText}>BRONZE</Text>
         </View>
       );
     }
     return (
       <Text
-        style={styles.rankSlotText}
+        style={playerCardStyles.rankSlotText}
       >
         {rank}.
       </Text>
@@ -496,69 +496,69 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
   const avatarSrc = getAvatarImage(getAvatarToDisplay());
 
   return (
-    <View style={styles.playerCardContainer}>
+    <View style={playerCardStyles.playerCardContainer}>
       <Modal
         animationType="fade"
         transparent={true}
         visible={isModalVisible}
         onRequestClose={() => setModalVisible(false)}
       >
-        <View style={styles.playerCardModalBackground}>
+        <View style={playerCardStyles.playerCardModalBackground}>
           <View
-            style={[styles.playerCardModalContainer, isDarkBg && styles.playerCardModalContainerDark]}
+            style={[playerCardStyles.playerCardModalContainer, isDarkBg && playerCardStyles.playerCardModalContainerDark]}
             onLayout={(event) => setModalHeight(event.nativeEvent.layout.height)}
           >
             {isBgLoading && (
-              <View style={[styles.avatarModalBackgroundImage, { justifyContent: 'center', alignItems: 'center', position: 'absolute', zIndex: 2 }]}> 
+              <View style={[playerCardStyles.avatarModalBackgroundImage, { justifyContent: 'center', alignItems: 'center', position: 'absolute', zIndex: 2 }]}> 
                 <ActivityIndicator size="large" color="#fff" />
               </View>
             )}
             <Image
               source={playerCardBg}
-              style={styles.avatarModalBackgroundImage}
+              style={playerCardStyles.avatarModalBackgroundImage}
               onLoadStart={() => setIsBgLoading(true)}
               onLoadEnd={() => setIsBgLoading(false)}
             />
             <CoinLayer weeklyWins={weeklyWins} modalHeight={modalHeight - 2} />
 
             {/* HEADER */}
-            <View style={styles.playerCardHeaderCentered}>
-              <View style={styles.nameAndLinkContainer}>
+            <View style={playerCardStyles.playerCardHeaderCentered}>
+              <View style={playerCardStyles.nameAndLinkContainer}>
                 {playerIsLinked && (
-                  <View style={[styles.linkIconContainer, isDarkBg && styles.linkIconContainerDark]}>
+                  <View style={[playerCardStyles.linkIconContainer, isDarkBg && playerCardStyles.linkIconContainerDark]}>
                     <FontAwesome5 name="link" size={18} color='#f1c40f' />
                   </View>
                 )}
-                <Text style={[styles.playerCardName, isDarkBg && styles.playerCardNameDark]}>{nameToUse}</Text>
+                <Text style={[playerCardStyles.playerCardName, isDarkBg && playerCardStyles.playerCardNameDark]}>{nameToUse}</Text>
               </View>
               <Pressable
-                style={styles.playerCardCloseButton}
+                style={playerCardStyles.playerCardCloseButton}
                 onPress={() => {
                   setModalModalVisible(false);
                   setModalVisible(false);
                 }}
               >
-                <Text style={[styles.playerCardCloseText, isDarkBg && styles.playerCardCloseTextDark]}>X</Text>
+                <Text style={[playerCardStyles.playerCardCloseText, isDarkBg && playerCardStyles.playerCardCloseTextDark]}>X</Text>
               </Pressable>
             </View>
 
             {/* Avatar + Stats */}
-            <View style={styles.playerInfoContainer}>
+            <View style={playerCardStyles.playerInfoContainer}>
               <View style={{ position: 'relative' }}>
-                <View style={styles.avatarContainer}>
+                <View style={playerCardStyles.avatarContainer}>
                   {avatarSrc ? (
                     <Image
                       style={[
-                        styles.avatar,
-                        isBeginnerAvatar(getAvatarToDisplay()) ? styles.beginnerAvatar : styles.defaultAvatar,
+                        playerCardStyles.avatar,
+                        isBeginnerAvatar(getAvatarToDisplay()) ? playerCardStyles.beginnerAvatar : playerCardStyles.defaultAvatar,
                       ]}
                       source={avatarSrc}
                     />
                   ) : (
                     <View
                       style={[
-                        styles.avatar,
-                        styles.defaultAvatar,
+                        playerCardStyles.avatar,
+                        playerCardStyles.defaultAvatar,
                         { alignItems: 'center', justifyContent: 'center' },
                       ]}
                     >
@@ -567,63 +567,63 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
                   )}
                 </View>
                 {idToUse === playerId && (
-                  <Pressable style={styles.editAvatarButton} onPress={() => setIsAvatarModalVisible(true)}>
+                  <Pressable style={playerCardStyles.editAvatarButton} onPress={() => setIsAvatarModalVisible(true)}>
                     <FontAwesome5 name="edit" size={15} color="white" />
                   </Pressable>
                 )}
               </View>
 
-              <View style={[styles.playerTextContainer]}>
-                <Text style={[styles.playerStat, isDarkBg && styles.playerCardTextDark]}>Level: {levelInfo.level}</Text>
-                <View style={styles.progressBar}>
-                  <View style={[styles.progressFill, { width: `${levelInfo.progress * 100}%` }]} />
-                  <Text style={[styles.progressPercentageText, isDarkBg && styles.playerCardTextDark]}>{Math.floor(levelInfo.progress * 100)}%</Text>
+              <View style={[playerCardStyles.playerTextContainer]}>
+                <Text style={[playerCardStyles.playerStat, isDarkBg && playerCardStyles.playerCardTextDark]}>Level: {levelInfo.level}</Text>
+                <View style={playerCardStyles.progressBar}>
+                  <View style={[playerCardStyles.progressFill, { width: `${levelInfo.progress * 100}%` }]} />
+                  <Text style={[playerCardStyles.progressPercentageText, isDarkBg && playerCardStyles.playerCardTextDark]}>{Math.floor(levelInfo.progress * 100)}%</Text>
                 </View>
-                <View style={styles.playerStatsContainer}>
-                  <Text style={[styles.playerStat, isDarkBg && styles.playerCardTextDark]}>All Time Rank: {viewingAllTimeRank}</Text>
-                  <Text style={[styles.playerStat, isDarkBg && styles.playerCardTextDark]}>Weekly Wins: {weeklyWins}</Text>
-                  <Text style={[styles.playerStat, isDarkBg && styles.playerCardTextDark]}>Played Games: {playedGames}</Text>
-                  <Text style={[styles.playerStat, isDarkBg && styles.playerCardTextDark]}>Avg. Points/Game: {avgPoints}</Text>
-                  <Text style={[styles.playerStat, isDarkBg && styles.playerCardTextDark]}>Avg Duration/Game: {avgDuration} s</Text>
+                <View style={playerCardStyles.playerStatsContainer}>
+                  <Text style={[playerCardStyles.playerStat, isDarkBg && playerCardStyles.playerCardTextDark]}>All Time Rank: {viewingAllTimeRank}</Text>
+                  <Text style={[playerCardStyles.playerStat, isDarkBg && playerCardStyles.playerCardTextDark]}>Weekly Wins: {weeklyWins}</Text>
+                  <Text style={[playerCardStyles.playerStat, isDarkBg && playerCardStyles.playerCardTextDark]}>Played Games: {playedGames}</Text>
+                  <Text style={[playerCardStyles.playerStat, isDarkBg && playerCardStyles.playerCardTextDark]}>Avg. Points/Game: {avgPoints}</Text>
+                  <Text style={[playerCardStyles.playerStat, isDarkBg && playerCardStyles.playerCardTextDark]}>Avg Duration/Game: {avgDuration} s</Text>
                 </View>
               </View>
             </View>
 
             {/* TOP SCORES */}
-            <Text style={[styles.playerCardScoresTitle, isDarkBg && styles.playerCardTextDark]}>TOP 5 SCORES</Text>
-            <View style={styles.playerCardScoresContainer} contentContainerStyle={{ paddingTop: 2, paddingBottom: 5, flexGrow: 0 }}>
+            <Text style={[playerCardStyles.playerCardScoresTitle, isDarkBg && playerCardStyles.playerCardTextDark]}>TOP 5 SCORES</Text>
+            <View style={playerCardStyles.playerCardScoresContainer} contentContainerStyle={{ paddingTop: 2, paddingBottom: 5, flexGrow: 0 }}>
               {getTopScoresWithEmptySlots().map((score, index) => (
                 <View
                   key={index}
                   style={[
-                    styles.scoreRow,
+                    playerCardStyles.scoreRow,
                     index % 2 === 0
-                      ? [styles.evenRow, isDarkBg && styles.evenRowDark]
-                      : [styles.oddRow, isDarkBg && styles.oddRowDark]
+                      ? [playerCardStyles.evenRow, isDarkBg && playerCardStyles.evenRowDark]
+                      : [playerCardStyles.oddRow, isDarkBg && playerCardStyles.oddRowDark]
                   ]}
                 >
-                  <Text style={[styles.playerCardScoreItem, isDarkBg && styles.playerCardTextDark]}>
+                  <Text style={[playerCardStyles.playerCardScoreItem, isDarkBg && playerCardStyles.playerCardTextDark]}>
                     {index + 1}. {score.points} points in {score.duration} sec
                   </Text>
-                  <Text style={[styles.playerCardScoreDate, isDarkBg && styles.playerCardTextDark]}>{score.date}</Text>
+                  <Text style={[playerCardStyles.playerCardScoreDate, isDarkBg && playerCardStyles.playerCardTextDark]}>{score.date}</Text>
                 </View>
               ))}
             </View>
 
             {/* TROPHIES */}
-            <View style={styles.playerCardTrophyCase}>
-              <Text style={[styles.playerCardTrophyCaseTitle, isDarkBg && styles.playerCardTextDark]}>TROPHIES {currentYear}</Text>
-              <View style={styles.playerCardMonthsContainer}>
+            <View style={playerCardStyles.playerCardTrophyCase}>
+              <Text style={[playerCardStyles.playerCardTrophyCaseTitle, isDarkBg && playerCardStyles.playerCardTextDark]}>TROPHIES {currentYear}</Text>
+              <View style={playerCardStyles.playerCardMonthsContainer}>
                 {Array(12).fill(null).map((_, index) => (
                   <View
                     key={index}
                     style={[
-                      styles.playerCardMonth,
-                      index === currentMonth ? styles.playerCardOngoingMonth : null,
-                      isDarkBg && styles.playerCardMonthDark,
+                      playerCardStyles.playerCardMonth,
+                      index === currentMonth ? playerCardStyles.playerCardOngoingMonth : null,
+                      isDarkBg && playerCardStyles.playerCardMonthDark,
                     ]}
                   >
-                    <Text style={styles.playerCardMonthText}>{monthNames[index]}</Text>
+                    <Text style={playerCardStyles.playerCardMonthText}>{monthNames[index]}</Text>
                     {getTrophyForMonth(index)}
                   </View>
                 ))}
