@@ -34,5 +34,5 @@ node_modules/
 .github/
 .env
 .env.*
-!package-lock.json
-!eas.json
+/android
+/ios
