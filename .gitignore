@@ -38,9 +38,6 @@ firebase-empty.js
 # Assets (IF you really want them private; otherwise remove this!)
 # assets/
 
-# Typo fix (was 'paches/')
-patches/
-
 # Dependencies
 node_modules/
 
