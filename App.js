@@ -69,13 +69,11 @@ function AppShell() {
     if (Platform.OS !== 'android') return;
     try {
       // Edge-to-edge ja painikkeet vaaleiksi
-      await NavigationBar.setBackgroundColorAsync('transparent');
       await NavigationBar.setButtonStyleAsync('light');
       // Immersive-käyttäytyminen tuetuilla arvoilla
-      await NavigationBar.setBehaviorAsync('overlay-swipe');
       await NavigationBar.setVisibilityAsync('hidden');
     } catch {
-      // silent failure
+      console.log('NavigationBar.applyHidden: ignored error / unsupported op', e);
     }
   }, []);
 

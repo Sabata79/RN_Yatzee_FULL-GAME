@@ -36,7 +36,6 @@ export default function BackgroundVideo({ isActive = true }) {
         style={StyleSheet.absoluteFill}
         contentFit="cover"
         nativeControls={false}
-        allowsFullscreen={false}
         allowsPictureInPicture={false}
         focusable={false}
       />
