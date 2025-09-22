@@ -40,7 +40,7 @@
       ],
       "expo-video"
     ],
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "updates": {
       "url": "https://u.expo.dev/d8c9a220-7647-4af7-906f-8ce3856b7189",
       "fallbackToCacheTimeout": 0,
