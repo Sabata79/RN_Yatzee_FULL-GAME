@@ -4,20 +4,20 @@
     "slug": "SimpleYatzee",
     "version": "3.0.0",
     "orientation": "portrait",
-    "icon": "./assets/desktopIcon.png",
+    "icon": "./assets/coin.png",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#2c3e50"
     },
+
     "android": {
-      "edgeToEdgeEnabled": true,
-      "softwareKeyboardLayoutMode": "resize",
+      "package": "com.simpleyatzee",
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/desktopIcon.png",
+        "foregroundImage": "./assets/coin.png",
         "backgroundColor": "#2c3e50"
       },
-      "package": "com.simpleyatzee",
       "permissions": [
         "INTERNET",
         "ACCESS_NETWORK_STATE",
@@ -25,31 +25,25 @@
         "com.google.android.gms.permission.AD_ID"
       ]
     },
+
     "plugins": [
       "@react-native-firebase/app",
       [
-        "expo-build-properties",
-        {
-          "android": {
-            "compileSdkVersion": 35,
-            "targetSdkVersion": 35,
-            "minSdkVersion": 24,
-            "kotlinVersion": "2.0.21"
-          }
-        }
-      ],
-      "expo-video"
+        "expo-splash-screen",
+        { "backgroundColor": "#2c3e50", "image": "./assets/splash.png" }
+      ]
     ],
-    "newArchEnabled": false,
+
+    "newArchEnabled": true,
+
     "updates": {
       "url": "https://u.expo.dev/d8c9a220-7647-4af7-906f-8ce3856b7189",
       "fallbackToCacheTimeout": 0,
       "checkAutomatically": "ON_LOAD"
     },
+
     "extra": {
-      "eas": {
-        "projectId": "d8c9a220-7647-4af7-906f-8ce3856b7189"
-      }
+      "eas": { "projectId": "d8c9a220-7647-4af7-906f-8ce3856b7189" }
     }
   }
 }
