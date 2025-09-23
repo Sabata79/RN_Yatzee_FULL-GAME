@@ -7,53 +7,92 @@
  * @author Sabata79
  * @since 2025-08-29
  */
-import { getApp } from '@react-native-firebase/app';
 import {
-  getRemoteConfig,
-  setDefaults,
-  setConfigSettings,
-  fetchAndActivate,
-  getValue,
-} from '@react-native-firebase/remote-config';
+  rcSetSettings,
+  rcSetDefaults,
+  rcFetchAndActivate,
+  rcGet,
+  remoteConfig as getRemoteConfigHelper,
+} from './Firebase';
 
+/**
+ * fetchRemoteConfig — use centralized Firebase helpers to fetch and activate remote config.
+ * Uses project helpers in `src/services/Firebase.js` (rcSetSettings, rcSetDefaults, rcFetchAndActivate, rcGet)
+ */
 export const fetchRemoteConfig = async () => {
   try {
-    const rc = getRemoteConfig(getApp());
+    // Prefer centralized helpers (they call the native API internally)
+    // 1) settings (minimum fetch interval)
+    try {
+      await rcSetSettings({
+        minimumFetchIntervalMillis: __DEV__ ? 0 : 6 * 60 * 60 * 1000, // 6 hours
+      });
+    } catch (e) {
+      console.warn('[RC] rcSetSettings failed (non-fatal)', e?.message || e);
+    }
 
-    await setConfigSettings(rc, {
-      // minimumFetchIntervalMillis: __DEV__ ? 0 : 60 * 60 * 1000, // 1 hour
-      minimumFetchIntervalMillis: __DEV__ ? 0 : 6 * 60 * 60 * 1000, // 6 hours
-    });
+    // 2) defaults
+    try {
+      await rcSetDefaults({
+        forceUpdate: false,
+        force_update: false,
+        minimum_supported_version: '1.0.0',
+        update_message: 'Päivitys vaaditaan jatkaaksesi käyttöä.',
+      });
+    } catch (e) {
+      console.warn('[RC] rcSetDefaults failed (non-fatal)', e?.message || e);
+    }
 
-    // Set default values
-    await setDefaults(rc, {
-      forceUpdate: false,
-      force_update: false,
-      minimum_supported_version: '1.0.0',
-      update_message: 'Päivitys vaaditaan jatkaaksesi käyttöä.',
-    });
+    // 3) fetch and activate
+    try {
+      await rcFetchAndActivate();
+    } catch (e) {
+      console.error('[RC] rcFetchAndActivate failed', e);
+      // continue: we still attempt to read values (maybe defaults present)
+    }
 
-    await fetchAndActivate(rc);
+    // 4) read values (use helper rcGet that wraps getValue(getRemoteConfig(), key))
+    let forceSnake = false;
+    let forceCamel = false;
+    let minimum_supported_version = '1.0.0';
+    let update_message = 'Päivitys vaaditaan jatkaaksesi käyttöä.';
 
-    // Read both, snake wins if exists
-    const forceSnake = getValue(rc, 'force_update').asBoolean();
-    const forceCamel = getValue(rc, 'forceUpdate').asBoolean();
-    const forceUpdate = forceSnake || forceCamel;
+    try {
+      const v1 = rcGet('force_update');
+      if (v1 && typeof v1.asBoolean === 'function') forceSnake = v1.asBoolean();
+    } catch (e) {
+      console.warn('[RC] rcGet force_update failed', e?.message || e);
+    }
 
-    const minimum_supported_version = getValue(rc, 'minimum_supported_version').asString();
-    const update_message = getValue(rc, 'update_message').asString();
+    try {
+      const v2 = rcGet('forceUpdate');
+      if (v2 && typeof v2.asBoolean === 'function') forceCamel = v2.asBoolean();
+    } catch (e) {
+      console.warn('[RC] rcGet forceUpdate failed', e?.message || e);
+    }
 
-    // Debug log helps ensure which key was used
-    console.log('[RC] raw', {
-      force_update: forceSnake,
-      forceUpdate: forceCamel,
-      minimum_supported_version,
-      update_message,
-    });
+    try {
+      const v3 = rcGet('minimum_supported_version');
+      if (v3 && typeof v3.asString === 'function') minimum_supported_version = v3.asString();
+    } catch (e) {
+      console.warn('[RC] rcGet minimum_supported_version failed', e?.message || e);
+    }
+
+    try {
+      const v4 = rcGet('update_message');
+      if (v4 && typeof v4.asString === 'function') update_message = v4.asString();
+    } catch (e) {
+      console.warn('[RC] rcGet update_message failed', e?.message || e);
+    }
+
+    const forceUpdate = !!forceSnake || !!forceCamel;
+
+    // Debug log for visibility in device logs
+    console.log('[RC] values', { force_update: forceSnake, forceUpdate: forceCamel, minimum_supported_version, update_message });
 
     return { forceUpdate, minimum_supported_version, update_message };
   } catch (e) {
-    console.error('[RC] fetchRemoteConfig failed', e);
+    console.error('[RC] fetchRemoteConfig failed (fatal)', e);
     return null;
   }
 };

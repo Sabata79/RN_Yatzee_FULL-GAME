@@ -5,9 +5,6 @@ babel.config.js
 checkfonts.js
 metro.config.js
 
-# GitHub workflows (keep if private)
-.github/
-
 # Editor
 .vscode/
 
@@ -72,5 +69,3 @@ yarn-error.*
 /android
 /ios
 
-# AI prompts and outputs
-ai.promts.md

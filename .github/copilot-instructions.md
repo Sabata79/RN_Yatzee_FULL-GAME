@@ -120,6 +120,18 @@ useEffect(() => {
 * **Release APK (Windows):** `npm run build:android` — ajaa Gradlen `android/`‑hakemistossa ja kopioi APK\:n `release/Yatzee.apk`:iin (vaatii Android SDK\:n ja Java/Gradle‑ympäristön).
 * **Engines:** Node `>= 20.19.4`, npm `>= 10.8.2` (ks. `package.json.engines`).
 
+### AI commit- ja testauskäytännöt (pakollinen)
+
+* AI MUST NOT run git add/commit/push or otherwise modify VCS state. The human reviewer will perform commits and pushes after they have inspected the proposed changes.
+* After every substantive code edit the AI produces, it must run (locally) a short verification suite and report the results before asking the user to commit. The minimal verification steps are:
+  1. Build/start sanity (fast smoke): start Metro or run a quick platform build (e.g. `npm start` or `npm run android` if available and fast).
+  2. Lint / static checks: run eslint (or report that eslint is not configured) and fix obvious lint/type errors if trivial.
+  3. Unit tests: run `jest` (if present) and report pass/fail output.
+  4. Small runtime smoke: where feasible, verify that the edited screen/function mounts without throwing (e.g. unit/smoke run or a short manual emulator check).
+* If any of these checks fail, AI must attempt up to 3 targeted fixes (only small, low-risk changes). If still failing, AI reports the exact failing output and a short remediation plan.
+* The AI should include the exact commands it ran and the trimmed outputs in its reply so the human can reproduce them locally.
+
+
 ## 📎 Pienet, konkreettiset palat
 
 **Safe token update**
