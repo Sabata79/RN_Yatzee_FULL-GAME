@@ -11,7 +11,7 @@ import React, {
   createContext, useContext,
   useRef, useState, useEffect, useCallback
 } from 'react';
-import { Audio } from 'expo-av';
+import { Audio } from 'expo-audio';
 import { Platform } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 
