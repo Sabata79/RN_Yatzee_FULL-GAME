@@ -71,3 +71,6 @@ yarn-error.*
 # Native block
 /android
 /ios
+
+# AI prompts and outputs
+ai.promts.md

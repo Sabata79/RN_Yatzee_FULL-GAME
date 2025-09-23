@@ -38,3 +38,6 @@ node_modules/
 /ios
 !yarn.lock
 !eas.json
+
+# AI prompts
+ai.prompt.md
