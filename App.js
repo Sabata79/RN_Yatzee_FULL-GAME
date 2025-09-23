@@ -6,6 +6,7 @@
  * @since 2025-08-30
  */
 import React, { useState, useRef } from 'react';
+import 'react-native-gesture-handler';
 import {
   View,
   Text,
