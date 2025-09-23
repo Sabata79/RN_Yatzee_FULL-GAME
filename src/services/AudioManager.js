@@ -11,7 +11,10 @@ import React, {
   createContext, useContext,
   useRef, useState, useEffect, useCallback
 } from 'react';
-import { Audio } from 'expo-audio';
+import {
+  createAudioPlayer,
+  setAudioModeAsync,
+} from 'expo-audio';
 import { Platform } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 
@@ -25,6 +28,9 @@ const MUSIC_PATH = require('../../assets/sounds/ambientBG.mp3');
 const SELECT_PATH = require('../../assets/sounds/select.mp3');
 const DESELECT_PATH = require('../../assets/sounds/deselect.mp3');
 const DICE_TOUCH_PATH = require('../../assets/sounds/dicetouch.mp3');
+
+// Per-sound multipliers
+const DICE_TOUCH_FACTOR = 0.4; // reduce dice touch to 40% of global sfxVolume
 
 // ---- Context
 export const AudioContext = createContext(null);
@@ -51,6 +57,7 @@ export const useAudio = () => {
       playSelect: noop,
       playDeselect: noop,
       prewarmSfx: noop,
+      playDiceTouch: noop,
     };
   }
   return ctx;
@@ -64,75 +71,77 @@ export function AudioProvider({ children }) {
   const [ready, setReady] = useState(false);
   const [hydrated, setHydrated] = useState(false);
 
-  const [musicMuted, setMusicMuted] = useState(false);
-  const [sfxMuted, setSfxMuted] = useState(false);
+  const [musicMuted, setMusicMutedState] = useState(false);
+  const [sfxMuted, setSfxMutedState] = useState(false);
   const [musicVolume, setMusicVolume] = useState(0.05); // 0..1
   const [sfxVolume, setSfxVolume] = useState(0.5);      // 0..1
 
-  // ---- Refs for loaded sounds
+  // ---- Refs for loaded players
+  /** @type {React.MutableRefObject<import('expo-audio').AudioPlayer|null>} */
   const musicSound = useRef(null);
   const sfxSound = useRef(null);
   const selectSound = useRef(null);
   const deselectSound = useRef(null);
   const diceTouchSound = useRef(null);
 
-  // ---- Helpers to (lazy) load each sound
+  // ---- Helpers to (lazy) create each player
   const ensureMusic = useCallback(async () => {
     if (musicSound.current) return;
-    const { sound } = await Audio.Sound.createAsync(
-      MUSIC_PATH,
-      { isLooping: true, volume: musicMuted ? 0 : musicVolume }
-    );
-    musicSound.current = sound;
+    const player = createAudioPlayer(MUSIC_PATH);
+    player.loop = true;
+    player.volume = musicMuted ? 0 : musicVolume;
+    player.muted = musicMuted;
+    musicSound.current = player;
     console.log('[Audio] MUSIC loaded');
   }, [musicMuted, musicVolume]);
 
   const ensureSfx = useCallback(async () => {
     if (sfxSound.current) return;
-    const { sound } = await Audio.Sound.createAsync(
-      SFX_PATH,
-      { volume: sfxMuted ? 0 : sfxVolume }
-    );
-    sfxSound.current = sound;
+    const player = createAudioPlayer(SFX_PATH);
+    player.volume = sfxMuted ? 0 : sfxVolume;
+    player.muted = sfxMuted;
+    sfxSound.current = player;
     console.log('[Audio] SFX loaded');
   }, [sfxMuted, sfxVolume]);
 
   const ensureSelect = useCallback(async () => {
     if (selectSound.current) return;
-    const { sound } = await Audio.Sound.createAsync(
-      SELECT_PATH,
-      { volume: sfxMuted ? 0 : sfxVolume }
-    );
-    selectSound.current = sound;
+    const player = createAudioPlayer(SELECT_PATH);
+    player.volume = sfxMuted ? 0 : sfxVolume;
+    player.muted = sfxMuted;
+    selectSound.current = player;
     console.log('[Audio] SELECT loaded');
   }, [sfxMuted, sfxVolume]);
 
   const ensureDeselect = useCallback(async () => {
     if (deselectSound.current) return;
-    const { sound } = await Audio.Sound.createAsync(
-      DESELECT_PATH,
-      { volume: sfxMuted ? 0 : sfxVolume }
-    );
-    deselectSound.current = sound;
+    const player = createAudioPlayer(DESELECT_PATH);
+    player.volume = sfxMuted ? 0 : sfxVolume;
+    player.muted = sfxMuted;
+    deselectSound.current = player;
     console.log('[Audio] DESELECT loaded');
   }, [sfxMuted, sfxVolume]);
 
   const ensureDiceTouch = useCallback(async () => {
     if (diceTouchSound.current) return;
-    const { sound } = await Audio.Sound.createAsync(
-      DICE_TOUCH_PATH,
-      { volume: sfxMuted ? 0 : sfxVolume }
-    );
-    diceTouchSound.current = sound;
+    const player = createAudioPlayer(DICE_TOUCH_PATH);
+    player.volume = sfxMuted ? 0 : (sfxVolume * DICE_TOUCH_FACTOR);
+    player.muted = sfxMuted;
+    diceTouchSound.current = player;
     console.log('[Audio] DICE_TOUCH loaded');
   }, [sfxMuted, sfxVolume]);
 
   const unloadAll = useCallback(() => {
-    musicSound.current?.unloadAsync?.(); musicSound.current = null;
-    sfxSound.current?.unloadAsync?.(); sfxSound.current = null;
-    selectSound.current?.unloadAsync?.(); selectSound.current = null;
-    deselectSound.current?.unloadAsync?.(); deselectSound.current = null;
-    diceTouchSound.current?.unloadAsync?.(); diceTouchSound.current = null;
+    try { musicSound.current?.remove?.(); } catch {}
+    try { sfxSound.current?.remove?.(); } catch {}
+    try { selectSound.current?.remove?.(); } catch {}
+    try { deselectSound.current?.remove?.(); } catch {}
+    try { diceTouchSound.current?.remove?.(); } catch {}
+    musicSound.current = null;
+    sfxSound.current = null;
+    selectSound.current = null;
+    deselectSound.current = null;
+    diceTouchSound.current = null;
   }, []);
 
   // ---- Persisted settings → state
@@ -142,7 +151,7 @@ export function AudioProvider({ children }) {
       if (sfx) {
         const { volume, muted } = JSON.parse(sfx);
         if (typeof volume === 'number') setSfxVolume(volume);
-        if (typeof muted === 'boolean') setSfxMuted(muted);
+        if (typeof muted === 'boolean') setSfxMutedState(muted);
       }
     } catch { }
     try {
@@ -150,7 +159,7 @@ export function AudioProvider({ children }) {
       if (music) {
         const { volume, muted } = JSON.parse(music);
         if (typeof volume === 'number') setMusicVolume(Math.round(volume * 10) / 10);
-        if (typeof muted === 'boolean') setMusicMuted(muted);
+        if (typeof muted === 'boolean') setMusicMutedState(muted);
       }
     } catch { }
     finally {
@@ -160,42 +169,26 @@ export function AudioProvider({ children }) {
 
   // ---- INIT: audio mode, persisted settings, preload (run once)
   useEffect(() => {
+    if (didInitRef.current) return;
+    didInitRef.current = true;
     let alive = true;
 
     (async () => {
       try {
-        // Safe audio mode (fall back if constants not available)
-        const hasIosConst =
-          typeof Audio?.INTERRUPTION_MODE_IOS_DO_NOT_MIX === 'number' ||
-          typeof Audio?.INTERRUPTION_MODE_IOS_DUCK_OTHERS === 'number';
-        const hasAndroidConst =
-          typeof Audio?.INTERRUPTION_MODE_ANDROID_DO_NOT_MIX === 'number' ||
-          typeof Audio?.INTERRUPTION_MODE_ANDROID_DUCK_OTHERS === 'number';
-
-        const fullMode = {
-          allowsRecordingIOS: false,
-          playsInSilentModeIOS: true,
-          staysActiveInBackground: false,
-          ...(Platform.OS === 'ios' && hasIosConst
-            ? { interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS_DO_NOT_MIX }
-            : {}),
-          ...(Platform.OS === 'android' && hasAndroidConst
-            ? {
-              interruptionModeAndroid: Audio.INTERRUPTION_MODE_ANDROID_DO_NOT_MIX,
-              shouldDuckAndroid: true,
-              playThroughEarpieceAndroid: false,
-            }
-            : {}),
+        // expo-audio: käytä nimettyä setAudioModeAsync (avaimet stringeinä)
+        const mode = {
+          allowsRecording: false,
+          playsInSilentMode: true,
+          ...(Platform.OS === 'android'
+            ? { interruptionModeAndroid: 'duckOthers' }
+            : { interruptionMode: 'doNotMix' }),
         };
 
         try {
-          await Audio.setAudioModeAsync(fullMode);
+          await setAudioModeAsync(mode);
         } catch (e) {
-          console.warn('[Audio] setAudioModeAsync(full) failed, fallback:', e?.message || e);
-          await Audio.setAudioModeAsync({
-            allowsRecordingIOS: false,
-            playsInSilentModeIOS: true,
-          });
+          console.warn('[Audio] setAudioModeAsync failed, fallback:', e?.message || e);
+          await setAudioModeAsync({ playsInSilentMode: true });
           console.log('[Audio] setAudioModeAsync (fallback) OK');
         }
 
@@ -208,7 +201,7 @@ export function AudioProvider({ children }) {
           sfxVolumeAfterLoad: sfxVolume,
         });
 
-        // 2) Then preload sounds (don’t crash if one fails)
+        // 2) Then preload players (don’t crash if one fails)
         await Promise.allSettled([
           ensureSfx(),
           ensureSelect(),
@@ -218,7 +211,6 @@ export function AudioProvider({ children }) {
       } catch (e) {
         console.warn('[Audio] init failed (audio mode / preload)', e);
       } finally {
-        // 3) Only now mark the audio system as ready
         if (alive) setReady(true);
       }
     })();
@@ -227,10 +219,18 @@ export function AudioProvider({ children }) {
       alive = false;
       unloadAll();
     };
-    // Keep these deps so the effect sees the correct functions,
-    // but it still runs only once at mount time.
-  }, [ensureSfx, ensureSelect, ensureDeselect, ensureMusic, unloadAll, loadPersistedSettingsIntoState]);
+  }, [ensureSfx, ensureSelect, ensureDeselect, ensureMusic, unloadAll, loadPersistedSettingsIntoState, musicMuted, sfxMuted, musicVolume, sfxVolume]);
 
+  // ---- Autostart heti kun ready → true
+  useEffect(() => {
+    if (!ready) return;
+    (async () => {
+      await ensureMusic();
+      if (!musicMuted) {
+        musicSound.current?.play?.();
+      }
+    })();
+  }, [ready, ensureMusic, musicMuted]);
 
   // ---- Actions
   const playMusic = useCallback(async (fadeIn = false) => {
@@ -239,42 +239,61 @@ export function AudioProvider({ children }) {
       return;
     }
     await ensureMusic();
-    const sound = musicSound.current;
-    if (!sound) return;
+    const player = musicSound.current;
+    if (!player) return;
 
     if (fadeIn) {
-      await sound.setStatusAsync({ volume: 0, isLooping: true });
-      await sound.playAsync();
+      player.volume = 0;
+      player.loop = true;
+      player.muted = false;
+      player.play();
       const target = musicVolume;
       let v = 0;
+      const step = 0.04;
       while (v < target) {
-        v = Math.min(target, v + 0.04);
-        await sound.setStatusAsync({ volume: v });
+        v = Math.min(target, v + step);
+        player.volume = v;
         await new Promise(r => setTimeout(r, 60));
       }
     } else {
-      await sound.setStatusAsync({ volume: musicVolume, isLooping: true });
-      await sound.playAsync();
+      player.volume = musicVolume;
+      player.loop = true;
+      player.muted = false;
+      player.play();
     }
   }, [musicMuted, ready, ensureMusic, musicVolume]);
 
+  // Wrapper that sets state AND immediately applies the change to any loaded player.
+  const setMusicMuted = useCallback((muted) => {
+    setMusicMutedState(muted);
+    (async () => {
+      try {
+        console.log('[Audio] setMusicMuted called', { muted });
+        // Ensure player exists before applying
+        await ensureMusic();
+        const p = musicSound.current;
+        if (p) {
+          p.muted = muted;
+          p.volume = muted ? 0 : musicVolume;
+          if (muted) await p.pause?.(); else await p.play?.();
+        }
+      } catch (e) {
+        console.warn('[Audio] setMusicMuted apply failed', e);
+      }
+    })();
+  }, [musicVolume]);
+
   const stopMusic = useCallback(async () => {
-    try { await musicSound.current?.stopAsync?.(); } catch { }
+    try { musicSound.current?.pause?.(); } catch { }
   }, []);
 
   const playSelect = useCallback(async () => {
     if (sfxMuted) return;
     await ensureSelect();
-    const snd = selectSound.current;
-    if (!snd) return;
+    const p = selectSound.current;
+    if (!p) return;
     try {
-      // Make sure it always starts from the beginning
-      await snd.stopAsync().catch(() => { });
-      await snd.setStatusAsync({
-        volume: sfxMuted ? 0 : sfxVolume,
-        positionMillis: 0,
-        shouldPlay: true,
-      });
+      await safePlay(p, { muted: sfxMuted, volume: sfxVolume });
     } catch (e) {
       console.warn('[Audio] playSelect failed', e);
     }
@@ -283,28 +302,40 @@ export function AudioProvider({ children }) {
   const playSfx = useCallback(async () => {
     if (sfxMuted) return;
     await ensureSfx();
-    const snd = sfxSound.current;
-    if (!snd) return;
+    const p = sfxSound.current;
+    if (!p) return;
     try {
-      await snd.stopAsync().catch(() => { });
-      await snd.setStatusAsync({
-        volume: sfxMuted ? 0 : sfxVolume,
-        positionMillis: 0,
-        shouldPlay: true,
-      });
+      await safePlay(p, { muted: sfxMuted, volume: sfxVolume });
     } catch (e) {
       console.warn('[Audio] playSfx failed', e);
     }
   }, [sfxMuted, sfxVolume, ensureSfx]);
 
+  const setSfxMuted = useCallback((muted) => {
+    setSfxMutedState(muted);
+    (async () => {
+      try {
+        console.log('[Audio] setSfxMuted called', { muted });
+        await ensureSfx();
+        const v = muted ? 0 : sfxVolume;
+        for (const p of [sfxSound.current, selectSound.current, deselectSound.current, diceTouchSound.current]) {
+          if (p) {
+            try { p.muted = muted; p.volume = v; } catch (e) { /* best effort */ }
+          }
+        }
+      } catch (e) {
+        console.warn('[Audio] setSfxMuted apply failed', e);
+      }
+    })();
+  }, [sfxVolume]);
+
   const playDeselect = useCallback(async () => {
     if (sfxMuted) return;
     await ensureDeselect();
-    const sound = deselectSound.current;
-    if (!sound) return;
+    const p = deselectSound.current;
+    if (!p) return;
     try {
-      await sound.setStatusAsync({ volume: sfxVolume });
-      await sound.replayAsync();
+      await safePlay(p, { muted: sfxMuted, volume: sfxVolume });
     } catch { }
   }, [ensureDeselect, sfxMuted, sfxVolume]);
 
@@ -314,11 +345,27 @@ export function AudioProvider({ children }) {
       ensureSfx(), ensureSelect(), ensureDeselect(), ensureDiceTouch()
     ]);
     try {
-      const warm = async (snd) => {
-        if (!snd) return;
-        await snd.setStatusAsync({ volume: 0, positionMillis: 0, shouldPlay: true });
-        await snd.stopAsync();
-        await snd.setStatusAsync({ volume: sfxMuted ? 0 : sfxVolume });
+      const warm = async (p) => {
+        if (!p) return;
+        const prevVol = p.volume ?? 1;
+        const prevMuted = p.muted ?? false;
+        // Make sure warming is silent for the user: mute and set volume to 0 while playing briefly
+        try { p.muted = true; } catch {}
+        try { p.volume = 0; } catch {}
+        await p.seekTo(0);
+  // Try to warm buffer without audible playback: just seek to start while muted.
+  try { await p.seekTo?.(0); } catch {}
+  // small delay to allow any native decode to start
+  await new Promise(r => setTimeout(r, 40));
+        // restore previous state (respect current global sfxMuted)
+        try {
+          if (p === diceTouchSound.current) {
+            p.volume = sfxMuted ? 0 : (sfxVolume * DICE_TOUCH_FACTOR ?? prevVol);
+          } else {
+            p.volume = sfxMuted ? 0 : (sfxVolume ?? prevVol);
+          }
+        } catch {}
+        try { p.muted = sfxMuted ? true : prevMuted; } catch {}
       };
       await warm(selectSound.current);
       await warm(diceTouchSound.current);
@@ -329,44 +376,84 @@ export function AudioProvider({ children }) {
 
   // MUSIC persist/apply
   useEffect(() => {
-    if (!hydrated) return;             // <— guard
+    if (!hydrated) return;
     const v = musicMuted ? 0 : musicVolume;
-    musicSound.current?.setStatusAsync?.({ volume: v });
-    SecureStore.setItemAsync(MUSIC_KEY, JSON.stringify({ volume: musicVolume, muted: musicMuted }))
-      .catch(() => { });
-    if (!musicMuted && ready) {
-      musicSound.current?.getStatusAsync?.().then(st => {
-        if (!st?.isPlaying) playMusic(false);
-      }).catch(() => { });
+
+    if (musicSound.current) {
+      musicSound.current.volume = v;
+      musicSound.current.muted = musicMuted;
+
+      if (musicMuted) {
+        musicSound.current.pause?.();
+      } else {
+        musicSound.current.play?.();
+      }
     }
-  }, [musicMuted, musicVolume, ready, playMusic, hydrated]);
+
+    console.log('[Audio] MUSIC persist/apply effect run', { musicMuted, musicVolume, ready, hydrated });
+
+    SecureStore.setItemAsync(
+      MUSIC_KEY,
+      JSON.stringify({ volume: musicVolume, muted: musicMuted })
+    ).catch(() => {});
+
+  }, [musicMuted, musicVolume, ready, hydrated]);
 
   // SFX persist/apply
   useEffect(() => {
-    if (!hydrated) return;             // <— guard
+    if (!hydrated) return;
     const v = sfxMuted ? 0 : sfxVolume;
-    sfxSound.current?.setStatusAsync?.({ volume: v });
-    selectSound.current?.setStatusAsync?.({ volume: v });
-    deselectSound.current?.setStatusAsync?.({ volume: v });
-    SecureStore.setItemAsync(SFX_KEY, JSON.stringify({ volume: sfxVolume, muted: sfxMuted }))
-      .catch(() => { });
+
+    for (const p of [sfxSound.current, selectSound.current, deselectSound.current, diceTouchSound.current]) {
+      if (p) {
+        // Apply per-sound multiplier for dice touch
+        if (p === diceTouchSound.current) p.volume = sfxMuted ? 0 : (sfxVolume * DICE_TOUCH_FACTOR);
+        else p.volume = v;
+        p.muted = sfxMuted;
+      }
+    }
+
+    SecureStore.setItemAsync(
+      SFX_KEY,
+      JSON.stringify({ volume: sfxVolume, muted: sfxMuted })
+    ).catch(() => {});
+
   }, [sfxMuted, sfxVolume, hydrated]);
 
   const playDiceTouch = useCallback(async () => {
     if (sfxMuted) return;
     await ensureDiceTouch();
-    const snd = diceTouchSound.current;
-    if (!snd) return;
+    const p = diceTouchSound.current;
+    if (!p) return;
     try {
-      // always restart from the beginning
-      await snd.stopAsync().catch(() => { });
-      await snd.setStatusAsync({
-        volume: sfxMuted ? 0 : sfxVolume,
-        positionMillis: 0,
-        shouldPlay: true,
-      });
+      await safePlay(p, { muted: sfxMuted, volume: sfxVolume });
     } catch { }
   }, [sfxMuted, sfxVolume, ensureDiceTouch]);
+
+  // Helper: try to play a player with small retries to handle races where player isn't immediately ready
+  const safePlay = useCallback(async (player, { muted = false, volume = 1 } = {}) => {
+    const maxAttempts = 4;
+    const delay = (ms) => new Promise(r => setTimeout(r, ms));
+    let lastErr = null;
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      try {
+        try { player.muted = muted; } catch {}
+        try { player.volume = muted ? 0 : volume; } catch {}
+        try { await player.seekTo?.(0); } catch {}
+        // play may be sync or promise-based
+        const res = player.play?.();
+        if (res && typeof res.then === 'function') await res;
+        return;
+      } catch (e) {
+        lastErr = e;
+        // small backoff
+        await delay(40 + attempt * 20);
+        // attempt to re-init player if possible
+        try { await ensureSfx(); } catch {}
+      }
+    }
+    throw lastErr;
+  }, [ensureSfx]);
 
   const value = {
     // state

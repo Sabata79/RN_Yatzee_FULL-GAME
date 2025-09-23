@@ -291,7 +291,11 @@ export default function LandingPage({ navigation }) {
         // Preload images
         await step("Preloading images & sounds", async () => {
           const allImages = [...avatars, ...PlayercardBg, ...additionalImages, ...Animations];
-          await Promise.all(cacheImages(allImages));
+          const results = await Promise.allSettled(cacheImages(allImages));
+          const failed = results.filter(r => r.status === 'rejected');
+          if (failed.length) {
+            console.warn('[BOOT] Some assets failed to preload:', failed.slice(0, 6).map(f => String(f.reason)).join(' | '));
+          }
         });
 
         // Get or create user ID
