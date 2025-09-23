@@ -234,7 +234,10 @@ export default function LandingPage({ navigation }) {
   const checkRemoteUpdate = async () => {
     try {
       const config = await fetchRemoteConfig();
-      if (!config) return false;
+      if (!config) {
+        console.warn('[RC] fetchRemoteConfig returned null/undefined');
+        return false;
+      }
 
       const currentVersion = Constants.expoConfig?.version ?? "0.0.0";
       const mustUpdate =
