@@ -59,13 +59,27 @@ export const dbUpdate = (path, value) => update(dbRef(path), value);
 // Listener: use REF.on / REF.off (not top-level onValue/off)
 export const dbOnValue = (path, cb) => {
   const r = dbRef(path);
-  r.on('value', cb);
-  return () => r.off('value', cb); // return unsubscribe
+  // Use modular onValue which returns an unsubscribe function
+  try {
+    const unsub = onValue(r, cb);
+    // onValue in the modular API returns an unsubscribe function
+    return typeof unsub === 'function' ? unsub : () => off(r, cb);
+  } catch (e) {
+    // Fallback to namespaced API if present
+    r.on && r.on('value', cb);
+    return () => r.off && r.off('value', cb);
+  }
 };
 
 export const dbOff = (path, cb) => {
   const r = dbRef(path);
-  return r.off('value', cb);
+  try {
+    // modular off supports (ref, callback) pattern
+    return off(r, cb);
+  } catch (e) {
+    // fallback to namespaced API
+    return r.off && r.off('value', cb);
+  }
 };
 
 // RC helpers
