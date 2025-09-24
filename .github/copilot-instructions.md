@@ -104,6 +104,23 @@ useEffect(() => {
 }, [playerId]);
 ```
 
+--
+
+### Database layout note (presence)
+
+Some presence info in this project may appear in two places in the Realtime DB:
+
+- Top-level presence index: `/players/{playerId}/presence` — recommended for lightweight presence mapping.
+
+Canonical presence object shape used in code:
+
+```json
+{ "online": true, "lastSeen": 1695499740000 }
+```
+
+Code should be prepared to read either location or to merge both (there's a small helper `src/services/Presence.js` to assist with this).
+
+
 * **Write:** käytä helperiä atomisiin päivityksiin; **älä** kovakoodaa uusia polkuja.
 * Älä vuoda avaimia/sekretejä. Ei admin‑rajapintoja clientistä.
 
