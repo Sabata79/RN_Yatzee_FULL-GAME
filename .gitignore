@@ -1,5 +1,4 @@
 # --- Project root files to ignore (keep repo clean)
-EnergyTokenSystem.js
 eas.config.js
 babel.config.js
 checkfonts.js
