@@ -43,7 +43,10 @@ import GridField from '../components/GridField';
 import ScoreModal from '../components/modals/ScoreModal';
 import EnergyModal from '../components/modals/EnergyModal';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useBreakpoints, makeSizes } from '../utils/breakpoints';
+import { useBreakpoints, makeSizes, computeTileSize } from '../utils/breakpoints';
+import { PixelRatio } from 'react-native';
+import DebugDeviceInfo from '../components/DebugDeviceInfo';
+import { useWindowDimensions } from 'react-native';
 
 const { height } = Dimensions.get('window');
 const isSmallScreen = height < 720;
@@ -64,15 +67,36 @@ const RenderDices = React.memo(function RenderDices({
   canSetPoints,
   onSetPointsPress,
   diceRowMinH,
+  tileSize = 56,
+  columns = 5,
 }) {
+  // Compute a width that will comfortably contain `columns` dice plus gaps
+  // and padding. This ensures the background border stretches to fit the row.
+  const gap = Math.round(tileSize * 0.12);
+  const paddingV = Math.max(2, Math.round(tileSize * 0.04));
+  // Use a larger horizontal padding so the dice border stretches wider
+  // add a small constant so it grows slightly more than the proportional value
+  const paddingH = Math.round(tileSize * 0.14) + 8;
+  const computedWidth = Math.round(tileSize * columns + gap * (columns - 1) + paddingH * 2);
+  const computedRadius = Math.round(tileSize * 0.18);
+
+  const diceBorderStyle = {
+    minHeight: diceRowMinH,
+    width: computedWidth,
+    borderRadius: computedRadius,
+    paddingHorizontal: paddingH,
+    paddingVertical: paddingV,
+    alignSelf: 'center',
+  };
+
   return (
     <View style={gameboardstyles.footerWrap}>
       <Text style={gameboardstyles.scoreText}>Total: {totalPoints}</Text>
-        <View style={[gameboardstyles.diceBorder, { minHeight: diceRowMinH }]}>
-          <View style={[gameboardstyles.gameboardContainer, { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }]}>
-            {diceRow}
-          </View>
+      <View style={[gameboardstyles.diceBorder, diceBorderStyle]}>
+        <View style={[gameboardstyles.gameboardContainer, { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }]}>
+          {diceRow}
         </View>
+      </View>
       <GameboardButtons
         rounds={rounds}
         nbrOfThrowsLeft={nbrOfThrowsLeft}
@@ -93,12 +117,11 @@ export default function Gameboard({ route, navigation }) {
   const bp = useBreakpoints();
   const SZ = makeSizes(bp);
 
- const tileSize =
-  bp.isTablet
-    ? Math.round(SZ.FACE * 1.8)   // tabletit: pienempi noppa
-    : bp.isWidePhone
-    ? Math.round(SZ.FACE * 1.4)   // leveät puhelimet (Pixel 7, S22)
-    : Math.round(SZ.FACE * 1.4);  // peruspuhelimet
+  // Responsive tile size: compute from available width and blend with style base
+  const { width: windowWidth } = useWindowDimensions();
+  const computedSize = computeTileSize({ width: windowWidth, columns: 5, hPadding: bp.isTablet ? 80 : 65, min: 36, max: 140, pixelRatio: PixelRatio.get() });
+  const styleBase = bp.isTablet ? Math.round(SZ.FACE * 1.6) : Math.round(SZ.FACE * 1.0);
+  const tileSize = Math.round(Math.min(Math.max(computedSize, Math.round(styleBase * 0.9)), Math.round(styleBase * 1.3)));
 
   const diceRowMinH = Math.round(tileSize * 1.20);
 
@@ -106,6 +129,9 @@ export default function Gameboard({ route, navigation }) {
     () => ({ playSfx, playSelect, playDeselect, playDiceTouch }),
     [playSfx, playSelect, playDeselect, playDiceTouch]
   );
+
+  // debug overlay (visible in non-production) to help tuning on real devices
+  const showDebug = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production';
 
   const [selectedField, setSelectedField] = useState(null);
   const [board, setBoard] = useState(Array(NBR_OF_DICES).fill(1));
@@ -361,7 +387,6 @@ export default function Gameboard({ route, navigation }) {
   );
 
   const { width, height } = Dimensions.get('window');
-  const isTablet = Math.min(width, height) >= 600;
   const diceRow = useMemo(
     () =>
       Array.from({ length: NBR_OF_DICES }, (_, i) => (
@@ -431,6 +456,8 @@ export default function Gameboard({ route, navigation }) {
         canSetPoints={Boolean(selectedField)}
         onSetPointsPress={onSetPointsPress}
         diceRowMinH={diceRowMinH}
+        tileSize={tileSize}
+        columns={5}
       />
     ),
     [
@@ -446,6 +473,7 @@ export default function Gameboard({ route, navigation }) {
 
   return (
     <ImageBackground source={require('../../assets/diceBackground.webp')} style={styles.background}>
+      {showDebug && <DebugDeviceInfo />}
       <Header />
 
 

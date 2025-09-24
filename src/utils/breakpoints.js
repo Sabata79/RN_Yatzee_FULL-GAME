@@ -12,7 +12,7 @@
  */
 
 import { useEffect, useState } from 'react';
-import { Dimensions } from 'react-native';
+import { Dimensions, PixelRatio } from 'react-native';
 
 export function computeBreakpoints({ width, height }) {
   const shortest = Math.min(width, height);
@@ -104,4 +104,25 @@ export function makeSizes(bp) {
     HEADER_HEIGHT: bp.isNarrow ? 60 : 70,
     AVATAR: bp.isNarrow ? 46 : 60,
   };
+}
+
+// Compute a responsive tile size for dice given the available width and layout params.
+// Keeps the same fallback logic as DiceAnimation's internal fallback, but centralizes it
+// so all callers compute consistent sizes. Returns integer px.
+export function computeTileSize({ width, columns = 5, hPadding = 65, min = 36, max = 120, pixelRatio = null }) {
+  // margin per side mirrors DiceAnimation: 1% of width or at least 3px
+  const marginEachSide = Math.max(3, Math.round(width * 0.01));
+  const raw = Math.round((width - hPadding - columns * 2 * marginEachSide) / columns);
+  const clamped = Math.max(min, Math.min(max, raw));
+
+  // PixelRatio compensation: some devices report very high logical densities (OEM scaling).
+  // We apply a gentle adjustment so the visual size feels similar across densities.
+  const pr = typeof pixelRatio === 'number' ? pixelRatio : PixelRatio.get();
+  let scale = 1.0;
+  if (pr >= 4.0) scale = 0.88; // very high density devices -> reduce
+  else if (pr >= 3.0) scale = 0.94; // high density
+  else if (pr < 2.0) scale = 1.06; // low density -> slightly larger
+
+  const size = Math.round(clamped * scale);
+  return Math.max(min, Math.min(max, size));
 }

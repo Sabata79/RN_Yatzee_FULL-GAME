@@ -14,7 +14,7 @@ import { StyleSheet } from 'react-native';
 import COLORS from '../constants/colors';
 import SPACING from '../constants/spacing';
 import TYPOGRAPHY from '../constants/typography';
-import { getBreakpoints, makeSizes, pick } from '../utils/breakpoints';
+import { getBreakpoints, makeSizes } from '../utils/breakpoints';
 
 // Compute breakpoints statically for styles
 const bp = getBreakpoints();
@@ -207,14 +207,16 @@ const styles = StyleSheet.create({
         paddingVertical: 2,
     },
     diceBorder: {
-        width: BORDER_WIDTH,
+        // Scale the dice border relative to the die size so it remains
+        // visually consistent across small phones and tablets.
+        width: Math.round(S.DIE_SIZE * 1.15),
         alignSelf: 'center',
         backgroundColor: '#0a0a0a',
         borderWidth: BORDER_W,
         borderColor: '#eee',
-        borderRadius: 8,
-        paddingHorizontal: 10,
-        paddingVertical: 2,
+        borderRadius: Math.round(S.DIE_SIZE * 0.18),
+        paddingHorizontal: Math.max(4, Math.round(S.DIE_SIZE * 0.12)),
+        paddingVertical: Math.max(2, Math.round(S.DIE_SIZE * 0.04)),
     },
     dieFace: {
         width: ICON_SIZE,
@@ -223,5 +225,34 @@ const styles = StyleSheet.create({
         resizeMode: 'contain'
     },
 });
+
+/**
+ * computeGameboardVars(bp) — helper that returns the same responsive
+ * constants used by the static styles above but computed at runtime from
+ * a breakpoints object. Use this when you want rotation- or dimension-aware
+ * styles from a component (pass useBreakpoints() or getBreakpoints()).
+ *
+ * This helper is intentionally additive and does not replace the default
+ * static `styles` export to avoid breaking existing imports.
+ * @param {object} bp breakpoints object (from getBreakpoints or hook)
+ */
+export const computeGameboardVars = (bp) => {
+    const S = makeSizes(bp);
+    return {
+        S,
+        FIELD_W: bp.isTablet ? 200 : bp.isBigScreen ? 80 : 80,
+        FIELD_H: bp.isTablet ? 60 : bp.isBigScreen ? 40 : 40,
+        BORDER_W: bp.isTablet ? 4 : bp.isBigScreen ? 2 : 1.5,
+        // BORDER_WIDTH historically used a percent string; provide numeric fallback
+        BORDER_WIDTH: bp.isTablet ? '65%' : bp.isBigScreen ? '92%' : '92%',
+        MARGIN: bp.isTablet ? 20 : bp.isBigScreen ? 7 : 7,
+        ICON_SIZE: bp.isTablet ? 60 : bp.isBigScreen ? 45 : 40,
+        MARGINTOP: bp.isTablet ? -150 : bp.isBigScreen ? -8 : 6,
+        SECTIONCONTAINER: bp.isTablet ? 100 : bp.isBigScreen ? 90 : 80,
+        FONTSIZE: bp.isTablet ? 22 : bp.isBigScreen ? 15 : 13,
+        DIEFACE_MARGINBOTTOM: bp.isTablet ? 15 : bp.isBigScreen ? 2 : 2,
+        FOOTERWRAP_PADDINGVERTICAL: bp.isTablet ? 100 : bp.isBigScreen ? 0 : -2,
+    };
+};
 
 export default styles;
