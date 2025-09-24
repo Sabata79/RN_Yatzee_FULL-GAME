@@ -161,7 +161,7 @@ const scoreboardStyles = StyleSheet.create({
     },
     advancedAvatar: {
         borderRadius: 0,
-        width: 40,
+        width: 35,
         height: 30,
         resizeMode: 'cover',
         marginLeft: 18,
