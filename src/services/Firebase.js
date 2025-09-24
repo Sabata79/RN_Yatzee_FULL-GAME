@@ -29,6 +29,7 @@ import {
   push,
   remove,
   child,
+  runTransaction,
 } from '@react-native-firebase/database';
 
 // REMOTE CONFIG
@@ -55,6 +56,7 @@ export const dbRef = (path) => ref(getDatabase(), path);
 export const dbGet = (path) => get(dbRef(path));
 export const dbSet = (path, value) => set(dbRef(path), value);
 export const dbUpdate = (path, value) => update(dbRef(path), value);
+export const dbRunTransaction = (path, updateFn) => runTransaction(dbRef(path), updateFn);
 
 // Listener: use REF.on / REF.off (not top-level onValue/off)
 export const dbOnValue = (path, cb) => {
@@ -91,5 +93,6 @@ export const rcGet = (key) => getValue(getRemoteConfig(), key);
 // Export raw functions if needed
 export {
   ref, get, set, update, onValue, off, push, remove, child,
+  runTransaction,
   onAuthStateChanged,
 };

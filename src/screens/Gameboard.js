@@ -24,6 +24,7 @@ import RenderFirstRow from '../components/RenderFirstRow';
 import Header from './Header';
 import GlowingText from '../components/AnimatedText';
 import { useGameSave } from '../constants/GameSave';
+import { dbRunTransaction } from '../services/Firebase';
 import { dicefaces } from '../constants/DicePaths';
 import GameboardButtons from '../components/GameboardButtons';
 import { scoringCategoriesConfig } from '../constants/scoringCategoriesConfig';
@@ -394,6 +395,31 @@ export default function Gameboard({ route, navigation }) {
     [savePlayerPoints, resetGame, navigation, playerId]
   );
 
+  // If user cancels saving the score, we still want to register that a game was played
+  // (the modal's Cancel refers to saving the score, not to whether the game happened).
+  const handleCancelAndRegisterPlayed = useCallback(async () => {
+    // close modal immediately
+    setScoreOpen(false);
+    try {
+      const uid = playerId;
+      if (uid) {
+        await dbRunTransaction(`players/${uid}`, (current) => {
+          if (current == null) return current; // player removed
+          const played = Number(current.playedGames || 0) + 1;
+          const sumP = Number(current.sumPoints || 0) + Number(totalPoints || 0);
+          const sumD = Number(current.sumDuration || 0) + Number(elapsedTime || 0);
+          return { ...current, playedGames: played, sumPoints: sumP, sumDuration: sumD };
+        });
+      }
+    } catch (err) {
+      console.error('[Gameboard] register played (cancel) failed', err);
+    }
+
+    // Reset local UI/game state regardless of transaction result
+    resetGame();
+    navigation.navigate('Scoreboard', { tab: 'week', playerId });
+  }, [playerId, totalPoints, elapsedTime, resetGame, navigation]);
+
   const renderFooter = useCallback(
     () => (
       <RenderDices
@@ -485,7 +511,7 @@ export default function Gameboard({ route, navigation }) {
       <ScoreModal
         visible={scoreOpen}
         onClose={() => setScoreOpen(false)}
-        onCancel={() => { setScoreOpen(false); resetGame(); }}
+        onCancel={handleCancelAndRegisterPlayed}
         onSave={handleSaveScoreFromModal}
         points={totalPoints - (hasAppliedBonus ? BONUS_POINTS : 0)}
         minorPoints={minorPoints}

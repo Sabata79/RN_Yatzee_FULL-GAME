@@ -349,6 +349,10 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     subs.push({ path: playersPath, cb: weeklyWinsCb });
 
     // PLAYER STATS (+ progressPoints init)
+    // This listener computes aggregates from scores once and then initializes per-player
+    // aggregate fields in the player's profile: playedGames, sumPoints, sumDuration.
+    // After migration these aggregates should be used by other parts of the app so
+    // we can drop per-score retention later to save DB size.
     const statsCb = async (snapshot) => {
       let gamesCount = 0;
       let totalPointsCalc = 0;
@@ -363,17 +367,55 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
         });
       }
 
-      setPlayedGames(gamesCount);
-      setAvgPoints(gamesCount > 0 ? (totalPointsCalc / gamesCount).toFixed(0) : 0);
-      setAvgDuration(gamesCount > 0 ? (totalDurationCalc / gamesCount).toFixed(0) : 0);
+      // Read player's profile to see if aggregates already exist
+      try {
+        const pSnap = await dbGet(`players/${idToUse}`);
+        const pData = pSnap.val() || {};
 
-      // progressPoints init if missing
-      const pSnap = await dbGet(`players/${idToUse}`);
-      const pData = pSnap.val();
-      if (!pData || pData.progressPoints === undefined) {
-        dbUpdate(`players/${idToUse}`, { progressPoints: gamesCount })
-          .then(() => console.log('progressPoints initialized.'))
-          .catch(err => console.error('Error initializing progressPoints:', err));
+        const hasPlayedGames = typeof pData.playedGames === 'number';
+        const hasSumPoints = typeof pData.sumPoints === 'number';
+        const hasSumDuration = typeof pData.sumDuration === 'number';
+
+        if (hasPlayedGames && hasSumPoints && hasSumDuration) {
+          // Use aggregates from profile (fast, no full scan needed)
+          const played = Number(pData.playedGames) || 0;
+          const sumPoints = Number(pData.sumPoints) || 0;
+          const sumDuration = Number(pData.sumDuration) || 0;
+          setPlayedGames(played);
+          setAvgPoints(played > 0 ? Math.round(sumPoints / played) : 0);
+          setAvgDuration(played > 0 ? Math.round(sumDuration / played) : 0);
+        } else {
+          // Aggregates missing — initialize them from current scores snapshot
+          setPlayedGames(gamesCount);
+          setAvgPoints(gamesCount > 0 ? Math.round(totalPointsCalc / gamesCount) : 0);
+          setAvgDuration(gamesCount > 0 ? Math.round(totalDurationCalc / gamesCount) : 0);
+
+          // Write aggregates to DB only if missing (migration step). This avoids
+          // overwriting any existing manual or server-side values.
+          const updatePayload = {};
+          if (!hasPlayedGames) updatePayload.playedGames = gamesCount;
+          if (!hasSumPoints) updatePayload.sumPoints = totalPointsCalc;
+          if (!hasSumDuration) updatePayload.sumDuration = totalDurationCalc;
+
+          if (Object.keys(updatePayload).length > 0) {
+            dbUpdate(`players/${idToUse}`, updatePayload)
+              .then(() => console.log('Player aggregates initialized:', updatePayload))
+              .catch(err => console.error('Error initializing player aggregates:', err));
+          }
+        }
+
+        // progressPoints init if missing (keep as before)
+        if (!pData || pData.progressPoints === undefined) {
+          dbUpdate(`players/${idToUse}`, { progressPoints: gamesCount })
+            .then(() => console.log('progressPoints initialized.'))
+            .catch(err => console.error('Error initializing progressPoints:', err));
+        }
+      } catch (err) {
+        console.error('Error reading player profile for aggregates:', err);
+        // Fallback to computed values in case of error
+        setPlayedGames(gamesCount);
+        setAvgPoints(gamesCount > 0 ? Math.round(totalPointsCalc / gamesCount) : 0);
+        setAvgDuration(gamesCount > 0 ? Math.round(totalDurationCalc / gamesCount) : 0);
       }
     };
     const statsPath = `players/${idToUse}/scores`;
