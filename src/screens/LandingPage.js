@@ -288,13 +288,24 @@ export default function LandingPage({ navigation }) {
         // Remote update check in parallel (does not block navigation)
         fire("Remote update check (non-blocking)", checkRemoteUpdate);
 
-        // Preload images
+        // Preload images (explicitly include medals to be safe)
         await step("Preloading images & sounds", async () => {
           const allImages = [...avatars, ...PlayercardBg, ...additionalImages, ...Animations];
           const results = await Promise.allSettled(cacheImages(allImages));
           const failed = results.filter(r => r.status === 'rejected');
           if (failed.length) {
             console.warn('[BOOT] Some assets failed to preload:', failed.slice(0, 6).map(f => String(f.reason)).join(' | '));
+          }
+
+          // Extra: explicitly ensure medal assets are loaded via Asset.loadAsync
+          try {
+            await Asset.loadAsync([
+              require('../../assets/medals/firstMedal.webp'),
+              require('../../assets/medals/silverMedal.webp'),
+              require('../../assets/medals/bronzeMedal.webp'),
+            ]);
+          } catch (e) {
+            console.warn('[BOOT] Explicit medal preloading failed', e);
           }
         });
 

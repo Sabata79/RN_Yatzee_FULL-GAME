@@ -62,15 +62,12 @@ const scoreboardStyles = StyleSheet.create({
         paddingVertical: 5,
     },
     tabContainer: {
-        position: 'relative',
-        flexDirection: 'row',
-        justifyContent: 'space-around',
+        backgroundColor: COLORS.overlayDark,
+        marginTop: 0,
+        height: 60,
+        textAlign: 'center',
+        justifyContent: 'center',
         alignItems: 'center',
-        width: '100%',
-        backgroundColor: COLORS.overlayExtraDark,
-        paddingVertical: 6,
-        paddingHorizontal: SPACING.xs,
-        minHeight: 60,
     },
     tabText: {
         fontFamily: TYPOGRAPHY.fontFamily.montserratRegular,
@@ -99,18 +96,18 @@ const scoreboardStyles = StyleSheet.create({
         justifyContent: 'center',
     },
     playerHeaderCell: {
-        flex: 3,
+        flex: 2.5,
         alignItems: 'center',
         justifyContent: 'center',
     },
     durationHeaderCell: {
-        flex: 2,
+        flex: 1.8,
         alignItems: 'center',
         justifyContent: 'center',
         marginLeft: 5,
     },
     pointsHeaderCell: {
-        flex: 1.5,
+        flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -120,9 +117,9 @@ const scoreboardStyles = StyleSheet.create({
         justifyContent: 'center',
     },
     medal: {
-        width: isSmallScreen ? 38 : 42,
-        height: isSmallScreen ? 38 : 42,
-        marginLeft: 0,
+        width: isSmallScreen ? 35 : 40,
+        height: isSmallScreen ? 35 : 40,
+        textAlign: 'center',
         alignSelf: 'center',
     },
     medalWrapper: {
@@ -179,7 +176,7 @@ const scoreboardStyles = StyleSheet.create({
         backgroundColor: 'transparent',
     },
     playerNameText: {
-        fontFamily: TYPOGRAPHY.fontFamily.montserrat,
+        fontFamily: TYPOGRAPHY.fontFamily.montserratRegular,
         fontSize: TYPOGRAPHY.md,
         color: COLORS.textLight,
         marginLeft: 5,
@@ -189,16 +186,17 @@ const scoreboardStyles = StyleSheet.create({
         flex: 2,
         alignItems: 'center',
         justifyContent: 'center',
+        marginLeft: -20,
     },
     durationText: {
-        fontFamily: TYPOGRAPHY.fontFamily.montserrat,
+        fontFamily: TYPOGRAPHY.fontFamily.montserratBold,
         fontSize: TYPOGRAPHY.md,
         color: COLORS.textLight,
         textAlign: 'center',
-        marginLeft: 15,
+        marginLeft: 5,
     },
     pointsCell: {
-        flex: 1.5,
+        flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -212,7 +210,6 @@ const scoreboardStyles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
     },
-
     timeDot: {
         width: 12,
         height: 12,

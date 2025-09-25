@@ -30,6 +30,9 @@ export const useGame = () => useContext(GameContext);
 export const GameProvider = ({ children }) => {
   const [playerId, setPlayerId] = useState('');
   const [scoreboardData, setScoreboardData] = useState([]);
+  const [scoreboardMonthly, setScoreboardMonthly] = useState([]);
+  const [scoreboardWeekly, setScoreboardWeekly] = useState([]);
+  const [scoreboardIndices, setScoreboardIndices] = useState({ allTime: -1, monthly: -1, weekly: -1 });
   const [playerName, setPlayerName] = useState('');
   const [playerIdContext, setPlayerIdContext] = useState('');
   const [playerNameContext, setPlayerNameContext] = useState('');
@@ -69,6 +72,15 @@ export const GameProvider = ({ children }) => {
     const dateA = new Date(newScore.date.split('.').reverse().join('-'));
     const dateB = new Date(oldScore.date.split('.').reverse().join('-'));
     return dateA < dateB;
+  };
+
+  // ISO week helper (same logic as used in Scoreboard screen)
+  const getWeekNumber = (date) => {
+    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    const dayNum = d.getUTCDay() || 7;
+    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
   };
 
   // ----- All Time Rank listener -----
@@ -115,47 +127,80 @@ export const GameProvider = ({ children }) => {
   useEffect(() => {
     const handle = (snapshot) => {
       const playersData = snapshot.val();
-      const tmpScores = [];
+      const tmpAll = [];
+      const tmpMon = [];
+      const tmpWeek = [];
       if (playersData) {
+        const now = new Date();
+        const currentMonth = now.getMonth();
+        const currentYear = now.getFullYear();
+        const currentWeek = getWeekNumber(now);
+
         Object.keys(playersData).forEach((pid) => {
           const player = playersData[pid];
           if (player?.scores) {
             const list = Object.values(player.scores);
             if (list.length > 0) {
-              let bestScore = null;
+              let bestAll = null;
+              let bestMon = null;
+              let bestWeek = null;
+
               list.forEach((score) => {
+                const parts = (score.date || '').split('.');
+                const d = parts.length === 3 ? new Date(`${parts[2]}-${parts[1]}-${parts[0]}`) : new Date(score.date);
+
+                // all-time best
                 if (
-                  !bestScore ||
-                  score.points > bestScore.points ||
-                  (score.points === bestScore.points && score.duration < bestScore.duration) ||
-                  (score.points === bestScore.points &&
-                    score.duration === bestScore.duration &&
-                    new Date(score.date) < new Date(bestScore.date))
+                  !bestAll ||
+                  score.points > bestAll.points ||
+                  (score.points === bestAll.points && score.duration < bestAll.duration) ||
+                  (score.points === bestAll.points && score.duration === bestAll.duration && new Date(score.date) < new Date(bestAll.date))
                 ) {
-                  bestScore = score;
+                  bestAll = score;
+                }
+
+                // monthly best (same month/year)
+                if (!isNaN(d) && d.getMonth() === currentMonth && d.getFullYear() === currentYear) {
+                  if (!bestMon || isBetterScore(score, bestMon)) bestMon = score;
+                }
+
+                // weekly best (ISO week match)
+                if (!isNaN(d) && getWeekNumber(d) === currentWeek) {
+                  if (!bestWeek || isBetterScore(score, bestWeek)) bestWeek = score;
                 }
               });
-              if (bestScore) {
-                tmpScores.push({
-                  ...bestScore,
-                  name: player.name,
-                  playerId: pid,
-                  avatar: player.avatar || null,
-                  scores: list,
-                });
-              }
+
+              if (bestAll) tmpAll.push({ ...bestAll, name: player.name, playerId: pid, avatar: player.avatar || null, scores: list });
+              if (bestMon) tmpMon.push({ ...bestMon, name: player.name, playerId: pid, avatar: player.avatar || null, scores: list });
+              if (bestWeek) tmpWeek.push({ ...bestWeek, name: player.name, playerId: pid, avatar: player.avatar || null, scores: list });
             }
           }
         });
 
-        tmpScores.sort((a, b) => {
+        const compare = (a, b) => {
           if (b.points !== a.points) return b.points - a.points;
           if (a.duration !== b.duration) return a.duration - b.duration;
-          return new Date(a.date) - new Date(b.date);
-        });
-        setScoreboardData(tmpScores);
+          return new Date(a.date.split('.').reverse().join('-')) - new Date(b.date.split('.').reverse().join('-'));
+        };
+
+        tmpAll.sort(compare);
+        tmpMon.sort(compare);
+        tmpWeek.sort(compare);
+
+  setScoreboardData(tmpAll);
+  setScoreboardMonthly(tmpMon);
+  setScoreboardWeekly(tmpWeek);
+
+  // compute indices for current playerId
+  const idxAll = tmpAll.findIndex((s) => s.playerId === playerId);
+  const idxMon = tmpMon.findIndex((s) => s.playerId === playerId);
+  const idxWeek = tmpWeek.findIndex((s) => s.playerId === playerId);
+  setScoreboardIndices({ allTime: idxAll, monthly: idxMon, weekly: idxWeek });
       } else {
         setScoreboardData([]);
+        setScoreboardMonthly([]);
+        setScoreboardWeekly([]);
+        setScoreboardIndices({ allTime: -1, monthly: -1, weekly: -1 });
       }
     };
 
@@ -323,8 +368,14 @@ export const GameProvider = ({ children }) => {
       isAvatarLoaded,
 
       // scoreboard
-      scoreboardData,
-      setScoreboardData,
+  scoreboardData,
+  setScoreboardData,
+  scoreboardMonthly,
+  setScoreboardMonthly,
+  scoreboardWeekly,
+  setScoreboardWeekly,
+  scoreboardIndices,
+  setScoreboardIndices,
     }),
     [
       playerLevel,
@@ -356,6 +407,9 @@ export const GameProvider = ({ children }) => {
       avatarUrl,
       isAvatarLoaded,
       scoreboardData,
+      scoreboardMonthly,
+      scoreboardWeekly,
+      scoreboardIndices,
     ]
   );
 

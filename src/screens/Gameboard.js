@@ -45,7 +45,6 @@ import EnergyModal from '../components/modals/EnergyModal';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBreakpoints, makeSizes, computeTileSize } from '../utils/breakpoints';
 import { PixelRatio } from 'react-native';
-import DebugDeviceInfo from '../components/DebugDeviceInfo';
 import { useWindowDimensions } from 'react-native';
 
 const { height } = Dimensions.get('window');
@@ -473,7 +472,7 @@ export default function Gameboard({ route, navigation }) {
 
   return (
     <ImageBackground source={require('../../assets/diceBackground.webp')} style={styles.background}>
-      {showDebug && <DebugDeviceInfo />}
+  {/* debug overlay removed for production/dev cleanliness */}
       <Header />
 
 

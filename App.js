@@ -34,7 +34,7 @@ import { AudioProvider } from './src/services/AudioManager';
 import LandingPage from './src/screens/LandingPage';
 import Home from './src/screens/Home';
 import Gameboard from './src/screens/Gameboard';
-import Scoreboard from './src/screens/Scoreboard';
+import Scoreboard from './src/components/ScoreboardTabs';
 import SettingScreen from './src/screens/SettingScreen';
 import Rules from './src/screens/Rules';
 

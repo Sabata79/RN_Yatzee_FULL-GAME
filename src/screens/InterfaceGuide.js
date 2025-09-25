@@ -32,13 +32,13 @@ export default function InterfaceGuide() {
         showsVerticalScrollIndicator={false}
       >
         {/* Title and icon */}
-  <View style={gameRulesStyles.sectionHeader}>
+        <View style={gameRulesStyles.sectionHeader}>
           <MaterialCommunityIcons name="compass-outline" size={24} color="gold" />
           <Text style={gameRulesStyles.sectionTitle}>Interface Guide</Text>
         </View>
 
         {/* Info: How to access the player card */}
-  <View style={gameRulesStyles.infoBox}>
+        <View style={gameRulesStyles.infoBox}>
           <Text style={gameRulesStyles.infoTitle}>Accessing Player Card</Text>
           <Text style={gameRulesStyles.infoText}>
             🔸 Tap your avatar in the top-right corner of the screen to open your personal Player Card.
@@ -55,7 +55,7 @@ export default function InterfaceGuide() {
         />
 
         {/* Player card sections and details */}
-  <View style={gameRulesStyles.infoBox}>
+        <View style={gameRulesStyles.infoBox}>
           <Text style={gameRulesStyles.infoTitle}>📌 Player Card Sections</Text>
 
           <View style={gameRulesStyles.bulletRow}>
@@ -85,7 +85,7 @@ export default function InterfaceGuide() {
         </View>
 
         {/* Avatar levels */}
-  <View style={gameRulesStyles.infoBox}>
+        <View style={gameRulesStyles.infoBox}>
           <Text style={gameRulesStyles.infoTitle}>🔒 Avatar Unlocks</Text>
           <Text style={gameRulesStyles.infoText}>
             Some avatars are locked based on your level. Visit the Player Card to view and change unlocked avatars.
@@ -93,7 +93,7 @@ export default function InterfaceGuide() {
         </View>
 
         {/* Player card background info */}
-  <View style={gameRulesStyles.infoBox}>
+        <View style={gameRulesStyles.infoBox}>
           <Text style={gameRulesStyles.infoTitle}>🎴 Player Card Background</Text>
           <Text style={gameRulesStyles.infoText}>
             Your Player Card background updates automatically as you level up.
@@ -101,7 +101,7 @@ export default function InterfaceGuide() {
         </View>
 
         {/* Player level info */}
-  <View style={gameRulesStyles.infoBox}>
+        <View style={gameRulesStyles.infoBox}>
           <Text style={gameRulesStyles.infoTitle}>📈 Player Levels</Text>
           <Text style={gameRulesStyles.infoText}>Beginner: 0–400 games</Text>
           <Text style={gameRulesStyles.infoText}>Basic: 401–800 games</Text>
