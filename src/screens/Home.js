@@ -13,7 +13,7 @@
 // src/screens/Home.js
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { View, Text, TextInput, Alert, Image, Animated, Platform } from "react-native";
+import { View, Text, TextInput, Alert, Image, Animated, Platform, Keyboard } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { FontAwesome5 } from '@expo/vector-icons';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -39,6 +39,7 @@ export default function Home({ setPlayerId }) {
   const [loading, setLoading] = useState(false);
 
   const [kbVisible, setKbVisible] = useState(false); // ⬅ custom kbd visibility (Android)
+  const [keyboardVisible, setKeyboardVisible] = useState(false); // iOS/system keyboard
   const inputRef = useRef(null);
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
@@ -82,6 +83,21 @@ export default function Home({ setPlayerId }) {
       }).start();
     }
   }, [isFocused, fadeAnim]);
+
+  // iOS / system keyboard visibility (used to adjust layout when user not recognized)
+  useEffect(() => {
+    if (Platform.OS === 'ios') {
+      const show = () => setKeyboardVisible(true);
+      const hide = () => setKeyboardVisible(false);
+      const subShow = Keyboard.addListener('keyboardDidShow', show);
+      const subHide = Keyboard.addListener('keyboardDidHide', hide);
+      return () => {
+        try { subShow.remove(); } catch (e) {}
+        try { subHide.remove(); } catch (e) {}
+      };
+    }
+    return undefined;
+  }, []);
 
   // Sync context when localName/playerId change
   useEffect(() => {
@@ -144,8 +160,8 @@ export default function Home({ setPlayerId }) {
       await saveNewPlayer(cleanedName, playerId);
     }
 
-    // Hide custom keyboard after submit (Android)
-    if (Platform.OS === 'android') setCkVisible(false);
+  // Hide custom keyboard after submit (Android)
+  if (Platform.OS === 'android') setKbVisible(false);
   };
 
   const handlePlay = async () => {
@@ -168,12 +184,23 @@ export default function Home({ setPlayerId }) {
     setLocalName(prev => (prev || '').slice(0, -1));
   };
 
+  // layout adjustments
+  const bottomPad = insets.bottom || 0;
+  let extraBottom = 24 + bottomPad;
+  if (!userRecognized) {
+    // if custom keyboard visible (Android) or system keyboard (iOS), give more bottom space
+    const kbActive = Platform.OS === 'android' ? kbVisible : keyboardVisible;
+    extraBottom = bottomPad + (kbActive ? 220 : 24);
+  }
+
+  const containerLayoutStyle = { flex: 1, justifyContent: userRecognized ? 'flex-end' : 'center', paddingBottom: extraBottom };
+
   return (
     <View style={{ flex: 1 }}>
       <BackgroundVideo isActive={isFocused} />
-      <Animated.View style={[homeStyles.homeContainer, { opacity: fadeAnim }]}>
+      <Animated.View style={[homeStyles.homeContainer, { opacity: fadeAnim }, containerLayoutStyle]}>
         {!userRecognized ? (
-          <View style={homeStyles.homeContainer}>
+          <View style={{ width: '100%', alignItems: 'center' }}>
             <Text style={homeStyles.homeText}>Hi, Stranger!</Text>
             <Text style={homeStyles.homeText}>Can you tell your nickname?</Text>
             <Text style={homeStyles.homeAuxillaryText}>(Nickname must be 3-10 characters long)</Text>
@@ -206,7 +233,7 @@ export default function Home({ setPlayerId }) {
             />
           </View>
         ) : (
-          <View style={homeStyles.homeContainer}>
+          <View style={{ width: '100%', alignItems: 'center' }}>
             <Text style={[homeStyles.homeText]}>Hi {playerName},</Text>
 
             <View style={homeStyles.tokenRow}>
