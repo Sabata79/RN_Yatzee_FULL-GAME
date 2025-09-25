@@ -6,11 +6,12 @@
  * @since 2025-09-17
  * @updated 2025-09-25
  */
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, ScrollView, Text, Image } from 'react-native';
 import { useGame } from '../../constants/GameContext';
 import { DataTable } from 'react-native-paper';
 import { FontAwesome5 } from '@expo/vector-icons';
+import { onCombinedPresenceChange } from '../../services/Presence';
 import scoreboardStyles from '../../styles/ScoreboardScreenStyles';
 import { NBR_OF_SCOREBOARD_ROWS } from '../../constants/Game';
 
@@ -18,6 +19,26 @@ const getDurationDotColor = (secs) => (secs > 150 ? '#e53935' : secs > 100 ? '#f
 
 export default function AllTimeScores({ rows = [], avatarMap, getAvatarStyle, openPlayerCard, insets = { bottom: 0 }, tabBarHeight = 0, userId, listRef }) {
   const { scoreboardData, playerId } = useGame();
+  const [presenceMap, setPresenceMap] = useState({});
+
+  useEffect(() => {
+    let unsub = null;
+    (async () => {
+      try {
+        unsub = await onCombinedPresenceChange((map) => {
+          setPresenceMap(map || {});
+        });
+      } catch (e) {
+        // ignore
+      }
+    })();
+
+    return () => {
+      try {
+        if (typeof unsub === 'function') unsub();
+      } catch (e) {}
+    };
+  }, []);
   const effectiveRows = (rows && rows.length) ? rows : scoreboardData || [];
   const effectiveUserId = userId || playerId;
   const listTableHeader = () => (
@@ -34,6 +55,7 @@ export default function AllTimeScores({ rows = [], avatarMap, getAvatarStyle, op
       <DataTable.Title style={[scoreboardStyles.pointsHeaderCell]}>
         <Text style={scoreboardStyles.scoreboardHeader}>Points</Text>
       </DataTable.Title>
+      <DataTable.Title style={[scoreboardStyles.presenceHeaderCell]} />
     </DataTable.Header>
   );
 
@@ -88,6 +110,13 @@ export default function AllTimeScores({ rows = [], avatarMap, getAvatarStyle, op
 
         <DataTable.Cell style={[scoreboardStyles.pointsCell]}>
           <Text style={scoreboardStyles.pointsText}>{item.points}</Text>
+        </DataTable.Cell>
+        <DataTable.Cell style={[scoreboardStyles.presenceCell]}>
+          {presenceMap[item.playerId] && presenceMap[item.playerId].online ? (
+            <FontAwesome5 name="wifi" size={18} color="#4caf50" />
+          ) : (
+            <FontAwesome5 name="wifi" size={18} color="#9e9e9e" />
+          )}
         </DataTable.Cell>
       </DataTable.Row>
     );

@@ -18,11 +18,14 @@
  * @module GameContext
  * @author Sabata79
  * @since 2025-09-18
+ * @updated 2025-09-25
  */
 
 import { createContext, useState, useContext, useEffect, useMemo, useRef, useCallback } from 'react';
-import { dbOnValue, dbOff, dbSet } from '../services/Firebase';
+import { AppState } from 'react-native';
+import { dbOnValue, dbOff, dbSet, dbRef } from '../services/Firebase';
 import { MAX_TOKENS } from './Game';
+import { onDisconnect } from '@react-native-firebase/database';
 
 const GameContext = createContext();
 export const useGame = () => useContext(GameContext);
@@ -81,6 +84,22 @@ export const GameProvider = ({ children }) => {
     d.setUTCDate(d.getUTCDate() + 4 - dayNum);
     const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
     return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+  };
+
+  // Helper: format timestamp to dd.mm.yyyy / hh.mm.ss (24h)
+  const formatLastSeen = (ts) => {
+    try {
+      const d = new Date(Number(ts) || Date.now());
+      const dd = String(d.getDate()).padStart(2, '0');
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const yyyy = d.getFullYear();
+      const hh = String(d.getHours()).padStart(2, '0');
+      const min = String(d.getMinutes()).padStart(2, '0');
+      const sec = String(d.getSeconds()).padStart(2, '0');
+      return `${dd}.${mm}.${yyyy} / ${hh}.${min}.${sec}`;
+    } catch (e) {
+      return '';
+    }
   };
 
   // ----- All Time Rank listener -----
@@ -264,6 +283,85 @@ export const GameProvider = ({ children }) => {
     const clamped = Math.max(0, Math.min(MAX_TOKENS, Math.trunc(tokens)));
     dbSet(`players/${playerId}/tokens`, clamped).catch(() => { });
   }, [playerId, tokens]);
+
+  // ----- Presence lifecycle (embedded under players/{playerId}/presence) -----
+  // We only set presence for a player once they are recognized (userRecognized === true).
+  // Uses AppState to set offline when app goes to background/inactive and re-set online on active.
+  useEffect(() => {
+    if (!playerId) return;
+
+    let cleanupFn = null;
+    let mounted = true;
+
+    const path = `players/${playerId}/presence`;
+
+    const setOnlineAndRegisterDisconnect = async () => {
+      try {
+        const ts = Date.now();
+        const payload = { online: true, lastSeen: ts, lastSeenHuman: formatLastSeen(ts) };
+        await dbSet(path, payload);
+
+        // try to register onDisconnect on the same embedded path
+        try {
+          const ref = dbRef(path);
+          const od = onDisconnect(ref);
+          if (od && typeof od.set === 'function') {
+            const offTs = Date.now();
+            od.set({ online: false, lastSeen: offTs, lastSeenHuman: formatLastSeen(offTs) });
+          }
+          cleanupFn = async () => {
+            try {
+              if (od && typeof od.cancel === 'function') await od.cancel();
+            } catch (e) {}
+            try {
+              const offTs2 = Date.now();
+              await dbSet(path, { online: false, lastSeen: offTs2, lastSeenHuman: formatLastSeen(offTs2) });
+            } catch (e) {}
+          };
+        } catch (e) {
+          // fallback: provide cleanup that writes offline
+          cleanupFn = async () => {
+            const offTs3 = Date.now();
+            return dbSet(path, { online: false, lastSeen: offTs3, lastSeenHuman: formatLastSeen(offTs3) });
+          };
+        }
+      } catch (e) {
+        console.warn('Presence: failed to set online for', playerId, e);
+      }
+    };
+
+    // Only enable presence when the player is recognized (has a name / is linked)
+    if (userRecognized) {
+      setOnlineAndRegisterDisconnect();
+    }
+
+    const handleAppState = async (nextState) => {
+      if (!userRecognized) return;
+      if (nextState === 'background' || nextState === 'inactive') {
+        // go offline immediately
+        if (cleanupFn) {
+          try {
+            await cleanupFn();
+          } catch (e) {}
+          cleanupFn = null;
+        }
+      } else if (nextState === 'active') {
+        // ensure online again
+        if (!cleanupFn) await setOnlineAndRegisterDisconnect();
+      }
+    };
+
+    const sub = AppState.addEventListener ? AppState.addEventListener('change', handleAppState) : null;
+
+    return () => {
+      mounted = false;
+      try { sub?.remove?.(); } catch (e) {}
+      if (cleanupFn) {
+        try { cleanupFn().catch(() => {}); } catch (e) {}
+        cleanupFn = null;
+      }
+    };
+  }, [playerId, userRecognized]);
 
   // ----- Level helpers -----
   const getCurrentLevel = (points) => {

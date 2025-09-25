@@ -91,28 +91,33 @@ const scoreboardStyles = StyleSheet.create({
         color: COLORS.disabled,
     },
     rankHeaderCell: {
-        flex: 1.2,
+        flex: 0.9,
         alignItems: 'center',
         justifyContent: 'center',
     },
     playerHeaderCell: {
-        flex: 2.5,
+        flex: 2.3,
         alignItems: 'center',
         justifyContent: 'center',
     },
     durationHeaderCell: {
-        flex: 1.8,
+        flex: 1.6,
         alignItems: 'center',
         justifyContent: 'center',
-        marginLeft: 5,
+        marginLeft: 8,
     },
     pointsHeaderCell: {
         flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
     },
+    presenceHeaderCell: {
+        flex: 0.4,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
     rankCell: {
-        flex: 1.2,
+        flex: 0.9,
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -133,7 +138,7 @@ const scoreboardStyles = StyleSheet.create({
         textAlign: 'center',
     },
     playerCell: {
-        flex: 3,
+        flex: 2.8,
         justifyContent: 'flex-start',
     },
     playerWrapper: {
@@ -183,7 +188,7 @@ const scoreboardStyles = StyleSheet.create({
         letterSpacing: -0.8,
     },
     durationCell: {
-        flex: 2,
+        flex: 1.6,
         alignItems: 'center',
         justifyContent: 'center',
         marginLeft: -20,
@@ -197,6 +202,11 @@ const scoreboardStyles = StyleSheet.create({
     },
     pointsCell: {
         flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    presenceCell: {
+        flex: 0.4,
         alignItems: 'center',
         justifyContent: 'center',
     },

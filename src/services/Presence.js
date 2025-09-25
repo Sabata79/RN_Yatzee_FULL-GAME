@@ -4,9 +4,26 @@
  * @module src/services/Presence
  * @author Sabata79
  * @since 2025-09-23
+ * @updated 2025-09-25
  */
 import { dbOnValue, dbSet, dbRef, dbGet } from './Firebase';
 import { onDisconnect } from '@react-native-firebase/database';
+
+// Helper: format timestamp to dd.mm.yyyy / hh.mm.ss (24h)
+function formatLastSeen(ts) {
+  try {
+    const d = new Date(Number(ts) || Date.now());
+    const dd = String(d.getDate()).padStart(2, '0');
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const yyyy = d.getFullYear();
+    const hh = String(d.getHours()).padStart(2, '0');
+    const min = String(d.getMinutes()).padStart(2, '0');
+    const sec = String(d.getSeconds()).padStart(2, '0');
+    return `${dd}.${mm}.${yyyy} / ${hh}.${min}.${sec}`;
+  } catch (e) {
+    return '';
+  }
+}
 
 export const PRESENCE_ROOT = 'presence';
 export const PLAYER_ROOT = 'players';
@@ -131,7 +148,8 @@ export async function onCombinedPresenceChange(cb) {
 export async function getPresenceForPlayer(playerId) {
   try {
     // try top-level
-    const topSnap = await dbGet(`$players/${playerId}/${PRESENCE_ROOT}`);
+    // top-level presence is stored under /presence/{playerId}
+    const topSnap = await dbGet(`${PRESENCE_ROOT}/${playerId}`);
     const topVal = topSnap && typeof topSnap.val === 'function' ? topSnap.val() : (topSnap && topSnap._value) || null;
     // Support multiple storage shapes: { online: true }, true, { online: 'true' }, or null
     if (topVal !== null && typeof topVal !== 'undefined') {
@@ -179,7 +197,8 @@ export async function getPresenceForPlayer(playerId) {
  */
 export function setPresence(playerId, online = true) {
   const path = `${PRESENCE_ROOT}/${playerId}`;
-  const payload = { online: !!online, lastSeen: Date.now() };
+  const ts = Date.now();
+  const payload = { online: !!online, lastSeen: ts, lastSeenHuman: formatLastSeen(ts) };
   return dbSet(path, payload);
 }
 
@@ -198,7 +217,8 @@ export async function goOnline(playerId) {
     const od = onDisconnect(r);
     // schedule offline on disconnect
     if (od && typeof od.set === 'function') {
-      od.set({ online: false, lastSeen: Date.now() });
+      const ts = Date.now();
+      od.set({ online: false, lastSeen: ts, lastSeenHuman: formatLastSeen(ts) });
     }
 
     // return cleanup
