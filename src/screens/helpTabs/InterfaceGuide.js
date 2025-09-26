@@ -13,7 +13,7 @@
  * @since 2025-09-06
  */
 import { ScrollView, View, Text, Image } from 'react-native';
-import gameRulesStyles from '../styles/GameRulesStyles';
+import gameRulesStyles from '../../styles/GameRulesStyles';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
@@ -50,7 +50,7 @@ export default function InterfaceGuide() {
 
         {/* Player card explanation image */}
         <Image
-          source={require('../../assets/playerCard_explained.webp')}
+          source={require('../../../assets/playerCard_explained.webp')}
           style={gameRulesStyles.image}
         />
 
@@ -114,5 +114,3 @@ export default function InterfaceGuide() {
     </SafeAreaView>
   );
 }
-
-

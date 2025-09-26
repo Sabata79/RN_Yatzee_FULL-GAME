@@ -4,19 +4,14 @@
  * Contains the UI and logic for showing the rules and scoring combinations of the game.
  * Uses icons and styled sections for clarity.
  *
- * Usage:
- *   import GameRules from './GameRules';
- *   ...
- *   <GameRules />
- *
- * @module screens/GameRules
- * @author Sabata79
+ * @module src/screens/helpTabs/GameRules
  * @since 2025-09-06
  */
+import React from 'react';
 import { View, Text, ScrollView, Image } from 'react-native';
-import gameRulesStyles from '../styles/GameRulesStyles';
+import gameRulesStyles from '../../styles/GameRulesStyles';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { rulesTextContent, combinationsData, SCORE_COMPARSION_TEXT } from '../constants/Game';
+import { rulesTextContent, combinationsData, SCORE_COMPARSION_TEXT } from '../../constants/Game';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 
@@ -57,14 +52,15 @@ export default function GameRules() {
         </View>
       ))}
 
-      {/* Time bonus section */}
+      {/* Time bonus / extra notes */}
       <View style={gameRulesStyles.sectionHeader}>
         <Text style={gameRulesStyles.sectionTitle}>Time Bonus</Text>
       </View>
 
-      <View style={[gameRulesStyles.scoreItem, { flexDirection: 'row', alignItems: 'center' }]}>
+      <View style={[gameRulesStyles.scoreItem, { flexDirection: 'row', alignItems: 'center' }]}
+      >
         <Image
-          source={require('../../assets/trafficlights.webp')}
+          source={require('../../../assets/trafficlights.webp')}
           style={gameRulesStyles.trafficImage}
         />
         <View style={{ flex: 1 }}>
@@ -80,31 +76,25 @@ export default function GameRules() {
         </View>
       </View>
 
-      {/* Scores Comparison Section Title with Icon */}
+      {/* Scores comparison section */}
       <View style={gameRulesStyles.sectionHeader}>
         <Text style={gameRulesStyles.sectionTitle}>{SCORE_COMPARSION_TEXT.title}</Text>
       </View>
 
-      {/* Score Items */}
       <View style={gameRulesStyles.scoreItem}>
         <Text style={gameRulesStyles.scoreTitle}>1. Points</Text>
-        <Text style={gameRulesStyles.scoreDescription}>Higher points are ranked first.</Text>
+        <Text style={gameRulesStyles.scoreDescription}>{SCORE_COMPARSION_TEXT.points}</Text>
       </View>
 
       <View style={gameRulesStyles.scoreItem}>
         <Text style={gameRulesStyles.scoreTitle}>2. Duration</Text>
-        <Text style={gameRulesStyles.scoreDescription}>
-          If points are equal, the score with the shorter duration comes first.
-        </Text>
+        <Text style={gameRulesStyles.scoreDescription}>{SCORE_COMPARSION_TEXT.duration}</Text>
       </View>
 
       <View style={gameRulesStyles.scoreItem}>
         <Text style={gameRulesStyles.scoreTitle}>3. Date/Time</Text>
-        <Text style={gameRulesStyles.scoreDescription}>
-          If both points and duration are equal, the score that was achieved earlier is ranked higher.
-        </Text>
+        <Text style={gameRulesStyles.scoreDescription}>{SCORE_COMPARSION_TEXT.dateTime}</Text>
       </View>
     </ScrollView>
   );
 }
-

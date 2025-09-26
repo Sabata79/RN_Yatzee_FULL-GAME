@@ -15,10 +15,10 @@
 import { useState } from 'react';
 import { Dimensions, useWindowDimensions, ImageBackground, View } from 'react-native';
 import { TabView, SceneMap, TabBar } from 'react-native-tab-view';
-import GameRules from '../screens/GameRules';
-import AccountLinking from '../screens/AccountLinking';
-import InterfaceGuide from './InterfaceGuide';
-import AboutMe from '../screens/AboutMe';
+import GameRules from './helpTabs/GameRules';
+import AccountLinking from './helpTabs/AccountLinking';
+import InterfaceGuide from './helpTabs/InterfaceGuide';
+import AboutMe from './helpTabs/AboutMe';
 import gameRulesStyles from '../styles/GameRulesStyles';
 
 import COLORS from '../constants/colors';
