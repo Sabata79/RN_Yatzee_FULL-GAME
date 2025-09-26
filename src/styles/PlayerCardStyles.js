@@ -15,6 +15,10 @@ import SPACING from '../constants/spacing';
 
 const { width, height } = Dimensions.get('window');
 const isFoldScreen = width < 800;
+// Cap PlayerCard modal width so it remains readable on very wide screens
+const CARD_MAX_WIDTH = Math.min(720, Math.floor(width * 0.9));
+// Minimum width to prevent the card from shrinking too small on narrow split views
+const CARD_MIN_WIDTH = 320;
 const avatarSize = isFoldScreen ? 75 : 80;
 
 
@@ -41,6 +45,8 @@ const playerCardStyles = StyleSheet.create({
         textAlign: 'center',
     },
     playerCardName: {
+        bottom: -15,
+        left: 5,
         fontFamily: TYPOGRAPHY.fontFamily.montserratBold,
         fontSize: TYPOGRAPHY.fontSize.xl,
     },
@@ -53,7 +59,7 @@ const playerCardStyles = StyleSheet.create({
         width: '65%',
         minHeight: 110,
         maxHeight: 110,
-        marginBottom: 5,
+        marginBottom: 0,
         marginTop: 20,
         borderRadius: 3,
         backgroundColor: '#99949430',
@@ -72,7 +78,8 @@ const playerCardStyles = StyleSheet.create({
     },
     playerCardModalContainer: {
         width: '80%',
-        maxWidth: 350,
+        minWidth: CARD_MIN_WIDTH,
+        maxWidth: CARD_MAX_WIDTH,
         marginTop: '5%',
         padding: 10,
         borderRadius: 10,
