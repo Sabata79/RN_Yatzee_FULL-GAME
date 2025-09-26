@@ -23,7 +23,7 @@ import { sanitizeInput, checkIfNameExists } from '../services/nameUtils';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import WipeModal from '../components/modals/WipeModal';
 import CustomKeyboard from '../components/CustomKeyboard';
-import { Share, Dimensions, PixelRatio, NativeModules } from 'react-native';
+// Removed Share/Dimensions/PixelRatio/NativeModules imports as 'Share device info' was removed
 
 const SettingScreen = () => {
   const { musicMuted, setMusicMuted, sfxMuted, setSfxMuted, playSelect } = useAudio();
@@ -254,32 +254,7 @@ const SettingScreen = () => {
             </Pressable>
           </View>
 
-            {/* Share device info for debugging */}
-            <View style={settingScreenStyles.linkButtonContainer}>
-              <View style={settingScreenStyles.linkShadowLayer} />
-              <Pressable
-                style={({ pressed }) => [settingScreenStyles.linkButton, pressed && settingScreenStyles.linkButtonPressed]}
-                onPress={async () => {
-                  try {
-                    const { width, height } = Dimensions.get('window');
-                    const pr = PixelRatio.get();
-                    let model = 'unknown';
-                    try {
-                      model = NativeModules?.PlatformConstants?.Model || NativeModules?.Build?.MODEL || model;
-                    } catch (e) {
-                      // ignore
-                    }
-                    const text = `W×H: ${width}x${height}\nPixelRatio: ${pr}\nPlatform: ${Platform.OS}\nModel: ${model}`;
-                    await Share.share({ message: text });
-                  } catch (e) {
-                    Alert.alert('Share failed', String(e));
-                  }
-                }}
-              >
-                <Ionicons name="share-social" size={18} color="#f1c40f" style={{ marginRight: 8 }} />
-                <Text style={settingScreenStyles.linkButtonText}>Share device info</Text>
-              </Pressable>
-            </View>
+            {/* 'Share device info' button removed per request */}
 
           {/* WipeModal (ohut UI), varsinainen wipeAccount tässä komponentissa */}
           <WipeModal
