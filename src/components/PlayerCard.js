@@ -8,7 +8,7 @@
  * @since 2025-08-29
  */
 import { useState, useEffect, useRef } from 'react';
-import { View, Text, Modal, Pressable, Image, ActivityIndicator, Animated } from 'react-native'; 
+import { View, Text, Modal, Pressable, Image, ActivityIndicator, Animated } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useGame } from '../constants/GameContext';
 import playerCardStyles from '../styles/PlayerCardStyles';
@@ -67,6 +67,8 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
   const imageLoadedRef = useRef(false);
   // Animated ribbon (scale/rotate/translate) for All-Time #1
   const ribbonAnim = useRef(new Animated.Value(0)).current;
+  // Animated ribbon for linked status (separate DOM/animation)
+  const ribbonLinkedAnim = useRef(new Animated.Value(0)).current;
 
   const clearSettleTimers = () => {
     if (settleTimeoutRef.current) {
@@ -256,11 +258,11 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
           .map(s => ({ points: s.points, date: s.date, duration: s.duration, time: s.time }))
           .sort((a, b) => b.points - a.points)
           .slice(0, NBR_OF_SCOREBOARD_ROWS);
-  setTopScores(sorted);
-  markUpdate();
+        setTopScores(sorted);
+        markUpdate();
       } else {
-  setTopScores([]);
-  markUpdate();
+        setTopScores([]);
+        markUpdate();
       }
     };
     dbOnValue(topScoresPath, topScoresCb);
@@ -270,8 +272,8 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     const playersPath = 'players';
     const monthlyCb = (snapshot) => {
       if (!snapshot.exists()) {
-  setMonthlyRanks(Array(12).fill('-'));
-  markUpdate();
+        setMonthlyRanks(Array(12).fill('-'));
+        markUpdate();
         return;
       }
       const playersData = snapshot.val();
@@ -305,8 +307,8 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
         return idx === -1 ? ' - ' : idx + 1;
       });
 
-  setMonthlyRanks(monthRanks);
-  markUpdate();
+      setMonthlyRanks(monthRanks);
+      markUpdate();
     };
     dbOnValue(playersPath, monthlyCb);
     subs.push({ path: playersPath, cb: monthlyCb });
@@ -314,8 +316,8 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     // WEEKLY RANK (last week)
     const weeklyRankCb = (snapshot) => {
       if (!snapshot.exists()) {
-  setWeeklyRank(' - ');
-  markUpdate();
+        setWeeklyRank(' - ');
+        markUpdate();
         return;
       }
       const playersData = snapshot.val();
@@ -352,8 +354,8 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
       });
 
       const r = best.findIndex(s => s.playerId === idToUse) + 1;
-  setWeeklyRank(r === 0 ? ' - ' : r);
-  markUpdate();
+      setWeeklyRank(r === 0 ? ' - ' : r);
+      markUpdate();
     };
     dbOnValue(playersPath, weeklyRankCb);
     subs.push({ path: playersPath, cb: weeklyRankCb });
@@ -361,8 +363,8 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     // WEEKLY WINS (within the year)
     const weeklyWinsCb = (snapshot) => {
       if (!snapshot.exists()) {
-  setWeeklyWins(0);
-  markUpdate();
+        setWeeklyWins(0);
+        markUpdate();
         return;
       }
       const playersData = snapshot.val();
@@ -405,8 +407,8 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
         if (winner && winner.playerId === idToUse) wins += 1;
       }
 
-  setWeeklyWins(wins);
-  markUpdate();
+      setWeeklyWins(wins);
+      markUpdate();
     };
     dbOnValue(playersPath, weeklyWinsCb);
     subs.push({ path: playersPath, cb: weeklyWinsCb });
@@ -478,10 +480,10 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
       } catch (err) {
         console.error('Error reading player profile for aggregates:', err);
         // Fallback to computed values in case of error
-  setPlayedGames(gamesCount);
-  setAvgPoints(gamesCount > 0 ? Math.round(totalPointsCalc / gamesCount) : 0);
-  setAvgDuration(gamesCount > 0 ? Math.round(totalDurationCalc / gamesCount) : 0);
-  markUpdate();
+        setPlayedGames(gamesCount);
+        setAvgPoints(gamesCount > 0 ? Math.round(totalPointsCalc / gamesCount) : 0);
+        setAvgDuration(gamesCount > 0 ? Math.round(totalDurationCalc / gamesCount) : 0);
+        markUpdate();
       }
     };
     const statsPath = `players/${idToUse}/scores`;
@@ -556,19 +558,21 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
   useEffect(() => {
     if (!isModalVisible) return;
     if (contentSettled && imageLoadedRef.current) {
-      // fade background in
-      Animated.timing(bgOpacity, { toValue: 1, duration: 350, useNativeDriver: true }).start();
-      // slide + fade content
-      Animated.parallel([
-        Animated.timing(contentOpacity, { toValue: 1, duration: 300, useNativeDriver: true }),
-        Animated.timing(contentTranslate, { toValue: 0, duration: 300, useNativeDriver: true }),
+      // delay content/background slightly so ribbons (All-Time) can appear first
+      Animated.sequence([
+        Animated.delay(80),
+        Animated.parallel([
+          Animated.timing(bgOpacity, { toValue: 1, duration: 350, useNativeDriver: true }),
+          Animated.timing(contentOpacity, { toValue: 1, duration: 300, useNativeDriver: true }),
+          Animated.timing(contentTranslate, { toValue: 0, duration: 300, useNativeDriver: true }),
+        ]),
       ]).start();
     }
 
     // Reset animations when modal closes
     if (!isModalVisible) {
-      try { bgOpacity.setValue(0); } catch (e) {}
-      try { contentOpacity.setValue(0); contentTranslate.setValue(8); } catch (e) {}
+      try { bgOpacity.setValue(0); } catch (e) { }
+      try { contentOpacity.setValue(0); contentTranslate.setValue(8); } catch (e) { }
       imageLoadedRef.current = false;
       setContentSettled(false);
       clearSettleTimers();
@@ -590,6 +594,23 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
       tension: 80,
     }).start();
   }, [isModalVisible, viewingAllTimeRank, ribbonAnim]);
+
+  // Animate linked ribbon when modal opens and player is linked
+  useEffect(() => {
+    if (!isModalVisible || !playerIsLinked) {
+      try { ribbonLinkedAnim.setValue(0); } catch (e) { }
+      return;
+    }
+    Animated.sequence([
+      Animated.delay(120),
+      Animated.spring(ribbonLinkedAnim, {
+        toValue: 1,
+        useNativeDriver: true,
+        friction: 6,
+        tension: 80,
+      }),
+    ]).start();
+  }, [isModalVisible, playerIsLinked, ribbonLinkedAnim]);
 
   // Get trophy for specific month
   const getTrophyForMonth = (monthIndex) => {
@@ -664,7 +685,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
         onRequestClose={() => setModalVisible(false)}
       >
         <View style={playerCardStyles.playerCardModalBackground}>
-            <View
+          <View
             style={[playerCardStyles.playerCardModalContainer, isDarkBg && playerCardStyles.playerCardModalContainerDark]}
             onLayout={(event) => {
               const { height, width } = event.nativeEvent.layout;
@@ -692,8 +713,31 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
                 <Text style={playerCardStyles.ribbonLabel}>ALL-TIME #1</Text>
               </Animated.View>
             )}
+            {/* Linked Ribbon (Animated, separate DOM) */}
+            {playerIsLinked && (
+              <Animated.View
+                style={[
+                  playerCardStyles.ribbonLinkedImageWrapper,
+                  {
+                    opacity: ribbonLinkedAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 1] }),
+                    transform: [
+                      { translateY: ribbonLinkedAnim.interpolate({ inputRange: [0, 1], outputRange: [-10, 0] }) },
+                      { scale: ribbonLinkedAnim.interpolate({ inputRange: [0, 1], outputRange: [0.85, 1] }) },
+                      { rotate: ribbonLinkedAnim.interpolate({ inputRange: [0, 1], outputRange: ['-6deg', '0deg'] }) },
+                    ],
+                  },
+                ]}
+                pointerEvents="none"
+              >
+                <Image source={require('../../assets/ribbonlinked.webp')} style={playerCardStyles.ribbonImage} />
+                <View style={[playerCardStyles.nameAndLinkContainer, { position: 'absolute', left: 8, top: 8, zIndex: 40, transform: [{ rotate: '-45deg' }] }]}> 
+                  <FontAwesome5 name="link" size={12} color='white' style={playerCardStyles.ribbonIcon} />
+                  <Text style={playerCardStyles.ribbonLinkedLabel}>Linked</Text>
+                </View>
+              </Animated.View>
+            )}
             {isBgLoading && (
-              <View style={[playerCardStyles.avatarModalBackgroundImage, { justifyContent: 'center', alignItems: 'center', position: 'absolute', zIndex: 2 }]}> 
+              <View style={[playerCardStyles.avatarModalBackgroundImage, { justifyContent: 'center', alignItems: 'center', position: 'absolute', zIndex: 2 }]}>
                 <ActivityIndicator size="large" color="#fff" />
               </View>
             )}
@@ -712,15 +756,14 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
                 // If content already settled, animate immediately; otherwise
                 // the effect will be triggered by the contentSettled watcher.
                 if (contentSettled) {
-                  Animated.timing(bgOpacity, {
-                    toValue: 1,
-                    duration: 350,
-                    useNativeDriver: true,
-                  }).start();
-                  // animate content in as well
-                  Animated.parallel([
-                    Animated.timing(contentOpacity, { toValue: 1, duration: 300, useNativeDriver: true }),
-                    Animated.timing(contentTranslate, { toValue: 0, duration: 300, useNativeDriver: true }),
+                  // delay content/background slightly so ribbons (All-Time) can appear first
+                  Animated.sequence([
+                    Animated.delay(80),
+                    Animated.parallel([
+                      Animated.timing(bgOpacity, { toValue: 1, duration: 350, useNativeDriver: true }),
+                      Animated.timing(contentOpacity, { toValue: 1, duration: 300, useNativeDriver: true }),
+                      Animated.timing(contentTranslate, { toValue: 0, duration: 300, useNativeDriver: true }),
+                    ]),
                   ]).start();
                 }
               }}
@@ -730,11 +773,6 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
             {/* HEADER */}
             <View style={playerCardStyles.playerCardHeaderCentered}>
               <View style={playerCardStyles.nameAndLinkContainer}>
-                {playerIsLinked && (
-                  <View style={[playerCardStyles.linkIconContainer, isDarkBg && playerCardStyles.linkIconContainerDark]}>
-                    <FontAwesome5 name="link" size={18} color='#f1c40f' />
-                  </View>
-                )}
                 <Text style={[playerCardStyles.playerCardName, isDarkBg && playerCardStyles.playerCardNameDark]}>{nameToUse}</Text>
               </View>
               <Pressable

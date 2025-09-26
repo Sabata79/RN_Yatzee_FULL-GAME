@@ -85,7 +85,7 @@ export async function onCombinedPresenceChange(cb) {
     lastEmbedded.ref = embeddedNow || {};
     lastTop.ref = topNow || {};
     const mergedInitial = { ...(embeddedNow || {}), ...(topNow || {}) };
-    console.log('Presence: initial merged keys', Object.keys(mergedInitial).length);
+    // console.log('Presence: initial merged keys', Object.keys(mergedInitial).length);
     cb(mergedInitial);
   } catch (e) {
     // ignore initial failures
@@ -98,7 +98,7 @@ export async function onCombinedPresenceChange(cb) {
       lastTop.ref = top;
       const merged = { ...(lastEmbedded.ref || {}), ...(top || {}) };
       // prefer top-level where present
-      console.log('Presence: top-level keys', Object.keys(top).length);
+      // console.log('Presence: top-level keys', Object.keys(top).length);
       cb(merged);
     } catch (e) {
       cb(lastEmbedded.ref || {});
@@ -123,7 +123,7 @@ export async function onCombinedPresenceChange(cb) {
       });
       lastEmbedded.ref = embedded;
       const merged = { ...(embedded || {}), ...(lastTop.ref || {}) };
-      console.log('Presence: embedded keys', Object.keys(embedded).length);
+      // console.log('Presence: embedded keys', Object.keys(embedded).length);
       cb(merged);
     } catch (e) {
       cb(lastTop.ref || {});
@@ -182,9 +182,6 @@ export async function getPresenceForPlayer(playerId) {
         return { online: !!playerVal.online, lastSeen: playerVal.lastSeen, source: 'embedded' };
       }
     }
-
-    // Diagnostic log: nothing found in normalized shapes
-    console.log('Presence:getPresenceForPlayer - no presence found for', playerId, 'topVal:', topVal, 'playerVal:', playerVal);
 
     return { online: false, source: 'none' };
   } catch (e) {

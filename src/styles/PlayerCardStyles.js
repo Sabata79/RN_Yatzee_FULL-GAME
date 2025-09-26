@@ -38,11 +38,10 @@ const playerCardStyles = StyleSheet.create({
         marginBottom: 5,
     },
     playerNameContainer: {
-        marginLeft: 5,
+        textAlign: 'center',
     },
     playerCardName: {
         fontFamily: TYPOGRAPHY.fontFamily.montserratBold,
-        marginTop: 5,
         fontSize: TYPOGRAPHY.fontSize.xl,
     },
     playerCardNameDark: {
@@ -82,8 +81,9 @@ const playerCardStyles = StyleSheet.create({
         overflow: 'visible',
     },
     playerCardModalContainerDark: {
-        borderWidth: 0.5,
+        borderWidth: 1,
         borderColor: '#6d6161',
+        borderRadius: 10,
     },
     avatarModalBackgroundImage: {
         position: 'absolute',
@@ -128,7 +128,7 @@ const playerCardStyles = StyleSheet.create({
         height: 80,
         borderRadius: 40,
         overflow: 'hidden',
-        marginBottom: 0,
+        marginBottom: -60,
         padding: 1,
         borderColor: '#00000063',
         marginRight: 5,
@@ -368,18 +368,7 @@ const playerCardStyles = StyleSheet.create({
     nameAndLinkContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-    },
-    linkIconContainer: {
-        marginLeft: -15,
-        marginRight: 5,
-        marginBottom: 6,
-        padding: 5,
-        borderRadius: 40,
-        borderColor: '#4c4949',
-        borderWidth: 1,
-        backgroundColor: COLORS.overlayDark,
-        alignSelf: 'center',
-        zIndex: 60,
+        marginLeft: 5,
     },
     linkIconContainerDark: {
         backgroundColor: COLORS.overlayLight,
@@ -470,10 +459,19 @@ const playerCardStyles = StyleSheet.create({
     // image-based ribbon
     ribbonImageWrapper: {
         position: 'absolute',
-        top: -5,
-        left: -5,
-        width: 100,
-        height: 100,
+        top: -8,
+        left: -8,
+        width: 180,
+        height: 180,
+        zIndex: 20,
+        overflow: 'visible',
+    },
+    ribbonLinkedImageWrapper: {
+        position: 'absolute',
+        top: -6,
+        left: -6,
+        width: 85,
+        height: 85,
         zIndex: 20,
         overflow: 'visible',
     },
@@ -484,15 +482,32 @@ const playerCardStyles = StyleSheet.create({
     },
     ribbonLabel: {
         position: 'absolute',
-        left: -20,
-        top: 20,
+        left: -40,
+        top: 40,
         right: 8,
         textAlign: 'center',
         fontFamily: TYPOGRAPHY.fontFamily.bangers,
         color: '#111',
-        fontSize: TYPOGRAPHY.fontSize.xs,
+        fontSize: TYPOGRAPHY.fontSize.md,
         zIndex: 30,
         transform: [{ rotate: '-45deg' }],
+    },
+    ribbonIcon: {
+        postion: 'absolute',
+        top: 15,
+        left: -15,
+        marginRight: 4,
+    },
+    ribbonLinkedLabel: {
+        position: 'absolute',
+        top: 10,
+        left: 0,
+        textAlign: 'center',
+        fontFamily: TYPOGRAPHY.fontFamily.bangers,
+        color: 'white',
+        fontSize: TYPOGRAPHY.fontSize.xs,
+        zIndex: 30,
+        marginLeft: 2,
     },
 });
 export default playerCardStyles;
