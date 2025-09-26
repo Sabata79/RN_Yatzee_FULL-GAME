@@ -17,25 +17,34 @@ import Coin, { COIN_SIZE } from './Coin';
 const { width: screenWidth } = Dimensions.get('window');
 
 // Animated layer for displaying falling coins based on weekly wins
-export default function CoinLayer({ weeklyWins, modalHeight }) {
+export default function CoinLayer({ weeklyWins, modalHeight, modalWidth }) {
   const [coins, setCoins] = useState([]);
 
   // Generate coin objects for animation when weeklyWins changes
   useEffect(() => {
-    const slotSpacing = 5;
-    const slotsPerRow = Math.floor((screenWidth - COIN_SIZE - 45) / (COIN_SIZE + slotSpacing));
+    const slotSpacing = 6;
+    // Use modalWidth when available; fall back to ~90% of screen width
+    const availableWidth = (modalWidth && modalWidth > 0) ? modalWidth : Math.floor(screenWidth * 0.9);
+
+    // compute how many coins fit per row (coin + spacing)
+    const slotsPerRow = Math.max(1, Math.floor((availableWidth + slotSpacing) / (COIN_SIZE + slotSpacing)));
+
+    // center the row of coins within the available width
+    const totalRowWidth = slotsPerRow * COIN_SIZE + Math.max(0, slotsPerRow - 1) * slotSpacing;
+    const startX = Math.max(0, Math.floor((availableWidth - totalRowWidth) / 2));
 
     const generatedCoins = Array.from({ length: weeklyWins }).map((_, index) => {
       const slotIndex = index % slotsPerRow;
       const row = Math.floor(index / slotsPerRow);
 
-      const left = slotIndex * (COIN_SIZE + slotSpacing);
-      const bottomOffset = row * (COIN_SIZE + slotSpacing);
+      const left = startX + slotIndex * (COIN_SIZE + slotSpacing);
+      const bottomOffset = row * (COIN_SIZE + slotSpacing -20);
 
       return {
         left,
         bottomOffset,
-        translateY: new Animated.Value(-50 - Math.random() * 100),
+        // start slightly above the visible modal
+        translateY: new Animated.Value(-30 - Math.random() * 80),
         rotation: new Animated.Value(Math.random() * 360),
         delay: Math.random() * 500,
         startLeftOffset: Math.random() * 20 - 10,
@@ -43,7 +52,7 @@ export default function CoinLayer({ weeklyWins, modalHeight }) {
     });
 
     setCoins(generatedCoins);
-  }, [weeklyWins]);
+  }, [weeklyWins, modalWidth]);
 
 
   // Animate coins falling and rotating when modalHeight is set
@@ -51,14 +60,15 @@ export default function CoinLayer({ weeklyWins, modalHeight }) {
     if (!modalHeight) return;
 
     coins.forEach((coin) => {
-      const landingHeight = modalHeight - COIN_SIZE - 1 - coin.bottomOffset;
+    // landingHeight is measured from the top of overlay; ensure it's not negative
+    const landingHeight = Math.max(0, (modalHeight || 0) - COIN_SIZE - coin.bottomOffset);
 
       Animated.timing(coin.translateY, {
         toValue: landingHeight,
-        duration: 900,
+        duration: 900 + Math.random() * 300,
         delay: coin.delay,
         useNativeDriver: true,
-        easing: Easing.linear,
+        easing: Easing.out(Easing.quad),
       }).start();
 
       Animated.timing(coin.rotation, {
@@ -74,7 +84,7 @@ export default function CoinLayer({ weeklyWins, modalHeight }) {
 
   // Render animated coins in an overlay view
   return (
-    <View style={styles.overlay} pointerEvents="none">
+    <View style={[styles.overlay, { width: modalWidth || '100%', height: modalHeight || '100%' }]} pointerEvents="none">
       {coins.map((coin, index) => (
         <Coin
           key={index}
@@ -94,7 +104,7 @@ export default function CoinLayer({ weeklyWins, modalHeight }) {
 const styles = StyleSheet.create({
   overlay: {
     position: 'absolute',
-    top: 0,
+    top: 10,
     left: '5%',
     width: '90%',
     height: '100%',

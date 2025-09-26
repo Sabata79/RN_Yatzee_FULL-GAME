@@ -40,6 +40,5 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: 45,
     height: 45,
-    opacity: 0.85,
   },
 });

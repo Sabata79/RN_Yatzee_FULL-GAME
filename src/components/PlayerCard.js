@@ -52,6 +52,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
   const [viewingAllTimeRank, setViewingAllTimeRank] = useState('-');
   const [weeklyWins, setWeeklyWins] = useState(0);
   const [modalHeight, setModalHeight] = useState(0);
+  const [modalWidth, setModalWidth] = useState(0);
   const [isBgLoading, setIsBgLoading] = useState(true);
   // Animated opacity for background fade-in
   const bgOpacity = useRef(new Animated.Value(0)).current;
@@ -646,9 +647,13 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
         onRequestClose={() => setModalVisible(false)}
       >
         <View style={playerCardStyles.playerCardModalBackground}>
-          <View
+            <View
             style={[playerCardStyles.playerCardModalContainer, isDarkBg && playerCardStyles.playerCardModalContainerDark]}
-            onLayout={(event) => setModalHeight(event.nativeEvent.layout.height)}
+            onLayout={(event) => {
+              const { height, width } = event.nativeEvent.layout;
+              setModalHeight(height);
+              setModalWidth(width);
+            }}
           >
             {/* Corner ribbon for All-Time #1 */}
             {viewingAllTimeRank === 1 && (
@@ -690,7 +695,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
                 }
               }}
             />
-            <CoinLayer weeklyWins={weeklyWins} modalHeight={modalHeight - 2} />
+            <CoinLayer weeklyWins={weeklyWins} modalHeight={modalHeight - 2} modalWidth={modalWidth - 20} />
 
             {/* HEADER */}
             <View style={playerCardStyles.playerCardHeaderCentered}>
