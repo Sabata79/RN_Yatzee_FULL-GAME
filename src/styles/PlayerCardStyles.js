@@ -79,7 +79,7 @@ const playerCardStyles = StyleSheet.create({
         borderRadius: 10,
         alignItems: 'center',
         position: 'relative',
-        overflow: 'hidden',
+        overflow: 'visible',
     },
     playerCardModalContainerDark: {
         borderWidth: 0.5,
@@ -379,6 +379,7 @@ const playerCardStyles = StyleSheet.create({
         borderWidth: 1,
         backgroundColor: COLORS.overlayDark,
         alignSelf: 'center',
+        zIndex: 60,
     },
     linkIconContainerDark: {
         backgroundColor: COLORS.overlayLight,
@@ -465,6 +466,100 @@ const playerCardStyles = StyleSheet.create({
         top: -5,
         backgroundColor: 'transparent',
         zIndex: 2,
+    },
+    // Ribbon for top-left corner (e.g. All-time #1 indicator)
+    ribbonContainer: {
+        position: 'absolute',
+        top: 10,
+        left: -20,
+        zIndex: 20,
+        transform: [{ rotate: '-35deg' }],
+        overflow: 'visible',
+    },
+    ribbon: {
+        backgroundColor: '#ffd700', // gold
+        paddingVertical: 2,
+        paddingHorizontal: 20,
+        borderRadius: 5,
+        elevation: 6,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.22,
+        shadowRadius: 3,
+        borderTopWidth: 1,
+        borderTopColor: '#ffffff88',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    ribbonDark: {
+        backgroundColor: '#ffcf45',
+    },
+    ribbonText: {
+        fontFamily: TYPOGRAPHY.fontFamily.bangers,
+        color: '#1a1a1a',
+        fontSize: TYPOGRAPHY.fontSize.sm,
+        letterSpacing: 0.5,
+    },
+    ribbonTextDark: {
+        color: '#111',
+    },
+    // small folded tail to emulate a 3D ribbon end
+    ribbonFold: {
+        position: 'absolute',
+        left: 200,
+        top: -5,
+        width: 95,
+        height: 60,
+        backgroundColor: '#e6b800',
+        transform: [{ rotate: '35deg' }],
+        elevation: 5,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.18,
+        shadowRadius: 1,
+        borderRadius: 5,
+        zIndex: -2,
+    },
+    // small highlight bar across top of the ribbon to simulate light
+    ribbonHighlight: {
+        position: 'absolute',
+        top: 2,
+        left: 6,
+        right: 6,
+        height: 5,
+        backgroundColor: 'rgba(255,255,255,0.32)',
+        borderTopLeftRadius: 4,
+        borderTopRightRadius: 4,
+    },
+    ribbonFoldDark: {
+        backgroundColor: '#caa800',
+    },
+    // image-based ribbon
+    ribbonImageWrapper: {
+        position: 'absolute',
+        top: -5,
+        left: -5,
+        width: 100,
+        height: 100,
+        zIndex: 20,
+        overflow: 'visible',
+    },
+    ribbonImage: {
+        width: '100%',
+        height: '100%',
+        resizeMode: 'contain',
+    },
+    ribbonLabel: {
+        position: 'absolute',
+        left: -20,
+        top: 20,
+        right: 8,
+        textAlign: 'center',
+        fontFamily: TYPOGRAPHY.fontFamily.bangers,
+        color: '#111',
+        fontSize: TYPOGRAPHY.fontSize.xs,
+        zIndex: 30,
+        transform: [{ rotate: '-45deg' }],
     },
 });
 export default playerCardStyles;

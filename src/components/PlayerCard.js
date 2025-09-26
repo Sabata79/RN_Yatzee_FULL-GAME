@@ -7,8 +7,8 @@
  * @author Sabata79
  * @since 2025-08-29
  */
-import { useState, useEffect } from 'react';
-import { View, Text, Modal, Pressable, Image, ActivityIndicator } from 'react-native'; 
+import { useState, useEffect, useRef } from 'react';
+import { View, Text, Modal, Pressable, Image, ActivityIndicator, Animated } from 'react-native'; 
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useGame } from '../constants/GameContext';
 import playerCardStyles from '../styles/PlayerCardStyles';
@@ -33,7 +33,8 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
   } = useGame();
 
   // UUSI: local state for viewing another player's level
-  const [viewingPlayerLevel, setViewingPlayerLevel] = useState(null);
+  // undefined = not yet loaded; null = loaded but no level set
+  const [viewingPlayerLevel, setViewingPlayerLevel] = useState(undefined);
 
   const [playerIsLinked, setPlayerIsLinked] = useState(false);
   const [viewingPlayerAvatar, setViewingPlayerAvatar] = useState('');
@@ -46,11 +47,52 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
   const [playedGames, setPlayedGames] = useState(0);
   const [avgPoints, setAvgPoints] = useState(0);
   const [avgDuration, setAvgDuration] = useState(0);
-  const [storedLevel, setStoredLevel] = useState(null);
+  // undefined = not yet loaded; null = loaded but no level set
+  const [storedLevel, setStoredLevel] = useState(undefined);
   const [viewingAllTimeRank, setViewingAllTimeRank] = useState('-');
   const [weeklyWins, setWeeklyWins] = useState(0);
   const [modalHeight, setModalHeight] = useState(0);
   const [isBgLoading, setIsBgLoading] = useState(true);
+  // Animated opacity for background fade-in
+  const bgOpacity = useRef(new Animated.Value(0)).current;
+
+  // Content settle detection & content animation refs
+  const lastUpdateRef = useRef(Date.now());
+  const settleTimeoutRef = useRef(null);
+  const maxTimeoutRef = useRef(null);
+  const [contentSettled, setContentSettled] = useState(false);
+  const contentOpacity = useRef(new Animated.Value(0)).current;
+  const contentTranslate = useRef(new Animated.Value(8)).current;
+  const imageLoadedRef = useRef(false);
+
+  const clearSettleTimers = () => {
+    if (settleTimeoutRef.current) {
+      clearTimeout(settleTimeoutRef.current);
+      settleTimeoutRef.current = null;
+    }
+    if (maxTimeoutRef.current) {
+      clearTimeout(maxTimeoutRef.current);
+      maxTimeoutRef.current = null;
+    }
+  };
+
+  const scheduleSettle = (delay = 300, maxWait = 1500) => {
+    setContentSettled(false);
+    clearSettleTimers();
+    settleTimeoutRef.current = setTimeout(() => {
+      setContentSettled(true);
+      settleTimeoutRef.current = null;
+    }, delay);
+    maxTimeoutRef.current = setTimeout(() => {
+      setContentSettled(true);
+      maxTimeoutRef.current = null;
+    }, maxWait);
+  };
+
+  const markUpdate = () => {
+    lastUpdateRef.current = Date.now();
+    scheduleSettle();
+  };
 
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
@@ -72,6 +114,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
       return;
     }
     // Haetaan katsottavan pelaajan level
+    setViewingPlayerLevel(undefined); // loading
     const path = `players/${viewingPlayerId}/level`;
     const handle = (snapshot) => {
       setViewingPlayerLevel(snapshot.exists() ? snapshot.val() : null);
@@ -145,8 +188,17 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
   const getTopScoresWithEmptySlots = () => topScores.slice(0, 5);
 
   const getPlayerCardBackground = (level) => {
-    const bg = PlayercardBg.find(bg => bg.level.toLowerCase() === level.toLowerCase());
-    return bg ? bg.display : require('../../assets/playerCardBg/BeginnerBG.webp');
+    if (!level) return null;
+    const key = String(level).toLowerCase();
+    const bg = PlayercardBg.find(b => b.level.toLowerCase() === key);
+    if (bg) return bg.display;
+    // If level is 'legendary' but we don't have a specific image, fall back
+    // to the highest available background (usually 'Elite'). This prevents
+    // an indefinite loading state for valid high levels.
+    if (key === 'legendary' && PlayercardBg.length > 0) {
+      return PlayercardBg[PlayercardBg.length - 1].display;
+    }
+    return null;
   };
 
 
@@ -201,9 +253,11 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
           .map(s => ({ points: s.points, date: s.date, duration: s.duration, time: s.time }))
           .sort((a, b) => b.points - a.points)
           .slice(0, NBR_OF_SCOREBOARD_ROWS);
-        setTopScores(sorted);
+  setTopScores(sorted);
+  markUpdate();
       } else {
-        setTopScores([]);
+  setTopScores([]);
+  markUpdate();
       }
     };
     dbOnValue(topScoresPath, topScoresCb);
@@ -213,7 +267,8 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     const playersPath = 'players';
     const monthlyCb = (snapshot) => {
       if (!snapshot.exists()) {
-        setMonthlyRanks(Array(12).fill('-'));
+  setMonthlyRanks(Array(12).fill('-'));
+  markUpdate();
         return;
       }
       const playersData = snapshot.val();
@@ -247,7 +302,8 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
         return idx === -1 ? ' - ' : idx + 1;
       });
 
-      setMonthlyRanks(monthRanks);
+  setMonthlyRanks(monthRanks);
+  markUpdate();
     };
     dbOnValue(playersPath, monthlyCb);
     subs.push({ path: playersPath, cb: monthlyCb });
@@ -255,7 +311,8 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     // WEEKLY RANK (last week)
     const weeklyRankCb = (snapshot) => {
       if (!snapshot.exists()) {
-        setWeeklyRank(' - ');
+  setWeeklyRank(' - ');
+  markUpdate();
         return;
       }
       const playersData = snapshot.val();
@@ -292,7 +349,8 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
       });
 
       const r = best.findIndex(s => s.playerId === idToUse) + 1;
-      setWeeklyRank(r === 0 ? ' - ' : r);
+  setWeeklyRank(r === 0 ? ' - ' : r);
+  markUpdate();
     };
     dbOnValue(playersPath, weeklyRankCb);
     subs.push({ path: playersPath, cb: weeklyRankCb });
@@ -300,7 +358,8 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     // WEEKLY WINS (within the year)
     const weeklyWinsCb = (snapshot) => {
       if (!snapshot.exists()) {
-        setWeeklyWins(0);
+  setWeeklyWins(0);
+  markUpdate();
         return;
       }
       const playersData = snapshot.val();
@@ -343,7 +402,8 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
         if (winner && winner.playerId === idToUse) wins += 1;
       }
 
-      setWeeklyWins(wins);
+  setWeeklyWins(wins);
+  markUpdate();
     };
     dbOnValue(playersPath, weeklyWinsCb);
     subs.push({ path: playersPath, cb: weeklyWinsCb });
@@ -384,11 +444,13 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
           setPlayedGames(played);
           setAvgPoints(played > 0 ? Math.round(sumPoints / played) : 0);
           setAvgDuration(played > 0 ? Math.round(sumDuration / played) : 0);
+          markUpdate();
         } else {
           // Aggregates missing — initialize them from current scores snapshot
           setPlayedGames(gamesCount);
           setAvgPoints(gamesCount > 0 ? Math.round(totalPointsCalc / gamesCount) : 0);
           setAvgDuration(gamesCount > 0 ? Math.round(totalDurationCalc / gamesCount) : 0);
+          markUpdate();
 
           // Write aggregates to DB only if missing (migration step). This avoids
           // overwriting any existing manual or server-side values.
@@ -413,9 +475,10 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
       } catch (err) {
         console.error('Error reading player profile for aggregates:', err);
         // Fallback to computed values in case of error
-        setPlayedGames(gamesCount);
-        setAvgPoints(gamesCount > 0 ? Math.round(totalPointsCalc / gamesCount) : 0);
-        setAvgDuration(gamesCount > 0 ? Math.round(totalDurationCalc / gamesCount) : 0);
+  setPlayedGames(gamesCount);
+  setAvgPoints(gamesCount > 0 ? Math.round(totalPointsCalc / gamesCount) : 0);
+  setAvgDuration(gamesCount > 0 ? Math.round(totalDurationCalc / gamesCount) : 0);
+  markUpdate();
       }
     };
     const statsPath = `players/${idToUse}/scores`;
@@ -450,12 +513,16 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
       const path = data.avatar || data.avatarUrl || ''; // ← backward compatible
       if (idToUse === playerId) setAvatarUrl(path);
       else setViewingPlayerAvatar(path);
+      markUpdate();
     };
     dbOnValue(profilePath, avatarCb);
     subs.push({ path: profilePath, cb: avatarCb });
 
     const linkedPath = `players/${idToUse}/isLinked`;
-    const linkedCb = (snapshot) => setPlayerIsLinked(!!snapshot.val());
+    const linkedCb = (snapshot) => {
+      setPlayerIsLinked(!!snapshot.val());
+      markUpdate();
+    };
     dbOnValue(linkedPath, linkedCb);
     subs.push({ path: linkedPath, cb: linkedCb });
 
@@ -463,7 +530,9 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     const levelPath = `players/${idToUse}`;
     const levelCb = (snapshot) => {
       const data = snapshot.val();
-      if (data) setStoredLevel(data.level);
+      // loaded but maybe no level field
+      setStoredLevel(data ? (data.level ?? null) : null);
+      markUpdate();
     };
     dbOnValue(levelPath, levelCb);
     subs.push({ path: levelPath, cb: levelCb });
@@ -479,6 +548,30 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
       resetViewingPlayer();
     }
   }, [isModalVisible, resetViewingPlayer]);
+
+  // Trigger animations when both image and content are settled/loaded
+  useEffect(() => {
+    if (!isModalVisible) return;
+    if (contentSettled && imageLoadedRef.current) {
+      // fade background in
+      Animated.timing(bgOpacity, { toValue: 1, duration: 350, useNativeDriver: true }).start();
+      // slide + fade content
+      Animated.parallel([
+        Animated.timing(contentOpacity, { toValue: 1, duration: 300, useNativeDriver: true }),
+        Animated.timing(contentTranslate, { toValue: 0, duration: 300, useNativeDriver: true }),
+      ]).start();
+    }
+
+    // Reset animations when modal closes
+    if (!isModalVisible) {
+      try { bgOpacity.setValue(0); } catch (e) {}
+      try { contentOpacity.setValue(0); contentTranslate.setValue(8); } catch (e) {}
+      imageLoadedRef.current = false;
+      setContentSettled(false);
+      clearSettleTimers();
+    }
+    // cleanup not needed here
+  }, [isModalVisible, contentSettled, bgOpacity, contentOpacity, contentTranslate]);
 
   // Get trophy for specific month
   const getTrophyForMonth = (monthIndex) => {
@@ -518,9 +611,16 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
   };
 
   const playerCardBg = getPlayerCardBackground(levelInfo.level);
-  const isDefaultBg = playerCardBg === require('../../assets/playerCardBg/BeginnerBG.webp');
+  // If there's no explicit bg found yet: for beginners we can show the
+  // BeginnerBG immediately; for non-beginners we should wait for the
+  // PlayercardBg lookup to resolve to avoid flashing the beginner art.
+  const levelKey = (levelInfo.level || '').toLowerCase();
+  const isDefaultBg = !playerCardBg && levelKey === 'beginner';
+  const needsBgLoad = !playerCardBg && levelKey !== 'beginner';
 
-  if (isModalVisible && isDefaultBg && levelInfo.level.toLowerCase() !== 'beginner') {
+  // Show a fullscreen spinner while the correct (non-beginner) background
+  // is being resolved. This prevents a quick flash of the BeginnerBG.
+  if (isModalVisible && needsBgLoad) {
     return (
       <Modal
         animationType="fade"
@@ -550,16 +650,45 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
             style={[playerCardStyles.playerCardModalContainer, isDarkBg && playerCardStyles.playerCardModalContainerDark]}
             onLayout={(event) => setModalHeight(event.nativeEvent.layout.height)}
           >
+            {/* Corner ribbon for All-Time #1 */}
+            {viewingAllTimeRank === 1 && (
+              <View style={playerCardStyles.ribbonImageWrapper} pointerEvents="none">
+                <Image source={require('../../assets/ribbon.webp')} style={playerCardStyles.ribbonImage} />
+                <Text style={playerCardStyles.ribbonLabel}>ALL-TIME #1</Text>
+              </View>
+            )}
             {isBgLoading && (
               <View style={[playerCardStyles.avatarModalBackgroundImage, { justifyContent: 'center', alignItems: 'center', position: 'absolute', zIndex: 2 }]}> 
                 <ActivityIndicator size="large" color="#fff" />
               </View>
             )}
-            <Image
+            <Animated.Image
               source={playerCardBg}
-              style={playerCardStyles.avatarModalBackgroundImage}
-              onLoadStart={() => setIsBgLoading(true)}
-              onLoadEnd={() => setIsBgLoading(false)}
+              style={[playerCardStyles.avatarModalBackgroundImage, { opacity: bgOpacity }]}
+              onLoadStart={() => {
+                setIsBgLoading(true);
+                imageLoadedRef.current = false;
+                // reset opacity when a new image starts loading
+                try { bgOpacity.setValue(0); } catch (e) { /* ignore */ }
+              }}
+              onLoadEnd={() => {
+                setIsBgLoading(false);
+                imageLoadedRef.current = true;
+                // If content already settled, animate immediately; otherwise
+                // the effect will be triggered by the contentSettled watcher.
+                if (contentSettled) {
+                  Animated.timing(bgOpacity, {
+                    toValue: 1,
+                    duration: 350,
+                    useNativeDriver: true,
+                  }).start();
+                  // animate content in as well
+                  Animated.parallel([
+                    Animated.timing(contentOpacity, { toValue: 1, duration: 300, useNativeDriver: true }),
+                    Animated.timing(contentTranslate, { toValue: 0, duration: 300, useNativeDriver: true }),
+                  ]).start();
+                }
+              }}
             />
             <CoinLayer weeklyWins={weeklyWins} modalHeight={modalHeight - 2} />
 
