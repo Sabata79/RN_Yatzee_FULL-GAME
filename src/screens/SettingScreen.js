@@ -23,7 +23,6 @@ import { sanitizeInput, checkIfNameExists } from '../services/nameUtils';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import WipeModal from '../components/modals/WipeModal';
 import CustomKeyboard from '../components/CustomKeyboard';
-// Removed Share/Dimensions/PixelRatio/NativeModules imports as 'Share device info' was removed
 
 const SettingScreen = () => {
   const { musicMuted, setMusicMuted, sfxMuted, setSfxMuted, playSelect } = useAudio();
@@ -254,7 +253,7 @@ const SettingScreen = () => {
             </Pressable>
           </View>
 
-            {/* 'Share device info' button removed per request */}
+            {/* share device info removed */}
 
           {/* WipeModal (ohut UI), varsinainen wipeAccount tässä komponentissa */}
           <WipeModal
