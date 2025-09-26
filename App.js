@@ -130,7 +130,7 @@ function AppShell() {
             bottom: 0,
           },
           tabBarBackground: () => (
-            <View style={{ flex: 1, backgroundColor: 'black', borderTopWidth: 0.6, borderTopColor: 'gold' }} />
+            <View style={{ flex: 1, backgroundColor: 'black', borderTopWidth: 0.6, borderTopColor: '#e67e22' }} />
           ),
           tabBarActiveTintColor: '#ffffff',
           tabBarInactiveTintColor: 'gray',
