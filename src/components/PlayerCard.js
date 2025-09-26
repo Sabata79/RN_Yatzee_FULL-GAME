@@ -65,6 +65,8 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
   const contentOpacity = useRef(new Animated.Value(0)).current;
   const contentTranslate = useRef(new Animated.Value(8)).current;
   const imageLoadedRef = useRef(false);
+  // Animated ribbon (scale/rotate/translate) for All-Time #1
+  const ribbonAnim = useRef(new Animated.Value(0)).current;
 
   const clearSettleTimers = () => {
     if (settleTimeoutRef.current) {
@@ -574,6 +576,21 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     // cleanup not needed here
   }, [isModalVisible, contentSettled, bgOpacity, contentOpacity, contentTranslate]);
 
+  // Animate ribbon when modal opens and player is ALL-TIME #1
+  useEffect(() => {
+    if (!isModalVisible || viewingAllTimeRank !== 1) {
+      try { ribbonAnim.setValue(0); } catch (e) { }
+      return;
+    }
+    // small pop-in with slight rotation correction
+    Animated.spring(ribbonAnim, {
+      toValue: 1,
+      useNativeDriver: true,
+      friction: 6,
+      tension: 80,
+    }).start();
+  }, [isModalVisible, viewingAllTimeRank, ribbonAnim]);
+
   // Get trophy for specific month
   const getTrophyForMonth = (monthIndex) => {
     const rank = monthlyRanks[monthIndex];
@@ -657,10 +674,23 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
           >
             {/* Corner ribbon for All-Time #1 */}
             {viewingAllTimeRank === 1 && (
-              <View style={playerCardStyles.ribbonImageWrapper} pointerEvents="none">
+              <Animated.View
+                style={[
+                  playerCardStyles.ribbonImageWrapper,
+                  {
+                    opacity: ribbonAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 1] }),
+                    transform: [
+                      { translateY: ribbonAnim.interpolate({ inputRange: [0, 1], outputRange: [-12, 0] }) },
+                      { scale: ribbonAnim.interpolate({ inputRange: [0, 1], outputRange: [0.8, 1] }) },
+                      { rotate: ribbonAnim.interpolate({ inputRange: [0, 1], outputRange: ['-6deg', '0deg'] }) },
+                    ],
+                  },
+                ]}
+                pointerEvents="none"
+              >
                 <Image source={require('../../assets/ribbon.webp')} style={playerCardStyles.ribbonImage} />
                 <Text style={playerCardStyles.ribbonLabel}>ALL-TIME #1</Text>
-              </View>
+              </Animated.View>
             )}
             {isBgLoading && (
               <View style={[playerCardStyles.avatarModalBackgroundImage, { justifyContent: 'center', alignItems: 'center', position: 'absolute', zIndex: 2 }]}> 
