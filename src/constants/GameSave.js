@@ -60,22 +60,12 @@ export function useGameSave() {
           duration: durationSecs,
         };
 
-        // Merge old + new, sort and trim
-        const prevScores = playerData.scores ? Object.values(playerData.scores) : [];
-        const merged = [...prevScores, newEntry].sort((a, b) => {
-          if ((b.points || 0) !== (a.points || 0)) return (b.points || 0) - (a.points || 0);
-          if ((a.duration || 0) !== (b.duration || 0)) return (a.duration || 0) - (b.duration || 0);
-          const da = new Date(String(a.date).split('.').reverse().join('-'));
-          const db = new Date(String(b.date).split('.').reverse().join('-'));
-          return da - db;
-        }).slice(0, TOPSCORELIMIT);
-
-        const scoresObj = merged.reduce((acc, s) => {
-          acc[s.key] = s;
-          return acc;
-        }, {});
-
-        await dbSet(scoresPath, scoresObj);
+        // Append the new score as a single child to avoid overwriting concurrent updates.
+        // We use the generated push key and set only that child.
+        const childRef = push(dbRef(scoresPath));
+        const childKey = childRef.key;
+        newEntry.key = childKey;
+        await dbSet(dbRef(`${scoresPath}/${childKey}`), newEntry);
 
         // Atomically update aggregates using transaction
         try {
