@@ -115,9 +115,9 @@ export default function WeeklyScores({ rows = [], avatarMap, getAvatarStyle, ope
 
         <DataTable.Cell style={[scoreboardStyles.presenceCell]}>
           {presenceMap[item.playerId] && presenceMap[item.playerId].online ? (
-            <FontAwesome5 name="wifi" size={18} color="#4caf50" />
+            <FontAwesome5 name="wifi" size={16} color="#4caf50" />
           ) : (
-            <FontAwesome5 name="wifi" size={18} color="#9e9e9e" />
+            <FontAwesome5 name="wifi" size={16} color="#9e9e9e" />
           )}
         </DataTable.Cell>
       </DataTable.Row>
