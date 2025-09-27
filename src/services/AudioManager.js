@@ -273,9 +273,16 @@ export function AudioProvider({ children }) {
         await ensureMusic();
         const p = musicSound.current;
         if (p) {
-          p.muted = muted;
-          p.volume = muted ? 0 : musicVolume;
-          if (muted) await p.pause?.(); else await p.play?.();
+          // Apply change and retry once after a short delay in case native init is still settling
+          const applyOnce = async () => {
+            try {
+              p.muted = muted;
+              p.volume = muted ? 0 : musicVolume;
+              if (muted) await p.pause?.(); else await p.play?.();
+            } catch (e) { /* best effort */ }
+          };
+          await applyOnce();
+          setTimeout(() => { applyOnce(); }, 120);
         }
       } catch (e) {
         console.warn('[Audio] setMusicMuted apply failed', e);
@@ -320,7 +327,12 @@ export function AudioProvider({ children }) {
         const v = muted ? 0 : sfxVolume;
         for (const p of [sfxSound.current, selectSound.current, deselectSound.current, diceTouchSound.current]) {
           if (p) {
-            try { p.muted = muted; p.volume = v; } catch (e) { /* best effort */ }
+            const applyOnce = () => {
+              try { p.muted = muted; p.volume = v; } catch (e) { /* best effort */ }
+            };
+            applyOnce();
+            // Retry once in a short while to handle delayed native init in release builds
+            setTimeout(applyOnce, 120);
           }
         }
       } catch (e) {
