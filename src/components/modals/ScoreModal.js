@@ -247,7 +247,7 @@ export default function ScoreModal({
               disabled={busy}
               style={[styles.btn, { backgroundColor: okColor }, busy && styles.btnDisabled]}
             >
-              {busy ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnPrimaryText}>Save score</Text>}
+              {busy ? <ActivityIndicator color={COLORS.info} style={{ transform: [{ scale: 1.15 }], marginHorizontal: 6 }} /> : <Text style={styles.btnPrimaryText}>Save score</Text>}
             </Pressable>
           </View>
         </View>

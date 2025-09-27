@@ -214,7 +214,7 @@ export default function RecoverModal({
                   ]}
                 >
                   {busy ? (
-                    <ActivityIndicator color="#fff" />
+                    <ActivityIndicator color={COLORS.info} style={{ transform: [{ scale: 1.15 }], marginHorizontal: 6 }} />
                   ) : (
                     <Text style={styles.btnPrimaryText}>Send</Text>
                   )}
@@ -302,8 +302,8 @@ export default function RecoverModal({
                     (!canRecover || busy) && styles.btnDisabled,
                   ]}
                 >
-                  {busy ? (
-                    <ActivityIndicator color="#fff" />
+                    {busy ? (
+                    <ActivityIndicator color={COLORS.info} style={{ transform: [{ scale: 1.15 }], marginHorizontal: 6 }} />
                   ) : (
                     <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
                       <Text style={styles.btnPrimaryText}>Recover Account</Text>

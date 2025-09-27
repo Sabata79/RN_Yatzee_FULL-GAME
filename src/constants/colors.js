@@ -103,4 +103,13 @@ export const COLORS = {
   }
 };
 
+// Freeze nested style objects to prevent accidental mutation at runtime.
+try {
+  if (COLORS.shadowStyle && typeof Object.freeze === 'function') Object.freeze(COLORS.shadowStyle);
+  if (COLORS.whiteShadow && typeof Object.freeze === 'function') Object.freeze(COLORS.whiteShadow);
+  if (typeof Object.freeze === 'function') Object.freeze(COLORS);
+} catch (e) {
+  // If freezing fails in some environments, silently continue — this is a best-effort protection.
+}
+
 export default COLORS;

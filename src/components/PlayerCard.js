@@ -12,6 +12,7 @@ import { View, Text, Modal, Pressable, Image, ActivityIndicator, Animated } from
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useGame } from '../constants/GameContext';
 import playerCardStyles from '../styles/PlayerCardStyles';
+import COLORS from '../constants/colors';
 import { dbOnValue, dbOff, dbGet, dbUpdate } from '../services/Firebase';
 import { avatars } from '../constants/AvatarPaths';
 import AvatarContainer from '../constants/AvatarContainer';
@@ -65,10 +66,15 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
   const contentOpacity = useRef(new Animated.Value(0)).current;
   const contentTranslate = useRef(new Animated.Value(8)).current;
   const imageLoadedRef = useRef(false);
+  // Reveal guard: only start any visual reveal when this becomes true
+  const [revealReady, setRevealReady] = useState(false);
   // Animated ribbon (scale/rotate/translate) for All-Time #1
   const ribbonAnim = useRef(new Animated.Value(0)).current;
   // Animated ribbon for linked status (separate DOM/animation)
   const ribbonLinkedAnim = useRef(new Animated.Value(0)).current;
+  // Control whether ribbon DOM is mounted — helps avoid seeing the static image
+  // before its spring animation starts.
+  const [ribbonsMounted, setRibbonsMounted] = useState(false);
 
   const clearSettleTimers = () => {
     if (settleTimeoutRef.current) {
@@ -548,69 +554,63 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     };
   }, [isModalVisible, idToUse, playerId, setAvatarUrl]);
 
-  useEffect(() => {
-    if (!isModalVisible) {
-      resetViewingPlayer();
-    }
-  }, [isModalVisible, resetViewingPlayer]);
+  
 
-  // Trigger animations when both image and content are settled/loaded
+  // When reveal guard flips true, run all reveal animations together (bg, content, ribbons)
+  useEffect(() => {
+    if (!revealReady || !isModalVisible) return;
+
+    const CONTENT_ANIM_DELAY = 80; // keep small delay so UI feels deliberate
+    Animated.sequence([
+      Animated.delay(CONTENT_ANIM_DELAY),
+      Animated.parallel([
+        Animated.timing(bgOpacity, { toValue: 1, duration: 350, useNativeDriver: true }),
+        Animated.timing(contentOpacity, { toValue: 1, duration: 300, useNativeDriver: true }),
+        Animated.timing(contentTranslate, { toValue: 0, duration: 300, useNativeDriver: true }),
+      ]),
+    ]).start();
+
+    // Ribbons: mount and start after revealReady — ensure the ribbon views are
+    // mounted and the animated values are at 0 before starting the spring by
+    // deferring a short time. We set `ribbonsMounted` just before starting the springs
+    // to avoid the static ribbon image being visible for a frame.
+    setTimeout(() => {
+      setRibbonsMounted(true);
+      if (viewingAllTimeRank === 1) {
+        try { ribbonAnim.setValue(0); } catch (e) { }
+        // stronger, snappier spring for visible pop
+        Animated.spring(ribbonAnim, { toValue: 1, useNativeDriver: true, tension: 180, friction: 8 }).start();
+      }
+      if (playerIsLinked) {
+        try { ribbonLinkedAnim.setValue(0); } catch (e) { }
+        Animated.spring(ribbonLinkedAnim, { toValue: 1, useNativeDriver: true, tension: 140, friction: 7 }).start();
+      }
+    }, 60);
+  }, [revealReady, isModalVisible, viewingAllTimeRank, playerIsLinked, bgOpacity, contentOpacity, contentTranslate, ribbonAnim, ribbonLinkedAnim]);
+  
+
+  // Ribbon animations are handled by the `revealReady` effect above.
+
+  // Decide when the card is ready to reveal: wait for content to settle and,
+  // if a background image is required, also wait for it to load.
   useEffect(() => {
     if (!isModalVisible) return;
-    if (contentSettled && imageLoadedRef.current) {
-      // delay content/background slightly so ribbons (All-Time) can appear first
-      Animated.sequence([
-        Animated.delay(80),
-        Animated.parallel([
-          Animated.timing(bgOpacity, { toValue: 1, duration: 350, useNativeDriver: true }),
-          Animated.timing(contentOpacity, { toValue: 1, duration: 300, useNativeDriver: true }),
-          Animated.timing(contentTranslate, { toValue: 0, duration: 300, useNativeDriver: true }),
-        ]),
-      ]).start();
+    const bgReady = needsBgLoad ? imageLoadedRef.current === true : true;
+    if (contentSettled && bgReady) {
+      setRevealReady(true);
     }
 
-    // Reset animations when modal closes
     if (!isModalVisible) {
-      try { bgOpacity.setValue(0); } catch (e) { }
-      try { contentOpacity.setValue(0); contentTranslate.setValue(8); } catch (e) { }
+      setRevealReady(false);
       imageLoadedRef.current = false;
       setContentSettled(false);
       clearSettleTimers();
+      setRibbonsMounted(false);
+      try { bgOpacity.setValue(0); } catch (e) { }
+      try { contentOpacity.setValue(0); contentTranslate.setValue(8); } catch (e) { }
+      try { ribbonAnim.setValue(0); ribbonLinkedAnim.setValue(0); } catch (e) { }
     }
-    // cleanup not needed here
-  }, [isModalVisible, contentSettled, bgOpacity, contentOpacity, contentTranslate]);
-
-  // Animate ribbon when modal opens and player is ALL-TIME #1
-  useEffect(() => {
-    if (!isModalVisible || viewingAllTimeRank !== 1) {
-      try { ribbonAnim.setValue(0); } catch (e) { }
-      return;
-    }
-    // small pop-in with slight rotation correction
-    Animated.spring(ribbonAnim, {
-      toValue: 1,
-      useNativeDriver: true,
-      friction: 6,
-      tension: 80,
-    }).start();
-  }, [isModalVisible, viewingAllTimeRank, ribbonAnim]);
-
-  // Animate linked ribbon when modal opens and player is linked
-  useEffect(() => {
-    if (!isModalVisible || !playerIsLinked) {
-      try { ribbonLinkedAnim.setValue(0); } catch (e) { }
-      return;
-    }
-    Animated.sequence([
-      Animated.delay(120),
-      Animated.spring(ribbonLinkedAnim, {
-        toValue: 1,
-        useNativeDriver: true,
-        friction: 6,
-        tension: 80,
-      }),
-    ]).start();
-  }, [isModalVisible, playerIsLinked, ribbonLinkedAnim]);
+  }, [isModalVisible, contentSettled, needsBgLoad]);
 
   // Get trophy for specific month
   const getTrophyForMonth = (monthIndex) => {
@@ -668,13 +668,26 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
         onRequestClose={() => setModalVisible(false)}
       >
         <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'center', alignItems: 'center' }}>
-          <ActivityIndicator size="large" color="#fff" />
+          <ActivityIndicator
+            size="large"
+            color={COLORS.info}
+            style={{ transform: [{ scale: 1.9 }], margin: 8 }}
+          />
         </View>
       </Modal>
     );
   }
 
   const avatarSrc = getAvatarImage(getAvatarToDisplay());
+  // Compute modal container style and hide border while waiting for reveal to avoid
+  // showing the thin border together with the centered ActivityIndicator.
+  const modalContainerStyle = [
+    playerCardStyles.playerCardModalContainer,
+    isDarkBg && playerCardStyles.playerCardModalContainerDark,
+  ];
+  if (!revealReady) {
+    modalContainerStyle.push({ borderWidth: 0 });
+  }
 
   return (
     <View style={playerCardStyles.playerCardContainer}>
@@ -686,7 +699,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
       >
         <View style={playerCardStyles.playerCardModalBackground}>
           <View
-            style={[playerCardStyles.playerCardModalContainer, isDarkBg && playerCardStyles.playerCardModalContainerDark]}
+            style={modalContainerStyle}
             onLayout={(event) => {
               const { height, width } = event.nativeEvent.layout;
               setModalHeight(height);
@@ -694,16 +707,17 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
             }}
           >
             {/* Corner ribbon for All-Time #1 */}
-            {viewingAllTimeRank === 1 && (
+            {revealReady && ribbonsMounted && viewingAllTimeRank === 1 && (
               <Animated.View
                 style={[
                   playerCardStyles.ribbonImageWrapper,
                   {
-                    opacity: ribbonAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 1] }),
+                    // Amplified animation so the ribbon 'pops' into place visibly
+                    opacity: ribbonAnim.interpolate({ inputRange: [0, 0.6, 1], outputRange: [0, 0.9, 1] }),
                     transform: [
-                      { translateY: ribbonAnim.interpolate({ inputRange: [0, 1], outputRange: [-12, 0] }) },
-                      { scale: ribbonAnim.interpolate({ inputRange: [0, 1], outputRange: [0.8, 1] }) },
-                      { rotate: ribbonAnim.interpolate({ inputRange: [0, 1], outputRange: ['-6deg', '0deg'] }) },
+                      { translateY: ribbonAnim.interpolate({ inputRange: [0, 0.6, 1], outputRange: [-32, -8, 0] }) },
+                      { scale: ribbonAnim.interpolate({ inputRange: [0, 0.6, 1], outputRange: [0.6, 1.12, 1] }) },
+                      { rotate: ribbonAnim.interpolate({ inputRange: [0, 1], outputRange: ['-14deg', '0deg'] }) },
                     ],
                   },
                 ]}
@@ -714,16 +728,16 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
               </Animated.View>
             )}
             {/* Linked Ribbon (Animated, separate DOM) */}
-            {playerIsLinked && (
+            {revealReady && ribbonsMounted && playerIsLinked && (
               <Animated.View
                 style={[
                   playerCardStyles.ribbonLinkedImageWrapper,
                   {
-                    opacity: ribbonLinkedAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 1] }),
+                    opacity: ribbonLinkedAnim.interpolate({ inputRange: [0, 0.6, 1], outputRange: [0, 0.9, 1] }),
                     transform: [
-                      { translateY: ribbonLinkedAnim.interpolate({ inputRange: [0, 1], outputRange: [-10, 0] }) },
-                      { scale: ribbonLinkedAnim.interpolate({ inputRange: [0, 1], outputRange: [0.85, 1] }) },
-                      { rotate: ribbonLinkedAnim.interpolate({ inputRange: [0, 1], outputRange: ['-6deg', '0deg'] }) },
+                      { translateY: ribbonLinkedAnim.interpolate({ inputRange: [0, 0.6, 1], outputRange: [-28, -6, 0] }) },
+                      { scale: ribbonLinkedAnim.interpolate({ inputRange: [0, 0.6, 1], outputRange: [0.65, 1.08, 1] }) },
+                      { rotate: ribbonLinkedAnim.interpolate({ inputRange: [0, 1], outputRange: ['-12deg', '0deg'] }) },
                     ],
                   },
                 ]}
@@ -736,11 +750,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
                 </View>
               </Animated.View>
             )}
-            {isBgLoading && (
-              <View style={[playerCardStyles.avatarModalBackgroundImage, { justifyContent: 'center', alignItems: 'center', position: 'absolute', zIndex: 2 }]}>
-                <ActivityIndicator size="large" color="#fff" />
-              </View>
-            )}
+            {/* isBgLoading overlay removed to avoid duplicate spinners; reveal placeholder handles waiting state */}
             <Animated.Image
               source={playerCardBg}
               style={[playerCardStyles.avatarModalBackgroundImage, { opacity: bgOpacity }]}
@@ -768,111 +778,125 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
                 }
               }}
             />
-            <CoinLayer weeklyWins={weeklyWins} modalHeight={modalHeight - 2} modalWidth={modalWidth - 20} />
+            {revealReady ? (
+              <>
+                <CoinLayer weeklyWins={weeklyWins} modalHeight={modalHeight - 2} modalWidth={modalWidth - 20} />
 
-            {/* HEADER */}
-            <View style={playerCardStyles.playerCardHeaderCentered}>
-              <View style={playerCardStyles.nameAndLinkContainer}>
-                <Text style={[playerCardStyles.playerCardName, isDarkBg && playerCardStyles.playerCardNameDark]}>{nameToUse}</Text>
-              </View>
-              <Pressable
-                style={playerCardStyles.playerCardCloseButton}
-                onPress={() => {
-                  setModalModalVisible(false);
-                  setModalVisible(false);
-                }}
-              >
-                <Text style={[playerCardStyles.playerCardCloseText, isDarkBg && playerCardStyles.playerCardCloseTextDark]}>X</Text>
-              </Pressable>
-            </View>
+                {/* HEADER */}
+                <View style={playerCardStyles.playerCardHeaderCentered}>
+                  <View style={playerCardStyles.nameAndLinkContainer}>
+                    <Text style={[playerCardStyles.playerCardName, isDarkBg && playerCardStyles.playerCardNameDark]}>{nameToUse}</Text>
+                  </View>
+                  <Pressable
+                    style={playerCardStyles.playerCardCloseButton}
+                    onPress={() => {
+                      setModalModalVisible(false);
+                      setModalVisible(false);
+                    }}
+                  >
+                    <Text style={[playerCardStyles.playerCardCloseText, isDarkBg && playerCardStyles.playerCardCloseTextDark]}>X</Text>
+                  </Pressable>
+                </View>
 
-            {/* Avatar + Stats */}
-            <View style={playerCardStyles.playerInfoContainer}>
-              <View style={{ position: 'relative' }}>
-                <View style={playerCardStyles.avatarContainer}>
-                  {avatarSrc ? (
-                    <Image
-                      style={[
-                        playerCardStyles.avatar,
-                        isBeginnerAvatar(getAvatarToDisplay()) ? playerCardStyles.beginnerAvatar : playerCardStyles.defaultAvatar,
-                      ]}
-                      source={avatarSrc}
-                    />
-                  ) : (
+                {/* Avatar + Stats */}
+                <View style={playerCardStyles.playerInfoContainer}>
+                  <View style={{ position: 'relative' }}>
+                    <View style={playerCardStyles.avatarContainer}>
+                      {avatarSrc ? (
+                        <Image
+                          style={[
+                            playerCardStyles.avatar,
+                            isBeginnerAvatar(getAvatarToDisplay()) ? playerCardStyles.beginnerAvatar : playerCardStyles.defaultAvatar,
+                          ]}
+                          source={avatarSrc}
+                        />
+                      ) : (
+                        <View
+                          style={[
+                            playerCardStyles.avatar,
+                            playerCardStyles.defaultAvatar,
+                            { alignItems: 'center', justifyContent: 'center' },
+                          ]}
+                        >
+                          <FontAwesome5 name="user" size={36} color="#000000" />
+                        </View>
+                      )}
+                    </View>
+                    {idToUse === playerId && (
+                      <Pressable style={playerCardStyles.editAvatarButton} onPress={() => setIsAvatarModalVisible(true)}>
+                        <FontAwesome5 name="edit" size={15} color="white" />
+                      </Pressable>
+                    )}
+                  </View>
+
+                  <View style={[playerCardStyles.playerTextContainer]}>
+                    <Text style={[playerCardStyles.playerStat, isDarkBg && playerCardStyles.playerCardTextDark]}>Level: {levelInfo.level}</Text>
+                    <View style={playerCardStyles.progressBar}>
+                      <View style={[playerCardStyles.progressFill, { width: `${levelInfo.progress * 100}%` }]} />
+                      <Text style={[playerCardStyles.progressPercentageText, isDarkBg && playerCardStyles.playerCardTextDark]}>{Math.floor(levelInfo.progress * 100)}%</Text>
+                    </View>
+                    <View style={playerCardStyles.playerStatsContainer}>
+                      <Text style={[playerCardStyles.playerStat, isDarkBg && playerCardStyles.playerCardTextDark]}>All Time Rank: {viewingAllTimeRank}</Text>
+                      <Text style={[playerCardStyles.playerStat, isDarkBg && playerCardStyles.playerCardTextDark]}>Weekly Wins: {weeklyWins}</Text>
+                      <Text style={[playerCardStyles.playerStat, isDarkBg && playerCardStyles.playerCardTextDark]}>Played Games: {playedGames}</Text>
+                      <Text style={[playerCardStyles.playerStat, isDarkBg && playerCardStyles.playerCardTextDark]}>Avg. Points/Game: {avgPoints}</Text>
+                      <Text style={[playerCardStyles.playerStat, isDarkBg && playerCardStyles.playerCardTextDark]}>Avg Duration/Game: {avgDuration} s</Text>
+                    </View>
+                  </View>
+                </View>
+
+                {/* TOP SCORES */}
+                <Text style={[playerCardStyles.playerCardScoresTitle, isDarkBg && playerCardStyles.playerCardTextDark]}>TOP 5 SCORES</Text>
+                <View style={playerCardStyles.playerCardScoresContainer} contentContainerStyle={{ paddingTop: 2, paddingBottom: 5, flexGrow: 0 }}>
+                  {getTopScoresWithEmptySlots().map((score, index) => (
                     <View
+                      key={index}
                       style={[
-                        playerCardStyles.avatar,
-                        playerCardStyles.defaultAvatar,
-                        { alignItems: 'center', justifyContent: 'center' },
+                        playerCardStyles.scoreRow,
+                        index % 2 === 0
+                          ? [playerCardStyles.evenRow, isDarkBg && playerCardStyles.evenRowDark]
+                          : [playerCardStyles.oddRow, isDarkBg && playerCardStyles.oddRowDark]
                       ]}
                     >
-                      <FontAwesome5 name="user" size={36} color="#000000" />
+                      <Text style={[playerCardStyles.playerCardScoreItem, isDarkBg && playerCardStyles.playerCardTextDark]}>
+                        {index + 1}. {score.points} points in {score.duration} sec
+                      </Text>
+                      <Text style={[playerCardStyles.playerCardScoreDate, isDarkBg && playerCardStyles.playerCardTextDark]}>{score.date}</Text>
                     </View>
-                  )}
+                  ))}
                 </View>
-                {idToUse === playerId && (
-                  <Pressable style={playerCardStyles.editAvatarButton} onPress={() => setIsAvatarModalVisible(true)}>
-                    <FontAwesome5 name="edit" size={15} color="white" />
-                  </Pressable>
-                )}
-              </View>
 
-              <View style={[playerCardStyles.playerTextContainer]}>
-                <Text style={[playerCardStyles.playerStat, isDarkBg && playerCardStyles.playerCardTextDark]}>Level: {levelInfo.level}</Text>
-                <View style={playerCardStyles.progressBar}>
-                  <View style={[playerCardStyles.progressFill, { width: `${levelInfo.progress * 100}%` }]} />
-                  <Text style={[playerCardStyles.progressPercentageText, isDarkBg && playerCardStyles.playerCardTextDark]}>{Math.floor(levelInfo.progress * 100)}%</Text>
-                </View>
-                <View style={playerCardStyles.playerStatsContainer}>
-                  <Text style={[playerCardStyles.playerStat, isDarkBg && playerCardStyles.playerCardTextDark]}>All Time Rank: {viewingAllTimeRank}</Text>
-                  <Text style={[playerCardStyles.playerStat, isDarkBg && playerCardStyles.playerCardTextDark]}>Weekly Wins: {weeklyWins}</Text>
-                  <Text style={[playerCardStyles.playerStat, isDarkBg && playerCardStyles.playerCardTextDark]}>Played Games: {playedGames}</Text>
-                  <Text style={[playerCardStyles.playerStat, isDarkBg && playerCardStyles.playerCardTextDark]}>Avg. Points/Game: {avgPoints}</Text>
-                  <Text style={[playerCardStyles.playerStat, isDarkBg && playerCardStyles.playerCardTextDark]}>Avg Duration/Game: {avgDuration} s</Text>
-                </View>
-              </View>
-            </View>
-
-            {/* TOP SCORES */}
-            <Text style={[playerCardStyles.playerCardScoresTitle, isDarkBg && playerCardStyles.playerCardTextDark]}>TOP 5 SCORES</Text>
-            <View style={playerCardStyles.playerCardScoresContainer} contentContainerStyle={{ paddingTop: 2, paddingBottom: 5, flexGrow: 0 }}>
-              {getTopScoresWithEmptySlots().map((score, index) => (
-                <View
-                  key={index}
-                  style={[
-                    playerCardStyles.scoreRow,
-                    index % 2 === 0
-                      ? [playerCardStyles.evenRow, isDarkBg && playerCardStyles.evenRowDark]
-                      : [playerCardStyles.oddRow, isDarkBg && playerCardStyles.oddRowDark]
-                  ]}
-                >
-                  <Text style={[playerCardStyles.playerCardScoreItem, isDarkBg && playerCardStyles.playerCardTextDark]}>
-                    {index + 1}. {score.points} points in {score.duration} sec
-                  </Text>
-                  <Text style={[playerCardStyles.playerCardScoreDate, isDarkBg && playerCardStyles.playerCardTextDark]}>{score.date}</Text>
-                </View>
-              ))}
-            </View>
-
-            {/* TROPHIES */}
-            <View style={playerCardStyles.playerCardTrophyCase}>
-              <Text style={[playerCardStyles.playerCardTrophyCaseTitle, isDarkBg && playerCardStyles.playerCardTextDark]}>TROPHIES {currentYear}</Text>
-              <View style={playerCardStyles.playerCardMonthsContainer}>
-                {Array(12).fill(null).map((_, index) => (
-                  <View
-                    key={index}
-                    style={[
-                      playerCardStyles.playerCardMonth,
-                      index === currentMonth ? playerCardStyles.playerCardOngoingMonth : null,
-                      isDarkBg && playerCardStyles.playerCardMonthDark,
-                    ]}
-                  >
-                    <Text style={playerCardStyles.playerCardMonthText}>{monthNames[index]}</Text>
-                    {getTrophyForMonth(index)}
+                {/* TROPHIES */}
+                <View style={playerCardStyles.playerCardTrophyCase}>
+                  <Text style={[playerCardStyles.playerCardTrophyCaseTitle, isDarkBg && playerCardStyles.playerCardTextDark]}>TROPHIES {currentYear}</Text>
+                  <View style={playerCardStyles.playerCardMonthsContainer}>
+                    {Array(12).fill(null).map((_, index) => (
+                      <View
+                        key={index}
+                        style={[
+                          playerCardStyles.playerCardMonth,
+                          index === currentMonth ? playerCardStyles.playerCardOngoingMonth : null,
+                          isDarkBg && playerCardStyles.playerCardMonthDark,
+                        ]}
+                      >
+                        <Text style={playerCardStyles.playerCardMonthText}>{monthNames[index]}</Text>
+                        {getTrophyForMonth(index)}
+                      </View>
+                    ))}
                   </View>
-                ))}
+                </View>
+              </>
+            ) : (
+              // While waiting for reveal: keep modal container, ribbons visible, but
+              // don't render the heavy columns. Show a subtle centered spinner.
+              <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }} pointerEvents="none">
+                <ActivityIndicator
+                  size="large"
+                  color={COLORS.info}
+                  style={{ transform: [{ scale: 1.9 }], margin: 6 }}
+                />
               </View>
-            </View>
+            )}
           </View>
         </View>
       </Modal>

@@ -24,6 +24,7 @@ import {
   ActivityIndicator,
   Alert,
 } from "react-native";
+import COLORS from '../../constants/colors';
 import { FontAwesome5 } from "@expo/vector-icons";
 import CustomKeyboard from "../CustomKeyboard";
 import * as SecureStore from "expo-secure-store";
@@ -218,8 +219,8 @@ export default function LinkedModal({
               ]}
             >
               {busy ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
+                  <ActivityIndicator color={COLORS.info} style={{ transform: [{ scale: 1.15 }], marginHorizontal: 6 }} />
+                ) : (
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
                   <Text style={styles.btnPrimaryText}>Link Account</Text>
                   <FontAwesome5 name="link" size={16} color="#fff" />
