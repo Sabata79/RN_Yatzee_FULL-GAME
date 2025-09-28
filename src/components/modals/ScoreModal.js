@@ -125,6 +125,9 @@ export default function ScoreModal({
       const result = await onSave({ baseScore: points, bonus, total, elapsedSecs });
 
       if (result !== false) {
+        // Mark game as saved so the app can perform the post-save flow
+        // (navigation to scoreboard / weekly view is handled elsewhere).
+        setIsGameSaved?.(true);
         onClose?.();
       }
     } catch (e) {
@@ -141,8 +144,10 @@ export default function ScoreModal({
       return;
     }
     // fallback
+    // Close/reset only. Do NOT trigger the saved-flow navigation when the
+    // player cancels the save. Navigation to the scoreboard should only
+    // happen when a score has actually been saved.
     onClose?.();
-    setIsGameSaved?.(true);
   }, [busy, onCancel, onClose, setIsGameSaved]);
 
   if (!visible) return null;

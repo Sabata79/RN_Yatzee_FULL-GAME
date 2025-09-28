@@ -117,7 +117,6 @@ export default function Home({ setPlayerId }) {
       ...playerData,
       name,
       level: 'beginner',
-      progresspoints: 0,
       dateJoined: playerData?.dateJoined || formattedDate,
       tokens: MAX_TOKENS 
     });

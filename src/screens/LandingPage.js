@@ -14,7 +14,7 @@
  */
 import React, { useState, useEffect, useRef } from "react";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { View, Text, Image, Animated, Alert, Linking, InteractionManager } from "react-native";
+import { View, Text, Image, Animated, Alert, Linking, InteractionManager, TextInput, Pressable, Modal } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { signInAnon, dbGet } from "../services/Firebase";
 import { useGame } from "../constants/GameContext";
@@ -80,6 +80,9 @@ export default function LandingPage({ navigation }) {
   } = useGame();
 
   const isFocused = useIsFocused();
+
+  const [restoreVisible, setRestoreVisible] = useState(false);
+  const [restoreUid, setRestoreUid] = useState('');
 
   const isVersionOlder = (current, minimum) => {
     const cur = current.split(".").map(Number);
@@ -328,7 +331,13 @@ export default function LandingPage({ navigation }) {
         }
 
         // --- Scoreboard preload from players ---
-        await step("Preload scoreboard data from players", async () => {
+        // NOTE: Scanning every player's `scores` tree can be very expensive
+        // for players with large histories (causes long delays and memory spikes).
+        // Temporarily disable raw scores scanning and prefer aggregated fields
+        // (allTimeBest/monthlyBest). If aggregates are missing the player will
+        // be skipped for now. The original scanning code is left commented
+        // below for easy re-enable during testing.
+        await step("Preload scoreboard data from players (aggregates only)", async () => {
           const snapshot = await dbGet('players');
           const playersData = snapshot.val();
           const tmpScores = [];
@@ -336,31 +345,22 @@ export default function LandingPage({ navigation }) {
           if (playersData) {
             Object.keys(playersData).forEach(playerId => {
               const player = playersData[playerId];
-              if (player.scores) {
-                const scoresToUse = Object.values(player.scores);
-                if (scoresToUse.length > 0) {
-                  let bestScore = null;
-                  scoresToUse.forEach(score => {
-                    if (
-                      !bestScore ||
-                      score.points > bestScore.points ||
-                      (score.points === bestScore.points && score.duration < bestScore.duration) ||
-                      (score.points === bestScore.points && score.duration === bestScore.duration &&
-                        new Date(score.date) < new Date(bestScore.date))
-                    ) {
-                      bestScore = score;
-                    }
-                  });
-                  if (bestScore) {
-                    tmpScores.push({
-                      ...bestScore,
-                      name: player.name,
-                      playerId,
-                      avatar: player.avatar || null,
-                      scores: Object.values(player.scores),
-                    });
-                  }
-                }
+              // Prefer aggregated allTimeBest if available
+              const at = player?.allTimeBest || null;
+              if (at && typeof at.points === 'number') {
+                tmpScores.push({
+                  points: Number(at.points),
+                  duration: Number(at.duration || 0),
+                  date: typeof at.date === 'number' ? at.date : (at.date ? new Date(String(at.date)).getTime() : Date.now()),
+                  name: player.name,
+                  playerId,
+                  avatar: player.avatar || null,
+                });
+              } else {
+                // If no aggregates present, skip scanning raw scores for now
+                // to avoid heavy work during boot. The commented code below
+                // shows the previous behavior (full scan) which can be
+                // re-enabled when aggregates have been backfilled.
               }
             });
             const sorted = tmpScores.sort((a, b) => {
@@ -373,6 +373,39 @@ export default function LandingPage({ navigation }) {
             setScoreboardData([]);
           }
         });
+
+        /*
+        // Original full-scan implementation (commented out)
+        Object.keys(playersData).forEach(playerId => {
+          const player = playersData[playerId];
+          if (player.scores) {
+            const scoresToUse = Object.values(player.scores);
+            if (scoresToUse.length > 0) {
+              let bestScore = null;
+              scoresToUse.forEach(score => {
+                if (
+                  !bestScore ||
+                  score.points > bestScore.points ||
+                  (score.points === bestScore.points && score.duration < bestScore.duration) ||
+                  (score.points === bestScore.points && score.duration === bestScore.duration &&
+                    new Date(score.date) < new Date(bestScore.date))
+                ) {
+                  bestScore = score;
+                }
+              });
+              if (bestScore) {
+                tmpScores.push({
+                  ...bestScore,
+                  name: player.name,
+                  playerId,
+                  avatar: player.avatar || null,
+                  scores: Object.values(player.scores),
+                });
+              }
+            }
+          }
+        });
+        */
 
         setBootDone(true);
       } catch (error) {
@@ -406,8 +439,15 @@ export default function LandingPage({ navigation }) {
     <View style={{ flex: 1 }}>
       <BackgroundVideo isActive />
       <Animated.View style={[styles.container, { backgroundColor: 'transparent', opacity: fadeAnim }]}>
-        <View style={[styles.versionContainer]}>
-          <Text style={styles.versionText}>Version: {gameVersion}</Text>
+        {/* Hidden restore modal: reveal by long-pressing version text (safe fallback for users/devs) */}
+          <View style={[styles.versionContainer]}>
+          <Text
+            style={styles.versionText}
+            onLongPress={() => setRestoreVisible(true)}
+            numberOfLines={1}
+          >
+            Version: {gameVersion}
+          </Text>
         </View>
 
         <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, paddingBottom: insets.bottom || 16 }}>
@@ -436,6 +476,46 @@ export default function LandingPage({ navigation }) {
             style={styles.logo}
           />
         </View>
+        {/* Version text long-press reveals restore modal */}
+        <Modal visible={restoreVisible} transparent animationType="fade" onRequestClose={() => setRestoreVisible(false)}>
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.6)' }}>
+            <View style={{ width: '90%', maxWidth: 420, backgroundColor: '#121212', padding: 16, borderRadius: 12 }}>
+              <Text style={{ color: '#fff', fontSize: 18, marginBottom: 8 }}>Restore account (paste UID)</Text>
+              <TextInput
+                value={restoreUid}
+                onChangeText={setRestoreUid}
+                placeholder="Paste UID here"
+                placeholderTextColor="rgba(255,255,255,0.5)"
+                style={{ backgroundColor: '#0e1113', color: '#fff', padding: 10, borderRadius: 8, marginBottom: 12 }}
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+              <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 8 }}>
+                <Pressable onPress={() => setRestoreVisible(false)} style={{ padding: 10 }}>
+                  <Text style={{ color: '#fff' }}>Cancel</Text>
+                </Pressable>
+                <Pressable
+                  onPress={async () => {
+                    const val = (restoreUid || '').trim();
+                    if (!val) return;
+                    try {
+                      await SecureStore.setItemAsync('user_id', val);
+                      setPlayerId(val);
+                      setRestoreVisible(false);
+                      try { await Updates.reloadAsync(); } catch { }
+                    } catch (e) {
+                      console.error('[Restore] set user_id failed', e);
+                      Alert.alert('Restore failed', 'Could not set user id on this device.');
+                    }
+                  }}
+                  style={{ padding: 10, backgroundColor: '#1b9cff', borderRadius: 8 }}
+                >
+                  <Text style={{ color: '#fff' }}>Apply</Text>
+                </Pressable>
+              </View>
+            </View>
+          </View>
+        </Modal>
       </Animated.View>
     </View>
   );

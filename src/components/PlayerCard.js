@@ -19,6 +19,7 @@ import AvatarContainer from '../constants/AvatarContainer';
 import { NBR_OF_SCOREBOARD_ROWS } from '../constants/Game';
 import { PlayercardBg } from '../constants/PlayercardBg';
 import CoinLayer from './CoinLayer';
+import { isBetterScore } from '../utils/scoreUtils';
 
 
 export default function PlayerCard({ isModalVisible, setModalVisible }) {
@@ -50,6 +51,11 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
   const [avgDuration, setAvgDuration] = useState(0);
   // undefined = not yet loaded; null = loaded but no level set
   const [storedLevel, setStoredLevel] = useState(undefined);
+  // If true, we will accept 'beginner' as resolved for own card. This is set
+  // after a short grace period to avoid flashing BeginnerBG while a higher
+  // canonical level value is still loading from the DB.
+  const [acceptBeginner, setAcceptBeginner] = useState(false);
+  const acceptBeginnerTimerRef = useRef(null);
   const [viewingAllTimeRank, setViewingAllTimeRank] = useState('-');
   const [weeklyWins, setWeeklyWins] = useState(0);
   const [modalHeight, setModalHeight] = useState(0);
@@ -119,7 +125,15 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
 
   // UUSI: haetaan katsottavan pelaajan level kun modal avataan ja katsotaan muuta kuin omaa korttia
   useEffect(() => {
-    if (!isModalVisible) return;
+    if (!isModalVisible) {
+      // reset the grace timer state when modal closes
+      setAcceptBeginner(false);
+      if (acceptBeginnerTimerRef.current) {
+        clearTimeout(acceptBeginnerTimerRef.current);
+        acceptBeginnerTimerRef.current = null;
+      }
+      return;
+    }
     if (!viewingPlayerId || viewingPlayerId === playerId) {
       setViewingPlayerLevel(null); // oma kortti, ei tarvita
       return;
@@ -167,14 +181,8 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     }
   };
 
+
   // ----- HELPERS -----
-  const isBetterScore = (a, b) => {
-    if (a.points > b.points) return true;
-    if (a.points < b.points) return false;
-    if (a.duration < b.duration) return true;
-    if (a.duration > b.duration) return false;
-    return a.date < b.date;
-  };
 
   const _norm = (s) => String(s || '').replace(/\\/g, '/').replace(/^\.\//, '');
   const _last2 = (s) => _norm(s).split('/').slice(-2).join('/');
@@ -200,7 +208,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
 
   const getPlayerCardBackground = (level) => {
     if (!level) return null;
-    const key = String(level).toLowerCase();
+    const key = String(level).trim().toLowerCase();
     const bg = PlayercardBg.find(b => b.level.toLowerCase() === key);
     if (bg) return bg.display;
     // If level is 'legendary' but we don't have a specific image, fall back
@@ -235,9 +243,13 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     // clamp 0..1
     const clamped = Math.max(0, Math.min(1, progress));
 
-    // Show displayed level: use stored or viewing player level if available
-    const levelLabel =
-      storedLevel ?? viewingPlayerLevel ?? computed.level;
+    // Determine whether this is the player's own card. For own card we
+    // require an explicit storedLevel to be present before choosing a
+    // displayed level; this avoids briefly falling back to the computed
+    // 'beginner' value while the canonical value from the player node
+    // is still loading.
+    const isOwn = idToUse === playerId;
+    const levelLabel = isOwn ? (storedLevel ?? null) : (storedLevel ?? viewingPlayerLevel ?? computed.level);
 
     return { ...computed, level: levelLabel, progress: clamped };
   };
@@ -245,8 +257,11 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
   const previousMonthRank = currentMonth > 0 ? monthlyRanks[currentMonth - 1] : '--';
   const levelInfo = getPlayerLevelInfo();
 
-  // Background info
-  const bgInfo = PlayercardBg.find(bg => bg.level.toLowerCase() === levelInfo.level.toLowerCase());
+  // Background info — be defensive: levelInfo.level may be null/undefined while
+  // the canonical storedLevel is still loading. Use a safe lowercase key and
+  // guard bg.level before calling toLowerCase.
+  const levelKeySafe = (levelInfo.level || '').toLowerCase();
+  const bgInfo = PlayercardBg.find(bg => (bg.level || '').toLowerCase() === levelKeySafe);
   const isDarkBg = bgInfo?.isDark;
 
   // ----- EFFECT: attach/detach all listeners when modal is open -----
@@ -260,8 +275,9 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     const topScoresCb = (snapshot) => {
       if (snapshot.exists()) {
         const scores = snapshot.val();
-        const sorted = Object.values(scores)
-          .map(s => ({ points: s.points, date: s.date, duration: s.duration, time: s.time }))
+        const vals = Object.values(scores).filter(s => s && typeof s === 'object');
+        const sorted = vals
+          .map(s => ({ points: Number(s.points || 0), date: s.date, duration: Number(s.duration || 0), time: s.time }))
           .sort((a, b) => b.points - a.points)
           .slice(0, NBR_OF_SCOREBOARD_ROWS);
         setTopScores(sorted);
@@ -274,7 +290,12 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     dbOnValue(topScoresPath, topScoresCb);
     subs.push({ path: topScoresPath, cb: topScoresCb });
 
-    // MONTHLY RANKS (whole year)
+    // MONTHLY RANKS (aggregates only)
+    // Previously this code scanned every player's `scores` tree as a fallback
+    // when per-player `monthlyBest` aggregates were missing. That fallback
+    // has been disabled to avoid expensive scans for players with many
+    // score entries. We now rely solely on `monthlyBest` aggregates; if the
+    // aggregate is missing the month will show as '-' until backfill runs.
     const playersPath = 'players';
     const monthlyCb = (snapshot) => {
       if (!snapshot.exists()) {
@@ -287,19 +308,42 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
       const year = new Date().getFullYear();
 
       Object.keys(playersData).forEach((pId) => {
-        const scores = playersData[pId].scores || {};
-        Object.values(scores).forEach((score) => {
-          const d = new Date(score.date.split('.').reverse().join('-'));
-          if (d.getFullYear() === year) {
-            const monthIndex = d.getMonth();
-            const entry = { playerId: pId, points: score.points, duration: score.duration, date: d.getTime() };
+        const p = playersData[pId] || {};
+        // Prefer aggregated monthlyBest if present
+        const mbYear = p.monthlyBest && p.monthlyBest[year] ? p.monthlyBest[year] : null;
+        if (mbYear) {
+          Object.keys(mbYear).forEach((mKey) => {
+            const entry = mbYear[mKey];
+            if (!entry || typeof entry !== 'object') return; // skip malformed/null entries
+            const monthIndex = Math.max(0, Math.min(11, parseInt(mKey, 10) - 1));
+            // entry expected shape: { points, duration, date, scoreKey }
+            let ts = Date.now();
+            try {
+              ts = typeof entry.date === 'number' ? entry.date : new Date(String(entry.date).split('.').reverse().join('-')).getTime();
+            } catch (e) { /* keep now */ }
+            const candidate = { playerId: pId, points: Number(entry.points || 0), duration: Number(entry.duration || 0), date: ts };
             const existing = monthlyScores[monthIndex].find(s => s.playerId === pId);
-            if (!existing || isBetterScore(entry, existing)) {
+            if (!existing || isBetterScore(candidate, existing)) {
               monthlyScores[monthIndex] = monthlyScores[monthIndex].filter(s => s.playerId !== pId);
-              monthlyScores[monthIndex].push(entry);
+              monthlyScores[monthIndex].push(candidate);
             }
-          }
-        });
+          });
+        } else {
+          // Fallback: scan raw scores like before
+          const scores = p.scores || {};
+          Object.values(scores).forEach((score) => {
+            const d = new Date(String(score.date).split('.').reverse().join('-'));
+            if (d.getFullYear() === year) {
+              const monthIndex = d.getMonth();
+              const entry = { playerId: pId, points: score.points, duration: score.duration, date: d.getTime() };
+              const existing = monthlyScores[monthIndex].find(s => s.playerId === pId);
+              if (!existing || isBetterScore(entry, existing)) {
+                monthlyScores[monthIndex] = monthlyScores[monthIndex].filter(s => s.playerId !== pId);
+                monthlyScores[monthIndex].push(entry);
+              }
+            }
+          });
+        }
       });
 
       const monthRanks = monthlyScores.map((arr) => {
@@ -319,7 +363,9 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     dbOnValue(playersPath, monthlyCb);
     subs.push({ path: playersPath, cb: monthlyCb });
 
-    // WEEKLY RANK (last week)
+    // WEEKLY RANK (prefer per-player weeklyBest if available)
+    // WEEKLY RANK (aggregates only)
+    // Fallback scanning of raw scores disabled to avoid heavy DB scans.
     const weeklyRankCb = (snapshot) => {
       if (!snapshot.exists()) {
         setWeeklyRank(' - ');
@@ -338,13 +384,29 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
 
       let weeklyScores = [];
       Object.keys(playersData).forEach((pId) => {
-        const scores = playersData[pId].scores || {};
-        Object.values(scores).forEach((s) => {
-          const d = new Date(s.date.split('.').reverse().join('-'));
-          if (d >= previousWeekStart && d <= previousWeekEnd) {
-            weeklyScores.push({ playerId: pId, points: s.points, duration: s.duration, date: d.getTime() });
-          }
-        });
+        const p = playersData[pId] || {};
+        const wb = p.weeklyBest || null;
+        if (wb) {
+          // weeklyBest expected keys like '2025-37'
+          Object.keys(wb).forEach((wk) => {
+            const entry = wb[wk];
+            if (!entry || typeof entry !== 'object') return; // skip malformed entries
+            let ts = Date.now();
+            try { ts = typeof entry.date === 'number' ? entry.date : new Date(String(entry.date).split('.').reverse().join('-')).getTime(); } catch (e) { /* ignore */ }
+            const d = new Date(ts);
+            if (d >= previousWeekStart && d <= previousWeekEnd) {
+              weeklyScores.push({ playerId: pId, points: Number(entry.points || 0), duration: Number(entry.duration || 0), date: ts });
+            }
+          });
+        } else {
+          const scores = p.scores || {};
+          Object.values(scores).forEach((s) => {
+            const d = new Date(String(s.date).split('.').reverse().join('-'));
+            if (d >= previousWeekStart && d <= previousWeekEnd) {
+              weeklyScores.push({ playerId: pId, points: s.points, duration: s.duration, date: d.getTime() });
+            }
+          });
+        }
       });
 
       const bestByPlayer = {};
@@ -477,12 +539,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
           }
         }
 
-        // progressPoints init if missing (keep as before)
-        if (!pData || pData.progressPoints === undefined) {
-          dbUpdate(`players/${idToUse}`, { progressPoints: gamesCount })
-            .then(() => console.log('progressPoints initialized.'))
-            .catch(err => console.error('Error initializing progressPoints:', err));
-        }
+        // progressPoints is deprecated: progress is derived from playedGames
       } catch (err) {
         console.error('Error reading player profile for aggregates:', err);
         // Fallback to computed values in case of error
@@ -496,7 +553,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     dbOnValue(statsPath, statsCb);
     subs.push({ path: statsPath, cb: statsCb });
 
-    // ALL-TIME RANK
+    // ALL-TIME RANK (prefer per-player allTimeBest aggregate)
     const allTimeCb = (snapshot) => {
       if (!snapshot.exists()) {
         setViewingAllTimeRank(' - ');
@@ -504,6 +561,10 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
       }
       const playersData = snapshot.val();
       const bestScores = Object.entries(playersData).map(([pId, data]) => {
+        const at = data.allTimeBest || null;
+        if (at && typeof at.points === 'number') {
+          return { playerId: pId, maxScore: Number(at.points) };
+        }
         const scores = data.scores || {};
         const maxScore = Object.values(scores)
           .map(s => Number(s.points) || 0)
@@ -542,7 +603,9 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     const levelCb = (snapshot) => {
       const data = snapshot.val();
       // loaded but maybe no level field
-      setStoredLevel(data ? (data.level ?? null) : null);
+      // normalize strings to lowercase for consistent comparisons
+      const lvl = data ? (data.level ?? null) : null;
+      setStoredLevel(typeof lvl === 'string' ? lvl.toLowerCase() : lvl);
       markUpdate();
     };
     dbOnValue(levelPath, levelCb);
@@ -649,13 +712,46 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     );
   };
 
-  const playerCardBg = getPlayerCardBackground(levelInfo.level);
-  // If there's no explicit bg found yet: for beginners we can show the
-  // BeginnerBG immediately; for non-beginners we should wait for the
-  // PlayercardBg lookup to resolve to avoid flashing the beginner art.
+  // Decide whether this is own card or viewing someone else
+  const isOwnCard = idToUse === playerId;
+
+  // levelResolved: for own card rely on storedLevel only; for other players
+  // we accept either storedLevel or viewingPlayerLevel as resolution.
+  // For own card treat a 'beginner' storedLevel as unresolved initially so
+  // we don't flash the Beginner background while a higher canonical value
+  // may still arrive. After a short grace period we accept 'beginner'.
+  const storedLevelLower = typeof storedLevel === 'string' ? storedLevel : storedLevel;
+  const levelResolved = isOwnCard
+    ? (storedLevel !== undefined && (storedLevelLower !== 'beginner' || acceptBeginner))
+    : (storedLevel !== undefined || viewingPlayerLevel !== undefined);
+
+  // Start grace timer when modal opens for own card: after 700ms accept beginner
+  useEffect(() => {
+    if (!isModalVisible || !isOwnCard) return;
+    // clear any existing
+    if (acceptBeginnerTimerRef.current) {
+      clearTimeout(acceptBeginnerTimerRef.current);
+      acceptBeginnerTimerRef.current = null;
+    }
+    setAcceptBeginner(false);
+    acceptBeginnerTimerRef.current = setTimeout(() => {
+      setAcceptBeginner(true);
+      acceptBeginnerTimerRef.current = null;
+    }, 700);
+    return () => {
+      if (acceptBeginnerTimerRef.current) {
+        clearTimeout(acceptBeginnerTimerRef.current);
+        acceptBeginnerTimerRef.current = null;
+      }
+    };
+  }, [isModalVisible, isOwnCard]);
+
+  // Only compute background when we have a resolved level to avoid using the
+  // computed fallback (which is 'beginner') and causing a flash.
+  const playerCardBg = levelResolved ? getPlayerCardBackground(levelInfo.level) : null;
   const levelKey = (levelInfo.level || '').toLowerCase();
-  const isDefaultBg = !playerCardBg && levelKey === 'beginner';
-  const needsBgLoad = !playerCardBg && levelKey !== 'beginner';
+  const isDefaultBg = !playerCardBg && levelResolved && levelKey === 'beginner';
+  const needsBgLoad = !playerCardBg && !levelResolved;
 
   // Show a fullscreen spinner while the correct (non-beginner) background
   // is being resolved. This prevents a quick flash of the BeginnerBG.
@@ -859,9 +955,9 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
                       ]}
                     >
                       <Text style={[playerCardStyles.playerCardScoreItem, isDarkBg && playerCardStyles.playerCardTextDark]}>
-                        {index + 1}. {score.points} points in {score.duration} sec
+                        {index + 1}. {score ? `${score.points} points in ${score.duration} sec` : ' - '}
                       </Text>
-                      <Text style={[playerCardStyles.playerCardScoreDate, isDarkBg && playerCardStyles.playerCardTextDark]}>{score.date}</Text>
+                      <Text style={[playerCardStyles.playerCardScoreDate, isDarkBg && playerCardStyles.playerCardTextDark]}>{score ? score.date : ''}</Text>
                     </View>
                   ))}
                 </View>

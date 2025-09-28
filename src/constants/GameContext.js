@@ -23,7 +23,8 @@
 
 import { createContext, useState, useContext, useEffect, useMemo, useRef, useCallback } from 'react';
 import { AppState } from 'react-native';
-import { dbOnValue, dbOff, dbSet, dbRef } from '../services/Firebase';
+import { dbOnValue, dbOff, dbSet, dbRef, dbGet } from '../services/Firebase';
+import { isBetterScore } from '../utils/scoreUtils';
 import { MAX_TOKENS } from './Game';
 import { onDisconnect } from '@react-native-firebase/database';
 
@@ -54,12 +55,13 @@ export const GameProvider = ({ children }) => {
   // TOKENS
   const [tokens, setTokens] = useState(null);
   const hydratedRef = useRef(false); // true ensimmäisen Firebase-arvon jälkeen
+  const levelSyncTimerRef = useRef(null);
+  const levelSyncPendingRef = useRef(null);
 
   const [energyModalVisible, setEnergyModalVisible] = useState(false);
   const [isLinked, setIsLinked] = useState(false);
   const [playerLevel, setPlayerLevel] = useState('');
   const [gameVersion, setGameVersion] = useState('');
-  const [progressPoints, setProgressPoints] = useState(0);
   const [currentLevel, setCurrentLevel] = useState('');
   const [nextLevel, setNextLevel] = useState('');
   const [allTimeRank, setAllTimeRank] = useState('--');
@@ -67,15 +69,7 @@ export const GameProvider = ({ children }) => {
   const [nextTokenTime, setNextTokenTime] = useState(null); // seuraavan tokenin aikaleima (Date tai ISO-string)
   const [timeToNextToken, setTimeToNextToken] = useState(''); // countdown-string, esim. "1 h 23 min 10 s"
 
-  const isBetterScore = (newScore, oldScore) => {
-    if (Number(newScore.points) > Number(oldScore.points)) return true;
-    if (Number(newScore.points) < Number(oldScore.points)) return false;
-    if (Number(newScore.duration) < Number(oldScore.duration)) return true;
-    if (Number(newScore.duration) > Number(oldScore.duration)) return false;
-    const dateA = new Date(newScore.date.split('.').reverse().join('-'));
-    const dateB = new Date(oldScore.date.split('.').reverse().join('-'));
-    return dateA < dateB;
-  };
+  // isBetterScore imported from shared util
 
   // ISO week helper (same logic as used in Scoreboard screen)
   const getWeekNumber = (date) => {
@@ -234,7 +228,16 @@ export const GameProvider = ({ children }) => {
     if (!playerId) return;
     const path = `players/${playerId}/level`;
     const handleValue = (snapshot) => {
-      if (snapshot.exists()) setPlayerLevel(snapshot.val());
+      if (snapshot.exists()) {
+        try {
+          const val = snapshot.val();
+          setPlayerLevel(String(val || '').toLowerCase());
+        } catch (e) {
+          setPlayerLevel('');
+        }
+      } else {
+        setPlayerLevel('');
+      }
     };
     dbOnValue(path, handleValue);
     return () => dbOff(path, handleValue);
@@ -252,6 +255,7 @@ export const GameProvider = ({ children }) => {
     dbOnValue(path, handleValue);
     return () => dbOff(path, handleValue);
   }, [playerId]);
+
 
   // ===== TOKENS: Realtime listener =====
   useEffect(() => {
@@ -378,12 +382,69 @@ export const GameProvider = ({ children }) => {
     return nextIndex < order.length ? order[nextIndex] : 'Legendary';
   };
 
-  const updateProgressPoints = (newPoints) => {
-    setProgressPoints(newPoints);
-    const curr = getCurrentLevel(newPoints);
-    setCurrentLevel(curr);
-    setNextLevel(getNextLevel(curr));
-  };
+  // ----- Sync level from playedGames (debounced) -----
+  // Listen to playedGames and ensure `players/{playerId}/level` reflects
+  // the thresholds used by GameSave. Debounce writes briefly to avoid churn
+  // if multiple updates arrive in quick succession (e.g. backfill + saves).
+  useEffect(() => {
+    if (!playerId) return;
+
+    const path = `players/${playerId}/playedGames`;
+
+    const computeLevel = (gamesCount) => {
+      let lvl = 'beginner';
+      if (gamesCount >= 2000) lvl = 'legendary';
+      else if (gamesCount >= 1201) lvl = 'elite';
+      else if (gamesCount >= 801) lvl = 'advanced';
+      else if (gamesCount >= 401) lvl = 'basic';
+      return lvl;
+    };
+
+    const scheduleSync = (newLevel) => {
+      // mark pending and replace any existing timer
+      levelSyncPendingRef.current = newLevel;
+      if (levelSyncTimerRef.current) clearTimeout(levelSyncTimerRef.current);
+      // short debounce (500ms) to coalesce rapid updates
+      levelSyncTimerRef.current = setTimeout(async () => {
+        const pending = levelSyncPendingRef.current;
+        levelSyncPendingRef.current = null;
+        levelSyncTimerRef.current = null;
+        try {
+          // read existing (best-effort)
+          const levelSnap = await dbGet(`players/${playerId}/level`);
+          const existing = levelSnap && typeof levelSnap.val === 'function' ? levelSnap.val() : levelSnap;
+          if (existing !== pending) {
+            await dbSet(`players/${playerId}/level`, pending);
+          }
+        } catch (e) {
+          console.warn('[GameContext] Debounced level sync failed for', playerId, e);
+        }
+      }, 500);
+    };
+
+    const handlePlayed = (snapshot) => {
+      try {
+        const raw = snapshot.exists() ? snapshot.val() : 0;
+        const games = Number(raw || 0);
+        const newLevel = String(computeLevel(games)).toLowerCase();
+        scheduleSync(newLevel);
+      } catch (e) {
+        console.warn('[GameContext] playedGames handler failed', e);
+      }
+    };
+
+    dbOnValue(path, handlePlayed);
+    return () => {
+      dbOff(path, handlePlayed);
+      if (levelSyncTimerRef.current) {
+        clearTimeout(levelSyncTimerRef.current);
+        levelSyncTimerRef.current = null;
+      }
+      levelSyncPendingRef.current = null;
+    };
+  }, [playerId]);
+
+  // Level computation is derived from playedGames elsewhere; helper removed.
 
   const setActivePlayer = useCallback((id, name) => {
     setActivePlayerId(id);
@@ -450,16 +511,15 @@ export const GameProvider = ({ children }) => {
   setTokens,
   energyModalVisible,
   setEnergyModalVisible,
-
-      // misc
-      isLinked,
-      setIsLinked,
-      gameVersion,
-      setGameVersion,
-      progressPoints,
-      setProgressPoints: updateProgressPoints,
-      currentLevel,
-      nextLevel,
+      
+    // misc
+    isLinked,
+    setIsLinked,
+    gameVersion,
+    setGameVersion,
+    // progressPoints removed - derived from playedGames
+    currentLevel,
+    nextLevel,
       allTimeRank,
       avatarUrl,
       setAvatarUrl,
@@ -496,9 +556,8 @@ export const GameProvider = ({ children }) => {
   timeToNextToken,
       tokens,
       energyModalVisible,
-      isLinked,
-      gameVersion,
-      progressPoints,
+  isLinked,
+  gameVersion,
       currentLevel,
       nextLevel,
       allTimeRank,
