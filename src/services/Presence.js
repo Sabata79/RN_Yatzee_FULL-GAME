@@ -192,10 +192,11 @@ export async function getPresenceForPlayer(playerId) {
 /**
  * Set presence for a single playerId (simple write).
  */
-export function setPresence(playerId, online = true) {
+export function setPresence(playerId, online = true, meta = {}) {
   const path = `${PRESENCE_ROOT}/${playerId}`;
   const ts = Date.now();
-  const payload = { online: !!online, lastSeen: ts, lastSeenHuman: formatLastSeen(ts) };
+  const base = { online: !!online, lastSeen: ts, lastSeenHuman: formatLastSeen(ts) };
+  const payload = { ...base, ...(meta && typeof meta === 'object' ? meta : {}) };
   return dbSet(path, payload);
 }
 
@@ -204,18 +205,19 @@ export function setPresence(playerId, online = true) {
  * Returns a cleanup function that will set the player offline immediately and try to cancel the onDisconnect.
  * If onDisconnect is not available, the cleanup will still set offline immediately.
  */
-export async function goOnline(playerId) {
+export async function goOnline(playerId, meta = {}) {
   const path = `${PRESENCE_ROOT}/${playerId}`;
-  // set online now
-  await setPresence(playerId, true);
+  // set online now (include optional meta such as gameVersion)
+  await setPresence(playerId, true, meta);
 
   try {
     const r = dbRef(path);
     const od = onDisconnect(r);
-    // schedule offline on disconnect
+    // schedule offline on disconnect (include meta where available)
     if (od && typeof od.set === 'function') {
       const ts = Date.now();
-      od.set({ online: false, lastSeen: ts, lastSeenHuman: formatLastSeen(ts) });
+      const offPayload = { online: false, lastSeen: ts, lastSeenHuman: formatLastSeen(ts), ...(meta && typeof meta === 'object' ? meta : {}) };
+      od.set(offPayload);
     }
 
     // return cleanup

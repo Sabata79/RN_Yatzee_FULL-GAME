@@ -75,6 +75,7 @@ export default function LandingPage({ navigation }) {
     setIsLinked,
     setPlayerLevel,
     setGameVersion,
+    setGameVersionCode,
     gameVersion,
     setScoreboardData,
   } = useGame();
@@ -281,7 +282,11 @@ export default function LandingPage({ navigation }) {
     bootStartedRef.current = true;
 
     const version = Constants.expoConfig?.version ?? "0.0.0";
+    const versionCode = (Constants.expoConfig?.android?.versionCode ?? Constants.expoConfig?.ios?.buildNumber ?? '')
+      ? String(Constants.expoConfig?.android?.versionCode ?? Constants.expoConfig?.ios?.buildNumber)
+      : '';
     setGameVersion(version);
+    if (typeof setGameVersionCode === 'function') setGameVersionCode(versionCode);
 
     const loadAllAssets = async () => {
       try {

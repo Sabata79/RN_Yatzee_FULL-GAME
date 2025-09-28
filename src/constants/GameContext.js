@@ -62,6 +62,7 @@ export const GameProvider = ({ children }) => {
   const [isLinked, setIsLinked] = useState(false);
   const [playerLevel, setPlayerLevel] = useState('');
   const [gameVersion, setGameVersion] = useState('');
+  const [gameVersionCode, setGameVersionCode] = useState('');
   const [currentLevel, setCurrentLevel] = useState('');
   const [nextLevel, setNextLevel] = useState('');
   const [allTimeRank, setAllTimeRank] = useState('--');
@@ -302,7 +303,8 @@ export const GameProvider = ({ children }) => {
     const setOnlineAndRegisterDisconnect = async () => {
       try {
         const ts = Date.now();
-        const payload = { online: true, lastSeen: ts, lastSeenHuman: formatLastSeen(ts) };
+        // include gameVersion so presence records which client version is active
+  const payload = { online: true, lastSeen: ts, lastSeenHuman: formatLastSeen(ts), gameVersion: String(gameVersion || ''), versionCode: String(gameVersionCode || '') };
         await dbSet(path, payload);
 
         // try to register onDisconnect on the same embedded path
@@ -311,7 +313,7 @@ export const GameProvider = ({ children }) => {
           const od = onDisconnect(ref);
           if (od && typeof od.set === 'function') {
             const offTs = Date.now();
-            od.set({ online: false, lastSeen: offTs, lastSeenHuman: formatLastSeen(offTs) });
+            od.set({ online: false, lastSeen: offTs, lastSeenHuman: formatLastSeen(offTs), gameVersion: String(gameVersion || ''), versionCode: String(gameVersionCode || '') });
           }
           cleanupFn = async () => {
             try {
@@ -319,7 +321,7 @@ export const GameProvider = ({ children }) => {
             } catch (e) {}
             try {
               const offTs2 = Date.now();
-              await dbSet(path, { online: false, lastSeen: offTs2, lastSeenHuman: formatLastSeen(offTs2) });
+              await dbSet(path, { online: false, lastSeen: offTs2, lastSeenHuman: formatLastSeen(offTs2), versionCode: String(gameVersionCode || '') });
             } catch (e) {}
           };
         } catch (e) {
