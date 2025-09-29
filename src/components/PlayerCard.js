@@ -49,16 +49,15 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
   const [playedGames, setPlayedGames] = useState(0);
   const [avgPoints, setAvgPoints] = useState(0);
   const [avgDuration, setAvgDuration] = useState(0);
-  // undefined = not yet loaded; null = loaded but no level set
+  // storedLevel: undefined = loading, null = loaded but no level
   const [storedLevel, setStoredLevel] = useState(undefined);
+  // preferredCardBg: user-selected override (null = no override)
   const [preferredCardBg, setPreferredCardBg] = useState(null);
-  // Whether we've read the player's profile (players/{id}) at least once.
-  // Used to avoid rendering a level-based background for high-tier players
-  // before we know if they have an explicit preferredCardBg override.
+  // profileLoaded: profile read at least once (prevents premature level fallback)
   const [profileLoaded, setProfileLoaded] = useState(false);
-  // If true, we will accept 'beginner' as resolved for own card. This is set
-  // after a short grace period to avoid flashing BeginnerBG while a higher
-  // canonical level value is still loading from the DB.
+  // preferredLoaded: whether preferredCardBg has been specifically read
+  const [preferredLoaded, setPreferredLoaded] = useState(false);
+  // acceptBeginner: allow 'beginner' as resolved after a short grace period
   const [acceptBeginner, setAcceptBeginner] = useState(false);
   const acceptBeginnerTimerRef = useRef(null);
   const [viewingAllTimeRank, setViewingAllTimeRank] = useState('-');
@@ -77,10 +76,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
   const contentOpacity = useRef(new Animated.Value(0)).current;
   const contentTranslate = useRef(new Animated.Value(8)).current;
   const imageLoadedRef = useRef(false);
-  // When the user changes preferredCardBg via the selector we want to
-  // avoid toggling the full background loader/spinner which causes the
-  // preview to briefly go dark. Use this ref to silently apply DB-driven
-  // preference updates without resetting bg opacity or showing the loader.
+  // suppressBgLoadingRef: avoid showing loader during DB-driven preference updates
   const suppressBgLoadingRef = useRef(false);
   const suppressTimeoutRef = useRef(null);
   // Reveal guard: only start any visual reveal when this becomes true
@@ -89,8 +85,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
   const ribbonAnim = useRef(new Animated.Value(0)).current;
   // Animated ribbon for linked status (separate DOM/animation)
   const ribbonLinkedAnim = useRef(new Animated.Value(0)).current;
-  // Control whether ribbon DOM is mounted — helps avoid seeing the static image
-  // before its spring animation starts.
+  // ribbonsMounted: mount ribbon DOM after animation is ready to avoid flash
   const [ribbonsMounted, setRibbonsMounted] = useState(false);
 
   const clearSettleTimers = () => {
@@ -518,26 +513,32 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
         // immediately falling back to a level-based background for high-tier
         // players before we know if they have an explicit preferredCardBg.
         if (!profileLoaded) setProfileLoaded(true);
+        // Normalize and apply preferredCardBg if present (once). We'll use
+        // this normalized value for suppress logic below to avoid races.
+        let incomingNorm;
+        if (typeof pData.preferredCardBg !== 'undefined') {
+          const raw = pData.preferredCardBg;
+          const norm = raw == null ? null : String(raw).trim().toLowerCase();
+          incomingNorm = (norm === 'null' || norm === 'undefined' || norm === '') ? null : norm;
+          setPreferredCardBg(incomingNorm);
+          setPreferredLoaded(true);
+        } else if (idToUse === playerId) {
+          incomingNorm = null;
+          setPreferredCardBg(null);
+          setPreferredLoaded(true);
+        }
 
         // preferred background (optional override)
-        if (typeof pData.preferredCardBg !== 'undefined') {
-          // If the preferred background changed in the DB, we want to apply it
-          // without triggering the full background loader (which blanks the
-          // preview). Use a short suppression window so the Animated.Image
-          // load handlers skip resetting opacity.
-          try {
-            const incoming = pData.preferredCardBg;
-            if (incoming !== preferredCardBg) {
-              suppressBgLoadingRef.current = true;
-              if (suppressTimeoutRef.current) clearTimeout(suppressTimeoutRef.current);
-              suppressTimeoutRef.current = setTimeout(() => { suppressBgLoadingRef.current = false; suppressTimeoutRef.current = null; }, 800);
-            }
-          } catch (e) { /* ignore comparison errors */ }
-          setPreferredCardBg(pData.preferredCardBg);
-        } else if (idToUse === playerId) {
-          // only reset for own card when closing or no value
-          setPreferredCardBg(null);
-        }
+        // If the preferred background changed in the DB, apply it without
+        // triggering the full background loader (which blanks the preview).
+        // Use the normalized incoming value for comparison to avoid transient mismatches.
+        try {
+          if (typeof incomingNorm !== 'undefined' && incomingNorm !== preferredCardBg) {
+            suppressBgLoadingRef.current = true;
+            if (suppressTimeoutRef.current) clearTimeout(suppressTimeoutRef.current);
+            suppressTimeoutRef.current = setTimeout(() => { suppressBgLoadingRef.current = false; suppressTimeoutRef.current = null; }, 800);
+          }
+        } catch (e) { /* ignore comparison errors */ }
 
         const hasPlayedGames = typeof pData.playedGames === 'number';
         const hasSumPoints = typeof pData.sumPoints === 'number';
@@ -625,6 +626,21 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     };
     dbOnValue(profilePath, avatarCb);
     subs.push({ path: profilePath, cb: avatarCb });
+
+    // Preferred background listener: ensure we know the stored preference
+    // as soon as possible so we don't fall back to level-based image
+    // prematurely when opening from Home.
+    const prefPath = `players/${idToUse}/preferredCardBg`;
+    const prefCb = (snapshot) => {
+      const val = snapshot.exists() ? snapshot.val() : null;
+      const norm = val == null ? null : String(val).trim().toLowerCase();
+      if (norm === 'null' || norm === 'undefined' || norm === '') setPreferredCardBg(null);
+      else setPreferredCardBg(norm);
+      if (!preferredLoaded) setPreferredLoaded(true);
+      markUpdate();
+    };
+    dbOnValue(prefPath, prefCb);
+    subs.push({ path: prefPath, cb: prefCb });
 
     const linkedPath = `players/${idToUse}/isLinked`;
     const linkedCb = (snapshot) => {
@@ -795,8 +811,11 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     // Additionally, if this is the user's own card and they are high-tier (elite/legendary),
     // don't render the level-based background before we've loaded the profile — this avoids a
     // short flash of the level image before a preferredCardBg from the profile is applied.
-    const highTier = typeof levelInfo.level === 'string' && ['elite', 'legendary'].includes(levelInfo.level.toLowerCase());
-    const allowLevelBg = levelResolved && (!(isOwnCard && highTier) || profileLoaded);
+  const highTier = typeof levelInfo.level === 'string' && ['elite', 'legendary'].includes(levelInfo.level.toLowerCase());
+  // Only allow level-based fallback once we've loaded the stored preferred value
+  // (preferredLoaded). This ensures we don't show a transient level image
+  // before the user's explicit choice is known.
+  const allowLevelBg = preferredLoaded && levelResolved && (!(isOwnCard && highTier) || profileLoaded);
     playerCardBg = allowLevelBg ? getPlayerCardBackground(levelInfo.level) : null;
   }
 
