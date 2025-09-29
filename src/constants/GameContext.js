@@ -150,59 +150,40 @@ export const GameProvider = ({ children }) => {
         const currentYear = now.getFullYear();
         const currentWeek = getWeekNumber(now);
 
-        const parseTs = (raw) => {
-          if (typeof raw === 'number' && Number.isFinite(raw)) return Number(raw);
-          if (!raw) return Date.now();
-          try {
-            const s = String(raw);
-            if (s.indexOf('.') >= 0) {
-              const parts = s.split('.');
-              if (parts.length === 3) return new Date(`${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`).getTime();
-            }
-            const t = new Date(s).getTime();
-            return Number.isFinite(t) ? t : Date.now();
-          } catch (e) { return Date.now(); }
-        };
-
         Object.keys(playersData).forEach((pid) => {
           const player = playersData[pid];
-
-          // Prefer per-player aggregates (allTimeBest/monthlyBest/weeklyBest) when available.
-          // This matches the save path which writes aggregates instead of pushing into `scores`.
-          let usedAny = false;
-
-          // all-time
+          // Prefer aggregates when available (newer save flow writes per-player aggregates)
           const at = player?.allTimeBest || null;
-          if (at && typeof at.points === 'number') {
-            tmpAll.push({ points: Number(at.points), duration: Number(at.duration || 0), date: parseTs(at.date), name: player.name, playerId: pid, avatar: player.avatar || null, scores: player.scores ? Object.values(player.scores) : [] });
-            usedAny = true;
+          const monMap = player?.monthlyBest || null;
+          const weekMap = player?.weeklyBest || null;
+
+          let pushedAny = false;
+
+          if (at && at.points != null) {
+            tmpAll.push({ ...at, name: player.name, playerId: pid, avatar: player.avatar || null });
+            pushedAny = true;
           }
 
-          // monthly
-          try {
-            const mbYear = player?.monthlyBest && player.monthlyBest[currentYear] ? player.monthlyBest[currentYear] : null;
-            if (mbYear) {
-              const monEntry = mbYear[String(currentMonth + 1)];
-              if (monEntry && typeof monEntry.points === 'number') {
-                tmpMon.push({ points: Number(monEntry.points), duration: Number(monEntry.duration || 0), date: parseTs(monEntry.date), name: player.name, playerId: pid, avatar: player.avatar || null, scores: player.scores ? Object.values(player.scores) : [] });
-                usedAny = true;
-              }
+          if (monMap && typeof monMap === 'object' && monMap[currentYear] && monMap[currentYear][String(currentMonth + 1)]) {
+            const m = monMap[currentYear][String(currentMonth + 1)];
+            if (m && m.points != null) {
+              tmpMon.push({ ...m, name: player.name, playerId: pid, avatar: player.avatar || null });
+              pushedAny = true;
             }
-          } catch (e) { /* ignore malformed monthlyBest */ }
+          }
 
-          // weekly
-          try {
-            const weekKey = `${currentYear}-${currentWeek}`;
-            const wbEntry = player?.weeklyBest ? player.weeklyBest[weekKey] : null;
-            if (wbEntry && typeof wbEntry.points === 'number') {
-              tmpWeek.push({ points: Number(wbEntry.points), duration: Number(wbEntry.duration || 0), date: parseTs(wbEntry.date), name: player.name, playerId: pid, avatar: player.avatar || null, scores: player.scores ? Object.values(player.scores) : [] });
-              usedAny = true;
+          const weekKey = `${currentYear}-${currentWeek}`;
+          if (weekMap && typeof weekMap === 'object' && weekMap[weekKey]) {
+            const w = weekMap[weekKey];
+            if (w && w.points != null) {
+              tmpWeek.push({ ...w, name: player.name, playerId: pid, avatar: player.avatar || null });
+              pushedAny = true;
             }
-          } catch (e) { /* ignore malformed weeklyBest */ }
+          }
 
-          // Fallback: if no aggregates present, fall back to scanning raw scores (legacy support)
-          if (!usedAny && player?.scores) {
-            const list = Object.values(player.scores);
+          // Fallback: if no aggregates exist for this player, compute by scanning raw scores (legacy)
+          if (!pushedAny && player?.scores) {
+            const list = Object.values(player.scores || {});
             if (list.length > 0) {
               let bestAll = null;
               let bestMon = null;
