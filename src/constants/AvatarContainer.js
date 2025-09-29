@@ -118,14 +118,13 @@ const AvatarContainer = ({ isVisible, onClose, avatars, handleAvatarSelect, play
               {filteredAvatars.map((avatar, index) => (
                 <Pressable key={index} onPress={() => handleAvatarSelect(avatar)}>
                   <Image
-                    style={[
-                      styles.avatarModalImage,
-                      avatar.level === 'Beginner'
-                        ? styles.beginnerAvatar
-                        : avatar.level === 'Advanced'
-                          ? styles.advancedAvatar
-                          : styles.defaultAvatar
-                    ]}
+                    style={
+                      (String(avatar.level || '').toLowerCase() === 'beginner')
+                        ? [styles.avatarModalImage, styles.beginnerAvatar]
+                        : (String(avatar.level || '').toLowerCase() === 'advanced')
+                          ? [styles.avatarModalImage, styles.advancedAvatar]
+                          : [styles.avatarModalImage, styles.defaultAvatar]
+                    }
                     source={avatar.display}
                   />
                 </Pressable>

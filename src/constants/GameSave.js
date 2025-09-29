@@ -61,6 +61,27 @@ export function useGameSave() {
           if (playerData.playedGames === undefined || playerData.playedGames === null) initUpdates[`players/${uid}/playedGames`] = existingCount;
           if (playerData.sumPoints === undefined || playerData.sumPoints === null) initUpdates[`players/${uid}/sumPoints`] = existingSumPoints;
           if (playerData.sumDuration === undefined || playerData.sumDuration === null) initUpdates[`players/${uid}/sumDuration`] = existingSumDuration;
+          // Initialize topScores from existing scores (take TOPSCORELIMIT best)
+          try {
+            const normalized = Object.values(playerData.scores || {}).map(s => ({
+              id: s.id || String(Date.now()),
+              date: s.date,
+              time: s.time || '',
+              points: Number(s.points || 0),
+              duration: Number(s.duration || 0),
+            }));
+            normalized.sort((a, b) => {
+              if ((b.points || 0) !== (a.points || 0)) return (b.points || 0) - (a.points || 0);
+              if ((a.duration || 0) !== (b.duration || 0)) return (a.duration || 0) - (b.duration || 0);
+              return new Date(a.date) - new Date(b.date);
+            });
+            const topN = normalized.slice(0, TOPSCORELIMIT);
+            if (!playerData.topScores || !Array.isArray(playerData.topScores)) {
+              initUpdates[`players/${uid}/topScores`] = topN;
+            }
+          } catch (e) {
+            // ignore backfill topScores failure
+          }
           if (Object.keys(initUpdates).length > 0) {
             // write only the missing fields
             try {
@@ -148,6 +169,18 @@ export function useGameSave() {
               allTimeBest = newEntry;
             }
 
+            // Maintain topScores array (best TOPSCORELIMIT entries)
+            const currentTop = Array.isArray(current.topScores) ? JSON.parse(JSON.stringify(current.topScores)) : [];
+            // push and dedupe by id (use newEntry.id)
+            currentTop.push(newEntry);
+            // sort by same ordering used elsewhere
+            currentTop.sort((a, b) => {
+              if ((b.points || 0) !== (a.points || 0)) return (b.points || 0) - (a.points || 0);
+              if ((a.duration || 0) !== (b.duration || 0)) return (a.duration || 0) - (b.duration || 0);
+              return new Date(a.date) - new Date(b.date);
+            });
+            const topScores = currentTop.slice(0, TOPSCORELIMIT);
+
             // Compute level by playedGames thresholds (same rules as PlayerCard)
             const computeLevel = (games) => {
               let lvl = 'beginner';
@@ -160,7 +193,7 @@ export function useGameSave() {
 
             const level = computeLevel(played);
 
-            return { ...current, playedGames: played, sumPoints: sumP, sumDuration: sumD, monthlyBest, weeklyBest, allTimeBest, level };
+            return { ...current, playedGames: played, sumPoints: sumP, sumDuration: sumD, monthlyBest, weeklyBest, allTimeBest, level, topScores };
           });
         } catch (txErr) {
           console.error('[GameSave] Aggregates transaction failed', txErr);

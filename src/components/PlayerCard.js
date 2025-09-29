@@ -192,18 +192,24 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
   const _last2 = (s) => _norm(s).split('/').slice(-2).join('/');
 
   const getAvatarImage = (avatarPath) => {
+    const hit = findAvatarMeta(avatarPath);
+    return hit ? hit.display : null; // ← ei fallback-kuvaa
+  };
+
+  // Find avatar meta by path using the same normalization rules as getAvatarImage
+  const findAvatarMeta = (avatarPath) => {
     const target = _norm(avatarPath);
-    if (!target) return null; // ← tärkeä: ei oletuskuvaa
+    if (!target) return null;
     const hit = avatars.find(av => {
       const ap = _norm(av.path);
       return ap === target || ap.endsWith(_last2(target)) || target.endsWith(_last2(ap));
     });
-    return hit ? hit.display : null; // ← ei fallback-kuvaa
+    return hit || null;
   };
 
   const isBeginnerAvatar = (avatarPath) => {
-    const avatar = avatars.find(av => av.path === avatarPath);
-    return !!avatar && avatar.level === 'Beginner';
+    const avatar = findAvatarMeta(avatarPath);
+    return !!avatar && String(avatar.level || '').toLowerCase() === 'beginner';
   };
 
   const getAvatarToDisplay = () => (idToUse === playerId ? avatarUrl : viewingPlayerAvatar);
@@ -274,11 +280,31 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
 
     const subs = []; // { path, cb }
 
-    // TOP SCORES
-    const topScoresPath = `players/${idToUse}/scores`;
-    const topScoresCb = (snapshot) => {
+    // TOP SCORES: prefer per-player `topScores` aggregate if present (newer flow);
+    // otherwise fall back to scanning `scores` (legacy clients).
+    const topScoresAggPath = `players/${idToUse}/topScores`;
+    const topScoresAggCb = (snapshot) => {
       if (snapshot.exists()) {
-        const scores = snapshot.val();
+        try {
+          const arr = snapshot.val();
+          if (Array.isArray(arr)) {
+            const normalized = arr.map(s => ({ points: Number(s.points || 0), date: s.date, duration: Number(s.duration || 0), time: s.time || '' }));
+            setTopScores(normalized.slice(0, NBR_OF_SCOREBOARD_ROWS));
+            markUpdate();
+            return;
+          }
+        } catch (e) { /* fallthrough to scores scan */ }
+      }
+
+      // If aggregate missing or malformed, fall back to scanning raw scores
+      const topScoresPath = `players/${idToUse}/scores`;
+      dbGet(topScoresPath).then(snap => {
+        if (!snap.exists()) {
+          setTopScores([]);
+          markUpdate();
+          return;
+        }
+        const scores = snap.val();
         const vals = Object.values(scores).filter(s => s && typeof s === 'object');
         const sorted = vals
           .map(s => ({ points: Number(s.points || 0), date: s.date, duration: Number(s.duration || 0), time: s.time }))
@@ -286,13 +312,13 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
           .slice(0, NBR_OF_SCOREBOARD_ROWS);
         setTopScores(sorted);
         markUpdate();
-      } else {
+      }).catch(() => {
         setTopScores([]);
         markUpdate();
-      }
+      });
     };
-    dbOnValue(topScoresPath, topScoresCb);
-    subs.push({ path: topScoresPath, cb: topScoresCb });
+    dbOnValue(topScoresAggPath, topScoresAggCb);
+    subs.push({ path: topScoresAggPath, cb: topScoresAggCb });
 
     // MONTHLY RANKS (aggregates only)
     // Previously this code scanned every player's `scores` tree as a fallback
@@ -985,22 +1011,15 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
                 {/* Avatar + Stats */}
                 <View style={playerCardStyles.playerInfoContainer}>
                   <View style={{ position: 'relative' }}>
-                    <View style={playerCardStyles.avatarContainer}>
+                    <View style={isBeginnerAvatar(getAvatarToDisplay()) ? playerCardStyles.avatarContainerBeginner : playerCardStyles.avatarContainer}>
                       {avatarSrc ? (
                         <Image
-                          style={[
-                            playerCardStyles.avatar,
-                            isBeginnerAvatar(getAvatarToDisplay()) ? playerCardStyles.beginnerAvatar : playerCardStyles.defaultAvatar,
-                          ]}
+                          style={isBeginnerAvatar(getAvatarToDisplay()) ? playerCardStyles.beginnerAvatar : [playerCardStyles.avatar, playerCardStyles.defaultAvatar]}
                           source={avatarSrc}
                         />
                       ) : (
                         <View
-                          style={[
-                            playerCardStyles.avatar,
-                            playerCardStyles.defaultAvatar,
-                            { alignItems: 'center', justifyContent: 'center' },
-                          ]}
+                          style={isBeginnerAvatar(getAvatarToDisplay()) ? [playerCardStyles.beginnerAvatar, { alignItems: 'center', justifyContent: 'center' }] : [playerCardStyles.avatar, playerCardStyles.defaultAvatar, { alignItems: 'center', justifyContent: 'center' }]}
                         >
                           <FontAwesome5 name="user" size={36} color="#000000" />
                         </View>

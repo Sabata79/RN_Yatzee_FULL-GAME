@@ -58,11 +58,31 @@ export default function ScoreboardTabs({
     return m;
   }, []);
 
+  // Normalization helpers (match PlayerCard/Header rules)
+  const _norm = (s) => String(s || '').replace(/\\/g, '/').replace(/^\.\//, '');
+  const _last2 = (s) => _norm(s).split('/').slice(-2).join('/').toLowerCase();
+
+  // Robust avatar style resolver: try avatarMap first (exact & last segment),
+  // then fall back to scanning `avatars` with the same normalization rules used elsewhere.
   const getAvatarStyle = (avatarPath) => {
-    const avatar = avatarMap.get(avatarPath) || avatarMap.get((avatarPath || '').split('/').pop());
+    const p = String(avatarPath || '');
+    if (!p) return scoreboardStyles.defaultAvatarIcon;
+
+    // quick lookups
+    let avatar = avatarMap.get(p) || avatarMap.get(p.split('/').pop());
+    if (!avatar) {
+      const target = _norm(p);
+      const key = _last2(target);
+      avatar = avatars.find((av) => {
+        const ap = _norm(av.path);
+        return ap === target || ap.endsWith(key) || target.endsWith(_last2(ap));
+      });
+    }
+
     if (!avatar) return scoreboardStyles.defaultAvatarIcon;
-    if (avatar.level === 'Beginner') return scoreboardStyles.beginnerAvatar;
-    if (avatar.level === 'Advanced') return scoreboardStyles.advancedAvatar;
+    const lvl = String(avatar.level || '').toLowerCase();
+    if (lvl === 'beginner') return scoreboardStyles.beginnerAvatar;
+    if (lvl === 'advanced') return scoreboardStyles.advancedAvatar;
     return scoreboardStyles.avatar;
   };
 

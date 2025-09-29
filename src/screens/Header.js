@@ -22,14 +22,19 @@ import { avatars } from '../constants/AvatarPaths';
 const _norm = (s) => String(s || '').replace(/\\/g, '/').replace(/^\.\//, '');
 const _last2 = (s) => _norm(s).split('/').slice(-2).join('/').toLowerCase();
 
-function resolveUserAvatarDisplay(rawPath) {
+function findAvatarMeta(rawPath) {
   const target = _norm(rawPath);
+  if (!target) return null;
   const key = _last2(target);
   const hit = avatars.find(av => {
     const ap = _norm(av.path);
     return ap === target || _last2(ap) === key;
   });
-  return hit?.display; // require(...) reference
+  return hit || null;
+}
+
+function resolveUserAvatarDisplay(rawPath) {
+  return findAvatarMeta(rawPath)?.display;
 }
 
 export default function Header() {
@@ -52,8 +57,8 @@ export default function Header() {
   const userAvatar = resolveUserAvatarDisplay(avatarUrl);
 
   const isBeginnerAvatar = (avatarPath) => {
-    const avatar = avatars.find((av) => av.path === avatarPath);
-    return avatar && avatar.level === 'Beginner';
+    const avatar = findAvatarMeta(avatarPath);
+    return !!avatar && String(avatar.level || '').toLowerCase() === 'beginner';
   };
 
   const selectedPlayer = {
