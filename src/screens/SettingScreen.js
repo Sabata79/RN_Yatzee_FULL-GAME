@@ -27,7 +27,7 @@ import CustomKeyboard from '../components/CustomKeyboard';
 import PlayerCardBGSelector from '../components/PlayerCardBGSelector';
 
 const SettingScreen = () => {
-  const { musicMuted, setMusicMuted, sfxMuted, setSfxMuted, playSelect } = useAudio();
+  const { musicMuted, setMusicMuted, sfxMuted, setSfxMuted, playSelect, stopMusic } = useAudio();
 
   const [isLoaded, setIsLoaded] = useState(false);
   const isInitialLoad = useRef(true);
@@ -48,6 +48,10 @@ const SettingScreen = () => {
 
   const handleMusicMuted = (muted) => {
     setMusicMuted(muted);
+    if (muted) {
+      // Ensure music is stopped immediately in UI when user toggles mute.
+      try { stopMusic(); } catch (e) { /* best effort */ }
+    }
   };
 
   const handleSfxMuted = async (muted) => {
