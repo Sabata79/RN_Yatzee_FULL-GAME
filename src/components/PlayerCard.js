@@ -51,6 +51,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
   const [avgDuration, setAvgDuration] = useState(0);
   // undefined = not yet loaded; null = loaded but no level set
   const [storedLevel, setStoredLevel] = useState(undefined);
+  const [preferredCardBg, setPreferredCardBg] = useState(null);
   // If true, we will accept 'beginner' as resolved for own card. This is set
   // after a short grace period to avoid flashing BeginnerBG while a higher
   // canonical level value is still loading from the DB.
@@ -72,6 +73,12 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
   const contentOpacity = useRef(new Animated.Value(0)).current;
   const contentTranslate = useRef(new Animated.Value(8)).current;
   const imageLoadedRef = useRef(false);
+  // When the user changes preferredCardBg via the selector we want to
+  // avoid toggling the full background loader/spinner which causes the
+  // preview to briefly go dark. Use this ref to silently apply DB-driven
+  // preference updates without resetting bg opacity or showing the loader.
+  const suppressBgLoadingRef = useRef(false);
+  const suppressTimeoutRef = useRef(null);
   // Reveal guard: only start any visual reveal when this becomes true
   const [revealReady, setRevealReady] = useState(false);
   // Animated ribbon (scale/rotate/translate) for All-Time #1
@@ -505,6 +512,26 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
         const pSnap = await dbGet(`players/${idToUse}`);
         const pData = pSnap.val() || {};
 
+        // preferred background (optional override)
+        if (typeof pData.preferredCardBg !== 'undefined') {
+          // If the preferred background changed in the DB, we want to apply it
+          // without triggering the full background loader (which blanks the
+          // preview). Use a short suppression window so the Animated.Image
+          // load handlers skip resetting opacity.
+          try {
+            const incoming = pData.preferredCardBg;
+            if (incoming !== preferredCardBg) {
+              suppressBgLoadingRef.current = true;
+              if (suppressTimeoutRef.current) clearTimeout(suppressTimeoutRef.current);
+              suppressTimeoutRef.current = setTimeout(() => { suppressBgLoadingRef.current = false; suppressTimeoutRef.current = null; }, 800);
+            }
+          } catch (e) { /* ignore comparison errors */ }
+          setPreferredCardBg(pData.preferredCardBg);
+        } else if (idToUse === playerId) {
+          // only reset for own card when closing or no value
+          setPreferredCardBg(null);
+        }
+
         const hasPlayedGames = typeof pData.playedGames === 'number';
         const hasSumPoints = typeof pData.sumPoints === 'number';
         const hasSumDuration = typeof pData.sumDuration === 'number';
@@ -746,9 +773,18 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     };
   }, [isModalVisible, isOwnCard]);
 
-  // Only compute background when we have a resolved level to avoid using the
-  // computed fallback (which is 'beginner') and causing a flash.
-  const playerCardBg = levelResolved ? getPlayerCardBackground(levelInfo.level) : null;
+  // Determine final background: prefer player's explicit choice (preferredCardBg)
+  // if set and valid, otherwise fall back to level-based background.
+  let playerCardBg = null;
+  if (preferredCardBg) {
+    // prefer explicit override
+    const explicit = getPlayerCardBackground(preferredCardBg);
+    if (explicit) playerCardBg = explicit;
+  }
+  if (!playerCardBg) {
+    // Only compute level-based background when we have a resolved level to avoid flashing beginner
+    playerCardBg = levelResolved ? getPlayerCardBackground(levelInfo.level) : null;
+  }
   const levelKey = (levelInfo.level || '').toLowerCase();
   const isDefaultBg = !playerCardBg && levelResolved && levelKey === 'beginner';
   const needsBgLoad = !playerCardBg && !levelResolved;
@@ -851,8 +887,15 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
               source={playerCardBg}
               style={[playerCardStyles.avatarModalBackgroundImage, { opacity: bgOpacity }]}
               onLoadStart={() => {
-                setIsBgLoading(true);
                 imageLoadedRef.current = false;
+                // If this load was triggered by a preference change coming from
+                // the selector/DB, suppress the loader/opactiy reset so the
+                // visible preview doesn't flash to blank. Regular loads will
+                // still set the loading flag and reset opacity.
+                if (suppressBgLoadingRef.current) {
+                  return;
+                }
+                setIsBgLoading(true);
                 // reset opacity when a new image starts loading
                 try { bgOpacity.setValue(0); } catch (e) { /* ignore */ }
               }}

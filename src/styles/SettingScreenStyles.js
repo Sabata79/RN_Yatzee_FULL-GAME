@@ -15,46 +15,42 @@ import TYPOGRAPHY from '../constants/typography';
 const settingScreenStyles = StyleSheet.create({
     root: {
         flex: 1,
+        alignItems: 'stretch',
+        backgroundColor: 'transparent',
     },
     background: {
         flex: 1,
-        resizeMode: 'cover',
-        justifyContent: 'center',
-        alignItems: 'center',
+        width: '100%',
+        height: '100%',
     },
     overlay: {
         ...StyleSheet.absoluteFillObject,
-        backgroundColor: COLORS.overlayDark,
-        opacity: 0.92,
-    },
-    card: {
-        width: 340,
-        maxWidth: '95%',
-        backgroundColor: COLORS.overlayDark,
-        borderRadius: 12,
-        borderWidth: 2,
-        borderColor: COLORS.textDark,
-        padding: 24,
-        alignSelf: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.15,
-        shadowRadius: 8,
-        elevation: 4,
+        backgroundColor: 'rgba(0, 0, 0, 0.653)',
+        opacity: 1,
     },
     title: {
         fontSize: TYPOGRAPHY.fontSize.xl,
         color: COLORS.warning,
         fontFamily: TYPOGRAPHY.fontFamily.bangers,
         textAlign: 'center',
-        marginBottom: 24,
+        marginBottom: 16,
+        marginTop: 16,
         letterSpacing: 1,
+        zIndex: 2,
+    },
+    sectionTitle: {
+        fontSize: TYPOGRAPHY.fontSize.xl,
+        color: COLORS.warning,
+        fontFamily: TYPOGRAPHY.fontFamily.bangers,
+        textAlign: 'center', 
+        zIndex: 2,
     },
     nameRow: {
         fontFamily: TYPOGRAPHY.fontFamily.montserratRegular,
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 8,
+        paddingTop: 20,
+        marginLeft: 20,
         textAlign: 'center',
     },
     name: {
@@ -67,15 +63,13 @@ const settingScreenStyles = StyleSheet.create({
     editIcon: {
         marginLeft: 8,
         marginTop: -4,
-
     },
     playerId: {
         fontSize: TYPOGRAPHY.fontSize.xs,
         lineHeight: TYPOGRAPHY.fontSize.lg,
         color: COLORS.textLight,
         fontFamily: TYPOGRAPHY.fontFamily.montserratRegular,
-
-        marginBottom: 0,
+        marginBottom: 2,
         marginLeft: 0,
     },
     idIcon: {
@@ -87,7 +81,33 @@ const settingScreenStyles = StyleSheet.create({
     row: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 18,
+    },
+    rowMusic: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 8,
+        marginTop: 0,
+        justifyContent: 'center',
+    },
+    section: {
+        marginBottom: 0,
+        paddingVertical: 6,
+        borderBottomWidth: 0,
+        alignSelf: 'stretch',
+        width: '100%',
+        justifyContent: 'center',
+    },
+    sectionCard: {
+        backgroundColor: COLORS.overlayDark,
+        padding: SPACING.md,
+        borderRadius: 5,
+        marginBottom: SPACING.sm,
+        width: '100%',
+        alignSelf: 'stretch',
+    },
+    cardContent: {
+        paddingBottom: 20,
+        paddingHorizontal: 20,
     },
     rowLabel: {
         fontSize: TYPOGRAPHY.fontSize.md,
