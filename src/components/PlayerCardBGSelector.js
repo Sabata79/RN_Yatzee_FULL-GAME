@@ -36,10 +36,17 @@ export default function PlayerCardBGSelector() {
             }
             try {
                 const snap = await dbGet(`players/${playerId}/preferredCardBg`);
-                const val = snap && typeof snap.val === 'function' ? snap.val() : snap;
-                if (!mounted) return;
-                preferredSourceRef.current = 'db';
-                setPreferred(val == null ? null : String(val));
+                    let val = snap && typeof snap.val === 'function' ? snap.val() : snap;
+                    if (!mounted) return;
+                    preferredSourceRef.current = 'db';
+                    // Normalize incoming values: accept null or a proper level key.
+                    if (val == null) {
+                        setPreferred(null);
+                    } else {
+                        const s = String(val).trim().toLowerCase();
+                        if (s === 'null' || s === 'undefined' || s === '') setPreferred(null);
+                        else setPreferred(s);
+                    }
             } catch (e) {
                 console.warn('[PlayerCardBGSelector] failed to load preferredCardBg', e);
             } finally {
@@ -63,7 +70,7 @@ export default function PlayerCardBGSelector() {
 
     const applyPreferred = async (level) => {
         if (!playerId) return;
-        const key = level ? String(level).toLowerCase() : null;
+        const key = level ? String(level).trim().toLowerCase() : null;
         setSaving(true);
         try {
             await dbUpdate(`players/${playerId}`, { preferredCardBg: key });
@@ -82,7 +89,11 @@ export default function PlayerCardBGSelector() {
         try {
             const prefIdx = LEVEL_ORDER.indexOf(String(preferred).toLowerCase());
             const playerIdx = LEVEL_ORDER.indexOf(String(playerLevel).toLowerCase());
-            if (prefIdx !== -1 && playerIdx !== -1 && prefIdx < playerIdx) {
+            // If the saved preference is above the player's current level it's invalid
+            // (e.g., db contains 'legendary' but player is 'advanced') — in that
+            // case clear the preference. Do NOT clear when prefIdx < playerIdx
+            // because choosing a lower-level background is allowed.
+            if (prefIdx !== -1 && playerIdx !== -1 && prefIdx > playerIdx) {
                 setPreferred(null);
             }
         } catch (e) { /* noop */ }

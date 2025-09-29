@@ -52,6 +52,10 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
   // undefined = not yet loaded; null = loaded but no level set
   const [storedLevel, setStoredLevel] = useState(undefined);
   const [preferredCardBg, setPreferredCardBg] = useState(null);
+  // Whether we've read the player's profile (players/{id}) at least once.
+  // Used to avoid rendering a level-based background for high-tier players
+  // before we know if they have an explicit preferredCardBg override.
+  const [profileLoaded, setProfileLoaded] = useState(false);
   // If true, we will accept 'beginner' as resolved for own card. This is set
   // after a short grace period to avoid flashing BeginnerBG while a higher
   // canonical level value is still loading from the DB.
@@ -126,11 +130,9 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
   ];
 
-
   const idToUse = viewingPlayerId || playerId;
   const nameToUse = viewingPlayerName || playerName;
 
-  // UUSI: haetaan katsottavan pelaajan level kun modal avataan ja katsotaan muuta kuin omaa korttia
   useEffect(() => {
     if (!isModalVisible) {
       // reset the grace timer state when modal closes
@@ -142,10 +144,10 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
       return;
     }
     if (!viewingPlayerId || viewingPlayerId === playerId) {
-      setViewingPlayerLevel(null); // oma kortti, ei tarvita
+      setViewingPlayerLevel(null); // Own card, no need to fetch
       return;
     }
-    // Haetaan katsottavan pelaajan level
+    // Get the level of the viewed player
     setViewingPlayerLevel(undefined); // loading
     const path = `players/${viewingPlayerId}/level`;
     const handle = (snapshot) => {
@@ -265,11 +267,11 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
   const levelInfo = getPlayerLevelInfo();
 
   // Background info — be defensive: levelInfo.level may be null/undefined while
-  // the canonical storedLevel is still loading. Use a safe lowercase key and
-  // guard bg.level before calling toLowerCase.
-  const levelKeySafe = (levelInfo.level || '').toLowerCase();
-  const bgInfo = PlayercardBg.find(bg => (bg.level || '').toLowerCase() === levelKeySafe);
-  const isDarkBg = bgInfo?.isDark;
+  // the canonical storedLevel is still loading. isDarkBg is computed later
+  // from the resolved background (preferredCardBg if set, otherwise level).
+  // This ensures the chosen image and the text/style (dark vs light) are
+  // decided from the same source and avoid transient mismatches.
+  let isDarkBg = false;
 
   // ----- EFFECT: attach/detach all listeners when modal is open -----
   useEffect(() => {
@@ -512,6 +514,11 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
         const pSnap = await dbGet(`players/${idToUse}`);
         const pData = pSnap.val() || {};
 
+        // Mark that we've loaded the profile at least once. This prevents
+        // immediately falling back to a level-based background for high-tier
+        // players before we know if they have an explicit preferredCardBg.
+        if (!profileLoaded) setProfileLoaded(true);
+
         // preferred background (optional override)
         if (typeof pData.preferredCardBg !== 'undefined') {
           // If the preferred background changed in the DB, we want to apply it
@@ -612,6 +619,8 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
       const path = data.avatar || data.avatarUrl || ''; // ← backward compatible
       if (idToUse === playerId) setAvatarUrl(path);
       else setViewingPlayerAvatar(path);
+      // Also mark profile loaded when avatar/profile snapshot arrives
+      if (!profileLoaded) setProfileLoaded(true);
       markUpdate();
     };
     dbOnValue(profilePath, avatarCb);
@@ -783,8 +792,25 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
   }
   if (!playerCardBg) {
     // Only compute level-based background when we have a resolved level to avoid flashing beginner
-    playerCardBg = levelResolved ? getPlayerCardBackground(levelInfo.level) : null;
+    // Additionally, if this is the user's own card and they are high-tier (elite/legendary),
+    // don't render the level-based background before we've loaded the profile — this avoids a
+    // short flash of the level image before a preferredCardBg from the profile is applied.
+    const highTier = typeof levelInfo.level === 'string' && ['elite', 'legendary'].includes(levelInfo.level.toLowerCase());
+    const allowLevelBg = levelResolved && (!(isOwnCard && highTier) || profileLoaded);
+    playerCardBg = allowLevelBg ? getPlayerCardBackground(levelInfo.level) : null;
   }
+
+  // Resolve brightness/style from the actual source used for the background: preferredCardBg
+  // if it was applied, else the level-derived background if it was used. If neither is
+  // available yet, default to false (treat as light) which avoids flicker.
+  let resolvedKey = '';
+  if (preferredCardBg) {
+    resolvedKey = String(preferredCardBg || '').toLowerCase();
+  } else if (playerCardBg) {
+    resolvedKey = String(levelInfo.level || '').toLowerCase();
+  }
+  const bgInfo = PlayercardBg.find(bg => (bg.level || '').toLowerCase() === resolvedKey);
+  isDarkBg = !!bgInfo?.isDark;
   const levelKey = (levelInfo.level || '').toLowerCase();
   const isDefaultBg = !playerCardBg && levelResolved && levelKey === 'beginner';
   const needsBgLoad = !playerCardBg && !levelResolved;
