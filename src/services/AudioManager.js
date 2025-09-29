@@ -273,7 +273,27 @@ export function AudioProvider({ children }) {
         await ensureMusic();
         const p = musicSound.current;
         if (p) {
-          // Apply change and retry once after a short delay in case native init is still settling
+          // Try a silent warmup to prime the native audio pipeline so pause/play/muted take effect
+          try {
+            // temporarily ensure it's muted and volume 0 while we attempt a short play
+            const prevMuted = p.muted ?? false;
+            const prevVol = p.volume ?? 0;
+            try { p.muted = true; } catch {}
+            try { p.volume = 0; } catch {}
+            try { await p.seekTo?.(0); } catch {}
+            try { const r = p.play?.(); if (r && typeof r.then === 'function') await r; } catch {}
+            // short delay to allow native init
+            await new Promise(r => setTimeout(r, 60));
+            try { p.pause?.(); } catch {}
+            // restore previous values (we'll apply final muted below)
+            try { p.volume = prevVol; } catch {}
+            try { p.muted = prevMuted; } catch {}
+          } catch (e) {
+            /* best effort */
+          }
+          // Apply change and retry multiple times in case native init is still settling.
+          // Some devices/app states only accept pause/play after the native bridge finishes setup,
+          // so we attempt the change several times with small backoff.
           const applyOnce = async () => {
             try {
               p.muted = muted;
@@ -281,8 +301,14 @@ export function AudioProvider({ children }) {
               if (muted) await p.pause?.(); else await p.play?.();
             } catch (e) { /* best effort */ }
           };
+
+          // immediate
           await applyOnce();
-          setTimeout(() => { applyOnce(); }, 120);
+          // schedule several retries to robustly catch late native readiness
+          const retries = [120, 300, 600, 1000];
+          for (const d of retries) {
+            setTimeout(() => { applyOnce(); }, d);
+          }
         }
       } catch (e) {
         console.warn('[Audio] setMusicMuted apply failed', e);
@@ -330,9 +356,11 @@ export function AudioProvider({ children }) {
             const applyOnce = () => {
               try { p.muted = muted; p.volume = v; } catch (e) { /* best effort */ }
             };
+            // immediate
             applyOnce();
-            // Retry once in a short while to handle delayed native init in release builds
-            setTimeout(applyOnce, 120);
+            // multiple retries to handle delayed native init
+            const retries = [120, 300, 600];
+            for (const d of retries) setTimeout(applyOnce, d);
           }
         }
       } catch (e) {
