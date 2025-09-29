@@ -27,6 +27,7 @@ import { dbOnValue, dbOff, dbSet, dbRef, dbGet } from '../services/Firebase';
 import { isBetterScore } from '../utils/scoreUtils';
 import { MAX_TOKENS } from './Game';
 import { onDisconnect } from '@react-native-firebase/database';
+import Constants from 'expo-constants';
 
 const GameContext = createContext();
 export const useGame = () => useContext(GameContext);
@@ -333,8 +334,11 @@ export const GameProvider = ({ children }) => {
     const setOnlineAndRegisterDisconnect = async () => {
       try {
         const ts = Date.now();
-        // include gameVersion so presence records which client version is active
-  const payload = { online: true, lastSeen: ts, lastSeenHuman: formatLastSeen(ts), gameVersion: String(gameVersion || ''), versionCode: String(gameVersionCode || '') };
+    // include gameVersion so presence records which client version is active
+    // fallback to Expo constants if GameContext's values aren't set yet
+  const fallbackGameVersion = String(gameVersion || Constants.expoConfig?.version || '');
+  const fallbackVersionCode = String(gameVersionCode || (Constants.expoConfig?.android?.versionCode ?? Constants.expoConfig?.ios?.buildNumber ?? '') || '');
+  const payload = { online: true, lastSeen: ts, lastSeenHuman: formatLastSeen(ts), gameVersion: fallbackGameVersion, versionCode: fallbackVersionCode };
         await dbSet(path, payload);
 
         // try to register onDisconnect on the same embedded path
@@ -343,7 +347,7 @@ export const GameProvider = ({ children }) => {
           const od = onDisconnect(ref);
           if (od && typeof od.set === 'function') {
             const offTs = Date.now();
-            od.set({ online: false, lastSeen: offTs, lastSeenHuman: formatLastSeen(offTs), gameVersion: String(gameVersion || ''), versionCode: String(gameVersionCode || '') });
+            od.set({ online: false, lastSeen: offTs, lastSeenHuman: formatLastSeen(offTs), gameVersion: fallbackGameVersion, versionCode: fallbackVersionCode });
           }
           cleanupFn = async () => {
             try {
@@ -351,7 +355,7 @@ export const GameProvider = ({ children }) => {
             } catch (e) {}
             try {
               const offTs2 = Date.now();
-              await dbSet(path, { online: false, lastSeen: offTs2, lastSeenHuman: formatLastSeen(offTs2), versionCode: String(gameVersionCode || '') });
+              await dbSet(path, { online: false, lastSeen: offTs2, lastSeenHuman: formatLastSeen(offTs2), versionCode: fallbackVersionCode });
             } catch (e) {}
           };
         } catch (e) {
