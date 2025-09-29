@@ -39,7 +39,7 @@ const SettingScreen = () => {
 
   const insets = useSafeAreaInsets();
 
-  // Custom-näppis nimen editointiin
+  // Custom keyboard visibility (Android only)
   const [kbVisible, setKbVisible] = useState(false);
 
   // WipeModal
@@ -141,7 +141,7 @@ const SettingScreen = () => {
         style={settingScreenStyles.background}
         resizeMode="cover"
       >
-  <View style={settingScreenStyles.overlay} pointerEvents="none" />
+        <View style={settingScreenStyles.overlay} pointerEvents="none" />
         <Text style={settingScreenStyles.title}>PLAYER SETTINGS</Text>
         <ScrollView
           style={settingScreenStyles.card}
@@ -149,19 +149,19 @@ const SettingScreen = () => {
           showsVerticalScrollIndicator={false}
         >
 
-          {/* Section 1: User + audio */}
+          {/* Section 1: User */}
           <View style={settingScreenStyles.section}>
             <View style={settingScreenStyles.sectionCard}>
-                {/* Linked ribbon in top-left of section 1 when user is linked */}
-                {isLinked && (
-                  <View style={playerCardStyles.ribbonLinkedImageWrapper} pointerEvents="none">
-                    <Image source={require('../../assets/ribbonlinked.webp')} style={playerCardStyles.ribbonImage} />
-                    <View style={[playerCardStyles.nameAndLinkContainer, { position: 'absolute', left: 8, top: 8, zIndex: 40, transform: [{ rotate: '-45deg' }] }]}> 
-                      <FontAwesome5 name="link" size={12} color='white' style={playerCardStyles.ribbonIcon} />
-                      <Text style={playerCardStyles.ribbonLinkedLabel}>Linked</Text>
-                    </View>
+              {/* Linked ribbon in top-left of section 1 when user is linked */}
+              {isLinked && (
+                <View style={playerCardStyles.ribbonLinkedImageWrapper} pointerEvents="none">
+                  <Image source={require('../../assets/ribbonlinked.webp')} style={playerCardStyles.ribbonImage} />
+                  <View style={[playerCardStyles.nameAndLinkContainer, { position: 'absolute', left: 8, top: 8, zIndex: 40, transform: [{ rotate: '-45deg' }] }]}>
+                    <FontAwesome5 name="link" size={12} color='white' style={playerCardStyles.ribbonIcon} />
+                    <Text style={playerCardStyles.ribbonLinkedLabel}>Linked</Text>
                   </View>
-                )}
+                </View>
+              )}
               <View style={settingScreenStyles.nameRow}>
                 <Ionicons name="person-outline" size={22} color="#F5F5F5" style={settingScreenStyles.muteIcon} />
                 {isEditingName ? (
@@ -200,13 +200,10 @@ const SettingScreen = () => {
                   </TouchableOpacity>
                 )}
               </View>
-
               <View style={settingScreenStyles.nameRow}>
                 <MaterialCommunityIcons name="identifier" style={settingScreenStyles.idIcon} />
                 <Text style={settingScreenStyles.playerId}>{playerId}</Text>
               </View>
-
-              {/* Audio controls moved to their own section below */}
             </View>
           </View>
 
@@ -310,7 +307,6 @@ const SettingScreen = () => {
             onHide={() => { editNameInputRef.current?.blur(); setKbVisible(false); }}
           />
         )}
-
       </ImageBackground>
     </View>
   );
