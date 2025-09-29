@@ -36,6 +36,7 @@ firebase-empty.js
 
 # Dependencies
 node_modules/
+package-lock.json
 
 # Expo caches & web builds
 .expo/
