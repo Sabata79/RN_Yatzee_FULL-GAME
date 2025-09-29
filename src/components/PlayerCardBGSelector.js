@@ -221,6 +221,9 @@ export default function PlayerCardBGSelector() {
 
                         // Use a robust key so React doesn't get confused if list changes
                         const itemKey = `${idx}-${levelKey}`;
+                        const showImage = selectable && !!bg.display;
+                        const showSelectedOverlay = selectable && (isSelected || isUsed);
+                        const itemOpacity = selectable ? 1 : 0.36;
 
                         return (
                             <View key={itemKey} style={[styles.fanItemWrap, itemWrapBaseStyle, styles[zClass]]}>
@@ -228,11 +231,11 @@ export default function PlayerCardBGSelector() {
                                     onPress={() => selectable && !saving ? applyPreferred(levelKey) : null}
                                     hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                                     disabled={!selectable || saving}
-                                    style={[styles.fanItem, (isSelected || isUsed) && styles.selected, styles[rotClass], pressableSize]}
+                                    style={[styles.fanItem, showSelectedOverlay && styles.selected, styles[rotClass], pressableSize, { opacity: itemOpacity }]}
                                 >
                                     {/* Background fills the holder; label is rendered as an overlay so it doesn't push layout */}
                                     <View style={[styles.imageWrapper, imageSize]}>
-                                        {bg.display ? (
+                                        {showImage ? (
                                             <Image
                                                 source={bg.display}
                                                 defaultSource={STUB_IMG}
@@ -240,9 +243,10 @@ export default function PlayerCardBGSelector() {
                                                 resizeMode="cover"
                                             />
                                         ) : (
+                                            // If the level is not yet unlocked we show a neutral placeholder
                                             <View style={styles.fanThumbPlaceholder} />
                                         )}
-                                        {(isSelected || isUsed) && <View style={styles.selectedOverlay} pointerEvents="none" />}
+                                        {showSelectedOverlay && <View style={styles.selectedOverlay} pointerEvents="none" />}
                                         {selectable && <Text style={styles.labelOverlay}>{bg.level}</Text>}
                                     </View>
                                 </Pressable>
@@ -354,6 +358,10 @@ const styles = StyleSheet.create({
         paddingHorizontal: 8,
         borderRadius: 4,
         textAlign: 'center',
+    },
+    labelOverlayDisabled: {
+        color: '#ccc',
+        backgroundColor: 'rgba(0,0,0,0.18)'
     },
     label: {
         color: '#fff',
