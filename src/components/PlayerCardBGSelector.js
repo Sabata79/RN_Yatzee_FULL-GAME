@@ -36,17 +36,17 @@ export default function PlayerCardBGSelector() {
             }
             try {
                 const snap = await dbGet(`players/${playerId}/preferredCardBg`);
-                    let val = snap && typeof snap.val === 'function' ? snap.val() : snap;
-                    if (!mounted) return;
-                    preferredSourceRef.current = 'db';
-                    // Normalize incoming values: accept null or a proper level key.
-                    if (val == null) {
-                        setPreferred(null);
-                    } else {
-                        const s = String(val).trim().toLowerCase();
-                        if (s === 'null' || s === 'undefined' || s === '') setPreferred(null);
-                        else setPreferred(s);
-                    }
+                let val = snap && typeof snap.val === 'function' ? snap.val() : snap;
+                if (!mounted) return;
+                preferredSourceRef.current = 'db';
+                // Normalize incoming values: accept null or a proper level key.
+                if (val == null) {
+                    setPreferred(null);
+                } else {
+                    const s = String(val).trim().toLowerCase();
+                    if (s === 'null' || s === 'undefined' || s === '') setPreferred(null);
+                    else setPreferred(s);
+                }
             } catch (e) {
                 console.warn('[PlayerCardBGSelector] failed to load preferredCardBg', e);
             } finally {
@@ -127,7 +127,7 @@ export default function PlayerCardBGSelector() {
         const MIN_ITEM = 90;
         const MAX_ITEM = 140;
         const ITEM_WIDTH = Math.max(MIN_ITEM, Math.min(MAX_ITEM, approxPer));
-        const OVERLAP_FACTOR = 0.28; // fraction of itemWidth that overlaps the next card
+        const OVERLAP_FACTOR = 0.34; // fraction of itemWidth that overlaps the next card 
         const OVERLAP = Math.round(ITEM_WIDTH * OVERLAP_FACTOR);
 
         const centerIndex = (count - 1) / 2;
