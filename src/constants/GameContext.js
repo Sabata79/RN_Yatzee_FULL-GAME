@@ -153,73 +153,59 @@ export const GameProvider = ({ children }) => {
 
         Object.keys(playersData).forEach((pid) => {
           const player = playersData[pid];
-          // Prefer aggregates when available (newer save flow writes per-player aggregates)
+          // Merge aggregates and raw scores: prefer aggregates when they are current
+          // but always compare against any raw scores (legacy clients may write only scores)
           const at = player?.allTimeBest || null;
           const monMap = player?.monthlyBest || null;
           const weekMap = player?.weeklyBest || null;
 
-          let pushedAny = false;
+          const scoresList = player?.scores ? Object.values(player.scores) : [];
 
-          if (at && at.points != null) {
-            tmpAll.push({ ...at, name: player.name, playerId: pid, avatar: player.avatar || null });
-            pushedAny = true;
+          // Helper to pick the better of two score-like objects
+          const pickBetter = (a, b) => {
+            if (!a) return b;
+            if (!b) return a;
+            return isBetterScore(a, b) ? a : b;
+          };
+
+          // Compute best candidates from raw scores
+          let bestAllFromScores = null;
+          let bestMonFromScores = null;
+          let bestWeekFromScores = null;
+          if (scoresList.length > 0) {
+            scoresList.forEach((score) => {
+              const parts = (score.date || '').split('.');
+              const d = parts.length === 3 ? new Date(`${parts[2]}-${parts[1]}-${parts[0]}`) : new Date(score.date);
+
+              // all-time
+              if (!bestAllFromScores || isBetterScore(score, bestAllFromScores)) bestAllFromScores = score;
+
+              // monthly
+              if (!isNaN(d) && d.getMonth() === currentMonth && d.getFullYear() === currentYear) {
+                if (!bestMonFromScores || isBetterScore(score, bestMonFromScores)) bestMonFromScores = score;
+              }
+
+              // weekly
+              if (!isNaN(d) && getWeekNumber(d) === currentWeek) {
+                if (!bestWeekFromScores || isBetterScore(score, bestWeekFromScores)) bestWeekFromScores = score;
+              }
+            });
           }
 
-          if (monMap && typeof monMap === 'object' && monMap[currentYear] && monMap[currentYear][String(currentMonth + 1)]) {
-            const m = monMap[currentYear][String(currentMonth + 1)];
-            if (m && m.points != null) {
-              tmpMon.push({ ...m, name: player.name, playerId: pid, avatar: player.avatar || null });
-              pushedAny = true;
-            }
-          }
-
+          // Aggregate candidates
+          const aggAll = at && at.points != null ? at : null;
+          const aggMon = monMap && typeof monMap === 'object' && monMap[currentYear] ? monMap[currentYear][String(currentMonth + 1)] : null;
           const weekKey = `${currentYear}-${currentWeek}`;
-          if (weekMap && typeof weekMap === 'object' && weekMap[weekKey]) {
-            const w = weekMap[weekKey];
-            if (w && w.points != null) {
-              tmpWeek.push({ ...w, name: player.name, playerId: pid, avatar: player.avatar || null });
-              pushedAny = true;
-            }
-          }
+          const aggWeek = weekMap && typeof weekMap === 'object' ? weekMap[weekKey] : null;
 
-          // Fallback: if no aggregates exist for this player, compute by scanning raw scores (legacy)
-          if (!pushedAny && player?.scores) {
-            const list = Object.values(player.scores || {});
-            if (list.length > 0) {
-              let bestAll = null;
-              let bestMon = null;
-              let bestWeek = null;
+          // Choose final best by comparing aggregate vs raw-derived best
+          const finalAll = pickBetter(aggAll, bestAllFromScores);
+          const finalMon = pickBetter(aggMon, bestMonFromScores);
+          const finalWeek = pickBetter(aggWeek, bestWeekFromScores);
 
-              list.forEach((score) => {
-                const parts = (score.date || '').split('.');
-                const d = parts.length === 3 ? new Date(`${parts[2]}-${parts[1]}-${parts[0]}`) : new Date(score.date);
-
-                // all-time best
-                if (
-                  !bestAll ||
-                  score.points > bestAll.points ||
-                  (score.points === bestAll.points && score.duration < bestAll.duration) ||
-                  (score.points === bestAll.points && score.duration === bestAll.duration && new Date(score.date) < new Date(bestAll.date))
-                ) {
-                  bestAll = score;
-                }
-
-                // monthly best (same month/year)
-                if (!isNaN(d) && d.getMonth() === currentMonth && d.getFullYear() === currentYear) {
-                  if (!bestMon || isBetterScore(score, bestMon)) bestMon = score;
-                }
-
-                // weekly best (ISO week match)
-                if (!isNaN(d) && getWeekNumber(d) === currentWeek) {
-                  if (!bestWeek || isBetterScore(score, bestWeek)) bestWeek = score;
-                }
-              });
-
-              if (bestAll) tmpAll.push({ ...bestAll, name: player.name, playerId: pid, avatar: player.avatar || null, scores: list });
-              if (bestMon) tmpMon.push({ ...bestMon, name: player.name, playerId: pid, avatar: player.avatar || null, scores: list });
-              if (bestWeek) tmpWeek.push({ ...bestWeek, name: player.name, playerId: pid, avatar: player.avatar || null, scores: list });
-            }
-          }
+          if (finalAll && finalAll.points != null) tmpAll.push({ ...finalAll, name: player.name, playerId: pid, avatar: player.avatar || null });
+          if (finalMon && finalMon.points != null) tmpMon.push({ ...finalMon, name: player.name, playerId: pid, avatar: player.avatar || null });
+          if (finalWeek && finalWeek.points != null) tmpWeek.push({ ...finalWeek, name: player.name, playerId: pid, avatar: player.avatar || null });
         });
 
         const compare = (a, b) => {
@@ -228,9 +214,10 @@ export const GameProvider = ({ children }) => {
           return new Date(a.date.split('.').reverse().join('-')) - new Date(b.date.split('.').reverse().join('-'));
         };
 
-        tmpAll.sort(compare);
-        tmpMon.sort(compare);
-        tmpWeek.sort(compare);
+
+  tmpAll.sort(compare);
+  tmpMon.sort(compare);
+  tmpWeek.sort(compare);
 
   setScoreboardData(tmpAll);
   setScoreboardMonthly(tmpMon);
@@ -336,8 +323,23 @@ export const GameProvider = ({ children }) => {
         const ts = Date.now();
     // include gameVersion so presence records which client version is active
     // fallback to Expo constants if GameContext's values aren't set yet
-  const fallbackGameVersion = String(gameVersion || Constants.expoConfig?.version || '');
-  const fallbackVersionCode = String(gameVersionCode || (Constants.expoConfig?.android?.versionCode ?? Constants.expoConfig?.ios?.buildNumber ?? '') || '');
+  // Broaden fallback sources for version and versionCode to handle different Expo/managed/bare setups
+  const fallbackGameVersion = String(
+    gameVersion ||
+      Constants.expoConfig?.version ||
+      Constants.manifest?.version ||
+      Constants.nativeAppVersion ||
+      ''
+  );
+
+  const fallbackVersionCode = String(
+    gameVersionCode ||
+      (Constants.expoConfig?.android?.versionCode ?? Constants.expoConfig?.ios?.buildNumber) ||
+      Constants.manifest?.android?.versionCode ||
+      Constants.manifest?.ios?.buildNumber ||
+      Constants.nativeBuildVersion ||
+      ''
+  );
   const payload = { online: true, lastSeen: ts, lastSeenHuman: formatLastSeen(ts), gameVersion: fallbackGameVersion, versionCode: fallbackVersionCode };
         await dbSet(path, payload);
 
