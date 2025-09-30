@@ -11,6 +11,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { View, Text, Pressable, Image, ImageBackground, TouchableOpacity, TextInput, Alert, Platform, BackHandler, ScrollView } from 'react-native';
 import { Ionicons, MaterialCommunityIcons, Feather, FontAwesome5 } from '@expo/vector-icons';
+import Toast from 'react-native-toast-message';
 import LinkedModal from '../components/modals/LinkedModal';
 import settingScreenStyles from '../styles/SettingScreenStyles';
 import playerCardStyles from '../styles/PlayerCardStyles';
@@ -138,6 +139,54 @@ const SettingScreen = () => {
     }
   };
 
+  const copyPlayerIdToClipboard = async () => {
+    if (!playerId) {
+      Toast.show({ type: 'info', text1: 'No ID', text2: 'Player id is not available.' });
+      return;
+    }
+
+    try {
+      // 1) Web clipboard
+      if (typeof navigator !== 'undefined' && navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+        await navigator.clipboard.writeText(String(playerId));
+        Toast.show({ type: 'success', text1: 'Copied', text2: 'Player ID copied to clipboard' });
+        return;
+      }
+
+      // 2) Community clipboard package (preferred for RN native)
+      try {
+        // eslint-disable-next-line global-require
+        const CL = require('@react-native-clipboard/clipboard');
+        if (CL && typeof CL.setString === 'function') {
+          CL.setString(String(playerId));
+          Toast.show({ type: 'success', text1: 'Copied', text2: 'Player ID copied to clipboard' });
+          return;
+        }
+      } catch (e) {
+        // not installed — fallthrough
+      }
+
+      // 4) NativeModules Android fallback
+      try {
+        // eslint-disable-next-line global-require
+        const { NativeModules, Platform } = require('react-native');
+        if (Platform?.OS === 'android' && NativeModules?.Clipboard && typeof NativeModules.Clipboard.setString === 'function') {
+          NativeModules.Clipboard.setString(String(playerId));
+          Toast.show({ type: 'success', text1: 'Copied', text2: 'Player ID copied to clipboard' });
+          return;
+        }
+      } catch (e) {
+        // ignore
+      }
+
+      // Nothing worked
+      Toast.show({ type: 'info', text1: 'Copy not available', text2: 'Copying is not available in this build. Long-press the ID to copy manually.' });
+    } catch (err) {
+      console.warn('Copy failed', err);
+      Toast.show({ type: 'error', text1: 'Error', text2: 'Failed to copy player ID' });
+    }
+  };
+
   return (
     <View style={settingScreenStyles.root}>
       <ImageBackground
@@ -207,6 +256,9 @@ const SettingScreen = () => {
               <View style={settingScreenStyles.nameRow}>
                 <MaterialCommunityIcons name="identifier" style={settingScreenStyles.idIcon} />
                 <Text style={settingScreenStyles.playerId}>{playerId}</Text>
+                <TouchableOpacity onPress={copyPlayerIdToClipboard} style={settingScreenStyles.copyIcon}>
+                  <Feather name="copy" size={18} color="#FFD600" />
+                </TouchableOpacity>
               </View>
             </View>
           </View>

@@ -78,6 +78,12 @@ const settingScreenStyles = StyleSheet.create({
         color: COLORS.textLight,
         fontSize: TYPOGRAPHY.fontSize.xxl,
     },
+    copyIcon: {
+        marginLeft: 38,
+        marginTop: -4,
+        color: COLORS.textLight,
+        fontSize: TYPOGRAPHY.fontSize.xxl,
+    },
     row: {
         flexDirection: 'row',
         alignItems: 'center',
