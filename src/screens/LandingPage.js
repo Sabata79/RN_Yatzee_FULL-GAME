@@ -285,6 +285,7 @@ export default function LandingPage({ navigation }) {
     const versionCode = (Constants.expoConfig?.android?.versionCode ?? Constants.expoConfig?.ios?.buildNumber ?? '')
       ? String(Constants.expoConfig?.android?.versionCode ?? Constants.expoConfig?.ios?.buildNumber)
       : '';
+    
     setGameVersion(version);
     if (typeof setGameVersionCode === 'function') setGameVersionCode(versionCode);
 

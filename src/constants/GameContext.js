@@ -500,7 +500,7 @@ export const GameProvider = ({ children }) => {
 
   const fallbackVersionCode = String(
     gameVersionCode ||
-      (Constants.expoConfig?.android?.versionCode ?? Constants.expoConfig?.ios?.buildNumber) ||
+    (Constants.expoConfig?.extra?.buildVersionCode ?? Constants.expoConfig?.android?.versionCode ?? Constants.expoConfig?.ios?.buildNumber) ||
       Constants.manifest?.android?.versionCode ||
       Constants.manifest?.ios?.buildNumber ||
       Constants.nativeBuildVersion ||
@@ -508,6 +508,10 @@ export const GameProvider = ({ children }) => {
   );
   const payload = { online: true, lastSeen: ts, lastSeenHuman: formatLastSeen(ts), gameVersion: fallbackGameVersion, versionCode: fallbackVersionCode };
         await dbSet(path, payload);
+        // NOTE: versionCode is intentionally kept under the presence node
+        // (players/{playerId}/presence) and included in the presence payload above.
+        // Do NOT write versionCode at the player root here to avoid overwriting
+        // server-managed fields elsewhere in the player object.
 
         // try to register onDisconnect on the same embedded path
         try {
