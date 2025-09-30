@@ -23,6 +23,7 @@
 
 import { createContext, useState, useContext, useEffect, useMemo, useRef, useCallback } from 'react';
 import { AppState } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { dbOnValue, dbOff, dbSet, dbRef, dbGet } from '../services/Firebase';
 import { isBetterScore } from '../utils/scoreUtils';
 import { MAX_TOKENS } from './Game';
@@ -70,6 +71,170 @@ export const GameProvider = ({ children }) => {
 
   const [nextTokenTime, setNextTokenTime] = useState(null); // seuraavan tokenin aikaleima (Date tai ISO-string)
   const [timeToNextToken, setTimeToNextToken] = useState(''); // countdown-string, esim. "1 h 23 min 10 s"
+
+  // Token regen constants
+  const REGEN_INTERVAL = 1.6 * 60 * 60 * 1000; // 1.6 hours in ms
+  // Use production regen interval (1.6h). DEV fast-regeneration disabled for release builds.
+  const EFFECTIVE_REGEN_INTERVAL = REGEN_INTERVAL;
+  // If nextTokenTime in DB is farther in the future than this, treat as invalid and clamp it
+  const MAX_NEXT_TOKEN_FUTURE = 24 * 60 * 60 * 1000; // 24 hours
+
+  // Refs & helpers for regen logic
+  const serverOffsetRef = useRef(0);
+  const tokensRef = useRef(tokens);
+  const nextTokenTimeRef = useRef(nextTokenTime);
+  const manualChangeRef = useRef(null);
+
+  // keep refs in sync with state
+  useEffect(() => { tokensRef.current = tokens; }, [tokens]);
+  useEffect(() => { nextTokenTimeRef.current = nextTokenTime; }, [nextTokenTime]);
+
+  // Persist nextTokenTime to AsyncStorage when it changes
+  useEffect(() => {
+    (async () => {
+      try {
+        if (nextTokenTime) await AsyncStorage.setItem('nextTokenTime', nextTokenTime.toString());
+        else await AsyncStorage.removeItem('nextTokenTime');
+      } catch (e) {}
+    })();
+  }, [nextTokenTime]);
+
+  // Load nextTokenTime from Firebase (or AsyncStorage fallback) when playerId changes
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (!playerId) return;
+      try {
+        const snap = await dbGet(`players/${playerId}/nextTokenTime`);
+        if (snap && snap.exists && snap.exists()) {
+          const val = snap.val();
+          const dt = new Date(val);
+          if (!isNaN(dt.getTime())) {
+            if (!cancelled) {
+              // clamp obviously-future timestamps (protect against bad writers)
+              const now = new Date(Date.now() + (serverOffsetRef.current || 0));
+              if (dt.getTime() - now.getTime() > MAX_NEXT_TOKEN_FUTURE) {
+                const clamped = new Date(now.getTime() + EFFECTIVE_REGEN_INTERVAL);
+                setNextTokenTime(clamped);
+                try { if (playerId) await dbSet(`players/${playerId}/nextTokenTime`, clamped.toISOString()); } catch (e) {}
+              } else {
+                setNextTokenTime(dt);
+              }
+            }
+          }
+        } else {
+          const saved = await AsyncStorage.getItem('nextTokenTime');
+          if (saved) {
+            const dt = new Date(saved);
+            if (!isNaN(dt.getTime())) if (!cancelled) setNextTokenTime(dt);
+          }
+        }
+      } catch (e) {
+        // ignore
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [playerId]);
+
+  // Subscribe to serverTimeOffset
+  useEffect(() => {
+    let unsub; try {
+      unsub = dbOnValue('/.info/serverTimeOffset', (snap) => {
+        try { const val = snap && snap.val ? snap.val() : (snap || 0); serverOffsetRef.current = typeof val === 'number' ? val : 0; } catch (e) { serverOffsetRef.current = 0; }
+      });
+    } catch (e) {}
+    return () => { try { if (unsub && typeof unsub === 'function') unsub(); } catch (e) {} };
+  }, []);
+
+  // Realtime listener for nextTokenTime changes (other clients)
+  useEffect(() => {
+    if (!playerId) return undefined;
+    const path = `players/${playerId}/nextTokenTime`;
+    const handler = (snap) => {
+      try {
+        if (!snap) return;
+        const val = snap.val ? snap.val() : snap;
+        if (val === null) { setNextTokenTime(null); return; }
+        const dt = new Date(val);
+        if (!isNaN(dt.getTime())) {
+          const now = new Date(Date.now() + (serverOffsetRef.current || 0));
+          if (dt.getTime() - now.getTime() > MAX_NEXT_TOKEN_FUTURE) {
+            // clamp and repair remote value
+            const clamped = new Date(now.getTime() + EFFECTIVE_REGEN_INTERVAL);
+            setNextTokenTime(clamped);
+            try { if (playerId) dbSet(`players/${playerId}/nextTokenTime`, clamped.toISOString()).catch(()=>{}); } catch(e) {}
+          } else {
+            setNextTokenTime(dt);
+          }
+        }
+      } catch (e) {}
+    };
+    const unsub = dbOnValue(path, handler);
+    return () => { try { if (unsub && typeof unsub === 'function') unsub(); else dbOff(path, handler); } catch (e) {} };
+  }, [playerId]);
+
+  // Authoritative compute function in GameContext
+  const computeAndApplyTokens = async () => {
+    try {
+      const now = new Date(Date.now() + (serverOffsetRef.current || 0));
+      const currentTokens = typeof tokensRef.current === 'number' ? tokensRef.current : 0;
+      const next = nextTokenTimeRef.current instanceof Date ? nextTokenTimeRef.current : (nextTokenTimeRef.current ? new Date(nextTokenTimeRef.current) : null);
+      // schedule if missing
+      if (!next && currentTokens < MAX_TOKENS) {
+        const newNext = new Date(now.getTime() + EFFECTIVE_REGEN_INTERVAL);
+        setNextTokenTime(newNext);
+        nextTokenTimeRef.current = newNext;
+        if (playerId) await dbSet(`players/${playerId}/nextTokenTime`, newNext.toISOString());
+        return;
+      }
+      if (currentTokens >= MAX_TOKENS) return;
+      if (!next || isNaN(next.getTime())) return;
+      const diff = next - now;
+      if (diff > 0) return;
+      if (manualChangeRef.current && Date.now() - manualChangeRef.current < 2000) return;
+      const diffTime = now - next;
+      const tokensToAdd = Math.floor(diffTime / EFFECTIVE_REGEN_INTERVAL) + 1;
+      const newTokenCount = Math.min(currentTokens + tokensToAdd, MAX_TOKENS);
+      const effectiveAdded = newTokenCount - currentTokens;
+      if (effectiveAdded <= 0) return;
+      // apply tokens via state setter
+      setTokens((prev) => {
+        const updated = Math.min((typeof prev === 'number' ? prev : currentTokens) + effectiveAdded, MAX_TOKENS);
+        tokensRef.current = updated;
+        return updated;
+      });
+      // persist tokens immediately so DB reflects increments (helps in DEV 5s regen and avoids missing writes)
+      if (playerId) {
+        try {
+          await dbSet(`players/${playerId}/tokens`, Math.min(currentTokens + effectiveAdded, MAX_TOKENS));
+        } catch (e) {
+          // ignore persistence errors here (write-through effect will also attempt to persist)
+        }
+      }
+      if (newTokenCount >= MAX_TOKENS) {
+        setNextTokenTime(null);
+        nextTokenTimeRef.current = null;
+        if (playerId) await dbSet(`players/${playerId}/nextTokenTime`, null);
+      } else {
+        const remainder = diffTime % EFFECTIVE_REGEN_INTERVAL;
+        const newNextTime = new Date(now.getTime() + (EFFECTIVE_REGEN_INTERVAL - remainder));
+        setNextTokenTime(newNextTime);
+        nextTokenTimeRef.current = newNextTime;
+        if (playerId) await dbSet(`players/${playerId}/nextTokenTime`, newNextTime.toISOString());
+      }
+    } catch (e) {
+      console.error('[GameContext] computeAndApplyTokens error', e);
+    }
+  };
+
+  // Interval runner
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!playerId) return;
+      computeAndApplyTokens();
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [playerId]);
 
   // isBetterScore imported from shared util
 
@@ -285,6 +450,7 @@ export const GameProvider = ({ children }) => {
       const raw = snapshot.val();
       const n = Number.isFinite(raw) ? raw : 0;
       const clamped = Math.max(0, Math.min(MAX_TOKENS, Math.trunc(n)));
+      console.log('[GameContext] tokens listener -> raw=', raw, 'clamped=', clamped, 'playerId=', playerId);
       setTokens(clamped);
       hydratedRef.current = true;
     };
@@ -549,6 +715,8 @@ export const GameProvider = ({ children }) => {
   setTokens,
   energyModalVisible,
   setEnergyModalVisible,
+      // trigger
+      triggerTokenRecalc: () => { computeAndApplyTokens(); },
       
     // misc
     isLinked,
@@ -605,6 +773,7 @@ export const GameProvider = ({ children }) => {
       scoreboardMonthly,
       scoreboardWeekly,
       scoreboardIndices,
+      // note: computeAndApplyTokens is not added to deps because it's stable within this render
     ]
   );
 
