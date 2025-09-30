@@ -248,6 +248,7 @@ const SettingScreen = () => {
                       setIsEditingName(true);
                       setTimeout(() => { editNameInputRef.current?.focus(); }, 100);
                     }}
+                    style={settingScreenStyles.copyIcon}
                   >
                     <Feather name="edit-2" size={18} color="#FFD600" style={settingScreenStyles.editIcon} />
                   </TouchableOpacity>
@@ -255,7 +256,7 @@ const SettingScreen = () => {
               </View>
               <View style={settingScreenStyles.nameRow}>
                 <MaterialCommunityIcons name="identifier" style={settingScreenStyles.idIcon} />
-                <Text style={settingScreenStyles.playerId}>{playerId}</Text>
+                <Text style={settingScreenStyles.playerId} numberOfLines={1} ellipsizeMode="middle">{playerId}</Text>
                 <TouchableOpacity onPress={copyPlayerIdToClipboard} style={settingScreenStyles.copyIcon}>
                   <Feather name="copy" size={18} color="#FFD600" />
                 </TouchableOpacity>

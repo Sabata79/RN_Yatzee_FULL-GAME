@@ -32,7 +32,7 @@ const settingScreenStyles = StyleSheet.create({
         fontSize: TYPOGRAPHY.fontSize.xl,
         color: COLORS.warning,
         fontFamily: TYPOGRAPHY.fontFamily.bangers,
-        textAlign: 'center',
+            textAlign: 'center',
         marginBottom: 16,
         marginTop: 16,
         letterSpacing: 1,
@@ -50,7 +50,7 @@ const settingScreenStyles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         paddingTop: 20,
-        marginLeft: 20,
+        paddingHorizontal: 20,
         textAlign: 'center',
     },
     name: {
@@ -59,10 +59,13 @@ const settingScreenStyles = StyleSheet.create({
         fontFamily: TYPOGRAPHY.fontFamily.montserratBold,
         textAlign: 'center',
         flex: 1,
+        alignSelf: 'center',
     },
     editIcon: {
         marginLeft: 8,
-        marginTop: -4,
+        marginRight: 0,
+        marginTop: 0,
+        alignSelf: 'center',
     },
     playerId: {
         fontSize: TYPOGRAPHY.fontSize.xs,
@@ -71,6 +74,8 @@ const settingScreenStyles = StyleSheet.create({
         fontFamily: TYPOGRAPHY.fontFamily.montserratRegular,
         marginBottom: 2,
         marginLeft: 0,
+        flex: 1,
+        flexShrink: 1,
     },
     idIcon: {
         marginRight: 4,
@@ -79,10 +84,10 @@ const settingScreenStyles = StyleSheet.create({
         fontSize: TYPOGRAPHY.fontSize.xxl,
     },
     copyIcon: {
-        marginLeft: 38,
-        marginTop: -4,
-        color: COLORS.textLight,
-        fontSize: TYPOGRAPHY.fontSize.xxl,
+        marginLeft: 'auto',
+        marginRight: 0,
+        alignSelf: 'center',
+        padding: 6,
     },
     row: {
         flexDirection: 'row',
