@@ -75,16 +75,7 @@ function GridField({
                 setSelectedField(idx);
                 sfx.playSelect?.();
                 // ensure burst runs immediately on press (fix edge-cases where selection change may not retrigger useEffect)
-                try {
-                    burstScale.setValue(0.6);
-                    burstOpacity.setValue(0.6);
-                    Animated.parallel([
-                        Animated.timing(burstScale, { toValue: 1.8, duration: 420, useNativeDriver: true }),
-                        Animated.timing(burstOpacity, { toValue: 0, duration: 420, useNativeDriver: true }),
-                    ]).start();
-                } catch (e) {
-                    // ignore animation errors in edge environments
-                }
+                triggerBurst(0.6);
             }
         }
     };
@@ -94,16 +85,41 @@ function GridField({
     // Burst animation values (single-shot when a field becomes selected)
     const burstScale = useRef(new Animated.Value(0.4)).current;
     const burstOpacity = useRef(new Animated.Value(0)).current;
+    const burstAnimRef = useRef(null);
+
+    // Helper to trigger a burst animation safely and keep a ref to the animation
+    const triggerBurst = (startScale = 0.6) => {
+        try {
+            burstScale.setValue(startScale);
+            burstOpacity.setValue(0.6);
+            const anim = Animated.parallel([
+                Animated.timing(burstScale, { toValue: 1.8, duration: 420, useNativeDriver: true }),
+                Animated.timing(burstOpacity, { toValue: 0, duration: 420, useNativeDriver: true }),
+            ]);
+            burstAnimRef.current = anim;
+            anim.start(() => {
+                burstAnimRef.current = null;
+                try { burstOpacity.setValue(0); burstScale.setValue(0.4); } catch (e) {}
+            });
+        } catch (e) {
+            // ignore animation errors in edge environments
+        }
+    };
+
+    // Cleanup on unmount: stop any running animation and reset values to avoid visual traces
+    useEffect(() => {
+        return () => {
+            try {
+                if (burstAnimRef.current && typeof burstAnimRef.current.stop === 'function') burstAnimRef.current.stop();
+            } catch (e) {}
+            try { burstOpacity.setValue(0); burstScale.setValue(0.4); } catch (e) {}
+        };
+    }, []);
 
     useEffect(() => {
         if (isSelected) {
             // start burst: visible then fade+grow
-            burstScale.setValue(0.6);
-            burstOpacity.setValue(0.6);
-            Animated.parallel([
-                Animated.timing(burstScale, { toValue: 1.8, duration: 420, useNativeDriver: true }),
-                Animated.timing(burstOpacity, { toValue: 0, duration: 420, useNativeDriver: true }),
-            ]).start();
+            triggerBurst(0.6);
         } else {
             // reset for next time
             burstScale.setValue(0.4);
@@ -151,12 +167,7 @@ function GridField({
     useEffect(() => {
         if (index === 24 && sectionAchieved) {
             try {
-                burstScale.setValue(0.6);
-                burstOpacity.setValue(0.6);
-                Animated.parallel([
-                    Animated.timing(burstScale, { toValue: 1.8, duration: 420, useNativeDriver: true }),
-                    Animated.timing(burstOpacity, { toValue: 0, duration: 420, useNativeDriver: true }),
-                ]).start();
+                triggerBurst(0.6);
             } catch (e) {
                 // ignore animation errors
             }
