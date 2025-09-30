@@ -28,11 +28,13 @@
  * @author Sabata79
  * @since 2025-09-16
  */
-import { View, Pressable, Text, Image } from 'react-native';
+import { View, Pressable, Text, Image, Animated, useWindowDimensions } from 'react-native';
+import { useRef, useEffect } from 'react';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAudio } from '../services/AudioManager';
 import { dicefaces } from '../constants/DicePaths';
 import { getBreakpoints, makeSizes } from '../utils/breakpoints';
+import COLORS from '../constants/colors';
 
 const { DIE_SIZE } = makeSizes(getBreakpoints());
 const ICON = Math.round(DIE_SIZE * 0.70); // MaterialCommunityIcons size
@@ -72,11 +74,60 @@ function GridField({
             } else {
                 setSelectedField(idx);
                 sfx.playSelect?.();
+                // ensure burst runs immediately on press (fix edge-cases where selection change may not retrigger useEffect)
+                try {
+                    burstScale.setValue(0.6);
+                    burstOpacity.setValue(0.6);
+                    Animated.parallel([
+                        Animated.timing(burstScale, { toValue: 1.8, duration: 420, useNativeDriver: true }),
+                        Animated.timing(burstOpacity, { toValue: 0, duration: 420, useNativeDriver: true }),
+                    ]).start();
+                } catch (e) {
+                    // ignore animation errors in edge environments
+                }
             }
         }
     };
 
     const isSelected = selectedField === index;
+
+    // Burst animation values (single-shot when a field becomes selected)
+    const burstScale = useRef(new Animated.Value(0.4)).current;
+    const burstOpacity = useRef(new Animated.Value(0)).current;
+
+    useEffect(() => {
+        if (isSelected) {
+            // start burst: visible then fade+grow
+            burstScale.setValue(0.6);
+            burstOpacity.setValue(0.6);
+            Animated.parallel([
+                Animated.timing(burstScale, { toValue: 1.8, duration: 420, useNativeDriver: true }),
+                Animated.timing(burstOpacity, { toValue: 0, duration: 420, useNativeDriver: true }),
+            ]).start();
+        } else {
+            // reset for next time
+            burstScale.setValue(0.4);
+            burstOpacity.setValue(0);
+        }
+    }, [isSelected, burstScale, burstOpacity]);
+
+    // Helper to render the animated burst overlay. Color can be overridden (locked -> success)
+    const renderBurst = (color = COLORS.error, radius = 12) => (
+        <Animated.View
+            pointerEvents="none"
+            style={{
+                position: 'absolute',
+                left: -8,
+                right: -8,
+                top: -8,
+                bottom: -8,
+                borderRadius: radius,
+                backgroundColor: color,
+                transform: [{ scale: burstScale }],
+                opacity: burstOpacity,
+            }}
+        />
+    );
 
 
 
@@ -90,6 +141,27 @@ function GridField({
         currentCategory && currentCategory.locked
             ? gameboardstyles.lockedField
             : gameboardstyles.selectScore;
+
+    // Section bonus state (used for index 24 special burst)
+    const sectionAchieved = typeof minorPoints === 'number' && typeof BONUS_POINTS_LIMIT === 'number'
+        ? minorPoints >= BONUS_POINTS_LIMIT
+        : false;
+
+    // When section bonus becomes active, trigger burst on the section cell (index 24)
+    useEffect(() => {
+        if (index === 24 && sectionAchieved) {
+            try {
+                burstScale.setValue(0.6);
+                burstOpacity.setValue(0.6);
+                Animated.parallel([
+                    Animated.timing(burstScale, { toValue: 1.8, duration: 420, useNativeDriver: true }),
+                    Animated.timing(burstOpacity, { toValue: 0, duration: 420, useNativeDriver: true }),
+                ]).start();
+            } catch (e) {
+                // ignore animation errors
+            }
+        }
+    }, [index, sectionAchieved, burstScale, burstOpacity]);
 
     // Indexes of the grid
     if (index === 0) {
@@ -108,6 +180,21 @@ function GridField({
                         isSelected ? gameboardstyles.selectScorePressed : fieldStyle,
                     ]}
                 >
+                    {/* Burst overlay (animated) */}
+                    <Animated.View
+                        pointerEvents="none"
+                        style={{
+                            position: 'absolute',
+                            left: -8,
+                            right: -8,
+                            top: -8,
+                            bottom: -8,
+                            borderRadius: 12,
+                            backgroundColor: COLORS.error,
+                            transform: [{ scale: burstScale }],
+                            opacity: burstOpacity,
+                        }}
+                    />
                     <Text style={gameboardstyles.inputIndexShown}>
                         {isLocked('ones')
                             ? currentCategory.points
@@ -131,6 +218,20 @@ function GridField({
                         isSelected ? gameboardstyles.selectScorePressed : fieldStyle,
                     ]}
                 >
+                    <Animated.View
+                        pointerEvents="none"
+                        style={{
+                            position: 'absolute',
+                            left: -8,
+                            right: -8,
+                            top: -8,
+                            bottom: -8,
+                            borderRadius: 12,
+                            backgroundColor: COLORS.error,
+                            transform: [{ scale: burstScale }],
+                            opacity: burstOpacity,
+                        }}
+                    />
                     <Text style={gameboardstyles.inputIndexShown}>
                         {isLocked('twoOfKind')
                             ? currentCategory.points
@@ -155,6 +256,20 @@ function GridField({
                         isSelected ? gameboardstyles.selectScorePressed : fieldStyle,
                     ]}
                 >
+                    <Animated.View
+                        pointerEvents="none"
+                        style={{
+                            position: 'absolute',
+                            left: -8,
+                            right: -8,
+                            top: -8,
+                            bottom: -8,
+                            borderRadius: 12,
+                            backgroundColor: COLORS.error,
+                            transform: [{ scale: burstScale }],
+                            opacity: burstOpacity,
+                        }}
+                    />
                     <Text style={gameboardstyles.inputIndexShown}>
                         {isLocked('threeOfAKind')
                             ? currentCategory.points
@@ -179,6 +294,20 @@ function GridField({
                         isSelected ? gameboardstyles.selectScorePressed : fieldStyle,
                     ]}
                 >
+                    <Animated.View
+                        pointerEvents="none"
+                        style={{
+                            position: 'absolute',
+                            left: -8,
+                            right: -8,
+                            top: -8,
+                            bottom: -8,
+                            borderRadius: 12,
+                            backgroundColor: COLORS.error,
+                            transform: [{ scale: burstScale }],
+                            opacity: burstOpacity,
+                        }}
+                    />
                     <Text style={gameboardstyles.inputIndexShown}>
                         {isLocked('twos')
                             ? currentCategory.points
@@ -203,6 +332,20 @@ function GridField({
                         isSelected ? gameboardstyles.selectScorePressed : fieldStyle,
                     ]}
                 >
+                    <Animated.View
+                        pointerEvents="none"
+                        style={{
+                            position: 'absolute',
+                            left: -8,
+                            right: -8,
+                            top: -8,
+                            bottom: -8,
+                            borderRadius: 12,
+                            backgroundColor: COLORS.error,
+                            transform: [{ scale: burstScale }],
+                            opacity: burstOpacity,
+                        }}
+                    />
                     <Text style={gameboardstyles.inputIndexShown}>
                         {isLocked('fourOfAKind')
                             ? currentCategory.points
@@ -227,6 +370,20 @@ function GridField({
                         isSelected ? gameboardstyles.selectScorePressed : fieldStyle,
                     ]}
                 >
+                    <Animated.View
+                        pointerEvents="none"
+                        style={{
+                            position: 'absolute',
+                            left: -8,
+                            right: -8,
+                            top: -8,
+                            bottom: -8,
+                            borderRadius: 12,
+                            backgroundColor: COLORS.error,
+                            transform: [{ scale: burstScale }],
+                            opacity: burstOpacity,
+                        }}
+                    />
                     <Text style={gameboardstyles.inputIndexShown}>
                         {isLocked('threes')
                             ? currentCategory.points
@@ -256,6 +413,7 @@ function GridField({
                         isSelected ? gameboardstyles.selectScorePressed : fieldStyle,
                     ]}
                 >
+                    {renderBurst(isLocked('fullHouse') ? COLORS.success : COLORS.error)}
                     <Text style={gameboardstyles.inputIndexShown}>
                         {isLocked('fullHouse')
                             ? currentCategory.points
@@ -280,6 +438,7 @@ function GridField({
                         isSelected ? gameboardstyles.selectScorePressed : fieldStyle,
                     ]}
                 >
+                    {renderBurst(isLocked('fours') ? COLORS.success : COLORS.error)}
                     <Text style={gameboardstyles.inputIndexShown}>
                         {isLocked('fours')
                             ? currentCategory.points
@@ -309,6 +468,7 @@ function GridField({
                         isSelected ? gameboardstyles.selectScorePressed : fieldStyle,
                     ]}
                 >
+                    {renderBurst(isLocked('smallStraight') ? COLORS.success : COLORS.error)}
                     <Text style={gameboardstyles.inputIndexShown}>
                         {isLocked('smallStraight')
                             ? currentCategory.points
@@ -333,6 +493,7 @@ function GridField({
                         isSelected ? gameboardstyles.selectScorePressed : fieldStyle,
                     ]}
                 >
+                    {renderBurst(isLocked('fives') ? COLORS.success : COLORS.error)}
                     <Text style={gameboardstyles.inputIndexShown}>
                         {isLocked('fives')
                             ? currentCategory.points
@@ -362,6 +523,7 @@ function GridField({
                         isSelected ? gameboardstyles.selectScorePressed : fieldStyle,
                     ]}
                 >
+                    {renderBurst(isLocked('largeStraight') ? COLORS.success : COLORS.error)}
                     <Text style={gameboardstyles.inputIndexShown}>
                         {isLocked('largeStraight')
                             ? currentCategory.points
@@ -386,6 +548,7 @@ function GridField({
                         isSelected ? gameboardstyles.selectScorePressed : fieldStyle,
                     ]}
                 >
+                    {renderBurst(isLocked('sixes') ? COLORS.success : COLORS.error)}
                     <Text style={gameboardstyles.inputIndexShown}>
                         {isLocked('sixes')
                             ? currentCategory.points
@@ -415,6 +578,7 @@ function GridField({
                         isSelected ? gameboardstyles.selectScorePressed : fieldStyle,
                     ]}
                 >
+                    {renderBurst(isLocked('yatzy') ? COLORS.success : COLORS.error)}
                     <Text style={gameboardstyles.inputIndexShown}>
                         {isLocked('yatzy')
                             ? currentCategory.points
@@ -434,6 +598,7 @@ function GridField({
                             : gameboardstyles.sectionContainer
                     }
                 >
+                    {isSectionMinorAchieved && renderBurst(COLORS.success, 100)}
                     <Text style={gameboardstyles.sectionBonusTxt}>Section Bonus</Text>
                     <Text style={gameboardstyles.sectionBonusTxt}>+35</Text>
                 </View>
@@ -469,6 +634,7 @@ function GridField({
                         isSelected ? gameboardstyles.selectScorePressed : fieldStyle,
                     ]}
                 >
+                    {renderBurst(isLocked('chance') ? COLORS.success : COLORS.error)}
                     <Text style={gameboardstyles.inputIndexShown}>
                         {isLocked('chance')
                             ? currentCategory.points
