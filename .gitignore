@@ -66,6 +66,6 @@ yarn-error.*
 *.secret.json
 
 # Native block
-/android
+# /android
 /ios
 
