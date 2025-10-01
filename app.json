@@ -13,6 +13,7 @@
 
     "android": {
       "package": "com.simpleyatzee",
+      "versionCode": 55,
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/coin.png",

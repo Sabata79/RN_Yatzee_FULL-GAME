@@ -16,7 +16,7 @@
     },
     "production": {
       "autoIncrement": true,
-      "android": { "buildType": "app-bundle", "versionCode": 55 },
+      "android": { "buildType": "app-bundle" },
       "channel": "production"
     },
     "devclient": {
