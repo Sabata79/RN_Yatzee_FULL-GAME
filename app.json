@@ -4,7 +4,7 @@
     "slug": "SimpleYatzee",
     "version": "3.0.1",
     "orientation": "portrait",
-    "icon": "./assets/coin.png",
+  "icon": "./assets/desktopIcon.png",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
@@ -16,7 +16,7 @@
       "versionCode": 55,
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/coin.png",
+        "foregroundImage": "./assets/desktopIcon.png",
         "backgroundColor": "#2c3e50"
       },
       "permissions": [
