@@ -9,5 +9,5 @@
 // Animation paths for the game
 export const Animations = [
 
-{path: '../../assets/video/backgroundVideo.m4v', display: require('../../assets/video/backgroundVideo.m4v'), description: 'Background video animation'},
+{path: '../../assets/video/newBGVideo.m4v', display: require('../../assets/video/newBGVideo.m4v'), description: 'Background video animation'},
 ];
