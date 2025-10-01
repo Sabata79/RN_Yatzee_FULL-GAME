@@ -40,7 +40,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: 'center',
     alignSelf: 'center',
-    marginBottom: -140,
     flexShrink: 0,
     zIndex: 20,
     elevation: 20, 

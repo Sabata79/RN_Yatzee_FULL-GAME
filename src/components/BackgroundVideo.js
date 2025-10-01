@@ -13,10 +13,10 @@ import { VideoView, useVideoPlayer } from 'expo-video';
 
 
 export default function BackgroundVideo({ isActive = true }) {
-  const player = useVideoPlayer(require('../../assets/video/backgroundVideo.m4v'), (p) => {
+  const player = useVideoPlayer(require('../../assets/video/newBGVideo.m4v'), (p) => {
     p.loop = true;
     p.muted = true;
-    p.playbackRate = 0.6;
+    p.playbackRate = 0.8;
   });
 
   useEffect(() => {
