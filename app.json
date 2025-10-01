@@ -10,11 +10,16 @@
       "backgroundColor": "#2c3e50"
     },
 
+    "icon": "./assets/icon-512.png",
+
     "android": {
       "package": "com.simpleyatzee",
       "versionCode": 55,
       "googleServicesFile": "./google-services.json",
-      
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon-foreground.png",
+        "backgroundColor": "#2c3e50"
+      },
       "permissions": [
         "INTERNET",
         "ACCESS_NETWORK_STATE",
