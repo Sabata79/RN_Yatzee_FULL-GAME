@@ -88,7 +88,7 @@ export const fetchRemoteConfig = async () => {
     const forceUpdate = !!forceSnake || !!forceCamel;
 
     // Debug log for visibility in device logs
-    console.log('[RC] values', { force_update: forceSnake, forceUpdate: forceCamel, minimum_supported_version, update_message });
+    // console.log('[RC] values', { force_update: forceSnake, forceUpdate: forceCamel, minimum_supported_version, update_message });
 
     return { forceUpdate, minimum_supported_version, update_message };
   } catch (e) {

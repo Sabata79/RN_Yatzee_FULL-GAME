@@ -92,7 +92,7 @@ export function AudioProvider({ children }) {
     player.volume = musicMuted ? 0 : musicVolume;
     player.muted = musicMuted;
     musicSound.current = player;
-    console.log('[Audio] MUSIC loaded');
+    // console.log('[Audio] MUSIC loaded');
   }, [musicMuted, musicVolume]);
 
   const ensureSfx = useCallback(async () => {
@@ -101,7 +101,7 @@ export function AudioProvider({ children }) {
     player.volume = sfxMuted ? 0 : sfxVolume;
     player.muted = sfxMuted;
     sfxSound.current = player;
-    console.log('[Audio] SFX loaded');
+    // console.log('[Audio] SFX loaded');
   }, [sfxMuted, sfxVolume]);
 
   const ensureSelect = useCallback(async () => {
@@ -110,7 +110,7 @@ export function AudioProvider({ children }) {
     player.volume = sfxMuted ? 0 : sfxVolume;
     player.muted = sfxMuted;
     selectSound.current = player;
-    console.log('[Audio] SELECT loaded');
+    // console.log('[Audio] SELECT loaded');
   }, [sfxMuted, sfxVolume]);
 
   const ensureDeselect = useCallback(async () => {
@@ -119,7 +119,7 @@ export function AudioProvider({ children }) {
     player.volume = sfxMuted ? 0 : sfxVolume;
     player.muted = sfxMuted;
     deselectSound.current = player;
-    console.log('[Audio] DESELECT loaded');
+    // console.log('[Audio] DESELECT loaded');
   }, [sfxMuted, sfxVolume]);
 
   const ensureDiceTouch = useCallback(async () => {
@@ -128,7 +128,7 @@ export function AudioProvider({ children }) {
     player.volume = sfxMuted ? 0 : (sfxVolume * DICE_TOUCH_FACTOR);
     player.muted = sfxMuted;
     diceTouchSound.current = player;
-    console.log('[Audio] DICE_TOUCH loaded');
+    // console.log('[Audio] DICE_TOUCH loaded');
   }, [sfxMuted, sfxVolume]);
 
   const unloadAll = useCallback(() => {
@@ -194,12 +194,12 @@ export function AudioProvider({ children }) {
 
         // 1) Load persisted settings FIRST
         await loadPersistedSettingsIntoState();
-        console.log('[Audio] loaded settings (hydrated)', {
-          musicMutedAfterLoad: musicMuted,
-          sfxMutedAfterLoad: sfxMuted,
-          musicVolumeAfterLoad: musicVolume,
-          sfxVolumeAfterLoad: sfxVolume,
-        });
+        // console.log('[Audio] loaded settings (hydrated)', {
+        //   musicMutedAfterLoad: musicMuted,
+        //   sfxMutedAfterLoad: sfxMuted,
+        //   musicVolumeAfterLoad: musicVolume,
+        //   sfxVolumeAfterLoad: sfxVolume,
+        // });
 
         // 2) Then preload players (don’t crash if one fails)
         await Promise.allSettled([
@@ -235,7 +235,7 @@ export function AudioProvider({ children }) {
   // ---- Actions
   const playMusic = useCallback(async (fadeIn = false) => {
     if (musicMuted || !ready) {
-      console.log('[Audio] playMusic skipped (muted or not ready)', { musicMuted, ready });
+      // console.log('[Audio] playMusic skipped (muted or not ready)', { musicMuted, ready });
       return;
     }
     await ensureMusic();
@@ -268,7 +268,7 @@ export function AudioProvider({ children }) {
     setMusicMutedState(muted);
     (async () => {
       try {
-        console.log('[Audio] setMusicMuted called', { muted });
+        // console.log('[Audio] setMusicMuted called', { muted });
         // Ensure player exists before applying
         await ensureMusic();
         const p = musicSound.current;
@@ -348,7 +348,7 @@ export function AudioProvider({ children }) {
     setSfxMutedState(muted);
     (async () => {
       try {
-        console.log('[Audio] setSfxMuted called', { muted });
+        // console.log('[Audio] setSfxMuted called', { muted });
         await ensureSfx();
         const v = muted ? 0 : sfxVolume;
         for (const p of [sfxSound.current, selectSound.current, deselectSound.current, diceTouchSound.current]) {
@@ -430,7 +430,7 @@ export function AudioProvider({ children }) {
       }
     }
 
-    console.log('[Audio] MUSIC persist/apply effect run', { musicMuted, musicVolume, ready, hydrated });
+    // console.log('[Audio] MUSIC persist/apply effect run', { musicMuted, musicVolume, ready, hydrated });
 
     SecureStore.setItemAsync(
       MUSIC_KEY,

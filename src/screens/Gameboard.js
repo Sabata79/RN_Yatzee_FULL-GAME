@@ -15,7 +15,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { FlatList, Text, View, Pressable, ImageBackground, Animated, Dimensions } from 'react-native';
 import styles from '../styles/styles';
 import gameboardstyles from '../styles/GameboardScreenStyles';
-import { NBR_OF_THROWS, NBR_OF_DICES, MAX_SPOTS, BONUS_POINTS, BONUS_POINTS_LIMIT } from '../constants/Game';
+import { NBR_OF_THROWS, NBR_OF_DICES, MAX_SPOTS, BONUS_POINTS, BONUS_POINTS_LIMIT, MAX_TOKENS } from '../constants/Game';
 import DiceAnimation from '../components/DiceAnimation';
 import { useAudio } from '../services/AudioManager';
 import { useGame } from '../constants/GameContext';
@@ -150,6 +150,7 @@ export default function Gameboard({ route, navigation }) {
     setEnergyModalVisible,
     timeToNextToken,
     setIsGameSaved,
+    markManualChange,
   } = useGame();
 
   const [scoreOpen, setScoreOpen] = useState(false);
@@ -166,13 +167,83 @@ export default function Gameboard({ route, navigation }) {
   const beginGame = useCallback(() => {
     if (gameStarted) return true;
     if ((tokens ?? 0) > 0) {
+      // Optimistic local decrement for immediate UI responsiveness
       setTokens(prev => Math.max(0, (prev ?? 0) - 1));
       startGame();
+
+      // Persist decrement atomically and set lastTokenDecrement only when
+      // tokens transition from MAX_TOKENS -> MAX_TOKENS-1 to establish the
+      // authoritative past anchor for regeneration.
+      (async () => {
+        try {
+          const uid = playerId;
+          if (!uid) return;
+
+          // Regen interval (production)
+          const REGEN_INTERVAL = 1.6 * 60 * 60 * 1000;
+          const EFFECTIVE_REGEN_INTERVAL = REGEN_INTERVAL;
+
+          // mark manual change so GameContext write-through skips briefly
+          try { if (typeof markManualChange === 'function') markManualChange(); } catch (e) {}
+
+          await dbRunTransaction(`players/${uid}`, (current) => {
+            if (current == null) return current; // player removed
+
+            const now = Date.now();
+            const curTokens = Number.isFinite(current.tokens) ? current.tokens : (typeof tokens === 'number' ? tokens : 0);
+            const serverAnchor = Number.isFinite(current.lastTokenDecrement) ? Number(current.lastTokenDecrement) : null;
+
+            // First: apply any server-side regenerated tokens based on the anchor
+            let serverTokens = curTokens;
+            let newAnchorAfterRegen = serverAnchor;
+            if (serverAnchor) {
+              const serverElapsed = now - serverAnchor;
+              const serverIntervals = Math.floor(serverElapsed / EFFECTIVE_REGEN_INTERVAL);
+              if (serverIntervals > 0) {
+                serverTokens = Math.min(curTokens + serverIntervals, MAX_TOKENS);
+                if (serverTokens < MAX_TOKENS) {
+                  newAnchorAfterRegen = serverAnchor + serverIntervals * EFFECTIVE_REGEN_INTERVAL;
+                } else {
+                  newAnchorAfterRegen = null; // reached max, no meaningful anchor
+                }
+              }
+            }
+
+            // If no anchor exists but tokens are less than max, we could set one here as best-effort.
+            // We'll leave creation of missing anchors to the login/boot flow which already does a best-effort write.
+
+            // Now consume one token atomically (only if available after regen)
+            if (serverTokens <= 0) {
+              // nothing to consume
+              return current;
+            }
+
+            const afterConsume = Math.max(0, serverTokens - 1);
+
+            // Decide anchor to write: prefer preserving the remainder (newAnchorAfterRegen) when available.
+            // If newAnchorAfterRegen is null (e.g. tokens were at MAX), set anchor to now to start a fresh regen cycle.
+            const writeAnchor = (newAnchorAfterRegen === null) ? now : newAnchorAfterRegen;
+
+            const out = { ...current, tokens: afterConsume, lastTokenDecrement: writeAnchor };
+
+            try {
+              if (typeof __DEV__ !== 'undefined' && __DEV__) {
+                console.log('[Gameboard] regen-then-consume (dev)', { playerId: uid, curTokens, serverTokens, afterConsume, serverAnchor, newAnchorAfterRegen, writeAnchor });
+              }
+            } catch (e) {}
+
+            return out;
+          });
+        } catch (err) {
+          console.warn('[Gameboard] token decrement transaction failed', err);
+        }
+      })();
+
       return true;
     }
     // Do not open modal here; modal opens only from START GAME overlay
     return false;
-  }, [gameStarted, tokens, setTokens, startGame]);
+  }, [gameStarted, tokens, setTokens, startGame, playerId]);
 
   // When rounds reach 0, end the game and open the score modal
   useEffect(() => {

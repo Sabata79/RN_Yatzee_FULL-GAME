@@ -78,6 +78,7 @@ export default function LandingPage({ navigation }) {
     setGameVersionCode,
     gameVersion,
     setScoreboardData,
+    stabilizeTokensOnBoot,
   } = useGame();
 
   const isFocused = useIsFocused();
@@ -97,7 +98,7 @@ export default function LandingPage({ navigation }) {
 
   // Start music once audio is ready and not muted
   useEffect(() => {
-    console.log('[LandingPage Audio]', { ready, musicMuted, remoteBlock, bootDone, started: musicStartedRef.current });
+    // console.log('[LandingPage Audio]', { ready, musicMuted, remoteBlock, bootDone, started: musicStartedRef.current });
 
     if (!ready) return;
     if (musicMuted) return;
@@ -114,7 +115,7 @@ export default function LandingPage({ navigation }) {
           await playMusic(true);
           if (!alive) return;
           musicStartedRef.current = true;
-          console.log('[LandingPage] Music started');
+          // console.log('[LandingPage] Music started');
         } catch (e) {
           console.log('[LandingPage] Music start failed:', e);
         }
@@ -329,6 +330,8 @@ export default function LandingPage({ navigation }) {
           await step("Check if user exists", async () => {
             await checkExistingUser(userId);
           });
+          // Stabilize tokens (best-effort) so UI doesn't flash transient regen/transaction values
+          try { if (typeof stabilizeTokensOnBoot === 'function') await stabilizeTokensOnBoot(1200); } catch (e) {}
         } else {
           console.warn("[BOOT] userId is missing -> navigate('MainApp')");
           setUserRecognized(false);

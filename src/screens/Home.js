@@ -68,6 +68,7 @@ export default function Home({ setPlayerId }) {
     setPlayerName,
     tokens,
     timeToNextToken,
+    tokensStabilized,
   } = useGame();
 
   const isFocused = useIsFocused();
@@ -113,13 +114,33 @@ export default function Home({ setPlayerId }) {
     const playerData = snap.val();
     const formattedDate = new Date().toLocaleDateString('fi-FI');
 
-    await dbSet(`players/${userId}`, {
-      ...playerData,
-      name,
-      level: 'beginner',
-      dateJoined: playerData?.dateJoined || formattedDate,
-      tokens: MAX_TOKENS 
-    });
+    // Use field-level update to avoid overwriting server-managed fields (tokens, lastTokenDecrement, presence, etc.)
+    try {
+      await dbUpdate(`players/${userId}`, {
+        name,
+        level: 'beginner',
+        dateJoined: playerData?.dateJoined || formattedDate,
+        tokens: MAX_TOKENS,
+      });
+    } catch (e) {
+      // fallback: attempt to set only the minimal fields to avoid wiping server-managed data
+      try {
+        await dbUpdate(`players/${userId}`, {
+          name,
+          level: 'beginner',
+          dateJoined: playerData?.dateJoined || formattedDate,
+          tokens: MAX_TOKENS,
+        });
+      } catch (e2) {
+        // last-resort: set a minimal object (rare). Keep as small as possible.
+        await dbSet(`players/${userId}`, {
+          name,
+          level: 'beginner',
+          dateJoined: playerData?.dateJoined || formattedDate,
+          tokens: MAX_TOKENS,
+        });
+      }
+    }
 
     await SecureStore.setItemAsync('user_id', userId);
 
@@ -237,7 +258,7 @@ export default function Home({ setPlayerId }) {
 
             <View style={homeStyles.tokenRow}>
               <Text style={[homeStyles.homeText]}>you have</Text>
-              <Text style={homeStyles.tokenText}>{tokens}</Text>
+              <Text style={homeStyles.tokenText}>{typeof tokensStabilized === 'boolean' && !tokensStabilized ? '—' : (tokens ?? 0)}</Text>
               <View style={homeStyles.energyIcon}>
                 <MaterialCommunityIcons name="flash" size={18} color='#f1c40f' />
               </View>

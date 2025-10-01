@@ -54,7 +54,29 @@ export const handleSignOut = () => signOut(getAuth());
 // DB helpers
 export const dbRef = (path) => ref(getDatabase(), path);
 export const dbGet = (path) => get(dbRef(path));
-export const dbSet = (path, value) => set(dbRef(path), value);
+export const dbSet = (path, value) => {
+  // Dev-only instrumentation: log stack and path when writing under players/ to trace overrides
+  try {
+    if (typeof __DEV__ !== 'undefined' && __DEV__ && typeof path === 'string' && path.startsWith('players/')) {
+      try {
+        // Avoid noisy logs for presence child writes — they're frequent and expected.
+        if (path.includes('/presence')) {
+          // do not instrument presence writes
+        } else {
+          // Only log potentially problematic writes: root player set or token/anchor/nextTokenTime children
+          const significant = /players\/[^\/]+(?:$|\/(tokens|lastTokenDecrement|nextTokenTime))/.test(path);
+          if (significant) {
+            const st = new Error().stack || '';
+            // Limit stack trace size to first 20 lines to keep logs readable
+            const lines = st.split('\n').slice(0, 20).join('\n');
+            console.log('[DB-INSTRUMENT] dbSet called for', path, '\nstack:\n', lines);
+          }
+        }
+      } catch (e) {}
+    }
+  } catch (e) {}
+  return set(dbRef(path), value);
+};
 export const dbUpdate = (path, value) => update(dbRef(path), value);
 export const dbRunTransaction = (path, updateFn) => runTransaction(dbRef(path), updateFn);
 
