@@ -29,7 +29,7 @@ const AvatarContainer = ({ isVisible, onClose, avatars, handleAvatarSelect, play
   useEffect(() => {
     if (effectivePlayerLevel === 'turhapuro') {
       setShowTurhapuroTab(true);
-      setSelectedTab('Beginner');
+      setSelectedTab('Turhapuro');
     } else {
       setShowTurhapuroTab(false);
       setSelectedTab('Beginner');
@@ -37,8 +37,8 @@ const AvatarContainer = ({ isVisible, onClose, avatars, handleAvatarSelect, play
   }, [effectivePlayerLevel]);
 
   // Filter avatars by selected tab/level
-  const filteredAvatars = avatars.filter(
-    avatar => avatar.level && avatar.level.toLowerCase() === selectedTab.toLowerCase()
+  const filteredAvatars = (avatars || []).filter(
+    avatar => avatar && avatar.level && avatar.level.toLowerCase() === selectedTab.toLowerCase()
   );
 
   return (
@@ -115,8 +115,10 @@ const AvatarContainer = ({ isVisible, onClose, avatars, handleAvatarSelect, play
           {/* Avatars */}
           <ScrollView contentContainerStyle={styles.scrollViewContent}>
             <View style={styles.avatarSelectionWrapper}>
-              {filteredAvatars.map((avatar, index) => (
-                <Pressable key={index} onPress={() => handleAvatarSelect(avatar)}>
+              {filteredAvatars.map((avatar, index) => {
+                const key = avatar.id || avatar.name || (avatar.display && avatar.display.uri) || index;
+                return (
+                <Pressable key={key} onPress={() => handleAvatarSelect(avatar)}>
                   <Image
                     style={
                       (String(avatar.level || '').toLowerCase() === 'beginner')
@@ -126,9 +128,13 @@ const AvatarContainer = ({ isVisible, onClose, avatars, handleAvatarSelect, play
                           : [styles.avatarModalImage, styles.defaultAvatar]
                     }
                     source={avatar.display}
+                    onError={(e) => {
+                      console.warn('[AvatarContainer] image load error', { avatar, error: e.nativeEvent });
+                    }}
                   />
                 </Pressable>
-              ))}
+                );
+              })}
             </View>
           </ScrollView>
         </View>
