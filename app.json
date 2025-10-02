@@ -11,7 +11,7 @@
     },
     "icon": "./assets/icon-512.png",
     "android": {
-      "package": "com.simpleyatzee",
+      "package": "com.SimpleYatzee",
       "versionCode": 57,
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {

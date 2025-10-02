@@ -1,4 +1,4 @@
-package com.simpleyatzee
+package com.SimpleYatzee
 
 import android.app.Application
 import android.content.res.Configuration

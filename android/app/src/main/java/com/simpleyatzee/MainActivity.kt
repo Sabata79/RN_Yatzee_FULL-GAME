@@ -1,4 +1,4 @@
-package com.simpleyatzee
+package com.SimpleYatzee
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build
