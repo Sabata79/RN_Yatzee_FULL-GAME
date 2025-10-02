@@ -13,7 +13,7 @@
 // src/screens/Home.js
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { View, Text, TextInput, Alert, Image, Animated, Platform, Keyboard } from "react-native";
+import { View, Text, TextInput, Alert, Image, Animated, Platform, Keyboard, InteractionManager } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { FontAwesome5 } from '@expo/vector-icons';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -75,14 +75,27 @@ export default function Home({ setPlayerId }) {
 
   // Animate in only when Home is focused (visible)
   useEffect(() => {
+    let cancelled = false;
+    let runningAnim = null;
     if (isFocused) {
+      // Start fade-in after interactions have settled to avoid jank
       fadeAnim.setValue(0);
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 700,
-        useNativeDriver: true,
-      }).start();
+      InteractionManager.runAfterInteractions(() => {
+        if (cancelled) return;
+        runningAnim = Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 700,
+          useNativeDriver: true,
+        });
+        runningAnim.start();
+      });
     }
+    return () => {
+      cancelled = true;
+      try {
+        if (runningAnim && runningAnim.stop) runningAnim.stop();
+      } catch (e) {}
+    };
   }, [isFocused, fadeAnim]);
 
   // iOS / system keyboard visibility (used to adjust layout when user not recognized)
