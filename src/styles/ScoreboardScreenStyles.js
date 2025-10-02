@@ -21,6 +21,7 @@ import TYPOGRAPHY from '../constants/typography';
 
 const { width, height } = Dimensions.get('window');
 const isSmallScreen = height < 650;
+const isNarrowScreen = width < 380;
 const isBigScreen = height >= 1050;
 
 const scoreboardStyles = StyleSheet.create({
@@ -96,12 +97,12 @@ const scoreboardStyles = StyleSheet.create({
         justifyContent: 'center',
     },
     playerHeaderCell: {
-        flex: 2.3,
+        flex: 2.6,
         alignItems: 'center',
         justifyContent: 'center',
     },
     durationHeaderCell: {
-        flex: 1.6,
+        flex: 1.5,
         alignItems: 'center',
         justifyContent: 'center',
         marginLeft: 8,
@@ -149,16 +150,16 @@ const scoreboardStyles = StyleSheet.create({
         width: isSmallScreen ? 30 : 40,
         height: isSmallScreen ? 30 : 40,
         borderRadius: isSmallScreen ? 15 : 20,
-        marginRight: 10,
-        marginLeft: 15,
+        marginRight: isNarrowScreen ? 8 : 10,
+        marginLeft: isNarrowScreen ? 8 : 15,
         backgroundColor: 'transparent',
     },
     beginnerAvatar: {
         width: 35,
         height: 25,
         resizeMode: 'cover',
-        marginLeft: 18,
-        marginRight: 12,
+        marginLeft: isNarrowScreen ? 8 : 18,
+        marginRight: isNarrowScreen ? 8 : 12,
         backgroundColor: 'transparent',
     },
     advancedAvatar: {
@@ -166,8 +167,8 @@ const scoreboardStyles = StyleSheet.create({
         width: 35,
         height: 30,
         resizeMode: 'cover',
-        marginLeft: 18,
-        marginRight: 12,
+        marginLeft: isNarrowScreen ? 8 : 18,
+        marginRight: isNarrowScreen ? 8 : 12,
         backgroundColor: 'transparent',
     },
     defaultAvatarIcon: {
@@ -176,16 +177,17 @@ const scoreboardStyles = StyleSheet.create({
         borderRadius: isSmallScreen ? 15 : 20,
         justifyContent: 'center',
         alignItems: 'center',
-        marginRight: 10,
-        marginLeft: 15,
+        marginRight: isNarrowScreen ? 8 : 10,
+        marginLeft: isNarrowScreen ? 8 : 15,
         backgroundColor: 'transparent',
     },
     playerNameText: {
         fontFamily: TYPOGRAPHY.fontFamily.montserratRegular,
-        fontSize: TYPOGRAPHY.md,
+    fontSize: isNarrowScreen ? (TYPOGRAPHY.md - 2) : TYPOGRAPHY.md,
         color: COLORS.textLight,
         marginLeft: 5,
-        letterSpacing: -0.8,
+        letterSpacing: isNarrowScreen ? -0.4 : -0.8,
+        flexShrink: 1,
     },
     durationCell: {
         flex: 1.6,

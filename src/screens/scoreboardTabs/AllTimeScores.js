@@ -97,7 +97,13 @@ export default function AllTimeScores({ rows = [], avatarMap, getAvatarStyle, op
               );
             })()}
 
-            <Text style={isCurrentUser ? [scoreboardStyles.playerNameText, { color: '#fff', fontFamily: 'montserrat-bold' }] : scoreboardStyles.playerNameText}>{item.name}</Text>
+            <Text
+              style={isCurrentUser ? [scoreboardStyles.playerNameText, { color: '#fff', fontFamily: 'montserrat-bold' }] : scoreboardStyles.playerNameText}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {item.name}
+            </Text>
           </View>
         </DataTable.Cell>
 
