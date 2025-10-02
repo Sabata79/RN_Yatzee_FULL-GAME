@@ -12,7 +12,7 @@
     "icon": "./assets/icon-512.png",
     "android": {
       "package": "com.simpleyatzee",
-      "versionCode": 56,
+      "versionCode": 57,
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon-foreground.png",
