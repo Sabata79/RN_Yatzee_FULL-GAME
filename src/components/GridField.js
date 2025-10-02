@@ -83,23 +83,27 @@ function GridField({
     const isSelected = selectedField === index;
 
     // Burst animation values (single-shot when a field becomes selected)
-    const burstScale = useRef(new Animated.Value(0.4)).current;
+    // Use slightly larger idle scale and lower default opacity to make the effect subtler
+    const burstScale = useRef(new Animated.Value(0.5)).current;
     const burstOpacity = useRef(new Animated.Value(0)).current;
     const burstAnimRef = useRef(null);
 
     // Helper to trigger a burst animation safely and keep a ref to the animation
-    const triggerBurst = (startScale = 0.6) => {
+    const triggerBurst = (startScale = 0.5) => {
         try {
+            // set starting values: slightly visible but not overpowering
             burstScale.setValue(startScale);
-            burstOpacity.setValue(0.6);
+            burstOpacity.setValue(0.35);
+            const D = 260; // shorter, snappier animation
             const anim = Animated.parallel([
-                Animated.timing(burstScale, { toValue: 1.8, duration: 420, useNativeDriver: true }),
-                Animated.timing(burstOpacity, { toValue: 0, duration: 420, useNativeDriver: true }),
-            ]);
+                // smaller growth to avoid huge 'pop'
+                Animated.timing(burstScale, { toValue: 1.25, duration: D, useNativeDriver: true }),
+                Animated.timing(burstOpacity, { toValue: 0, duration: D, useNativeDriver: true }),
+            ], { stopTogether: true });
             burstAnimRef.current = anim;
             anim.start(() => {
                 burstAnimRef.current = null;
-                try { burstOpacity.setValue(0); burstScale.setValue(0.4); } catch (e) {}
+                try { burstOpacity.setValue(0); burstScale.setValue(0.5); } catch (e) {}
             });
         } catch (e) {
             // ignore animation errors in edge environments
