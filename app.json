@@ -9,12 +9,10 @@
       "resizeMode": "contain",
       "backgroundColor": "#2c3e50"
     },
-
     "icon": "./assets/icon-512.png",
-
     "android": {
       "package": "com.simpleyatzee",
-      "versionCode": 55,
+      "versionCode": 56,
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon-foreground.png",
@@ -27,25 +25,26 @@
         "com.google.android.gms.permission.AD_ID"
       ]
     },
-
     "plugins": [
       "@react-native-firebase/app",
       [
         "expo-splash-screen",
-        { "backgroundColor": "#2c3e50", "image": "./assets/splash.png" }
+        {
+          "backgroundColor": "#2c3e50",
+          "image": "./assets/splash.png"
+        }
       ]
     ],
-
     "newArchEnabled": true,
-
     "updates": {
       "url": "https://u.expo.dev/d8c9a220-7647-4af7-906f-8ce3856b7189",
       "fallbackToCacheTimeout": 0,
       "checkAutomatically": "ON_LOAD"
     },
-
     "extra": {
-      "eas": { "projectId": "d8c9a220-7647-4af7-906f-8ce3856b7189" }
+      "eas": {
+        "projectId": "d8c9a220-7647-4af7-906f-8ce3856b7189"
+      }
     }
   }
 }
