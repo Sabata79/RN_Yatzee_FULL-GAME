@@ -94,7 +94,10 @@ export const GameProvider = ({ children }) => {
   useEffect(() => { nextTokenTimeRef.current = nextTokenTime; }, [nextTokenTime]);
 
   // keep prevTokensRef in sync for detecting MAX->MAX-1 transitions
-  useEffect(() => { prevTokensRef.current = typeof prevTokensRef.current === 'number' ? prevTokensRef.current : null; }, []);
+  // store the previous tokens value whenever tokens state changes
+  useEffect(() => {
+    prevTokensRef.current = typeof tokens === 'number' ? tokens : prevTokensRef.current;
+  }, [tokens]);
 
   // Persist nextTokenTime to AsyncStorage when it changes
   useEffect(() => {
@@ -268,9 +271,23 @@ export const GameProvider = ({ children }) => {
             const serverTokens = Number.isFinite(serverObj.tokens) ? serverObj.tokens : (typeof tokensRef.current === 'number' ? tokensRef.current : 0);
             const serverAnchor = Number.isFinite(serverObj.lastTokenDecrement) ? Number(serverObj.lastTokenDecrement) : (typeof lastDecrementRef.current === 'number' ? lastDecrementRef.current : null);
             // If server doesn't have an anchor, treat our anchor as base
-            const baseAnchor = serverAnchor || anchor;
+            // Normalize anchors to numbers. If neither server nor local anchor
+            // is available we must not credit tokens here (prevents huge
+            // backfills when baseAnchor is null).
+            const normalizedServerAnchor = Number.isFinite(serverAnchor) ? Number(serverAnchor) : null;
+            const normalizedAnchor = Number.isFinite(anchor) ? Number(anchor) : null;
+            const baseAnchor = normalizedServerAnchor !== null ? normalizedServerAnchor : (normalizedAnchor !== null ? normalizedAnchor : null);
+            if (baseAnchor === null) {
+              // No authoritative anchor available; do not compute intervals here.
+              return current;
+            }
             const serverElapsed = now - baseAnchor;
-            const serverIntervals = serverAnchor ? Math.floor(serverElapsed / EFFECTIVE_REGEN_INTERVAL) : intervals;
+            let serverIntervals = 0;
+            if (normalizedServerAnchor !== null) {
+              serverIntervals = Math.floor(serverElapsed / EFFECTIVE_REGEN_INTERVAL);
+            } else if (normalizedAnchor !== null) {
+              serverIntervals = intervals;
+            }
             if (serverIntervals <= 0) {
               try {
                 const threshold = 0.95;
