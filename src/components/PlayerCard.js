@@ -20,6 +20,7 @@ import { NBR_OF_SCOREBOARD_ROWS } from '../constants/Game';
 import { PlayercardBg } from '../constants/PlayercardBg';
 import CoinLayer from './CoinLayer';
 import { isBetterScore } from '../utils/scoreUtils';
+import { levelBadgePaths } from '../constants/BadgePaths';
 
 
 export default function PlayerCard({ isModalVisible, setModalVisible }) {
@@ -47,6 +48,8 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
   const [topScores, setTopScores] = useState([]);
   const [isModalModalVisible, setModalModalVisible] = useState(false);
   const [playedGames, setPlayedGames] = useState(0);
+  const [playedGamesOffset, setPlayedGamesOffset] = useState(null); // will store { y, h }
+  const [badgeHeight, setBadgeHeight] = useState(null);
   const [avgPoints, setAvgPoints] = useState(0);
   const [avgDuration, setAvgDuration] = useState(0);
   // storedLevel: undefined = loading, null = loaded but no level
@@ -266,6 +269,12 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
 
   const previousMonthRank = currentMonth > 0 ? monthlyRanks[currentMonth - 1] : '--';
   const levelInfo = getPlayerLevelInfo();
+
+  // badge lookup for current level
+  const badgeHit = (() => {
+    const key = (levelInfo.level || '').toString().toLowerCase();
+    return levelBadgePaths.find(b => (b.level || '').toString().toLowerCase() === key) || null;
+  })();
 
   // Background info — be defensive: levelInfo.level may be null/undefined while
   // the canonical storedLevel is still loading. isDarkBg is computed later
@@ -1033,17 +1042,43 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
                   </View>
 
                   <View style={[playerCardStyles.playerTextContainer]}>
-                    <Text style={[playerCardStyles.playerStat, isDarkBg && playerCardStyles.playerCardTextDark]}>Level: {levelInfo.level}</Text>
+                    <Text style={[playerCardStyles.playerStat, isDarkBg && playerCardStyles.playerCardTextDark, {textAlign: 'center'}]}>Progress:</Text>
                     <View style={playerCardStyles.progressBar}>
                       <View style={[playerCardStyles.progressFill, { width: `${levelInfo.progress * 100}%` }]} />
-                      <Text style={[playerCardStyles.progressPercentageText, isDarkBg && playerCardStyles.playerCardTextDark]}>{Math.floor(levelInfo.progress * 100)}%</Text>
+                      <Text style={playerCardStyles.progressPercentageText}>{Math.floor(levelInfo.progress * 100)}%</Text>
                     </View>
                     <View style={playerCardStyles.playerStatsContainer}>
                       <Text style={[playerCardStyles.playerStat, isDarkBg && playerCardStyles.playerCardTextDark]}>All Time Rank: {viewingAllTimeRank}</Text>
                       <Text style={[playerCardStyles.playerStat, isDarkBg && playerCardStyles.playerCardTextDark]}>Weekly Wins: {weeklyWins}</Text>
-                      <Text style={[playerCardStyles.playerStat, isDarkBg && playerCardStyles.playerCardTextDark]}>Played Games: {playedGames}</Text>
+                      <View onLayout={(e) => setPlayedGamesOffset({ y: e.nativeEvent.layout.y, h: e.nativeEvent.layout.height })} style={{ alignSelf: 'flex-start' }}>
+                        <Text style={[playerCardStyles.playerStat, isDarkBg && playerCardStyles.playerCardTextDark]}>Played Games: {playedGames}</Text>
+                      </View>
                       <Text style={[playerCardStyles.playerStat, isDarkBg && playerCardStyles.playerCardTextDark]}>Avg. Points/Game: {avgPoints}</Text>
                       <Text style={[playerCardStyles.playerStat, isDarkBg && playerCardStyles.playerCardTextDark]}>Avg Duration/Game: {avgDuration} s</Text>
+
+                      {/* Absolute badge positioned to the right of the stats container, vertically aligned with Played Games */}
+                      {badgeHit && badgeHit.display && playedGamesOffset !== null && (
+                        (() => {
+                          const fallbackBadgeH = 80; // matches playerStatsBadgeAbsolute in styles
+                          const badgeH = badgeHeight !== null ? badgeHeight : fallbackBadgeH;
+                          const top = Math.max(0, Math.round(playedGamesOffset.y + (playedGamesOffset.h / 2) - (badgeH / 2)));
+                          return (
+                            <Image
+                              source={badgeHit.display}
+                              resizeMode="cover"
+                              onLayout={(e) => {
+                                  const h = Math.round(e.nativeEvent.layout.height || 0);
+                                  const prev = Math.round(badgeHeight || 0);
+                                  // Only update if change is significant (>1px) to avoid jitter
+                                  if (h > 0 && Math.abs(h - prev) > 1) {
+                                    setBadgeHeight(h);
+                                  }
+                                }}
+                              style={[playerCardStyles.playerStatsBadgeAbsolute, { top }]}
+                            />
+                          );
+                        })()
+                      )}
                     </View>
                   </View>
                 </View>

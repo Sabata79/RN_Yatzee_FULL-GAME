@@ -33,7 +33,6 @@ import { useIsFocused } from '@react-navigation/native';
 import { useAudio } from '../services/AudioManager';
 import COLORS from "../constants/colors";
 import BackgroundVideo from '../components/BackgroundVideo';
-import { levelBadgePaths } from "../constants/BadgePaths";
 
 // --- Helper: image preloader (require-asset or URL) ---
 const cacheImages = (images) => {
