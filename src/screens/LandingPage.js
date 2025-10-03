@@ -23,6 +23,7 @@ import styles from "../styles/LandingPageStyles";
 import Constants from "expo-constants";
 import { Asset } from "expo-asset";
 import { avatars } from "../constants/AvatarPaths";
+import { levelBadgePaths } from "../constants/BadgePaths";
 import { PlayercardBg } from "../constants/PlayercardBg";
 import { additionalImages } from "../constants/AdditionalImages";
 import { fetchRemoteConfig } from "../services/RemoteConfigService";
@@ -32,6 +33,7 @@ import { useIsFocused } from '@react-navigation/native';
 import { useAudio } from '../services/AudioManager';
 import COLORS from "../constants/colors";
 import BackgroundVideo from '../components/BackgroundVideo';
+import { levelBadgePaths } from "../constants/BadgePaths";
 
 // --- Helper: image preloader (require-asset or URL) ---
 const cacheImages = (images) => {
@@ -300,7 +302,7 @@ export default function LandingPage({ navigation }) {
 
         // Preload images (explicitly include medals to be safe)
         await step("Preloading images & sounds", async () => {
-          const allImages = [...avatars, ...PlayercardBg, ...additionalImages, ...Animations];
+          const allImages = [...avatars, ...PlayercardBg, ...additionalImages, ...Animations, ...levelBadgePaths];
           const results = await Promise.allSettled(cacheImages(allImages));
           const failed = results.filter(r => r.status === 'rejected');
           if (failed.length) {
@@ -382,39 +384,6 @@ export default function LandingPage({ navigation }) {
             setScoreboardData([]);
           }
         });
-
-        /*
-        // Original full-scan implementation (commented out)
-        Object.keys(playersData).forEach(playerId => {
-          const player = playersData[playerId];
-          if (player.scores) {
-            const scoresToUse = Object.values(player.scores);
-            if (scoresToUse.length > 0) {
-              let bestScore = null;
-              scoresToUse.forEach(score => {
-                if (
-                  !bestScore ||
-                  score.points > bestScore.points ||
-                  (score.points === bestScore.points && score.duration < bestScore.duration) ||
-                  (score.points === bestScore.points && score.duration === bestScore.duration &&
-                    new Date(score.date) < new Date(bestScore.date))
-                ) {
-                  bestScore = score;
-                }
-              });
-              if (bestScore) {
-                tmpScores.push({
-                  ...bestScore,
-                  name: player.name,
-                  playerId,
-                  avatar: player.avatar || null,
-                  scores: Object.values(player.scores),
-                });
-              }
-            }
-          }
-        });
-        */
 
         setBootDone(true);
       } catch (error) {
