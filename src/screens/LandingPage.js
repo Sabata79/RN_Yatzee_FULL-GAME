@@ -32,7 +32,6 @@ import { useIsFocused } from '@react-navigation/native';
 
 import { useAudio } from '../services/AudioManager';
 import COLORS from "../constants/colors";
-import BackgroundVideo from '../components/BackgroundVideo';
 
 // --- Helper: image preloader (require-asset or URL) ---
 const cacheImages = (images) => {
@@ -406,7 +405,6 @@ export default function LandingPage({ navigation }) {
 
   return (
     <View style={{ flex: 1 }}>
-      <BackgroundVideo isActive />
       <Animated.View style={[styles.container, { backgroundColor: 'transparent', opacity: fadeAnim }]}>
         {/* Hidden restore modal: reveal by long-pressing version text (safe fallback for users/devs) */}
           <View style={[styles.versionContainer]}>

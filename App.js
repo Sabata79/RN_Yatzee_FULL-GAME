@@ -33,6 +33,7 @@ import { ElapsedTimeProvider } from './src/constants/ElapsedTimeContext';
 import { AudioProvider } from './src/services/AudioManager';
 import LandingPage from './src/screens/LandingPage';
 import Home from './src/screens/Home';
+import BackgroundWrapper from './src/components/BackgroundWrapper';
 import Gameboard from './src/screens/Gameboard';
 import Scoreboard from './src/components/ScoreboardTabs';
 import SettingScreen from './src/screens/SettingScreen';
@@ -94,6 +95,31 @@ function AppShell() {
       sub?.remove?.();
     };
   }, [applyHidden]);
+
+  // Track current route so we can keep a single BackgroundVideo instance mounted
+  const [routeName, setRouteName] = React.useState('');
+  const navigationRef = React.useRef(null);
+  const [bgActive, setBgActive] = React.useState(false);
+  const bgTimeoutRef = React.useRef(null);
+  React.useEffect(() => {
+    const shouldBeActive = routeName === 'LandingPage' || routeName === 'Home';
+    if (shouldBeActive) {
+      // Cancel any pending disable
+      if (bgTimeoutRef.current) {
+        clearTimeout(bgTimeoutRef.current);
+        bgTimeoutRef.current = null;
+      }
+      setBgActive(true);
+      return;
+    }
+    // Delay disabling to avoid flicker on quick transitions
+    if (bgTimeoutRef.current) clearTimeout(bgTimeoutRef.current);
+    bgTimeoutRef.current = setTimeout(() => {
+      setBgActive(false);
+      bgTimeoutRef.current = null;
+    }, 600);
+    return () => { if (bgTimeoutRef.current) { clearTimeout(bgTimeoutRef.current); bgTimeoutRef.current = null; } };
+  }, [routeName]);
 
   const handleUpdate = async () => {
     const url = 'https://play.google.com/store/apps/details?id=com.SimpleYatzee';
@@ -220,10 +246,20 @@ function AppShell() {
         </View>
       </Modal>
 
-      <NavigationContainer
+      <BackgroundWrapper isActive={bgActive}>
+        <NavigationContainer
+        ref={navigationRef}
         theme={navTheme}
-        onReady={() => setTimeout(applyHidden, 50)}
-        onStateChange={() => setTimeout(applyHidden, 50)}
+        onReady={() => {
+          setTimeout(applyHidden, 50);
+          const route = navigationRef.current?.getCurrentRoute?.();
+          setRouteName(route?.name || '');
+        }}
+        onStateChange={() => {
+          setTimeout(applyHidden, 50);
+          const route = navigationRef.current?.getCurrentRoute?.();
+          setRouteName(route?.name || '');
+        }}
       >
         <Stack.Navigator
           screenOptions={{
@@ -242,7 +278,8 @@ function AppShell() {
             {() => <TabNavigator />}
           </Stack.Screen>
         </Stack.Navigator>
-      </NavigationContainer>
+        </NavigationContainer>
+      </BackgroundWrapper>
 
       {/* Edge-to-edge: translucent so content can draw behind, we pad only where needed */}
       <StatusBar style="light" translucent backgroundColor="transparent" />

@@ -28,7 +28,6 @@ import RecoverModal from "../components/modals/RecoverModal";
 import PlayerCard from "../components/PlayerCard";
 import HomeScreenButton from "../components/HomeScreenButton";
 import { useAudio } from '../services/AudioManager';
-import BackgroundVideo from '../components/BackgroundVideo';
 import CustomKeyboard from '../components/CustomKeyboard'; // ⬅ custom keyboard
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { MAX_TOKENS } from "../constants/Game";
@@ -272,7 +271,6 @@ export default function Home({ setPlayerId }) {
 
   return (
     <View style={{ flex: 1 }}>
-      <BackgroundVideo isActive={isFocused} />
       <Animated.View style={[homeStyles.homeContainer, { opacity: fadeAnim }, containerLayoutStyle]}>
         {!userRecognized ? (
           <View style={{ width: '100%', alignItems: 'center' }}>

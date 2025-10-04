@@ -13,6 +13,11 @@ import { VideoView, useVideoPlayer } from 'expo-video';
 
 
 export default function BackgroundVideo({ isActive = true }) {
+  // Allow disabling the background video during profiling or when running CI/dev diagnostics.
+  // Set environment variable DISABLE_BG_VIDEO=1 or global __DISABLE_BG_VIDEO__ = true to disable.
+  const disableFlag = (typeof __DEV__ !== 'undefined' && typeof __DISABLE_BG_VIDEO__ !== 'undefined' && __DISABLE_BG_VIDEO__) || process.env.DISABLE_BG_VIDEO === '1';
+  if (disableFlag) return null;
+
   const player = useVideoPlayer(require('../../assets/video/newBGVideo.m4v'), (p) => {
     p.loop = true;
     p.muted = true;
@@ -34,7 +39,7 @@ export default function BackgroundVideo({ isActive = true }) {
     <View pointerEvents="none" style={StyleSheet.absoluteFill}>
       {/* Solid fallback so transparent roots never show white */}
       <View style={[StyleSheet.absoluteFill, { backgroundColor: '#253445' }]} />
-      {player ? (
+      {player && isActive ? (
         <VideoView
           player={player}
           style={StyleSheet.absoluteFill}
