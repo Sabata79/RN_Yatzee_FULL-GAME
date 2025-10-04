@@ -629,8 +629,8 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
         setViewingAllTimeRank(' - ');
         return;
       }
-      const playersData = snapshot.val();
-      const bestScores = Object.entries(playersData).map(([pId, data]) => {
+  const playersData = snapshot.val() || {};
+  const bestScores = Object.entries(playersData).map(([pId, data]) => {
         const at = data.allTimeBest || null;
         if (at && typeof at.points === 'number') {
           return { playerId: pId, maxScore: Number(at.points) };

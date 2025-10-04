@@ -202,7 +202,7 @@ export function useGameSave() {
   // Recompute ranks (all-time/monthly/weekly) and update lastRank
         try {
           const allPlayersSnap = await dbGet('players');
-          const allPlayers = allPlayersSnap.val() || {};
+          const allPlayers = allPlayersSnap && typeof allPlayersSnap.val === 'function' ? (allPlayersSnap.val() || {}) : (allPlayersSnap || {});
           const nowDate = new Date();
           const currentMonth = nowDate.getMonth();
           const currentYear = nowDate.getFullYear();

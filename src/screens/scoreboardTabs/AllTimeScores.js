@@ -11,34 +11,13 @@ import { View, ScrollView, Text, Image } from 'react-native';
 import { useGame } from '../../constants/GameContext';
 import { DataTable } from 'react-native-paper';
 import { FontAwesome5 } from '@expo/vector-icons';
-import { onCombinedPresenceChange } from '../../services/Presence';
 import scoreboardStyles from '../../styles/ScoreboardScreenStyles';
 import { NBR_OF_SCOREBOARD_ROWS } from '../../constants/Game';
 
 const getDurationDotColor = (secs) => (secs > 150 ? '#e53935' : secs > 100 ? '#ffa000' : '#2e7d32');
 
 export default function AllTimeScores({ rows = [], avatarMap, getAvatarStyle, openPlayerCard, insets = { bottom: 0 }, tabBarHeight = 0, userId, listRef }) {
-  const { scoreboardData, playerId } = useGame();
-  const [presenceMap, setPresenceMap] = useState({});
-
-  useEffect(() => {
-    let unsub = null;
-    (async () => {
-      try {
-        unsub = await onCombinedPresenceChange((map) => {
-          setPresenceMap(map || {});
-        });
-      } catch (e) {
-        // ignore
-      }
-    })();
-
-    return () => {
-      try {
-        if (typeof unsub === 'function') unsub();
-      } catch (e) {}
-    };
-  }, []);
+  const { scoreboardData, playerId, presenceMap } = useGame();
   const effectiveRows = (rows && rows.length) ? rows : scoreboardData || [];
   const effectiveUserId = userId || playerId;
   const listTableHeader = () => (

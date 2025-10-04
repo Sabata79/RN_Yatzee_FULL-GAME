@@ -27,6 +27,7 @@ import { MAX_TOKENS } from './Game';
 
 // Regeneration constants (follow repo convention)
 const REGEN_INTERVAL = 1.6 * 60 * 60 * 1000; // 1.6 hours
+// const REGEN_INTERVAL = 1 * 60 * 1000; // 1 minute --- IGNORE ---
 const EFFECTIVE_REGEN_INTERVAL = REGEN_INTERVAL;
 const MAX_NEXT_TOKEN_FUTURE = 24 * 60 * 60 * 1000; // guard for obviously-future timestamps
 
@@ -68,9 +69,9 @@ export const GameProvider = ({ children }) => {
       setGameStarted(true);
       setGameEnded(false);
       if (typeof startGameCb === 'function') {
-        try { startGameCb(); } catch (e) {}
+        try { startGameCb(); } catch (e) { }
       }
-    } catch (e) {}
+    } catch (e) { }
   }, [startGameCb]);
 
   const endGame = useCallback(() => {
@@ -78,9 +79,9 @@ export const GameProvider = ({ children }) => {
       setGameEnded(true);
       setGameStarted(false);
       if (typeof endGameCb === 'function') {
-        try { endGameCb(); } catch (e) {}
+        try { endGameCb(); } catch (e) { }
       }
-    } catch (e) {}
+    } catch (e) { }
   }, [endGameCb]);
 
   const saveGame = useCallback(() => { setIsGameSaved(true); }, []);
@@ -109,6 +110,8 @@ export const GameProvider = ({ children }) => {
   const [scoreboardIndices, setScoreboardIndices] = useState({ allTime: -1, monthly: -1, weekly: -1 });
   const [viewingPlayerId, setViewingPlayerId] = useState(null);
   const [viewingPlayerName, setViewingPlayerName] = useState(null);
+  // centralized presence map (merged top-level + embedded)
+  const [presenceMap, setPresenceMap] = useState({});
 
   // ----- Scoreboard listener: compute all-time, monthly and weekly slices -----
   // Prefer per-player aggregates (allTimeBest/monthlyBest/weeklyBest) when
@@ -116,13 +119,16 @@ export const GameProvider = ({ children }) => {
   // not provide aggregates (legacy data). This avoids missing recently
   // recorded aggregates when individual `scores` entries are not present.
   useEffect(() => {
-    let unsub = null;
-    const handle = (snapshot) => {
+    let unsubPlayers = null;
+    let presenceUnsub = null;
+
+    const handlePlayers = (snapshot) => {
       try {
         const all = snapshot && typeof snapshot.val === 'function' ? snapshot.val() : snapshot || {};
         const now = new Date();
         const currentMonth = now.getMonth();
         const currentYear = now.getFullYear();
+
         const getWeekNumber = (date) => {
           const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
           const dayNum = d.getUTCDay() || 7;
@@ -175,7 +181,7 @@ export const GameProvider = ({ children }) => {
                 if (d.getMonth() === currentMonth && d.getFullYear() === currentYear) {
                   return (best == null || isBetterScore(s, best)) ? s : best;
                 }
-              } catch (e) {}
+              } catch (e) { }
               return best;
             }, null);
             const bestWeekFromScores = scores.reduce((best, s) => {
@@ -186,7 +192,7 @@ export const GameProvider = ({ children }) => {
                 if (getWeekNumber(d) === currentWeek && d.getFullYear() === currentYear) {
                   return (best == null || isBetterScore(s, best)) ? s : best;
                 }
-              } catch (e) {}
+              } catch (e) { }
               return best;
             }, null);
 
@@ -222,33 +228,70 @@ export const GameProvider = ({ children }) => {
         tmpMon.sort(compare);
         tmpWeek.sort(compare);
 
-        setScoreboardData(tmpAll);
-        setScoreboardMonthly(tmpMon);
-        setScoreboardWeekly(tmpWeek);
+        // Avoid unnecessary state updates: only set when content actually differs
+        const arraysEqual = (a, b) => {
+          if (a === b) return true;
+          if (!Array.isArray(a) || !Array.isArray(b)) return false;
+          if (a.length !== b.length) return false;
+          for (let i = 0; i < a.length; i++) {
+            const ai = a[i]; const bi = b[i];
+            if (!ai || !bi) return false;
+            if (ai.playerId !== bi.playerId || (ai.points || 0) !== (bi.points || 0) || (ai.duration || 0) !== (bi.duration || 0)) return false;
+          }
+          return true;
+        };
+
+        setScoreboardData((prev) => arraysEqual(prev, tmpAll) ? prev : tmpAll);
+        setScoreboardMonthly((prev) => arraysEqual(prev, tmpMon) ? prev : tmpMon);
+        setScoreboardWeekly((prev) => arraysEqual(prev, tmpWeek) ? prev : tmpWeek);
 
         const idxAll = tmpAll.findIndex((s) => s.playerId === playerId);
         const idxMon = tmpMon.findIndex((s) => s.playerId === playerId);
         const idxWeek = tmpWeek.findIndex((s) => s.playerId === playerId);
-        setScoreboardIndices({ allTime: idxAll, monthly: idxMon, weekly: idxWeek });
+        setScoreboardIndices((prev) => {
+          if (prev.allTime === idxAll && prev.monthly === idxMon && prev.weekly === idxWeek) return prev;
+          return { allTime: idxAll, monthly: idxMon, weekly: idxWeek };
+        });
       } catch (e) {
-        // ignore
+        // ignore per-listener errors
       }
     };
 
     try {
-      unsub = dbOnValue('players', handle);
+      unsubPlayers = dbOnValue('players', handlePlayers);
     } catch (e) {
       // ignore
     }
 
+    // Subscribe to combined presence index and update centralized presenceMap
+    (async () => {
+      try {
+        const { onCombinedPresenceChange } = await import('../services/Presence');
+        presenceUnsub = await onCombinedPresenceChange((map) => {
+          try {
+            const newMap = map || {};
+            // Use functional updater so we always compare to the latest prev state
+            setPresenceMap((prev) => {
+              const prevMap = prev || {};
+              const pKeys = Object.keys(prevMap);
+              const nKeys = Object.keys(newMap);
+              if (pKeys.length !== nKeys.length) return newMap;
+              for (let k of pKeys) {
+                const a = prevMap[k]; const b = newMap[k];
+                if (!b || !!a.online !== !!b.online || (a.lastSeen || 0) !== (b.lastSeen || 0)) return newMap;
+              }
+              return prevMap; // unchanged
+            });
+          } catch (e) { /* ignore */ }
+        });
+      } catch (e) { /* ignore */ }
+    })();
+
     return () => {
-      try { if (typeof unsub === 'function') unsub(); else dbOff('players', handle); } catch (e) { }
+      try { if (typeof unsubPlayers === 'function') unsubPlayers(); else dbOff('players', handlePlayers); } catch (e) { }
+      try { if (presenceUnsub && typeof presenceUnsub === 'function') presenceUnsub(); } catch (e) { }
     };
   }, [playerId]);
-
-  // keep local refs in sync with state
-  useEffect(() => { tokensRef.current = tokens; }, [tokens]);
-  useEffect(() => { nextTokenTimeRef.current = nextTokenTime; }, [nextTokenTime]);
 
   // Authoritative token computation that runs a transaction on players/{playerId}
   const computeAndApplyTokens = useCallback(async () => {
@@ -261,7 +304,7 @@ export const GameProvider = ({ children }) => {
       const tx = await dbRunTransaction(playerPath, (current) => {
         const p = current || {};
         const serverTokens = Number.isFinite(p.tokens) ? p.tokens : (Number.isFinite(tokensRef.current) ? tokensRef.current : 0);
-  const anchorRaw = Number.isFinite(p.tokensLastAnchor) ? p.tokensLastAnchor : (Number.isFinite(p.lastTokenDecrement) ? p.lastTokenDecrement : (Number.isFinite(lastDecrementRef.current) ? lastDecrementRef.current : null));
+        const anchorRaw = Number.isFinite(p.tokensLastAnchor) ? p.tokensLastAnchor : (Number.isFinite(p.lastTokenDecrement) ? p.lastTokenDecrement : (Number.isFinite(lastDecrementRef.current) ? lastDecrementRef.current : null));
         const anchor = Number.isFinite(anchorRaw) ? Number(anchorRaw) : null;
 
         let intervals = 0;
@@ -280,17 +323,17 @@ export const GameProvider = ({ children }) => {
           }
         }
 
-        if (intervals <= 0) return p;
+  if (intervals <= 0) return p;
 
         const newTokens = Math.min(serverTokens + intervals, MAX_TOKENS);
         const out = { ...p, tokens: newTokens };
         if (newTokens >= MAX_TOKENS) {
           out.tokensLastAnchor = null;
-          out.nextTokenTime = null;
+          // intentionally do not set out.nextTokenTime here; UI will compute display from tokensLastAnchor
         } else {
           const base = anchor || now;
           out.tokensLastAnchor = base + intervals * EFFECTIVE_REGEN_INTERVAL;
-          out.nextTokenTime = new Date(out.tokensLastAnchor + EFFECTIVE_REGEN_INTERVAL).toISOString();
+          // do not write nextTokenTime; keep DB schema minimal and authoritative anchor is tokensLastAnchor
         }
         return out;
       });
@@ -298,26 +341,17 @@ export const GameProvider = ({ children }) => {
       // update local view from transaction result
       try {
         const after = tx && tx.snapshot && typeof tx.snapshot.val === 'function' ? tx.snapshot.val() : (tx || null);
-  const serverTokens = after && Number.isFinite(after.tokens) ? after.tokens : tokensRef.current;
-  const serverAnchor = after && Number.isFinite(after.tokensLastAnchor) ? after.tokensLastAnchor : null;
+        const serverTokens = after && Number.isFinite(after.tokens) ? after.tokens : tokensRef.current;
+        const serverAnchor = after && Number.isFinite(after.tokensLastAnchor) ? after.tokensLastAnchor : null;
 
         manualChangeRef.current = Date.now();
         setTokens(serverTokens);
         tokensRef.current = serverTokens;
         lastDecrementRef.current = serverAnchor;
 
-        if (serverTokens >= MAX_TOKENS) {
-          setNextTokenTime(null);
-          nextTokenTimeRef.current = null;
-        } else if (serverAnchor) {
-          const nt = new Date(serverAnchor + EFFECTIVE_REGEN_INTERVAL);
-          setNextTokenTime(nt);
-          nextTokenTimeRef.current = nt;
-        }
-
-        // best-effort mirror and audit write
+        // best-effort mirror and audit write (do NOT write nextTokenTime anymore)
         try {
-          await dbUpdate(`players/${playerId}`, { tokens: serverTokens, tokensLastAnchor: serverAnchor !== null ? serverAnchor : null, nextTokenTime: after?.nextTokenTime || null });
+          await dbUpdate(`players/${playerId}`, { tokens: serverTokens, tokensLastAnchor: serverAnchor !== null ? serverAnchor : null });
         } catch (e) { /* best-effort */ }
         try {
           await dbSet(`tokenAudit/${playerId}/${Date.now()}`, { actor: 'client', source: 'computeAndApplyTokens', tokens: serverTokens, ts: Date.now() });
@@ -326,9 +360,19 @@ export const GameProvider = ({ children }) => {
         // ignore mapping failures
       }
     } catch (e) {
-      // keep error localized
-      // eslint-disable-next-line no-console
-      console.warn('[GameContext] computeAndApplyTokens error', e);
+      // keep error localized; ignore transaction 'overridden-by-set' noise
+      try {
+        const code = e && (e.code || e.message || '');
+        if (String(code).includes('overridden-by-set')) {
+          // noisy: another client called set() during our transaction; safe to ignore
+        } else {
+          // eslint-disable-next-line no-console
+          console.warn('[GameContext] computeAndApplyTokens error', e);
+        }
+      } catch (inner) {
+        // eslint-disable-next-line no-console
+        console.warn('[GameContext] computeAndApplyTokens error', e);
+      }
     }
   }, [playerId]);
 
@@ -357,7 +401,7 @@ export const GameProvider = ({ children }) => {
       } catch (e) { /* best-effort */ }
     })();
 
-    const id = setInterval(() => { computeAndApplyTokens().catch(() => {}); }, 1000);
+    const id = setInterval(() => { computeAndApplyTokens().catch(() => { }); }, 1000);
 
     return () => {
       try { if (typeof unsub === 'function') unsub(); else dbOff(path, handle); } catch (e) { }
@@ -379,7 +423,95 @@ export const GameProvider = ({ children }) => {
     })();
   }, [playerId, tokens]);
 
-  const triggerTokenRecalc = useCallback(() => { computeAndApplyTokens().catch(() => {}); }, [computeAndApplyTokens]);
+  // Update human-readable countdown (HH:MM:SS) for timeToNextToken
+  useEffect(() => {
+    if (!playerId) {
+      setTimeToNextToken('');
+      return undefined;
+    }
+
+    let mounted = true;
+    const tick = () => {
+      try {
+        const now = Date.now() + (serverOffsetRef.current || 0);
+        const curTokens = typeof tokensRef.current === 'number' ? tokensRef.current : 0;
+
+  // Debug logs removed in production
+
+        if (curTokens >= MAX_TOKENS) {
+          if (mounted) setTimeToNextToken('');
+          return;
+        }
+
+        // Prefer authoritative anchor: lastDecrementRef (tokensLastAnchor). Treat nextTokenTime as diagnostic only.
+        let nextMs = null;
+        let usedSource = null;
+        if (typeof lastDecrementRef.current === 'number') {
+          nextMs = (lastDecrementRef.current + EFFECTIVE_REGEN_INTERVAL) - now;
+          usedSource = 'lastDecrement';
+        } else {
+          // fallback: use manualChange or nextTokenTime if present
+          const anchorCandidate = (typeof manualChangeRef.current === 'number') ? manualChangeRef.current : null;
+          if (anchorCandidate) {
+            nextMs = (anchorCandidate + EFFECTIVE_REGEN_INTERVAL) - now;
+            usedSource = 'manualChange';
+          } else {
+            const next = nextTokenTimeRef.current instanceof Date ? nextTokenTimeRef.current.getTime() : (nextTokenTimeRef.current ? new Date(nextTokenTimeRef.current).getTime() : null);
+            if (next && !isNaN(next)) {
+              nextMs = next - now;
+              usedSource = 'nextTokenTime';
+            } else {
+              nextMs = EFFECTIVE_REGEN_INTERVAL;
+              usedSource = 'default';
+            }
+          }
+        }
+
+  // Debug logs removed in production
+
+        // If database still contains nextTokenTime, warn if it materially disagrees with authoritative anchor
+        try {
+          const dbNext = nextTokenTimeRef.current instanceof Date ? nextTokenTimeRef.current.getTime() : (nextTokenTimeRef.current ? new Date(nextTokenTimeRef.current).getTime() : null);
+          if (dbNext && usedSource !== 'nextTokenTime') {
+            const diff = Math.abs(dbNext - (now + nextMs));
+            if (diff > EFFECTIVE_REGEN_INTERVAL * 0.5) {
+              console.warn('[GameContext.timer] nextTokenTime in DB disagrees with tokensLastAnchor by ms:', diff, { dbNext, computedFrom: usedSource });
+            }
+          }
+        } catch (err) { /* ignore */ }
+
+        if (nextMs <= 0) {
+          if (mounted) setTimeToNextToken('00:00:00');
+          return;
+        }
+
+        const totalSec = Math.floor(nextMs / 1000);
+        const hh = Math.floor(totalSec / 3600);
+        const mm = Math.floor((totalSec % 3600) / 60);
+        const ss = totalSec % 60;
+        let str;
+        if (hh > 0) str = `${hh}:${String(mm).padStart(2, '0')}:${String(ss).padStart(2, '0')}`;
+        else str = `${String(mm)}:${String(ss).padStart(2, '0')}`;
+
+  // Debug logs removed in production
+
+        if (mounted) setTimeToNextToken(str);
+      } catch (e) { /* ignore */ }
+    };
+
+    tick();
+    let timer = null;
+    const schedule = () => {
+      const nowMs = Date.now();
+      const delay = 1000 - (nowMs % 1000) || 1000;
+  // Debug logs removed in production
+      timer = setTimeout(() => { tick(); schedule(); }, delay);
+    };
+    schedule();
+    return () => { mounted = false; if (timer) clearTimeout(timer); };
+  }, [playerId]);
+
+  const triggerTokenRecalc = useCallback(() => { computeAndApplyTokens().catch(() => { }); }, [computeAndApplyTokens]);
 
   // Stabilize tokens on-demand (used by boot flows)
   const stabilizeTokensOnBoot = useCallback(async () => {
@@ -397,8 +529,8 @@ export const GameProvider = ({ children }) => {
     setPlayerId,
     playerName,
     setPlayerName,
-  avatarUrl,
-  setAvatarUrl,
+    avatarUrl,
+    setAvatarUrl,
     // alternate identity/context helpers
     playerIdContext,
     setPlayerIdContext,
@@ -424,32 +556,33 @@ export const GameProvider = ({ children }) => {
     setNextTokenTime,
     triggerTokenRecalc,
     stabilizeTokensOnBoot,
-  // game lifecycle
-  gameStarted,
-  gameEnded,
-  startGame,
-  endGame,
-  totalPoints,
-  setTotalPoints,
-  isGameSaved,
-  setIsGameSaved,
-  saveGame,
-  startGameCb,
-  setStartGameCb,
-  endGameCb,
-  setEndGameCb,
-  markManualChange,
-  // UI bits
-  energyModalVisible,
-  setEnergyModalVisible,
-  timeToNextToken,
-  setTimeToNextToken,
+    // game lifecycle
+    gameStarted,
+    gameEnded,
+    startGame,
+    endGame,
+    totalPoints,
+    setTotalPoints,
+    isGameSaved,
+    setIsGameSaved,
+    saveGame,
+    startGameCb,
+    setStartGameCb,
+    endGameCb,
+    setEndGameCb,
+    markManualChange,
+    // UI bits
+    energyModalVisible,
+    setEnergyModalVisible,
+    timeToNextToken,
+    setTimeToNextToken,
 
     // scoreboard & viewing helpers
     scoreboardData,
     setScoreboardData,
     scoreboardMonthly,
     setScoreboardMonthly,
+    presenceMap,
     scoreboardWeekly,
     setScoreboardWeekly,
     scoreboardIndices,
@@ -470,8 +603,10 @@ export const GameProvider = ({ children }) => {
     gameVersionCode,
     tokens,
     tokensStabilized,
-    nextTokenTime,
-    triggerTokenRecalc,
+  nextTokenTime,
+  timeToNextToken,
+  setTimeToNextToken,
+  triggerTokenRecalc,
     stabilizeTokensOnBoot,
     scoreboardData,
     scoreboardMonthly,
@@ -485,4 +620,4 @@ export const GameProvider = ({ children }) => {
 };
 
 export default GameProvider;
- 
+

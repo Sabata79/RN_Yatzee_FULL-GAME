@@ -6,7 +6,7 @@
  * @since 2025-09-23
  * @updated 2025-09-25
  */
-import { dbOnValue, dbSet, dbRef, dbGet } from './Firebase';
+import { dbOnValue, dbSet, dbRef, dbGet, auth } from './Firebase';
 import { onDisconnect } from '@react-native-firebase/database';
 
 // Helper: format timestamp to dd.mm.yyyy / hh.mm.ss (24h)
@@ -208,7 +208,52 @@ export function setPresence(playerId, online = true, meta = {}) {
 export async function goOnline(playerId, meta = {}) {
   const path = `${PRESENCE_ROOT}/${playerId}`;
   // set online now (include optional meta such as gameVersion)
-  await setPresence(playerId, true, meta);
+  try {
+    await setPresence(playerId, true, meta);
+  } catch (e) {
+    // if top-level write was rejected due to security rules, we'll attempt a guarded
+    // fallback to write presence under the player's embedded node (players/{playerId}/presence)
+    // but only when the current auth user matches playerId. This avoids allowing
+    // arbitrary clients to write other players' presence.
+    try {
+      if (e && e.code && String(e.code).includes('permission-denied')) {
+        const current = auth && auth().currentUser;
+        if (current && String(current.uid) === String(playerId)) {
+          const ts = Date.now();
+          const payload = { online: true, lastSeen: ts, lastSeenHuman: formatLastSeen(ts), ...(meta && typeof meta === 'object' ? meta : {}) };
+          const embeddedPath = `${PLAYER_ROOT}/${playerId}/presence`;
+          await dbSet(embeddedPath, payload);
+          // try schedule onDisconnect on embedded path if possible
+          try {
+            const r2 = dbRef(embeddedPath);
+            const od2 = onDisconnect(r2);
+            if (od2 && typeof od2.set === 'function') {
+              const t2 = Date.now();
+              const offPayload = { online: false, lastSeen: t2, lastSeenHuman: formatLastSeen(t2), ...(meta && typeof meta === 'object' ? meta : {}) };
+              od2.set(offPayload);
+            }
+            // return cleanup that cancels od2 and writes offline
+            return async () => {
+              try { if (od2 && typeof od2.cancel === 'function') await od2.cancel(); } catch (er) {}
+              try { await dbSet(embeddedPath, { online: false, lastSeen: Date.now(), lastSeenHuman: formatLastSeen(Date.now()) }); } catch (er) {}
+            };
+          } catch (inner) {
+            // even if onDisconnect fails, return cleanup that sets offline
+            return async () => {
+              try { await dbSet(embeddedPath, { online: false, lastSeen: Date.now(), lastSeenHuman: formatLastSeen(Date.now()) }); } catch (er) {}
+            };
+          }
+        }
+      }
+    } catch (fallbackErr) {
+      // swallow fallback errors and continue to top-level cleanup below
+    }
+    // if we couldn't write top-level or embedded, still return a cleanup that
+    // will try to set top-level presence offline (best-effort)
+    return async () => {
+      try { await setPresence(playerId, false); } catch (er) { /* ignore */ }
+    };
+  }
 
   try {
     const r = dbRef(path);
