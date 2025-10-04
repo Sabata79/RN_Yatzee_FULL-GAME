@@ -426,7 +426,7 @@ const playerCardStyles = StyleSheet.create({
         textAlign: 'left',
         width: '100%',
         paddingBottom: 1,
-        alignSelf: 'flex-start', // force left alignment within any parent
+        alignSelf: 'flex-start',
     },
     progressBar: {
         width: '95%',
@@ -438,7 +438,7 @@ const playerCardStyles = StyleSheet.create({
         borderWidth: 0.5,
         borderBottomWidth: 0,
         marginBottom: 4,
-        alignSelf: 'center', 
+        alignSelf: 'center',
         justifyContent: 'center',
     },
     progressFill: {
