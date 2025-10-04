@@ -242,244 +242,96 @@ export const GameProvider = ({ children }) => {
 
   // Authoritative compute function in GameContext
   const computeAndApplyTokens = async () => {
+
     try {
+      if (!playerId) return;
       const now = Date.now() + (serverOffsetRef.current || 0);
-      const currentTokens = typeof tokensRef.current === 'number' ? tokensRef.current : 0;
-
-      // Prefer authoritative anchor: lastTokenDecrement
-      const anchor = typeof lastDecrementRef.current === 'number' ? lastDecrementRef.current : null;
-
-      if (anchor) {
-        // Compute how many intervals have passed since anchor
-        const elapsed = now - anchor;
-        if (elapsed < EFFECTIVE_REGEN_INTERVAL) return; // not enough time passed
-        if (manualChangeRef.current && Date.now() - manualChangeRef.current < 2000) return;
-
-        const intervals = Math.floor(elapsed / EFFECTIVE_REGEN_INTERVAL);
-        if (intervals <= 0) return;
-
-        // Use a dedicated child path for token transactions to avoid being
-        // overridden by unrelated sets on other children (presence/nextTokenTime/etc).
-        // We still mirror results back to legacy fields after the transaction
-        // so other clients remain compatible.
-        if (!playerId) return;
-        try {
-          const atomicPath = `players/${playerId}/tokensAtomic`;
-          const txResult = await dbRunTransaction(atomicPath, (current) => {
-            // current is the value at players/{playerId}/tokensAtomic (or null)
-            const serverObj = current || {};
-            const hasServerTokens = Number.isFinite(serverObj.tokens);
-            const hasLocalTokens = typeof tokensRef.current === 'number';
-            // If neither the server nor local state has a known tokens value, avoid
-            // crediting a possibly-large backlog on first-boot. Require an
-            // authoritative tokens number before computing large intervals.
-            const serverTokens = hasServerTokens ? serverObj.tokens : (hasLocalTokens ? tokensRef.current : null);
-            const serverAnchor = Number.isFinite(serverObj.lastTokenDecrement) ? Number(serverObj.lastTokenDecrement) : (typeof lastDecrementRef.current === 'number' ? lastDecrementRef.current : null);
-            // If server doesn't have an anchor, treat our anchor as base
-            // Normalize anchors to numbers. If neither server nor local anchor
-            // is available we must not credit tokens here (prevents huge
-            // backfills when baseAnchor is null).
-            const normalizedServerAnchor = Number.isFinite(serverAnchor) ? Number(serverAnchor) : null;
-            const normalizedAnchor = Number.isFinite(anchor) ? Number(anchor) : null;
-            const baseAnchor = normalizedServerAnchor !== null ? normalizedServerAnchor : (normalizedAnchor !== null ? normalizedAnchor : null);
-            if (baseAnchor === null) {
-              // No authoritative anchor available; do not compute intervals here.
-              return current;
-            }
-            const serverElapsed = now - baseAnchor;
-            let serverIntervals = 0;
-            if (normalizedServerAnchor !== null) {
-              serverIntervals = Math.floor(serverElapsed / EFFECTIVE_REGEN_INTERVAL);
-            } else if (normalizedAnchor !== null) {
-              serverIntervals = intervals;
-            }
-            if (serverIntervals <= 0) {
-              try {
-                const threshold = 0.95;
-                const shouldLog = typeof serverElapsed === 'number' && typeof EFFECTIVE_REGEN_INTERVAL === 'number' && serverElapsed > (EFFECTIVE_REGEN_INTERVAL * threshold);
-                if (shouldLog) console.log('[BOOT] regen none - intervals=0', { playerId, serverAnchor, serverElapsed, EFFECTIVE_REGEN_INTERVAL });
-              } catch (e) { }
-              return current;
-            }
-            // If we don't have an authoritative serverTokens value (null), skip
-            // crediting here to avoid creating a full MAX_TOKENS record just
-            // because the tokens key was missing. The scheduled server job or
-            // a later client sync will reconcile.
-            if (serverTokens === null) return current;
-            const newTokens = Math.min(serverTokens + serverIntervals, MAX_TOKENS);
-            if (newTokens <= serverTokens) {
-              try { console.log('[BOOT] no tokens earned, anchor unchanged', { playerId, serverTokens, newTokens, serverIntervals }); } catch (e) { }
-              // ensure tokens value is at least serverTokens
-              return { ...serverObj, tokens: newTokens };
-            }
-            let newAnchor = null;
-            if (newTokens < MAX_TOKENS) {
-              newAnchor = baseAnchor + serverIntervals * EFFECTIVE_REGEN_INTERVAL;
-            }
-            return { ...serverObj, tokens: newTokens, lastTokenDecrement: newAnchor };
-          });
-
-          // If transaction returned a snapshot, reflect it locally and mirror to legacy fields
-          if (txResult && txResult.snapshot && typeof txResult.snapshot.val === 'function') {
-            const after = txResult.snapshot.val();
-            const serverTokens = Number.isFinite(after?.tokens) ? after.tokens : 0;
-            const serverAnchor = Number.isFinite(after?.lastTokenDecrement) ? Number(after.lastTokenDecrement) : null;
-            // Record that this is a manual/server-driven change to avoid write-through races
-            manualChangeRef.current = Date.now();
-            setTokens(serverTokens);
-            tokensRef.current = serverTokens;
-            lastDecrementRef.current = serverAnchor;
-            // compute nextTokenTime locally
-            if (serverTokens >= MAX_TOKENS) {
-              setNextTokenTime(null);
-              nextTokenTimeRef.current = null;
-            } else if (serverAnchor) {
-              const rem = serverAnchor + EFFECTIVE_REGEN_INTERVAL - now;
-              const nextTime = new Date(Date.now() + rem);
-              setNextTokenTime(nextTime);
-              nextTokenTimeRef.current = nextTime;
-            }
-            console.log('[BOOT] fetched gained tokens (anchor)', { playerId, newTokens: serverTokens, serverAnchor });
-
-            // Mirror back to legacy fields so other clients see the update.
-            try {
-              if (playerId) {
-                dbUpdate(`players/${playerId}`, { tokens: serverTokens, lastTokenDecrement: serverAnchor !== null ? serverAnchor : null }).catch(() => { });
-                try { dbUpdate(`tokenAudit/${playerId}/${Date.now()}`, { actor: 'client', source: 'computeAndApplyTokens', tokens: serverTokens, ts: Date.now() }).catch(() => { }); } catch (e) { }
-              }
-            } catch (e) { }
-          }
-        } catch (e) {
-          console.warn('[GameContext] token regen transaction failed', e);
-        }
-
-        return;
-      }
-
-      // Fallback: use nextTokenTime logic if anchor not available
-      const next = nextTokenTimeRef.current instanceof Date ? nextTokenTimeRef.current : (nextTokenTimeRef.current ? new Date(nextTokenTimeRef.current) : null);
-      const nowDate = new Date(Date.now() + (serverOffsetRef.current || 0));
-      // If there's no authoritative anchor for legacy users, establish one
-      // now and schedule the nextTokenTime instead of crediting potentially
-      // large backlogs from stale nextTokenTime/AsyncStorage. This prevents
-      // old users with tokens==0 from immediately receiving MAX_TOKENS.
-      if (!lastDecrementRef.current && currentTokens < MAX_TOKENS) {
-        try {
-          manualChangeRef.current = Date.now();
-          const newAnchor = Date.now();
-          lastDecrementRef.current = newAnchor;
-          // write atomically to tokensAtomic child to avoid being overridden
-          if (playerId) {
-            const atomicPath = `players/${playerId}/tokensAtomic`;
-            try {
-              await dbRunTransaction(atomicPath, (current) => {
-                const obj = current || {};
-                if (!obj.lastTokenDecrement) obj.lastTokenDecrement = newAnchor;
-                return obj;
-              });
-            } catch (e) { }
-            // mirror back to legacy fields (best-effort)
-            try { dbUpdate(`players/${playerId}`, { lastTokenDecrement: newAnchor }).catch(() => { }); } catch (e) { }
-          }
-          const newNext = new Date(nowDate.getTime() + EFFECTIVE_REGEN_INTERVAL);
-          setNextTokenTime(newNext);
-          nextTokenTimeRef.current = newNext;
-          if (playerId) try { dbUpdate(`players/${playerId}`, { nextTokenTime: newNext.toISOString() }).catch(() => { }); } catch (e) { }
-        } catch (e) { }
-        return;
-      }
-      // schedule if missing
-      if (!next && currentTokens < MAX_TOKENS) {
-        const newNext = new Date(nowDate.getTime() + EFFECTIVE_REGEN_INTERVAL);
-        setNextTokenTime(newNext);
-        nextTokenTimeRef.current = newNext;
-        if (playerId) await dbUpdate(`players/${playerId}`, { nextTokenTime: newNext.toISOString() });
-        return;
-      }
-      if (currentTokens >= MAX_TOKENS) return;
-      if (!next || isNaN(next.getTime())) return;
-      const diff = next - nowDate;
-      if (diff > 0) return;
+      const currentTokens = Number.isFinite(tokensRef.current) ? tokensRef.current : 0;
       if (manualChangeRef.current && Date.now() - manualChangeRef.current < 2000) return;
-      const diffTime = nowDate - next;
-      const tokensToAdd = Math.floor(diffTime / EFFECTIVE_REGEN_INTERVAL) + 1;
-      const newTokenCount = Math.min(currentTokens + tokensToAdd, MAX_TOKENS);
-      const effectiveAdded = newTokenCount - currentTokens;
-      if (effectiveAdded <= 0) return;
-      // apply tokens via state setter
-      // mark manual change so write-through effect won't race with our transaction below
-      manualChangeRef.current = Date.now();
-      setTokens((prev) => {
-        const updated = Math.min((typeof prev === 'number' ? prev : currentTokens) + effectiveAdded, MAX_TOKENS);
-        tokensRef.current = updated;
-        return updated;
-      });
-      // Persist tokens and nextTokenTime atomically via a transaction to avoid races
-      if (playerId) {
-        try {
-          console.log('[BOOT] fetched gained tokens (fallback)', { playerId, added: effectiveAdded, newTokenCount });
-          // perform transaction on dedicated atomic child to avoid being overridden
-          const atomicPath = `players/${playerId}/tokensAtomic`;
-          const txResult = await dbRunTransaction(atomicPath, (current) => {
-            const serverObj = current || {};
-            const curServerTokens = Number.isFinite(serverObj.tokens) ? serverObj.tokens : (typeof tokensRef.current === 'number' ? tokensRef.current : 0);
-            // Reconcile: take the max between server and our computed newTokenCount to avoid regressions
-            const reconciledTokens = Math.min(Math.max(curServerTokens, currentTokens) + effectiveAdded, MAX_TOKENS);
-            const out = { ...serverObj, tokens: reconciledTokens };
-            if (reconciledTokens >= MAX_TOKENS) {
-              // when full, clear nextTokenTime
-              out.nextTokenTime = null;
-              out.lastTokenDecrement = null;
-            } else {
-              const remainder = diffTime % EFFECTIVE_REGEN_INTERVAL;
-              const newNextTime = new Date(nowDate.getTime() + (EFFECTIVE_REGEN_INTERVAL - remainder));
-              out.nextTokenTime = newNextTime.toISOString();
-              // compute a fallback anchor if needed
-              out.lastTokenDecrement = out.lastTokenDecrement || null;
+
+      const atomicPath = `players/${playerId}/tokensAtomic`;
+
+      const txResult = await dbRunTransaction(atomicPath, (cur) => {
+        const s = cur || {};
+        const serverTokens = Number.isFinite(s.tokens) ? s.tokens : (Number.isFinite(tokensRef.current) ? tokensRef.current : 0);
+        const anchor = Number.isFinite(s.lastTokenDecrement) ? s.lastTokenDecrement : (Number.isFinite(lastDecrementRef.current) ? lastDecrementRef.current : null);
+        let intervals = 0;
+
+        if (anchor) {
+          const elapsed = now - anchor;
+          if (elapsed <= 0) return s;
+          intervals = Math.floor(elapsed / EFFECTIVE_REGEN_INTERVAL);
+        } else {
+          // try server nextTokenTime then local nextTokenTimeRef
+          const nextIso = s.nextTokenTime || (nextTokenTimeRef.current instanceof Date ? nextTokenTimeRef.current.toISOString() : null);
+          if (nextIso) {
+            const nt = new Date(nextIso).getTime();
+            if (!isNaN(nt) && nt <= now) {
+              const diff = now - nt;
+              intervals = Math.floor(diff / EFFECTIVE_REGEN_INTERVAL) + 1;
             }
-            return out;
-          });
-          // Mirror results back to legacy player fields (best-effort)
-          try {
-            if (txResult && txResult.snapshot && typeof txResult.snapshot.val === 'function') {
-              const after = txResult.snapshot.val();
-              const serverTokens = Number.isFinite(after?.tokens) ? after.tokens : 0;
-              const nextTimeIso = after?.nextTokenTime || null;
-              const serverAnchor = Number.isFinite(after?.lastTokenDecrement) ? Number(after.lastTokenDecrement) : null;
-              // set tokens and nextTokenTime/lastTokenDecrement as children (non-blocking)
-              if (playerId) {
-                dbUpdate(`players/${playerId}`, { tokens: serverTokens, nextTokenTime: nextTimeIso || null, lastTokenDecrement: serverAnchor !== null ? serverAnchor : null }).catch(() => { });
-              }
-            }
-          } catch (e) { }
-        } catch (e) {
-          // log but don't throw – we still updated local state
-          console.warn('[GameContext] fallback regen transaction failed', e);
+          }
         }
+
+        if (intervals <= 0) return s;
+        if (serverTokens === null) return s; // avoid blind crediting
+
+        const newTokens = Math.min(serverTokens + intervals, MAX_TOKENS);
+        const out = { ...s, tokens: newTokens };
+        if (newTokens >= MAX_TOKENS) {
+          out.lastTokenDecrement = null;
+          out.nextTokenTime = null;
+        } else {
+          const base = anchor || (Date.now() + (serverOffsetRef.current || 0));
+          out.lastTokenDecrement = base + intervals * EFFECTIVE_REGEN_INTERVAL;
+          out.nextTokenTime = new Date(out.lastTokenDecrement + EFFECTIVE_REGEN_INTERVAL).toISOString();
+        }
+        return out;
+      });
+
+      if (txResult && txResult.snapshot && typeof txResult.snapshot.val === 'function') {
+        const after = txResult.snapshot.val();
+        const serverTokens = Number.isFinite(after?.tokens) ? after.tokens : 0;
+        const serverAnchor = Number.isFinite(after?.lastTokenDecrement) ? after.lastTokenDecrement : null;
+
+        manualChangeRef.current = Date.now();
+        setTokens(serverTokens);
+        tokensRef.current = serverTokens;
+        lastDecrementRef.current = serverAnchor;
+
+        if (serverTokens >= MAX_TOKENS) {
+          setNextTokenTime(null);
+          nextTokenTimeRef.current = null;
+        } else if (serverAnchor) {
+          const nt = new Date(serverAnchor + EFFECTIVE_REGEN_INTERVAL);
+          setNextTokenTime(nt);
+          nextTokenTimeRef.current = nt;
+        }
+
+        // Mirror to legacy fields (best-effort) and write audit entry
+        try {
+          if (playerId) {
+            dbUpdate(`players/${playerId}`, { tokens: serverTokens, nextTokenTime: after?.nextTokenTime || null, lastTokenDecrement: serverAnchor !== null ? serverAnchor : null }).catch(() => { });
+            try { dbUpdate(`tokenAudit/${playerId}/${Date.now()}`, { actor: 'client', source: 'computeAndApplyTokens', tokens: serverTokens, ts: Date.now() }).catch(() => { }); } catch (e) { }
+          }
+        } catch (e) { }
       }
     } catch (e) {
       console.error('[GameContext] computeAndApplyTokens error', e);
     }
   };
-
   // Utility: stabilize tokens during initial boot so UI doesn't flash transient values.
-  // Call this from the landing/boot flow once the playerId is known. It will mark a
-  // manual change (so write-through skips), trigger a compute/apply pass, and wait a
-  // short time for transactions and listeners to settle before returning.
   const stabilizeTokensOnBoot = useCallback(async (waitMs = 1200) => {
+    if (!playerId) return;
     try {
       // mark so write-through will skip briefly
       try { manualChangeRef.current = Date.now(); } catch (e) { }
-      // attempt a compute pass (best-effort)
       try { await computeAndApplyTokens(); } catch (e) { }
-      // small wait to allow transactions/listeners to propagate
       await new Promise((res) => setTimeout(res, waitMs));
-      // mark tokens as stabilized so UI can stop showing placeholders
       try { setTokensStabilized(true); } catch (e) { }
     } catch (e) {
-      // swallow – best-effort only
     }
-  }, []);
+  }, [playerId]);
 
   // Interval runner
   useEffect(() => {
@@ -490,7 +342,7 @@ export const GameProvider = ({ children }) => {
     return () => clearInterval(interval);
   }, [playerId]);
 
-  // Update human-readable countdown (HH:MM:SS) for timeToNextToken
+  // Countdown timer for timeToNextToken
   useEffect(() => {
     if (!playerId) {
       setTimeToNextToken('');
@@ -548,9 +400,7 @@ export const GameProvider = ({ children }) => {
     return () => { mounted = false; clearInterval(id); };
   }, [playerId]);
 
-  // isBetterScore imported from shared util
-
-  // ISO week helper (same logic as used in Scoreboard screen)
+  // ISO week helper
   const getWeekNumber = (date) => {
     const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
     const dayNum = d.getUTCDay() || 7;
@@ -630,8 +480,6 @@ export const GameProvider = ({ children }) => {
 
         Object.keys(playersData).forEach((pid) => {
           const player = playersData[pid];
-          // Merge aggregates and raw scores: prefer aggregates when they are current
-          // but always compare against any raw scores (legacy clients may write only scores)
           const at = player?.allTimeBest || null;
           const monMap = player?.monthlyBest || null;
           const weekMap = player?.weeklyBest || null;
@@ -778,26 +626,17 @@ export const GameProvider = ({ children }) => {
   // Write-through on local changes (after hydration)
   useEffect(() => {
     if (!playerId) return;
-    if (!hydratedRef.current) return; // älä kirjoita ennen ensimmäistä serveriarvoa
+    if (!hydratedRef.current) return;
     if (tokens == null) return;
-
-    // Avoid racing with transactions: if we've recently made a manual change
-    // (e.g. via dbRunTransaction) skip automatic write-through for a short window.
     if (manualChangeRef.current && (Date.now() - manualChangeRef.current) < 2000) {
-      // dev visibility
-      try { if (typeof __DEV__ !== 'undefined' && __DEV__) console.log('[GameContext] skipping write-through tokens due to recent manualChange', { playerId, tokens }); } catch (e) { }
+      // Skip write-through briefly after a manual/transactional change to avoid races.
       return;
     }
-
     const clamped = Math.max(0, Math.min(MAX_TOKENS, Math.trunc(tokens)));
-    // Persist the local tokens to the dedicated atomic child so unrelated
-    // root-level writes (presence/profile/etc.) won't stomp token state.
-    // Use a field-level update on the atomic child for compatibility.
     (async () => {
       try {
         await dbUpdate(`players/${playerId}/tokensAtomic`, { tokens: clamped });
       } catch (e) {
-        // fallback: attempt to update legacy root (best-effort)
         try { dbUpdate(`players/${playerId}`, { tokens: clamped }).catch(() => { }); } catch (e2) { }
       }
     })();
@@ -817,9 +656,6 @@ export const GameProvider = ({ children }) => {
     const setOnlineAndRegisterDisconnect = async () => {
       try {
         const ts = Date.now();
-        // include gameVersion so presence records which client version is active
-        // fallback to Expo constants if GameContext's values aren't set yet
-        // Broaden fallback sources for version and versionCode to handle different Expo/managed/bare setups
         const fallbackGameVersion = String(
           gameVersion ||
           Constants.expoConfig?.version ||
@@ -838,12 +674,6 @@ export const GameProvider = ({ children }) => {
         );
         const payload = { online: true, lastSeen: ts, lastSeenHuman: formatLastSeen(ts), gameVersion: fallbackGameVersion, versionCode: fallbackVersionCode };
         await dbSet(path, payload);
-        // NOTE: versionCode is intentionally kept under the presence node
-        // (players/{playerId}/presence) and included in the presence payload above.
-        // Do NOT write versionCode at the player root here to avoid overwriting
-        // server-managed fields elsewhere in the player object.
-
-        // try to register onDisconnect on the same embedded path
         try {
           const ref = dbRef(path);
           const od = onDisconnect(ref);
@@ -921,9 +751,6 @@ export const GameProvider = ({ children }) => {
   };
 
   // ----- Sync level from playedGames (debounced) -----
-  // Listen to playedGames and ensure `players/{playerId}/level` reflects
-  // the thresholds used by GameSave. Debounce writes briefly to avoid churn
-  // if multiple updates arrive in quick succession (e.g. backfill + saves).
   useEffect(() => {
     if (!playerId) return;
 
