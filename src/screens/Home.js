@@ -94,7 +94,7 @@ export default function Home({ setPlayerId }) {
       cancelled = true;
       try {
         if (runningAnim && runningAnim.stop) runningAnim.stop();
-      } catch (e) {}
+      } catch (e) { }
     };
   }, [isFocused, fadeAnim]);
 
@@ -106,8 +106,8 @@ export default function Home({ setPlayerId }) {
       const subShow = Keyboard.addListener('keyboardDidShow', show);
       const subHide = Keyboard.addListener('keyboardDidHide', hide);
       return () => {
-        try { subShow.remove(); } catch (e) {}
-        try { subHide.remove(); } catch (e) {}
+        try { subShow.remove(); } catch (e) { }
+        try { subHide.remove(); } catch (e) { }
       };
     }
     return undefined;
@@ -126,32 +126,32 @@ export default function Home({ setPlayerId }) {
     const snap = await dbGet(`players/${userId}`);
     const playerData = snap.val();
     const formattedDate = new Date().toLocaleDateString('fi-FI');
+    // Determine whether this is a new player creation (only then set tokens)
+    const isNew = !playerData || !playerData.name;
+    const baseObj = {
+      name,
+      level: 'beginner',
+      dateJoined: playerData?.dateJoined || formattedDate,
+    };
 
-    // Use field-level update to avoid overwriting server-managed fields (tokens, lastTokenDecrement, presence, etc.)
     try {
-      await dbUpdate(`players/${userId}`, {
-        name,
-        level: 'beginner',
-        dateJoined: playerData?.dateJoined || formattedDate,
-        tokens: MAX_TOKENS,
-      });
+      const profileUpdate = baseObj;
+      await dbUpdate(`players/${userId}`, profileUpdate);
+      if (isNew) {
+        try {
+          await dbUpdate(`players/${userId}/tokensAtomic`, { tokens: MAX_TOKENS, lastTokenDecrement: null });
+          await dbUpdate(`players/${userId}`, { tokens: MAX_TOKENS, nextTokenTime: null, lastTokenDecrement: null });
+        } catch (e) {
+          try { await dbUpdate(`players/${userId}`, { tokens: MAX_TOKENS }); } catch (e2) { }
+        }
+      }
     } catch (e) {
-      // fallback: attempt to set only the minimal fields to avoid wiping server-managed data
       try {
-        await dbUpdate(`players/${userId}`, {
-          name,
-          level: 'beginner',
-          dateJoined: playerData?.dateJoined || formattedDate,
-          tokens: MAX_TOKENS,
-        });
+        const setObj = baseObj;
+        await dbUpdate(`players/${userId}`, setObj);
       } catch (e2) {
-        // last-resort: set a minimal object (rare). Keep as small as possible.
-        await dbSet(`players/${userId}`, {
-          name,
-          level: 'beginner',
-          dateJoined: playerData?.dateJoined || formattedDate,
-          tokens: MAX_TOKENS,
-        });
+        const setObj = baseObj;
+        await dbSet(`players/${userId}`, setObj);
       }
     }
 
@@ -193,8 +193,8 @@ export default function Home({ setPlayerId }) {
       await saveNewPlayer(cleanedName, playerId);
     }
 
-  // Hide custom keyboard after submit (Android)
-  if (Platform.OS === 'android') setKbVisible(false);
+    // Hide custom keyboard after submit (Android)
+    if (Platform.OS === 'android') setKbVisible(false);
   };
 
   const handlePlay = async () => {
@@ -258,7 +258,7 @@ export default function Home({ setPlayerId }) {
               onPress={() => setIsRecoverModalVisible(true)}
             />
             <RecoverModal
-              visible={isRecoverModalVisible}                
+              visible={isRecoverModalVisible}
               onClose={() => setIsRecoverModalVisible(false)}
               bottomInset={insets.bottom}
               bottomOffset={0}

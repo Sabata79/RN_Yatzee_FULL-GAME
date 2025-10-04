@@ -341,12 +341,7 @@ export default function LandingPage({ navigation }) {
         }
 
         // --- Scoreboard preload from players ---
-        // NOTE: Scanning every player's `scores` tree can be very expensive
-        // for players with large histories (causes long delays and memory spikes).
-        // Temporarily disable raw scores scanning and prefer aggregated fields
-        // (allTimeBest/monthlyBest). If aggregates are missing the player will
-        // be skipped for now. The original scanning code is left commented
-        // below for easy re-enable during testing.
+
         await step("Preload scoreboard data from players (aggregates only)", async () => {
           const snapshot = await dbGet('players');
           const playersData = snapshot.val();
@@ -367,10 +362,7 @@ export default function LandingPage({ navigation }) {
                   avatar: player.avatar || null,
                 });
               } else {
-                // If no aggregates present, skip scanning raw scores for now
-                // to avoid heavy work during boot. The commented code below
-                // shows the previous behavior (full scan) which can be
-                // re-enabled when aggregates have been backfilled.
+                // If no aggregates present, skip scanning
               }
             });
             const sorted = tmpScores.sort((a, b) => {

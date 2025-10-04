@@ -186,12 +186,14 @@ export default function Gameboard({ route, navigation }) {
           // mark manual change so GameContext write-through skips briefly
           try { if (typeof markManualChange === 'function') markManualChange(); } catch (e) {}
 
-          await dbRunTransaction(`players/${uid}`, (current) => {
-            if (current == null) return current; // player removed
+          // Use dedicated atomic child for token transactions to avoid racing with
+          // the GameContext compute/transact logic which also uses `tokensAtomic`.
+          const txResult = await dbRunTransaction(`players/${uid}/tokensAtomic`, (current) => {
+            const obj = current || {};
 
             const now = Date.now();
-            const curTokens = Number.isFinite(current.tokens) ? current.tokens : (typeof tokens === 'number' ? tokens : 0);
-            const serverAnchor = Number.isFinite(current.lastTokenDecrement) ? Number(current.lastTokenDecrement) : null;
+            const curTokens = Number.isFinite(obj.tokens) ? obj.tokens : (typeof tokens === 'number' ? tokens : 0);
+            const serverAnchor = Number.isFinite(obj.lastTokenDecrement) ? Number(obj.lastTokenDecrement) : null;
 
             // First: apply any server-side regenerated tokens based on the anchor
             let serverTokens = curTokens;
@@ -209,31 +211,36 @@ export default function Gameboard({ route, navigation }) {
               }
             }
 
-            // If no anchor exists but tokens are less than max, we could set one here as best-effort.
-            // We'll leave creation of missing anchors to the login/boot flow which already does a best-effort write.
-
             // Now consume one token atomically (only if available after regen)
-            if (serverTokens <= 0) {
-              // nothing to consume
-              return current;
-            }
+            if (serverTokens <= 0) return current;
 
             const afterConsume = Math.max(0, serverTokens - 1);
-
-            // Decide anchor to write: prefer preserving the remainder (newAnchorAfterRegen) when available.
-            // If newAnchorAfterRegen is null (e.g. tokens were at MAX), set anchor to now to start a fresh regen cycle.
             const writeAnchor = (newAnchorAfterRegen === null) ? now : newAnchorAfterRegen;
 
-            const out = { ...current, tokens: afterConsume, lastTokenDecrement: writeAnchor };
+            const out = { ...obj, tokens: afterConsume, lastTokenDecrement: writeAnchor };
 
-            try {
-              if (typeof __DEV__ !== 'undefined' && __DEV__) {
-                console.log('[Gameboard] regen-then-consume (dev)', { playerId: uid, curTokens, serverTokens, afterConsume, serverAnchor, newAnchorAfterRegen, writeAnchor });
-              }
-            } catch (e) {}
+            try { if (typeof __DEV__ !== 'undefined' && __DEV__) console.log('[Gameboard] regen-then-consume (dev)', { playerId: uid, curTokens, serverTokens, afterConsume, serverAnchor, newAnchorAfterRegen, writeAnchor }); } catch (e) {}
 
             return out;
           });
+
+          // Mirror atomic child back to legacy player root so other clients/readers
+          // (and the initial tokens listener on boot) see the updated values.
+          try {
+            if (txResult && txResult.snapshot && typeof txResult.snapshot.val === 'function') {
+              const after = txResult.snapshot.val();
+              const serverTokens = Number.isFinite(after?.tokens) ? after.tokens : 0;
+              const serverAnchor = Number.isFinite(after?.lastTokenDecrement) ? Number(after.lastTokenDecrement) : null;
+              if (playerId) {
+                try {
+                  await dbUpdate(`players/${uid}`, { tokens: serverTokens, lastTokenDecrement: serverAnchor });
+                } catch (e) {
+                  // best-effort: swallow errors but log in dev
+                  try { if (typeof __DEV__ !== 'undefined' && __DEV__) console.warn('[Gameboard] mirror root update failed', e); } catch (e2) {}
+                }
+              }
+            }
+          } catch (e) {}
         } catch (err) {
           console.warn('[Gameboard] token decrement transaction failed', err);
         }

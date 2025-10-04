@@ -105,7 +105,7 @@ export const GameProvider = ({ children }) => {
       try {
         if (nextTokenTime) await AsyncStorage.setItem('nextTokenTime', nextTokenTime.toString());
         else await AsyncStorage.removeItem('nextTokenTime');
-      } catch (e) {}
+      } catch (e) { }
     })();
   }, [nextTokenTime]);
 
@@ -113,7 +113,7 @@ export const GameProvider = ({ children }) => {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      if (!playerId) { try { setTokensStabilized(false); } catch (e) {} ; return; }
+      if (!playerId) { try { setTokensStabilized(false); } catch (e) { }; return; }
       try {
         // Load lastTokenDecrement first (preferred authoritative anchor)
         try {
@@ -137,10 +137,10 @@ export const GameProvider = ({ children }) => {
             if (!cancelled) {
               // clamp obviously-future timestamps (protect against bad writers)
               const now = new Date(Date.now() + (serverOffsetRef.current || 0));
-                if (dt.getTime() - now.getTime() > MAX_NEXT_TOKEN_FUTURE) {
+              if (dt.getTime() - now.getTime() > MAX_NEXT_TOKEN_FUTURE) {
                 const clamped = new Date(now.getTime() + EFFECTIVE_REGEN_INTERVAL);
                 setNextTokenTime(clamped);
-                try { if (playerId) await dbUpdate(`players/${playerId}`, { nextTokenTime: clamped.toISOString() }); } catch (e) {}
+                try { if (playerId) await dbUpdate(`players/${playerId}`, { nextTokenTime: clamped.toISOString() }); } catch (e) { }
               } else {
                 setNextTokenTime(dt);
               }
@@ -173,9 +173,9 @@ export const GameProvider = ({ children }) => {
             if (txRes && txRes.snapshot && typeof txRes.snapshot.val === 'function') {
               const after = txRes.snapshot.val();
               const serverAnchor = Number.isFinite(after?.lastTokenDecrement) ? Number(after.lastTokenDecrement) : null;
-              if (playerId) dbUpdate(`players/${playerId}`, { lastTokenDecrement: serverAnchor !== null ? serverAnchor : null }).catch(()=>{});
+              if (playerId) dbUpdate(`players/${playerId}`, { lastTokenDecrement: serverAnchor !== null ? serverAnchor : null }).catch(() => { });
             }
-          } catch (e) {}
+          } catch (e) { }
         } catch (e) {
           // best-effort, ignore failures
         }
@@ -197,10 +197,10 @@ export const GameProvider = ({ children }) => {
         if (val === null) { lastDecrementRef.current = null; return; }
         const asNum = Number(val);
         if (!isNaN(asNum)) lastDecrementRef.current = asNum;
-      } catch (e) {}
+      } catch (e) { }
     };
     const unsub = dbOnValue(path, handler);
-    return () => { try { if (unsub && typeof unsub === 'function') unsub(); else dbOff(path, handler); } catch (e) {} };
+    return () => { try { if (unsub && typeof unsub === 'function') unsub(); else dbOff(path, handler); } catch (e) { } };
   }, [playerId]);
 
   // Subscribe to serverTimeOffset
@@ -209,8 +209,8 @@ export const GameProvider = ({ children }) => {
       unsub = dbOnValue('/.info/serverTimeOffset', (snap) => {
         try { const val = snap && snap.val ? snap.val() : (snap || 0); serverOffsetRef.current = typeof val === 'number' ? val : 0; } catch (e) { serverOffsetRef.current = 0; }
       });
-    } catch (e) {}
-    return () => { try { if (unsub && typeof unsub === 'function') unsub(); } catch (e) {} };
+    } catch (e) { }
+    return () => { try { if (unsub && typeof unsub === 'function') unsub(); } catch (e) { } };
   }, []);
 
   // Realtime listener for nextTokenTime changes (other clients)
@@ -229,15 +229,15 @@ export const GameProvider = ({ children }) => {
             // clamp and repair remote value
             const clamped = new Date(now.getTime() + EFFECTIVE_REGEN_INTERVAL);
             setNextTokenTime(clamped);
-                try { if (playerId) dbUpdate(`players/${playerId}`, { nextTokenTime: clamped.toISOString() }).catch(()=>{}); } catch(e) {}
+            try { if (playerId) dbUpdate(`players/${playerId}`, { nextTokenTime: clamped.toISOString() }).catch(() => { }); } catch (e) { }
           } else {
             setNextTokenTime(dt);
           }
         }
-      } catch (e) {}
+      } catch (e) { }
     };
     const unsub = dbOnValue(path, handler);
-    return () => { try { if (unsub && typeof unsub === 'function') unsub(); else dbOff(path, handler); } catch (e) {} };
+    return () => { try { if (unsub && typeof unsub === 'function') unsub(); else dbOff(path, handler); } catch (e) { } };
   }, [playerId]);
 
   // Authoritative compute function in GameContext
@@ -268,7 +268,12 @@ export const GameProvider = ({ children }) => {
           const txResult = await dbRunTransaction(atomicPath, (current) => {
             // current is the value at players/{playerId}/tokensAtomic (or null)
             const serverObj = current || {};
-            const serverTokens = Number.isFinite(serverObj.tokens) ? serverObj.tokens : (typeof tokensRef.current === 'number' ? tokensRef.current : 0);
+            const hasServerTokens = Number.isFinite(serverObj.tokens);
+            const hasLocalTokens = typeof tokensRef.current === 'number';
+            // If neither the server nor local state has a known tokens value, avoid
+            // crediting a possibly-large backlog on first-boot. Require an
+            // authoritative tokens number before computing large intervals.
+            const serverTokens = hasServerTokens ? serverObj.tokens : (hasLocalTokens ? tokensRef.current : null);
             const serverAnchor = Number.isFinite(serverObj.lastTokenDecrement) ? Number(serverObj.lastTokenDecrement) : (typeof lastDecrementRef.current === 'number' ? lastDecrementRef.current : null);
             // If server doesn't have an anchor, treat our anchor as base
             // Normalize anchors to numbers. If neither server nor local anchor
@@ -293,12 +298,17 @@ export const GameProvider = ({ children }) => {
                 const threshold = 0.95;
                 const shouldLog = typeof serverElapsed === 'number' && typeof EFFECTIVE_REGEN_INTERVAL === 'number' && serverElapsed > (EFFECTIVE_REGEN_INTERVAL * threshold);
                 if (shouldLog) console.log('[BOOT] regen none - intervals=0', { playerId, serverAnchor, serverElapsed, EFFECTIVE_REGEN_INTERVAL });
-              } catch (e) {}
+              } catch (e) { }
               return current;
             }
+            // If we don't have an authoritative serverTokens value (null), skip
+            // crediting here to avoid creating a full MAX_TOKENS record just
+            // because the tokens key was missing. The scheduled server job or
+            // a later client sync will reconcile.
+            if (serverTokens === null) return current;
             const newTokens = Math.min(serverTokens + serverIntervals, MAX_TOKENS);
             if (newTokens <= serverTokens) {
-              try { console.log('[BOOT] no tokens earned, anchor unchanged', { playerId, serverTokens, newTokens, serverIntervals }); } catch (e) {}
+              try { console.log('[BOOT] no tokens earned, anchor unchanged', { playerId, serverTokens, newTokens, serverIntervals }); } catch (e) { }
               // ensure tokens value is at least serverTokens
               return { ...serverObj, tokens: newTokens };
             }
@@ -334,9 +344,10 @@ export const GameProvider = ({ children }) => {
             // Mirror back to legacy fields so other clients see the update.
             try {
               if (playerId) {
-                dbUpdate(`players/${playerId}`, { tokens: serverTokens, lastTokenDecrement: serverAnchor !== null ? serverAnchor : null }).catch(()=>{});
+                dbUpdate(`players/${playerId}`, { tokens: serverTokens, lastTokenDecrement: serverAnchor !== null ? serverAnchor : null }).catch(() => { });
+                try { dbUpdate(`tokenAudit/${playerId}/${Date.now()}`, { actor: 'client', source: 'computeAndApplyTokens', tokens: serverTokens, ts: Date.now() }).catch(() => { }); } catch (e) { }
               }
-            } catch (e) {}
+            } catch (e) { }
           }
         } catch (e) {
           console.warn('[GameContext] token regen transaction failed', e);
@@ -366,15 +377,15 @@ export const GameProvider = ({ children }) => {
                 if (!obj.lastTokenDecrement) obj.lastTokenDecrement = newAnchor;
                 return obj;
               });
-            } catch (e) {}
+            } catch (e) { }
             // mirror back to legacy fields (best-effort)
-            try { dbUpdate(`players/${playerId}`, { lastTokenDecrement: newAnchor }).catch(()=>{}); } catch(e) {}
+            try { dbUpdate(`players/${playerId}`, { lastTokenDecrement: newAnchor }).catch(() => { }); } catch (e) { }
           }
           const newNext = new Date(nowDate.getTime() + EFFECTIVE_REGEN_INTERVAL);
           setNextTokenTime(newNext);
           nextTokenTimeRef.current = newNext;
-          if (playerId) try { dbUpdate(`players/${playerId}`, { nextTokenTime: newNext.toISOString() }).catch(()=>{}); } catch(e) {}
-        } catch (e) {}
+          if (playerId) try { dbUpdate(`players/${playerId}`, { nextTokenTime: newNext.toISOString() }).catch(() => { }); } catch (e) { }
+        } catch (e) { }
         return;
       }
       // schedule if missing
@@ -437,10 +448,10 @@ export const GameProvider = ({ children }) => {
               const serverAnchor = Number.isFinite(after?.lastTokenDecrement) ? Number(after.lastTokenDecrement) : null;
               // set tokens and nextTokenTime/lastTokenDecrement as children (non-blocking)
               if (playerId) {
-                dbUpdate(`players/${playerId}`, { tokens: serverTokens, nextTokenTime: nextTimeIso || null, lastTokenDecrement: serverAnchor !== null ? serverAnchor : null }).catch(()=>{});
+                dbUpdate(`players/${playerId}`, { tokens: serverTokens, nextTokenTime: nextTimeIso || null, lastTokenDecrement: serverAnchor !== null ? serverAnchor : null }).catch(() => { });
               }
             }
-          } catch (e) {}
+          } catch (e) { }
         } catch (e) {
           // log but don't throw – we still updated local state
           console.warn('[GameContext] fallback regen transaction failed', e);
@@ -458,13 +469,13 @@ export const GameProvider = ({ children }) => {
   const stabilizeTokensOnBoot = useCallback(async (waitMs = 1200) => {
     try {
       // mark so write-through will skip briefly
-      try { manualChangeRef.current = Date.now(); } catch (e) {}
+      try { manualChangeRef.current = Date.now(); } catch (e) { }
       // attempt a compute pass (best-effort)
-      try { await computeAndApplyTokens(); } catch (e) {}
+      try { await computeAndApplyTokens(); } catch (e) { }
       // small wait to allow transactions/listeners to propagate
       await new Promise((res) => setTimeout(res, waitMs));
       // mark tokens as stabilized so UI can stop showing placeholders
-      try { setTokensStabilized(true); } catch (e) {}
+      try { setTokensStabilized(true); } catch (e) { }
     } catch (e) {
       // swallow – best-effort only
     }
@@ -681,19 +692,19 @@ export const GameProvider = ({ children }) => {
         };
 
 
-  tmpAll.sort(compare);
-  tmpMon.sort(compare);
-  tmpWeek.sort(compare);
+        tmpAll.sort(compare);
+        tmpMon.sort(compare);
+        tmpWeek.sort(compare);
 
-  setScoreboardData(tmpAll);
-  setScoreboardMonthly(tmpMon);
-  setScoreboardWeekly(tmpWeek);
+        setScoreboardData(tmpAll);
+        setScoreboardMonthly(tmpMon);
+        setScoreboardWeekly(tmpWeek);
 
-  // compute indices for current playerId
-  const idxAll = tmpAll.findIndex((s) => s.playerId === playerId);
-  const idxMon = tmpMon.findIndex((s) => s.playerId === playerId);
-  const idxWeek = tmpWeek.findIndex((s) => s.playerId === playerId);
-  setScoreboardIndices({ allTime: idxAll, monthly: idxMon, weekly: idxWeek });
+        // compute indices for current playerId
+        const idxAll = tmpAll.findIndex((s) => s.playerId === playerId);
+        const idxMon = tmpMon.findIndex((s) => s.playerId === playerId);
+        const idxWeek = tmpWeek.findIndex((s) => s.playerId === playerId);
+        setScoreboardIndices({ allTime: idxAll, monthly: idxMon, weekly: idxWeek });
       } else {
         setScoreboardData([]);
         setScoreboardMonthly([]);
@@ -774,13 +785,22 @@ export const GameProvider = ({ children }) => {
     // (e.g. via dbRunTransaction) skip automatic write-through for a short window.
     if (manualChangeRef.current && (Date.now() - manualChangeRef.current) < 2000) {
       // dev visibility
-      try { if (typeof __DEV__ !== 'undefined' && __DEV__) console.log('[GameContext] skipping write-through tokens due to recent manualChange', { playerId, tokens }); } catch (e) {}
+      try { if (typeof __DEV__ !== 'undefined' && __DEV__) console.log('[GameContext] skipping write-through tokens due to recent manualChange', { playerId, tokens }); } catch (e) { }
       return;
     }
 
     const clamped = Math.max(0, Math.min(MAX_TOKENS, Math.trunc(tokens)));
-    // Use field-level update to avoid overriding other children under players/{playerId}
-    dbUpdate(`players/${playerId}`, { tokens: clamped }).catch(() => { });
+    // Persist the local tokens to the dedicated atomic child so unrelated
+    // root-level writes (presence/profile/etc.) won't stomp token state.
+    // Use a field-level update on the atomic child for compatibility.
+    (async () => {
+      try {
+        await dbUpdate(`players/${playerId}/tokensAtomic`, { tokens: clamped });
+      } catch (e) {
+        // fallback: attempt to update legacy root (best-effort)
+        try { dbUpdate(`players/${playerId}`, { tokens: clamped }).catch(() => { }); } catch (e2) { }
+      }
+    })();
   }, [playerId, tokens]);
 
   // ----- Presence lifecycle (embedded under players/{playerId}/presence) -----
@@ -797,26 +817,26 @@ export const GameProvider = ({ children }) => {
     const setOnlineAndRegisterDisconnect = async () => {
       try {
         const ts = Date.now();
-    // include gameVersion so presence records which client version is active
-    // fallback to Expo constants if GameContext's values aren't set yet
-  // Broaden fallback sources for version and versionCode to handle different Expo/managed/bare setups
-  const fallbackGameVersion = String(
-    gameVersion ||
-      Constants.expoConfig?.version ||
-      Constants.manifest?.version ||
-      Constants.nativeAppVersion ||
-      ''
-  );
+        // include gameVersion so presence records which client version is active
+        // fallback to Expo constants if GameContext's values aren't set yet
+        // Broaden fallback sources for version and versionCode to handle different Expo/managed/bare setups
+        const fallbackGameVersion = String(
+          gameVersion ||
+          Constants.expoConfig?.version ||
+          Constants.manifest?.version ||
+          Constants.nativeAppVersion ||
+          ''
+        );
 
-  const fallbackVersionCode = String(
-    gameVersionCode ||
-    (Constants.expoConfig?.extra?.buildVersionCode ?? Constants.expoConfig?.android?.versionCode ?? Constants.expoConfig?.ios?.buildNumber) ||
-      Constants.manifest?.android?.versionCode ||
-      Constants.manifest?.ios?.buildNumber ||
-      Constants.nativeBuildVersion ||
-      ''
-  );
-  const payload = { online: true, lastSeen: ts, lastSeenHuman: formatLastSeen(ts), gameVersion: fallbackGameVersion, versionCode: fallbackVersionCode };
+        const fallbackVersionCode = String(
+          gameVersionCode ||
+          (Constants.expoConfig?.extra?.buildVersionCode ?? Constants.expoConfig?.android?.versionCode ?? Constants.expoConfig?.ios?.buildNumber) ||
+          Constants.manifest?.android?.versionCode ||
+          Constants.manifest?.ios?.buildNumber ||
+          Constants.nativeBuildVersion ||
+          ''
+        );
+        const payload = { online: true, lastSeen: ts, lastSeenHuman: formatLastSeen(ts), gameVersion: fallbackGameVersion, versionCode: fallbackVersionCode };
         await dbSet(path, payload);
         // NOTE: versionCode is intentionally kept under the presence node
         // (players/{playerId}/presence) and included in the presence payload above.
@@ -834,11 +854,11 @@ export const GameProvider = ({ children }) => {
           cleanupFn = async () => {
             try {
               if (od && typeof od.cancel === 'function') await od.cancel();
-            } catch (e) {}
+            } catch (e) { }
             try {
               const offTs2 = Date.now();
               await dbSet(path, { online: false, lastSeen: offTs2, lastSeenHuman: formatLastSeen(offTs2), versionCode: fallbackVersionCode });
-            } catch (e) {}
+            } catch (e) { }
           };
         } catch (e) {
           // fallback: provide cleanup that writes offline
@@ -864,7 +884,7 @@ export const GameProvider = ({ children }) => {
         if (cleanupFn) {
           try {
             await cleanupFn();
-          } catch (e) {}
+          } catch (e) { }
           cleanupFn = null;
         }
       } else if (nextState === 'active') {
@@ -877,9 +897,9 @@ export const GameProvider = ({ children }) => {
 
     return () => {
       mounted = false;
-      try { sub?.remove?.(); } catch (e) {}
+      try { sub?.remove?.(); } catch (e) { }
       if (cleanupFn) {
-        try { cleanupFn().catch(() => {}); } catch (e) {}
+        try { cleanupFn().catch(() => { }); } catch (e) { }
         cleanupFn = null;
       }
     };
@@ -974,7 +994,7 @@ export const GameProvider = ({ children }) => {
   // racing with transactions. Use from other modules before starting a
   // dbRunTransaction that will update player tokens/anchors.
   const markManualChange = useCallback(() => {
-    try { manualChangeRef.current = Date.now(); } catch (e) {}
+    try { manualChangeRef.current = Date.now(); } catch (e) { }
   }, []);
 
   const startGameCb = useCallback(() => {
@@ -1019,8 +1039,8 @@ export const GameProvider = ({ children }) => {
       // UI state
       userRecognized,
       setUserRecognized,
-  markManualChange,
-  stabilizeTokensOnBoot,
+      markManualChange,
+      stabilizeTokensOnBoot,
       viewingPlayerId,
       viewingPlayerName,
       setViewingPlayerId,
@@ -1030,41 +1050,41 @@ export const GameProvider = ({ children }) => {
         setViewingPlayerName(null);
       },
 
-  // tokens
-  nextTokenTime,
-  setNextTokenTime,
-  timeToNextToken,
-  setTimeToNextToken,
-  tokensStabilized,
-  tokens,
-  setTokens,
-  energyModalVisible,
-  setEnergyModalVisible,
+      // tokens
+      nextTokenTime,
+      setNextTokenTime,
+      timeToNextToken,
+      setTimeToNextToken,
+      tokensStabilized,
+      tokens,
+      setTokens,
+      energyModalVisible,
+      setEnergyModalVisible,
       // trigger
       triggerTokenRecalc: () => { computeAndApplyTokens(); },
-      
-    // misc
-    isLinked,
-    setIsLinked,
-    gameVersion,
-    setGameVersion,
-    // progressPoints removed - derived from playedGames
-    currentLevel,
-    nextLevel,
+
+      // misc
+      isLinked,
+      setIsLinked,
+      gameVersion,
+      setGameVersion,
+      // progressPoints removed - derived from playedGames
+      currentLevel,
+      nextLevel,
       allTimeRank,
       avatarUrl,
       setAvatarUrl,
       isAvatarLoaded,
 
       // scoreboard
-  scoreboardData,
-  setScoreboardData,
-  scoreboardMonthly,
-  setScoreboardMonthly,
-  scoreboardWeekly,
-  setScoreboardWeekly,
-  scoreboardIndices,
-  setScoreboardIndices,
+      scoreboardData,
+      setScoreboardData,
+      scoreboardMonthly,
+      setScoreboardMonthly,
+      scoreboardWeekly,
+      setScoreboardWeekly,
+      scoreboardIndices,
+      setScoreboardIndices,
     }),
     [
       playerLevel,
@@ -1083,13 +1103,13 @@ export const GameProvider = ({ children }) => {
       userRecognized,
       viewingPlayerId,
       viewingPlayerName,
-  nextTokenTime,
-  timeToNextToken,
+      nextTokenTime,
+      timeToNextToken,
       tokens,
       energyModalVisible,
-  tokensStabilized,
-  isLinked,
-  gameVersion,
+      tokensStabilized,
+      isLinked,
+      gameVersion,
       currentLevel,
       nextLevel,
       allTimeRank,
