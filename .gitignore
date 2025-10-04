@@ -71,3 +71,12 @@ yarn-error.*
 
 # analytics
 analyzeProfile.js
+
+# Profiler / analysis outputs (React DevTools exports, local profiling files)
+# Examples: profiling.json, profiling-Gameboard_idle_2025.10.04.json, profiling-data.*
+profiling*
+profiling-*
+profiling-data*
+profiling-Gameboard*
+*.profile.json
+
