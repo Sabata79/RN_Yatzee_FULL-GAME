@@ -413,7 +413,7 @@ const playerCardStyles = StyleSheet.create({
     },
     playerStatsBadgeAbsolute: {
         position: 'absolute',
-        right: 12,
+        right: 0,
         width: 80,
         height: 80,
         overflow: 'hidden',
