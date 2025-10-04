@@ -111,6 +111,9 @@ export default function AllTimeScores({ rows = [], avatarMap, getAvatarStyle, op
 
   return (
     <ScrollView ref={listRef} contentContainerStyle={{ paddingBottom: bottomPadding }} showsVerticalScrollIndicator={false}>
+      <View style={{ alignItems: 'center', paddingVertical: 8 }}>
+        <Text style={scoreboardStyles.headerSubtitle}>All Time</Text>
+      </View>
       <DataTable style={scoreboardStyles.scoreboardContainer}>{listTableHeader()}</DataTable>
       <View>
         {effectiveRows.map((r, i) => renderRow(r, i))}

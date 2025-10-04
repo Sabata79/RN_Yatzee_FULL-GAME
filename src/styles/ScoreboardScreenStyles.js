@@ -62,6 +62,12 @@ const scoreboardStyles = StyleSheet.create({
         color: COLORS.textLight,
         paddingVertical: 5,
     },
+    headerSubtitle: {
+        fontFamily: TYPOGRAPHY.fontFamily.montserratThin,
+        fontSize: TYPOGRAPHY.fontSize.sm,
+        color: COLORS.textLight,
+        textAlign: 'center',
+    },
     tabContainer: {
         backgroundColor: COLORS.overlayDark,
         marginTop: 0,

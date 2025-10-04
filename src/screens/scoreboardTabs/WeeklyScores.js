@@ -107,6 +107,18 @@ export default function WeeklyScores({ rows = [], avatarMap, getAvatarStyle, ope
 
   return (
     <ScrollView ref={listRef} contentContainerStyle={{ paddingBottom: bottomPadding }} showsVerticalScrollIndicator={false}>
+      <View style={{ alignItems: 'center', paddingVertical: 8 }}>
+        {(() => {
+          const getWeekNumber = (date) => {
+            const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+            const dayNum = d.getUTCDay() || 7;
+            d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+            const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+            return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+          };
+          return <Text style={scoreboardStyles.headerSubtitle}>{`Week ${getWeekNumber(new Date())}`}</Text>;
+        })()}
+      </View>
       <DataTable style={scoreboardStyles.scoreboardContainer}>{listTableHeader()}</DataTable>
       <View>
         {effectiveRows.map((r, i) => renderRow(r, i))}

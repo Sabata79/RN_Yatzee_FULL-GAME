@@ -105,6 +105,14 @@ export default function MonthlyScores({ rows = [], avatarMap, getAvatarStyle, op
 
   return (
     <ScrollView ref={listRef} contentContainerStyle={{ paddingBottom: bottomPadding }} showsVerticalScrollIndicator={false}>
+      <View style={{ alignItems: 'center', paddingVertical: 8 }}>
+        {(() => {
+          const now = new Date();
+          const start = new Date(now.getFullYear(), now.getMonth(), 1);
+          const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+          return <Text style={scoreboardStyles.headerSubtitle}>{`${start.getDate()}.${start.getMonth() + 1} - ${end.getDate()}.${end.getMonth() + 1}`}</Text>;
+        })()}
+      </View>
       <DataTable style={scoreboardStyles.scoreboardContainer}>{listTableHeader()}</DataTable>
       <View>
         {effectiveRows.map((r, i) => renderRow(r, i))}
