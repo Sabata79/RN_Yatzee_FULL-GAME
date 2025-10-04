@@ -69,3 +69,5 @@ yarn-error.*
 # /android
 /ios
 
+# analytics
+analyzeProfile.js
