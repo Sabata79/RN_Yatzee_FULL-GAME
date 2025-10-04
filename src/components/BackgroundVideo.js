@@ -22,8 +22,11 @@ export default function BackgroundVideo({ isActive = true }) {
   useEffect(() => {
     if (!player) return;
     try {
-      if (isActive) player.play();
-      else player.pause();
+      if (isActive) {
+        try { player.play(); } catch (e) { /* ignore play errors */ }
+      } else {
+        try { player.pause(); } catch (e) { /* ignore pause errors */ }
+      }
     } catch {}
   }, [player, isActive]);
 
@@ -31,14 +34,16 @@ export default function BackgroundVideo({ isActive = true }) {
     <View pointerEvents="none" style={StyleSheet.absoluteFill}>
       {/* Solid fallback so transparent roots never show white */}
       <View style={[StyleSheet.absoluteFill, { backgroundColor: '#253445' }]} />
-      <VideoView
-        player={player}
-        style={StyleSheet.absoluteFill}
-        contentFit="cover"
-        nativeControls={false}
-        allowsPictureInPicture={false}
-        focusable={false}
-      />
+      {player ? (
+        <VideoView
+          player={player}
+          style={StyleSheet.absoluteFill}
+          contentFit="cover"
+          nativeControls={false}
+          allowsPictureInPicture={false}
+          focusable={false}
+        />
+      ) : null}
     </View>
   );
 }

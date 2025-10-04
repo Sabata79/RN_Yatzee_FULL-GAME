@@ -18,7 +18,7 @@ import * as SecureStore from "expo-secure-store";
 import { FontAwesome5 } from '@expo/vector-icons';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import homeStyles from '../styles/HomeStyles';
-import { dbGet, dbSet } from '../services/Firebase';
+import { dbGet, dbSet, dbUpdate } from '../services/Firebase';
 import { sanitizeInput, checkIfNameExists } from '../services/nameUtils';
 import uuid from 'react-native-uuid';
 import { useNavigation, useIsFocused, useFocusEffect } from '@react-navigation/native';
@@ -139,8 +139,8 @@ export default function Home({ setPlayerId }) {
       await dbUpdate(`players/${userId}`, profileUpdate);
       if (isNew) {
         try {
-          await dbUpdate(`players/${userId}/tokensAtomic`, { tokens: MAX_TOKENS, lastTokenDecrement: null });
-          await dbUpdate(`players/${userId}`, { tokens: MAX_TOKENS, nextTokenTime: null, lastTokenDecrement: null });
+          // Initialize canonical root token fields; avoid tokensAtomic child entirely.
+          await dbUpdate(`players/${userId}`, { tokens: MAX_TOKENS, tokensLastAnchor: null, nextTokenTime: null, lastTokenDecrement: null });
         } catch (e) {
           try { await dbUpdate(`players/${userId}`, { tokens: MAX_TOKENS }); } catch (e2) { }
         }

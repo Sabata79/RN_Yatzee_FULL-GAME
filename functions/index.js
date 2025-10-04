@@ -29,43 +29,40 @@ exports.scheduledTokenRegen = functions.pubsub.schedule('every 5 minutes').onRun
       // Run transaction on dedicated tokensAtomic child to avoid stomping unrelated
       // top-level fields (presence, profile, etc.). After the atomic transaction
       // we mirror minimal fields back to the legacy root for compatibility.
-      const atomicPath = `players/${pid}/tokensAtomic`;
-      const txPromise = db.ref(atomicPath).transaction((currentAtomic) => {
-        // currentAtomic represents the value at players/{pid}/tokensAtomic (or null)
-        const atomic = currentAtomic || {};
-        const curTokens = Number.isFinite(atomic.tokens) ? Math.trunc(atomic.tokens) : (Number.isFinite(p.tokens) ? Math.trunc(p.tokens) : 0);
-        if (curTokens >= MAX_TOKENS) return atomic;
+      // Transaction directly on player root: update only tokens and TokensLastAnchor
+      const playerPath = `players/${pid}`;
+      const txPromise = db.ref(playerPath).transaction((currentPlayer) => {
+        const node = currentPlayer || {};
+        const curTokens = Number.isFinite(node.tokens) ? Math.trunc(node.tokens) : (Number.isFinite(p.tokens) ? Math.trunc(p.tokens) : 0);
+        if (curTokens >= MAX_TOKENS) return node;
 
-        // We rely on the snapshot's nextTokenTime (p.nextTokenTime) to decide due-ness
-        const serverNext = p.nextTokenTime ? new Date(p.nextTokenTime).getTime() : null;
-        if (!serverNext || isNaN(serverNext) || serverNext > now) return atomic;
+        const serverNext = node.nextTokenTime ? new Date(node.nextTokenTime).getTime() : (p.nextTokenTime ? new Date(p.nextTokenTime).getTime() : null);
+        if (!serverNext || isNaN(serverNext) || serverNext > now) return node;
 
         const diff = now - serverNext;
         const toAdd = Math.min(MAX_TOKENS - curTokens, Math.floor(diff / REGEN_INTERVAL) + 1);
-        if (toAdd <= 0) return atomic;
+        if (toAdd <= 0) return node;
 
         const newTokens = Math.min(curTokens + toAdd, MAX_TOKENS);
-        const out = { ...atomic, tokens: newTokens };
+        const out = { ...node, tokens: newTokens };
 
         if (newTokens >= MAX_TOKENS) {
-          // When full, clear anchor information locally. The root mirroring will
-          // also clear nextTokenTime/lastTokenDecrement.
-          out.lastTokenDecrement = null;
+          // When full, clear anchor information on root
+          out.tokensLastAnchor = null;
+          out.nextTokenTime = null;
         } else {
-          const remainder = diff % REGEN_INTERVAL;
-          // Compute a sensible lastTokenDecrement anchor. Prefer atomic.lastTokenDecrement,
-          // fall back to root.lastTokenDecrement or serverNext - REGEN_INTERVAL when missing.
-          const curAnchor = (atomic.lastTokenDecrement && !isNaN(Number(atomic.lastTokenDecrement)))
-            ? Number(atomic.lastTokenDecrement)
-            : (p.lastTokenDecrement && !isNaN(Number(p.lastTokenDecrement)) ? Number(p.lastTokenDecrement) : (serverNext ? (serverNext - REGEN_INTERVAL) : (now - REGEN_INTERVAL * toAdd)));
+          // Compute anchor: prefer existing TokensLastAnchor then existing lastTokenDecrement fallback
+          const curAnchor = (node.tokensLastAnchor && !isNaN(Number(node.tokensLastAnchor)))
+            ? Number(node.tokensLastAnchor)
+            : (node.lastTokenDecrement && !isNaN(Number(node.lastTokenDecrement)) ? Number(node.lastTokenDecrement) : (serverNext ? (serverNext - REGEN_INTERVAL) : (now - REGEN_INTERVAL * toAdd)));
           const serverIntervals = Math.floor((now - curAnchor) / REGEN_INTERVAL);
           if (serverIntervals > 0) {
-            out.lastTokenDecrement = curAnchor + serverIntervals * REGEN_INTERVAL;
+            out.tokensLastAnchor = curAnchor + serverIntervals * REGEN_INTERVAL;
           } else {
-            out.lastTokenDecrement = atomic.lastTokenDecrement || p.lastTokenDecrement || null;
+            out.tokensLastAnchor = node.tokensLastAnchor || node.lastTokenDecrement || null;
           }
-          // We don't persist nextTokenTime inside tokensAtomic; nextTokenTime stays on root and
-          // will be updated after the transaction via a separate mirror update.
+          // compute nextTokenTime from anchor
+          out.nextTokenTime = new Date(out.tokensLastAnchor + REGEN_INTERVAL).toISOString();
         }
 
         return out;
@@ -74,19 +71,18 @@ exports.scheduledTokenRegen = functions.pubsub.schedule('every 5 minutes').onRun
       // After transaction completes, mirror minimal fields back to legacy location.
       const mirrorPromise = txPromise.then(async (res) => {
         try {
-          // Read the final atomic value and compute root-level nextTokenTime/fields
-          const snapAtomic = await db.ref(`players/${pid}/tokensAtomic`).once('value');
-          const atomicVal = snapAtomic.val() || {};
-          const serverTokens = Number.isFinite(atomicVal.tokens) ? atomicVal.tokens : 0;
-          const serverAnchor = (atomicVal.lastTokenDecrement && !isNaN(Number(atomicVal.lastTokenDecrement))) ? Number(atomicVal.lastTokenDecrement) : null;
+          // Read the final player value and compute fields
+          const snapPlayer = await db.ref(`players/${pid}`).once('value');
+          const playerVal = snapPlayer.val() || {};
+          const serverTokens = Number.isFinite(playerVal.tokens) ? playerVal.tokens : 0;
+          const serverAnchor = (playerVal.tokensLastAnchor && !isNaN(Number(playerVal.tokensLastAnchor))) ? Number(playerVal.tokensLastAnchor) : null;
 
-          const updateObj = { tokens: serverTokens, lastTokenDecrement: serverAnchor };
+          const updateObj = { tokens: serverTokens, tokensLastAnchor: serverAnchor };
           if (serverTokens >= MAX_TOKENS) {
             updateObj.nextTokenTime = null;
-            updateObj.lastTokenDecrement = null;
+            updateObj.tokensLastAnchor = null;
           } else {
-            // If we still have capacity, compute a sensible nextTokenTime using the anchor
-            const baseAnchor = serverAnchor || (p.nextTokenTime ? new Date(p.nextTokenTime).getTime() - REGEN_INTERVAL : (now - REGEN_INTERVAL));
+            const baseAnchor = serverAnchor || (playerVal.nextTokenTime ? new Date(playerVal.nextTokenTime).getTime() - REGEN_INTERVAL : (now - REGEN_INTERVAL));
             const remainder = (now - baseAnchor) % REGEN_INTERVAL;
             const newNext = new Date(now + (REGEN_INTERVAL - remainder)).toISOString();
             updateObj.nextTokenTime = newNext;

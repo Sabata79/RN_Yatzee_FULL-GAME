@@ -24,7 +24,7 @@ import RenderFirstRow from '../components/RenderFirstRow';
 import Header from './Header';
 import GlowingText from '../components/AnimatedText';
 import { useGameSave } from '../constants/GameSave';
-import { dbRunTransaction } from '../services/Firebase';
+import { dbRunTransaction, dbUpdate } from '../services/Firebase';
 import { dicefaces } from '../constants/DicePaths';
 import GameboardButtons from '../components/GameboardButtons';
 import { scoringCategoriesConfig } from '../constants/scoringCategoriesConfig';
@@ -186,16 +186,14 @@ export default function Gameboard({ route, navigation }) {
           // mark manual change so GameContext write-through skips briefly
           try { if (typeof markManualChange === 'function') markManualChange(); } catch (e) {}
 
-          // Use dedicated atomic child for token transactions to avoid racing with
-          // the GameContext compute/transact logic which also uses `tokensAtomic`.
-          const txResult = await dbRunTransaction(`players/${uid}/tokensAtomic`, (current) => {
-            const obj = current || {};
-
+          // Transaction directly on the player root to avoid tokensAtomic usage.
+          const txResult = await dbRunTransaction(`players/${uid}`, (current) => {
+            const node = current || {};
             const now = Date.now();
-            const curTokens = Number.isFinite(obj.tokens) ? obj.tokens : (typeof tokens === 'number' ? tokens : 0);
-            const serverAnchor = Number.isFinite(obj.lastTokenDecrement) ? Number(obj.lastTokenDecrement) : null;
+            const curTokens = Number.isFinite(node.tokens) ? node.tokens : (typeof tokens === 'number' ? tokens : 0);
+            const serverAnchor = Number.isFinite(node.tokensLastAnchor) ? Number(node.tokensLastAnchor) : (Number.isFinite(node.lastTokenDecrement) ? Number(node.lastTokenDecrement) : null);
 
-            // First: apply any server-side regenerated tokens based on the anchor
+            // Apply any regeneration based on the anchor
             let serverTokens = curTokens;
             let newAnchorAfterRegen = serverAnchor;
             if (serverAnchor) {
@@ -206,36 +204,30 @@ export default function Gameboard({ route, navigation }) {
                 if (serverTokens < MAX_TOKENS) {
                   newAnchorAfterRegen = serverAnchor + serverIntervals * EFFECTIVE_REGEN_INTERVAL;
                 } else {
-                  newAnchorAfterRegen = null; // reached max, no meaningful anchor
+                  newAnchorAfterRegen = null;
                 }
               }
             }
 
-            // Now consume one token atomically (only if available after regen)
-            if (serverTokens <= 0) return current;
+            if (serverTokens <= 0) return node;
 
             const afterConsume = Math.max(0, serverTokens - 1);
             const writeAnchor = (newAnchorAfterRegen === null) ? now : newAnchorAfterRegen;
 
-            const out = { ...obj, tokens: afterConsume, lastTokenDecrement: writeAnchor };
-
-            try { if (typeof __DEV__ !== 'undefined' && __DEV__) console.log('[Gameboard] regen-then-consume (dev)', { playerId: uid, curTokens, serverTokens, afterConsume, serverAnchor, newAnchorAfterRegen, writeAnchor }); } catch (e) {}
-
+            const out = { ...node, tokens: afterConsume, tokensLastAnchor: writeAnchor };
             return out;
           });
 
-          // Mirror atomic child back to legacy player root so other clients/readers
-          // (and the initial tokens listener on boot) see the updated values.
+          // Mirror: read transaction result and write canonical root fields (best-effort)
           try {
             if (txResult && txResult.snapshot && typeof txResult.snapshot.val === 'function') {
               const after = txResult.snapshot.val();
               const serverTokens = Number.isFinite(after?.tokens) ? after.tokens : 0;
-              const serverAnchor = Number.isFinite(after?.lastTokenDecrement) ? Number(after.lastTokenDecrement) : null;
+              const serverAnchor = Number.isFinite(after?.tokensLastAnchor) ? Number(after.tokensLastAnchor) : null;
               if (playerId) {
                 try {
-                  await dbUpdate(`players/${uid}`, { tokens: serverTokens, lastTokenDecrement: serverAnchor });
+                  await dbUpdate(`players/${uid}`, { tokens: serverTokens, tokensLastAnchor: serverAnchor });
                 } catch (e) {
-                  // best-effort: swallow errors but log in dev
                   try { if (typeof __DEV__ !== 'undefined' && __DEV__) console.warn('[Gameboard] mirror root update failed', e); } catch (e2) {}
                 }
               }
