@@ -181,7 +181,8 @@ export default function Home({ setPlayerId }) {
       if (isNew) {
         try {
           // Initialize canonical root token fields; avoid tokensAtomic child entirely.
-          await dbUpdate(`players/${userId}`, { tokens: MAX_TOKENS, tokensLastAnchor: null, nextTokenTime: null, lastTokenDecrement: null });
+          // Do NOT write nextTokenTime to the database; UI computes display locally from tokensLastAnchor.
+          await dbUpdate(`players/${userId}`, { tokens: MAX_TOKENS, tokensLastAnchor: null, lastTokenDecrement: null });
         } catch (e) {
           try { await dbUpdate(`players/${userId}`, { tokens: MAX_TOKENS }); } catch (e2) { }
         }

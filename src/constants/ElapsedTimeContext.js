@@ -35,6 +35,8 @@ export function ElapsedTimeProvider({ children }) {
 
   const setElapsedTime = useCallback((next) => {
     const v = typeof next === 'function' ? next(elapsedRef.current) : next;
+    // avoid redundant updates when value hasn't changed
+    if (v === elapsedRef.current) return;
     elapsedRef.current = v;
     _setElapsedTime(v);
   }, []);

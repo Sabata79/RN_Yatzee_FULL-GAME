@@ -169,7 +169,6 @@ export default function Gameboard({ route, navigation }) {
     if ((tokens ?? 0) > 0) {
       // Optimistic local decrement for immediate UI responsiveness
       setTokens(prev => Math.max(0, (prev ?? 0) - 1));
-      startGame();
 
       // Persist decrement atomically and set lastTokenDecrement only when
       // tokens transition from MAX_TOKENS -> MAX_TOKENS-1 to establish the
@@ -184,7 +183,7 @@ export default function Gameboard({ route, navigation }) {
           const EFFECTIVE_REGEN_INTERVAL = REGEN_INTERVAL;
 
           // mark manual change so GameContext write-through skips briefly
-          try { if (typeof markManualChange === 'function') markManualChange(); } catch (e) {}
+          try { if (typeof markManualChange === 'function') markManualChange(); } catch (e) { }
 
           // Transaction directly on the player root to avoid tokensAtomic usage.
           const txResult = await dbRunTransaction(`players/${uid}`, (current) => {
@@ -228,11 +227,11 @@ export default function Gameboard({ route, navigation }) {
                 try {
                   await dbUpdate(`players/${uid}`, { tokens: serverTokens, tokensLastAnchor: serverAnchor });
                 } catch (e) {
-                  try { if (typeof __DEV__ !== 'undefined' && __DEV__) console.warn('[Gameboard] mirror root update failed', e); } catch (e2) {}
+                  try { if (typeof __DEV__ !== 'undefined' && __DEV__) console.warn('[Gameboard] mirror root update failed', e); } catch (e2) { }
                 }
               }
             }
-          } catch (e) {}
+          } catch (e) { }
         } catch (err) {
           console.warn('[Gameboard] token decrement transaction failed', err);
         }
@@ -242,7 +241,7 @@ export default function Gameboard({ route, navigation }) {
     }
     // Do not open modal here; modal opens only from START GAME overlay
     return false;
-  }, [gameStarted, tokens, setTokens, startGame, playerId]);
+  }, [gameStarted, tokens, setTokens, playerId]);
 
   // When rounds reach 0, end the game and open the score modal
   useEffect(() => {
@@ -394,6 +393,12 @@ export default function Gameboard({ route, navigation }) {
 
   const throwDices = useCallback(() => {
     if (nbrOfThrowsLeft > 0) {
+      // If the game hasn't been started yet, begin it now (first actual roll)
+      if (!gameStarted) {
+        const ok = beginGame();
+        if (!ok) return; // not enough tokens
+        try { startGame(); } catch (e) { }
+      }
       setIsRolling(true);
       playSfx();
       setTimeout(() => {
@@ -417,7 +422,7 @@ export default function Gameboard({ route, navigation }) {
     } else {
       setNbrOfThrowsLeft(NBR_OF_THROWS);
     }
-  }, [nbrOfThrowsLeft, selectedDices, rolledDices, checkAndUnlockYatzy, playSfx]);
+  }, [nbrOfThrowsLeft, selectedDices, rolledDices, checkAndUnlockYatzy, playSfx, gameStarted, beginGame, startGame]);
 
   // First roll starts the game; overlay only hides
   const onRollPress = useCallback(() => {
@@ -454,8 +459,6 @@ export default function Gameboard({ route, navigation }) {
     () => Array.from({ length: NBR_OF_DICES }, (_, i) => () => selectDice(i)),
     [selectDice]
   );
-
-  const { width, height } = Dimensions.get('window');
   const diceRow = useMemo(
     () =>
       Array.from({ length: NBR_OF_DICES }, (_, i) => (
@@ -540,9 +543,47 @@ export default function Gameboard({ route, navigation }) {
     ]
   );
 
+  const headerEl = useMemo(() => (
+  <RenderFirstRow rounds={rounds} />
+), [rounds]);
+
+  const extraData = useMemo(() => ({
+    scoringCategories, totalPoints, minorPoints,
+    selectedField, nbrOfThrowsLeft, rounds
+  }), [scoringCategories, totalPoints, minorPoints, selectedField, nbrOfThrowsLeft, rounds]);
+
+  // Safe setter prevents redundant state updates when child passes the same value
+  const setSelectedFieldSafe = useCallback((next) => {
+    setSelectedField((prev) => {
+      const v = typeof next === 'function' ? next(prev) : next;
+      return v === prev ? prev : v;
+    });
+  }, [setSelectedField]);
+
+  // Stable renderItem for FlatList to avoid per-render allocations
+  const renderItem = useCallback(({ index }) => (
+    <GridField
+      index={index}
+      scoringCategories={scoringCategories}
+      totalPoints={totalPoints}
+      minorPoints={minorPoints}
+      selectedField={selectedField}
+      setSelectedField={setSelectedFieldSafe}
+      audioManager={audioApi}
+      gameboardstyles={gameboardstyles}
+      rolledDices={rolledDices}
+      BONUS_POINTS_LIMIT={BONUS_POINTS_LIMIT}
+      styles={styles}
+      nbrOfThrowsLeft={nbrOfThrowsLeft}
+      NBR_OF_THROWS={NBR_OF_THROWS}
+    />
+  ), [scoringCategories, totalPoints, minorPoints, selectedField, setSelectedFieldSafe, audioApi, gameboardstyles, rolledDices, nbrOfThrowsLeft]);
+
+  const keyExtractor = useCallback((item) => item.key, []);
+
   return (
     <ImageBackground source={require('../../assets/diceBackground.webp')} style={styles.background}>
-  {/* debug overlay removed for production/dev cleanliness */}
+      {/* debug overlay removed for production/dev cleanliness */}
       <Header />
 
 
@@ -566,7 +607,7 @@ export default function Gameboard({ route, navigation }) {
             onClose={() => setEnergyModalVisible(false)}
             tokens={tokens}
             maxTokens={10}
-            timeToNextToken={timeToNextToken}
+          // timeToNextToken={timeToNextToken}
           />
         </>
       )}
@@ -578,30 +619,13 @@ export default function Gameboard({ route, navigation }) {
           columnWrapperStyle={gameboardstyles.columnWrap}
           data={data}
           numColumns={4}
-          renderItem={({ index }) => (
-            <GridField
-              index={index}
-              scoringCategories={scoringCategories}
-              totalPoints={totalPoints}
-              minorPoints={minorPoints}
-              selectedField={selectedField}
-              setSelectedField={setSelectedField}
-              audioManager={audioApi}
-              isSmallScreen={isSmallScreen}
-              gameboardstyles={gameboardstyles}
-              rolledDices={rolledDices}
-              BONUS_POINTS_LIMIT={BONUS_POINTS_LIMIT}
-              styles={styles}
-              nbrOfThrowsLeft={nbrOfThrowsLeft}
-              NBR_OF_THROWS={NBR_OF_THROWS}
-            />
-          )}
-          keyExtractor={(item) => item.key}
-          ListHeaderComponent={<RenderFirstRow rounds={rounds} />}
+          ListHeaderComponent={headerEl}
+          renderItem={renderItem}
+          keyExtractor={keyExtractor}
           ListFooterComponent={renderFooter}
           ListHeaderComponentStyle={{ marginBottom: 6 }}
           ListFooterComponentStyle={{ marginTop: 6 }}
-          extraData={{ scoringCategories, totalPoints, minorPoints, selectedField, nbrOfThrowsLeft, rounds }}
+          extraData={extraData}
         />
       </View>
 

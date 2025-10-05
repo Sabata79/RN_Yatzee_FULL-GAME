@@ -20,7 +20,7 @@ import { useElapsedTime } from '../constants/ElapsedTimeContext';
 import firstRowStyles from '../styles/FirstRowStyles';
 import COLORS from '../constants/colors';
 
-export default function RenderFirstRow({ rounds = null }) {
+function RenderFirstRow() {
   // Game flags lives in GameContext
   const { gameStarted, gameEnded, isGameSaved, setIsGameSaved } = useGame();
 
@@ -44,6 +44,9 @@ export default function RenderFirstRow({ rounds = null }) {
   // Käynnistä kello kun peli alkaa
   useEffect(() => {
     if (gameStarted) {
+      // start() identity may change between renders from useStopwatch; we only
+      // want to react to change in `gameStarted` (not function identity).
+      // eslint-disable-next-line react-hooks/exhaustive-deps
       start();
       Animated.loop(
         Animated.sequence([
@@ -52,34 +55,43 @@ export default function RenderFirstRow({ rounds = null }) {
         ])
       ).start();
     }
-  }, [gameStarted, start, glowAnim]);
+    // Intentionally only depend on gameStarted
+  }, [gameStarted]);
 
   useEffect(() => {
-    if (rounds === 0 || gameEnded) {
+    if (gameEnded) {
+      // pause() identity may change; only care that gameEnded toggled
+      // eslint-disable-next-line react-hooks/exhaustive-deps
       pause();
       setElapsedTime(totalSeconds);
     }
-  }, [rounds, gameEnded, pause, totalSeconds, setElapsedTime]);
+  }, [gameEnded, totalSeconds, setElapsedTime]);
 
   useEffect(() => {
     if (totalSeconds >= MAX_SECS) {
+      // eslint-disable-next-line react-hooks/exhaustive-deps
       pause();
       setElapsedTime(MAX_SECS);
     } else {
       if (elapsedTime !== totalSeconds) setElapsedTime(totalSeconds);
     }
-  }, [totalSeconds, pause, setElapsedTime, elapsedTime]);
+    // Dependencies: totalSeconds, elapsedTime, setElapsedTime
+    // pause() identity isn't relevant to triggering this effect
+  }, [totalSeconds, elapsedTime, setElapsedTime]);
 
   useEffect(() => {
     if (isGameSaved) {
+      // pause/reset identities not relevant; only isGameSaved matters
+      // eslint-disable-next-line react-hooks/exhaustive-deps
       pause();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
       reset();
       setElapsedTime(0);
       setIsGameSaved(false);
       glowAnim.stopAnimation();
       glowAnim.setValue(1);
     }
-  }, [isGameSaved, pause, reset, setElapsedTime, setIsGameSaved, glowAnim]);
+  }, [isGameSaved, setElapsedTime, setIsGameSaved, glowAnim]);
 
   return (
     <View style={firstRowStyles.firstRow}>
@@ -113,3 +125,5 @@ export default function RenderFirstRow({ rounds = null }) {
     </View>
   );
 }
+
+export default React.memo(RenderFirstRow);

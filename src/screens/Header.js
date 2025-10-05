@@ -10,7 +10,7 @@
  * @since 2025-09-06
  */
 
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { View, Text, Pressable, Image, Modal, Dimensions } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import PlayerCard from '../components/PlayerCard';
@@ -37,7 +37,7 @@ function resolveUserAvatarDisplay(rawPath) {
   return findAvatarMeta(rawPath)?.display;
 }
 
-export default function Header() {
+function Header() {
   const [isModalVisible, setModalVisible] = useState(false);
   const [leftWidth, setLeftWidth] = useState(0);
 
@@ -54,22 +54,25 @@ export default function Header() {
     isLinked,
   } = useGame();
 
-  const userAvatar = resolveUserAvatarDisplay(avatarUrl);
+  // Memoize derived avatar display and beginner check to avoid repeated lookups
+  const userAvatar = useMemo(() => resolveUserAvatarDisplay(avatarUrl), [avatarUrl]);
+  const isBeginner = useMemo(() => {
+    try {
+      const avatar = findAvatarMeta(avatarUrl);
+      return !!avatar && String(avatar.level || '').toLowerCase() === 'beginner';
+    } catch (e) { return false; }
+  }, [avatarUrl]);
 
-  const isBeginnerAvatar = (avatarPath) => {
-    const avatar = findAvatarMeta(avatarPath);
-    return !!avatar && String(avatar.level || '').toLowerCase() === 'beginner';
-  };
+  // Stable callback to open modal
+  const openModal = useCallback(() => setModalVisible(true), []);
 
-  const selectedPlayer = {
-    playerId: playerId,
-    playerName: playerName,
-  };
-
-  const mirroredWidth = Math.max(
+  // Mirror width calculation memoized
+  const mirroredWidth = useMemo(() => Math.max(
     MIN_RIGHT,
     Math.min(leftWidth, Math.max(0, SCREEN_WIDTH - leftWidth - CENTER_MIN))
-  )
+  ), [leftWidth, SCREEN_WIDTH]);
+
+  const selectedPlayer = useMemo(() => ({ playerId, playerName }), [playerId, playerName]);
 
   return (
     <View style={headerStyles.header}>
@@ -92,7 +95,7 @@ export default function Header() {
       {/* Center: always centered name */}
       <View style={headerStyles.sectionCenter}>
         {userRecognized && !!playerName && (
-          <Pressable onPress={() => setModalVisible(true)} style={headerStyles.userNamePressable}>
+          <Pressable onPress={openModal} style={headerStyles.userNamePressable}>
             <Text style={headerStyles.userName} numberOfLines={1} ellipsizeMode="tail">
               {playerName}
             </Text>
@@ -102,14 +105,14 @@ export default function Header() {
 
       {/* Right: avatar – width mirrored from left */}
       {userRecognized ? (
-        <Pressable onPress={() => setModalVisible(true)}>
+        <Pressable onPress={openModal}>
           <View style={[headerStyles.sectionRight, { width: mirroredWidth }]}>
             <View style={{ position: 'relative' }}>
               {userAvatar ? (
                 <Image
                   source={userAvatar}
                   style={[
-                    isBeginnerAvatar(avatarUrl)
+                    isBeginner
                       ? headerStyles.beginnerAvatar
                       : headerStyles.headerAvatarImage,
                   ]}
@@ -125,7 +128,7 @@ export default function Header() {
               {isLinked && (
                 <View
                   style={[
-                    isBeginnerAvatar(avatarUrl)
+                    isBeginner
                       ? headerStyles.beginnerLinkIconContainer
                       : headerStyles.linkIconContainer,
                   ]}
@@ -160,3 +163,5 @@ export default function Header() {
     </View>
   );
 }
+
+export default React.memo(Header);

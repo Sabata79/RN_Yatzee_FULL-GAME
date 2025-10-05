@@ -49,7 +49,7 @@ exports.scheduledTokenRegen = functions.pubsub.schedule('every 5 minutes').onRun
         if (newTokens >= MAX_TOKENS) {
           // When full, clear anchor information on root
           out.tokensLastAnchor = null;
-          out.nextTokenTime = null;
+          // NOTE: intentionally do NOT write nextTokenTime to DB from server; UI derives display from tokensLastAnchor
         } else {
           // Compute anchor: prefer existing TokensLastAnchor then existing lastTokenDecrement fallback
           const curAnchor = (node.tokensLastAnchor && !isNaN(Number(node.tokensLastAnchor)))
@@ -61,8 +61,7 @@ exports.scheduledTokenRegen = functions.pubsub.schedule('every 5 minutes').onRun
           } else {
             out.tokensLastAnchor = node.tokensLastAnchor || node.lastTokenDecrement || null;
           }
-          // compute nextTokenTime from anchor
-          out.nextTokenTime = new Date(out.tokensLastAnchor + REGEN_INTERVAL).toISOString();
+          // compute next token time locally as needed (do NOT persist nextTokenTime here)
         }
 
         return out;
@@ -79,13 +78,8 @@ exports.scheduledTokenRegen = functions.pubsub.schedule('every 5 minutes').onRun
 
           const updateObj = { tokens: serverTokens, tokensLastAnchor: serverAnchor };
           if (serverTokens >= MAX_TOKENS) {
-            updateObj.nextTokenTime = null;
+            // keep anchor null when full
             updateObj.tokensLastAnchor = null;
-          } else {
-            const baseAnchor = serverAnchor || (playerVal.nextTokenTime ? new Date(playerVal.nextTokenTime).getTime() - REGEN_INTERVAL : (now - REGEN_INTERVAL));
-            const remainder = (now - baseAnchor) % REGEN_INTERVAL;
-            const newNext = new Date(now + (REGEN_INTERVAL - remainder)).toISOString();
-            updateObj.nextTokenTime = newNext;
           }
 
           // Mirror back to root (best-effort; don't block the scheduler if this fails)
@@ -93,7 +87,8 @@ exports.scheduledTokenRegen = functions.pubsub.schedule('every 5 minutes').onRun
           // write a lightweight audit record so clients/ops can attribute who updated tokens
           try {
             const auditRef = db.ref(`tokenAudit/${pid}/${Date.now()}`);
-            await auditRef.set({ actor: 'server', source: 'scheduledTokenRegen', tokens: serverTokens, nextTokenTime: updateObj.nextTokenTime || null, ts: Date.now() });
+            // Do not persist nextTokenTime in audit; keep audit focused on tokens and timing
+            await auditRef.set({ actor: 'server', source: 'scheduledTokenRegen', tokens: serverTokens, ts: Date.now() });
           } catch (e) {
             console.error('scheduledTokenRegen audit write failed for', pid, e);
           }

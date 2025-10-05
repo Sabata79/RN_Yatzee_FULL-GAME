@@ -28,6 +28,7 @@
  * @author Sabata79
  * @since 2025-09-16
  */
+import React from 'react';
 import { View, Pressable, Text, Image, Animated, useWindowDimensions } from 'react-native';
 import { useRef, useEffect } from 'react';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -50,7 +51,6 @@ function GridField({
     selectedField,
     setSelectedField,
     audioManager,
-    isSmallScreen,
     gameboardstyles,
     rolledDices,
     BONUS_POINTS_LIMIT,
@@ -667,4 +667,4 @@ function GridField({
     }
 }
 
-export default GridField;
+export default React.memo(GridField);

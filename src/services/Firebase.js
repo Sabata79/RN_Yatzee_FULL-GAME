@@ -64,7 +64,7 @@ export const dbSet = (path, value) => {
           // do not instrument presence writes
         } else {
           // Only log potentially problematic writes: root player set or token/anchor/nextTokenTime children
-          const significant = /players\/[^\/]+(?:$|\/(tokens|lastTokenDecrement|nextTokenTime))/.test(path);
+          const significant = /players\/[^\/]+(?:$|\/(tokens|lastTokenDecrement))/.test(path);
           if (significant) {
             const st = new Error().stack || '';
             // Limit stack trace size to first 20 lines to keep logs readable
