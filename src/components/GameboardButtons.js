@@ -45,7 +45,9 @@ function GameboardButtons({
     if (rounds <= 0) return;
 
     if (!gameStarted) {
-      beginGame();
+      // Do not call beginGame() here; throwDices() will call beginGame()
+      // as needed. Calling it here caused tokens to be decremented twice
+      // (optimistic local decrement in beginGame + the call below).
       throwDices();
       return;
     }

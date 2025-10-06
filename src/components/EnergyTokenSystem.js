@@ -26,6 +26,8 @@ const EnergyTokenSystem = ({ hidden }) => {
     timeToNextToken,
   } = useGame();
 
+  console.log('EnergyTokenSystem render', { tokens, timeToNextToken });
+
   // EnergyTokenSystem is now a presentation-only component.
   // All token regen, persistence and DB syncing responsibility has been moved to GameContext.
 

@@ -4,10 +4,7 @@
  * Keeps the player name perfectly centered by mirroring the left slot width
  * (logo + energy bar) to the right slot (avatar). This avoids absolute layouts
  * and keeps the center aligned on all screen widths.
- *
  * @module screens/Header
- * @author Sabata79
- * @since 2025-09-06
  */
 
 import React, { useState, useMemo, useCallback } from 'react';
@@ -19,32 +16,13 @@ import headerStyles from '../styles/HeaderStyles';
 import { useGame } from '../constants/GameContext';
 import { avatars } from '../constants/AvatarPaths';
 
-const _norm = (s) => String(s || '').replace(/\\/g, '/').replace(/^\.\//, '');
-const _last2 = (s) => _norm(s).split('/').slice(-2).join('/').toLowerCase();
-
-function findAvatarMeta(rawPath) {
-  const target = _norm(rawPath);
-  if (!target) return null;
-  const key = _last2(target);
-  const hit = avatars.find(av => {
-    const ap = _norm(av.path);
-    return ap === target || _last2(ap) === key;
-  });
-  return hit || null;
-}
-
-function resolveUserAvatarDisplay(rawPath) {
-  return findAvatarMeta(rawPath)?.display;
-}
-
-function Header() {
+export default function Header() {
   const [isModalVisible, setModalVisible] = useState(false);
   const [leftWidth, setLeftWidth] = useState(0);
 
   const { width: SCREEN_WIDTH } = Dimensions.get('window');
   const CENTER_MIN = Math.floor(SCREEN_WIDTH * 0.4);
   const MIN_RIGHT = 56;
-  const MAX_MIRROR = Math.floor(SCREEN_WIDTH * 0.4); // clamp so left cannot push name off-center
 
   const {
     playerId,
@@ -54,19 +32,14 @@ function Header() {
     isLinked,
   } = useGame();
 
-  // Memoize derived avatar display and beginner check to avoid repeated lookups
-  const userAvatar = useMemo(() => resolveUserAvatarDisplay(avatarUrl), [avatarUrl]);
-  const isBeginner = useMemo(() => {
-    try {
-      const avatar = findAvatarMeta(avatarUrl);
-      return !!avatar && String(avatar.level || '').toLowerCase() === 'beginner';
-    } catch (e) { return false; }
-  }, [avatarUrl]);
+  // Minimal: use avatar meta display directly (no normalization or helpers)
+  const avatarToUse = avatarUrl;
+  const meta = avatars.find(av => av.path === avatarToUse);
+  const avatarDisplay = meta ? meta.display : null;
+  const isBeginner = !!meta && String(meta.level || '').toLowerCase() === 'beginner';
 
-  // Stable callback to open modal
   const openModal = useCallback(() => setModalVisible(true), []);
 
-  // Mirror width calculation memoized
   const mirroredWidth = useMemo(() => Math.max(
     MIN_RIGHT,
     Math.min(leftWidth, Math.max(0, SCREEN_WIDTH - leftWidth - CENTER_MIN))
@@ -108,14 +81,10 @@ function Header() {
         <Pressable onPress={openModal}>
           <View style={[headerStyles.sectionRight, { width: mirroredWidth }]}>
             <View style={{ position: 'relative' }}>
-              {userAvatar ? (
+              {avatarDisplay ? (
                 <Image
-                  source={userAvatar}
-                  style={[
-                    isBeginner
-                      ? headerStyles.beginnerAvatar
-                      : headerStyles.headerAvatarImage,
-                  ]}
+                  source={avatarDisplay}
+                  style={isBeginner ? headerStyles.beginnerAvatar : headerStyles.headerAvatarImage}
                 />
               ) : (
                 <FontAwesome5
@@ -126,13 +95,7 @@ function Header() {
                 />
               )}
               {isLinked && (
-                <View
-                  style={[
-                    isBeginner
-                      ? headerStyles.beginnerLinkIconContainer
-                      : headerStyles.linkIconContainer,
-                  ]}
-                >
+                <View style={isBeginner ? headerStyles.beginnerLinkIconContainer : headerStyles.linkIconContainer}>
                   <FontAwesome5 name="link" size={10} color="gold" />
                 </View>
               )}
@@ -152,16 +115,11 @@ function Header() {
       >
         <View style={{ flex: 1 }}>
           <PlayerCard
-            playerId={selectedPlayer?.playerId ?? ''}
-            playerName={selectedPlayer?.playerName ?? ''}
             isModalVisible={isModalVisible}
             setModalVisible={setModalVisible}
-            playerScores={selectedPlayer?.playerScores ?? []}
           />
         </View>
       </Modal>
     </View>
   );
 }
-
-export default React.memo(Header);

@@ -39,14 +39,24 @@ export default function BackgroundVideo({ isActive = true }) {
     <View pointerEvents="none" style={StyleSheet.absoluteFill}>
       {/* Solid fallback so transparent roots never show white */}
       <View style={[StyleSheet.absoluteFill, { backgroundColor: '#253445' }]} />
-      {player && isActive ? (
+
+      {/*
+        Keep the native VideoView mounted at all times once player is available.
+        Mount/unmount of the native view is expensive on some platforms and
+        causes visible delay when returning to the Home screen. Instead we
+        render the view and toggle its opacity based on `isActive` so it
+        appears/disappears instantly while still allowing play/pause logic
+        to run (see useEffect above).
+      */}
+      {player ? (
         <VideoView
           player={player}
-          style={StyleSheet.absoluteFill}
+          style={[StyleSheet.absoluteFill, { opacity: isActive ? 1 : 0 }]}
           contentFit="cover"
           nativeControls={false}
           allowsPictureInPicture={false}
           focusable={false}
+          pointerEvents="none"
         />
       ) : null}
     </View>
