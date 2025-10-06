@@ -88,7 +88,7 @@ const headerStyles = StyleSheet.create({
     height: 35,
     resizeMode: 'cover',
     margin: 5,
-    borderRadius: 2,
+    borderRadius: 5,
     borderWidth: 1,
     borderColor: '#4f4c4c36',
   },

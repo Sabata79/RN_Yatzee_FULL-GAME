@@ -48,9 +48,10 @@ export const GameProvider = ({ children }) => {
   const [userRecognized, setUserRecognized] = useState(false);
   const [isLinked, setIsLinked] = useState(false);
   const [playerLevel, setPlayerLevel] = useState(null);
-  // player avatar url
-  const [avatarUrl, setAvatarUrl] = useState(null);
-
+  // player avatar url (canonical) + pending local display override
+  const [avatarUrl, setAvatarUrlState] = useState(null);
+  const [pendingAvatar, setPendingAvatar] = useState(null);
+  const pendingAvatarTimeoutRef = useRef(null);
   // Tokens
   const [tokens, setTokens] = useState(0);
   const tokensRef = useRef(0);
@@ -98,6 +99,39 @@ export const GameProvider = ({ children }) => {
   const serverOffsetRef = useRef(0);
 
   const markManualChange = useCallback(() => { manualChangeRef.current = Date.now(); }, []);
+
+  // Setter wrapper for avatar that supports a short-lived local "pending" value
+  // when the client writes the avatar locally. Call with { local: false }
+  // when applying DB-origin snapshots so we don't re-create the pending state.
+  const setAvatarUrl = useCallback((path, { local = true } = {}) => {
+    try {
+      // Always write canonical state immediately
+      setAvatarUrlState(path);
+
+      if (!local) {
+        // DB-origin: if we have a pending override, clear it so UI reflects DB
+        if (pendingAvatar !== null) {
+          setPendingAvatar(null);
+          if (pendingAvatarTimeoutRef.current) {
+            clearTimeout(pendingAvatarTimeoutRef.current);
+            pendingAvatarTimeoutRef.current = null;
+          }
+        }
+        return;
+      }
+
+      // Local-origin: show instantly (pending) and clear after a short grace
+      setPendingAvatar(path);
+      if (pendingAvatarTimeoutRef.current) {
+        clearTimeout(pendingAvatarTimeoutRef.current);
+        pendingAvatarTimeoutRef.current = null;
+      }
+      pendingAvatarTimeoutRef.current = setTimeout(() => {
+        setPendingAvatar(null);
+        pendingAvatarTimeoutRef.current = null;
+      }, 3000);
+    } catch (e) { /* ignore */ }
+  }, [pendingAvatar]);
 
   // small helpers for legacy anchor handling
   const lastDecrementRef = useRef(null);
@@ -323,7 +357,7 @@ export const GameProvider = ({ children }) => {
           }
         }
 
-  if (intervals <= 0) return p;
+        if (intervals <= 0) return p;
 
         const newTokens = Math.min(serverTokens + intervals, MAX_TOKENS);
         const out = { ...p, tokens: newTokens };
@@ -436,7 +470,7 @@ export const GameProvider = ({ children }) => {
         const now = Date.now() + (serverOffsetRef.current || 0);
         const curTokens = typeof tokensRef.current === 'number' ? tokensRef.current : 0;
 
-  // Debug logs removed in production
+        // Debug logs removed in production
 
         if (curTokens >= MAX_TOKENS) {
           if (mounted) setTimeToNextToken('');
@@ -467,7 +501,7 @@ export const GameProvider = ({ children }) => {
           }
         }
 
-  // Debug logs removed in production
+        // Debug logs removed in production
 
         // If database still contains nextTokenTime, warn if it materially disagrees with authoritative anchor
         try {
@@ -493,7 +527,7 @@ export const GameProvider = ({ children }) => {
         if (hh > 0) str = `${hh}:${String(mm).padStart(2, '0')}:${String(ss).padStart(2, '0')}`;
         else str = `${String(mm)}:${String(ss).padStart(2, '0')}`;
 
-  // Debug logs removed in production
+        // Debug logs removed in production
 
         if (mounted) setTimeToNextToken(str);
       } catch (e) { /* ignore */ }
@@ -504,7 +538,7 @@ export const GameProvider = ({ children }) => {
     const schedule = () => {
       const nowMs = Date.now();
       const delay = 1000 - (nowMs % 1000) || 1000;
-  // Debug logs removed in production
+      // Debug logs removed in production
       timer = setTimeout(() => { tick(); schedule(); }, delay);
     };
     schedule();
@@ -523,14 +557,12 @@ export const GameProvider = ({ children }) => {
     }
   }, [computeAndApplyTokens]);
 
-  const contextValue = useMemo(() => ({
+  const contextValue = ({
     // identity
     playerId,
     setPlayerId,
     playerName,
     setPlayerName,
-    avatarUrl,
-    setAvatarUrl,
     // alternate identity/context helpers
     playerIdContext,
     setPlayerIdContext,
@@ -548,7 +580,12 @@ export const GameProvider = ({ children }) => {
     gameVersionCode,
     setGameVersionCode,
 
-    // tokens
+  // identity
+  avatarUrl: avatarUrl,
+  displayAvatarUrl: pendingAvatar !== null ? pendingAvatar : avatarUrl,
+  setAvatarUrl,
+
+  // tokens
     tokens,
     setTokens,
     tokensStabilized,
@@ -591,30 +628,7 @@ export const GameProvider = ({ children }) => {
     setViewingPlayerId,
     viewingPlayerName,
     setViewingPlayerName,
-  }), [
-    playerId,
-    playerName,
-    playerIdContext,
-    playerNameContext,
-    userRecognized,
-    isLinked,
-    playerLevel,
-    gameVersion,
-    gameVersionCode,
-    tokens,
-    tokensStabilized,
-  nextTokenTime,
-  timeToNextToken,
-  setTimeToNextToken,
-  triggerTokenRecalc,
-    stabilizeTokensOnBoot,
-    scoreboardData,
-    scoreboardMonthly,
-    scoreboardWeekly,
-    scoreboardIndices,
-    viewingPlayerId,
-    viewingPlayerName,
-  ]);
+  } );
 
   return <GameContext.Provider value={contextValue}>{children}</GameContext.Provider>;
 };

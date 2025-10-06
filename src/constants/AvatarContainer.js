@@ -233,11 +233,12 @@ const styles = StyleSheet.create({
   },
   beginnerAvatar: {
     borderRadius: 0,
-    width: 50,
-    height: 35,
-    resizeMode: 'cover',
-    margin: 5,
+    width: 65,
+    height: 45,
+    resizeMode: 'stretch',
+    margin: 10,
     borderWidth: 1,
+    borderRadius: 5,
     borderColor: '#4f4c4c36',
   },
   advancedAvatar: {

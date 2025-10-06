@@ -8,7 +8,7 @@
  */
 
 // EnergyTokenSystem.js
-import React from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { View, Text } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import EnergyModal from './modals/EnergyModal';
@@ -29,7 +29,10 @@ const EnergyTokenSystem = ({ hidden }) => {
   // EnergyTokenSystem is now a presentation-only component.
   // All token regen, persistence and DB syncing responsibility has been moved to GameContext.
 
-  const progress = tokens ? tokens / MAX_TOKENS : 0;
+  // Memoize progress so derived value doesn't flip-flop on unrelated renders
+  const progress = useMemo(() => (tokens ? tokens / MAX_TOKENS : 0), [tokens]);
+
+  const handleClose = useCallback(() => setEnergyModalVisible(false), [setEnergyModalVisible]);
 
   // Render the energy container
   if (hidden) return null;
@@ -49,13 +52,15 @@ const EnergyTokenSystem = ({ hidden }) => {
       </View>
       <EnergyModal
         visible={energyModalVisible}
-        onClose={() => setEnergyModalVisible(false)}
+        onClose={handleClose}
         tokens={tokens}
         maxTokens={MAX_TOKENS}
-        timeToNextToken={timeToNextToken}
+        // Only pass the time string when the modal is actually visible to avoid
+        // forcing modal and its children to re-render every second when hidden.
+        timeToNextToken={energyModalVisible ? timeToNextToken : undefined}
       />
     </View>
   );
 };
 
-export default EnergyTokenSystem;
+export default React.memo(EnergyTokenSystem);
