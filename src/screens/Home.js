@@ -19,7 +19,6 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import homeStyles from '../styles/HomeStyles';
 import { dbGet, dbSet, dbUpdate, auth } from '../services/Firebase';
-import { goOnline, goOffline } from '../services/Presence';
 import { sanitizeInput, checkIfNameExists } from '../services/nameUtils';
 import uuid from 'react-native-uuid';
 import { useNavigation, useIsFocused, useFocusEffect } from '@react-navigation/native';
@@ -44,6 +43,8 @@ export default function Home({ setPlayerId }) {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const presenceCleanupRef = useRef(null);
+  const presencePendingRef = useRef(false);
+  const presencePendingTimerRef = useRef(null);
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const [isRecoverModalVisible, setIsRecoverModalVisible] = useState(false);
@@ -52,7 +53,6 @@ export default function Home({ setPlayerId }) {
 
   // Audio
   const { playSelect, prewarmSfx, ready } = useAudio();
-
   useFocusEffect(
     useCallback(() => {
       prewarmSfx().catch(() => { });
@@ -126,42 +126,7 @@ export default function Home({ setPlayerId }) {
   }, [localName, playerId, setPlayerIdContext, setPlayerNameContext]);
 
   // Mark player online when playerId is available and auth matches.
-  useEffect(() => {
-    let mounted = true;
-    if (!playerId) return undefined;
-    (async () => {
-      try {
-        const current = auth && auth().currentUser;
-        if (!current || String(current.uid) !== String(playerId)) {
-          console.debug('[Home] skipping goOnline: no matching authenticated user for', playerId);
-          return;
-        }
-        try {
-          const cleanup = await goOnline(playerId, { versionName: gameVersion, versionCode: gameVersionCode });
-          if (!mounted) {
-            try { if (typeof cleanup === 'function') cleanup(); } catch (e) {}
-            return;
-          }
-          presenceCleanupRef.current = cleanup;
-          console.debug('[Home] presence goOnline succeeded for', playerId);
-        } catch (e) {
-          console.warn('[Home] goOnline failed for', playerId, e?.message || e);
-        }
-      } catch (e) {}
-    })();
-
-    return () => {
-      mounted = false;
-      try {
-        if (presenceCleanupRef.current && typeof presenceCleanupRef.current === 'function') {
-          try { presenceCleanupRef.current().catch(() => {}); } catch (e) {}
-          presenceCleanupRef.current = null;
-        } else if (playerId) {
-          try { goOffline(playerId).catch(() => {}); } catch (e) {}
-        }
-      } catch (e) {}
-    };
-  }, [playerId]);
+  // Presence is now handled centrally by GameContext; Home no longer manages goOnline/goOffline.
 
   const saveNewPlayer = async (name, userId) => {
     const snap = await dbGet(`players/${userId}`);

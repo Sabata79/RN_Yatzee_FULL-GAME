@@ -8,7 +8,7 @@
  */
 
 import React, { useState, useMemo, useRef, useCallback, useEffect } from 'react';
-import { View, useWindowDimensions } from 'react-native';
+import { View, useWindowDimensions, ImageBackground } from 'react-native';
 import { TabView, SceneMap, TabBar } from 'react-native-tab-view';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -203,7 +203,14 @@ export default function ScoreboardTabs({
   }, [index, scoreboardIndices]);
 
   return (
-    <View style={{ flex: 1 }}>
+    <ImageBackground
+      source={require('../../assets/diceBackground.webp')}
+      style={{ flex: 1 }}
+      resizeMode="cover"
+    >
+      {/* Dark overlay so the background image is much darker on Scoreboard screens */}
+      <View style={{ ...scoreboardStyles.overlay, backgroundColor: COLORS.overlayExtraDark, position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 0 }} />
+      <View style={{ flex: 1, zIndex: 1 }}>
       <TabView
         navigationState={navState}
         renderScene={sceneRenderer}
@@ -238,6 +245,7 @@ export default function ScoreboardTabs({
           }}
         />
       )}
-    </View>
+      </View>
+    </ImageBackground>
   );
 }

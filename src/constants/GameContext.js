@@ -21,7 +21,8 @@
  */
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { dbOnValue, dbOff, dbUpdate, dbRunTransaction, dbSet, dbGet } from '../services/Firebase';
+import { dbOnValue, dbOff, dbUpdate, dbRunTransaction, dbSet, dbGet, auth } from '../services/Firebase';
+import { goOnline, goOffline } from '../services/Presence';
 import { isBetterScore } from '../utils/scoreUtils';
 import { MAX_TOKENS } from './Game';
 
@@ -146,6 +147,46 @@ export const GameProvider = ({ children }) => {
   const [viewingPlayerName, setViewingPlayerName] = useState(null);
   // centralized presence map (merged top-level + embedded)
   const [presenceMap, setPresenceMap] = useState({});
+  const presenceCleanupRef = useRef(null);
+
+  // Centralized presence management: keep the player online while we have a playerId
+  useEffect(() => {
+    let mounted = true;
+    if (!playerId) return undefined;
+
+    (async () => {
+      try {
+        const current = auth && auth().currentUser;
+        if (!current || String(current.uid) !== String(playerId)) {
+          try { console.debug('[GameContext] skipping goOnline: auth mismatch for', playerId); } catch (e) {}
+          return;
+        }
+        try {
+          const cleanup = await goOnline(playerId, { versionName: gameVersion, versionCode: gameVersionCode });
+          if (!mounted) {
+            try { if (typeof cleanup === 'function') cleanup(); } catch (e) {}
+            return;
+          }
+          presenceCleanupRef.current = cleanup;
+          try { console.debug('[GameContext] presence goOnline succeeded for', playerId, 'cleanupSet=', !!cleanup); } catch (e) {}
+        } catch (e) {
+          try { console.warn('[GameContext] goOnline failed for', playerId, e); } catch (er) {}
+        }
+      } catch (e) {}
+    })();
+
+    return () => {
+      mounted = false;
+      try {
+        if (presenceCleanupRef.current && typeof presenceCleanupRef.current === 'function') {
+          try { presenceCleanupRef.current().catch(() => {}); } catch (e) {}
+          presenceCleanupRef.current = null;
+        } else if (playerId) {
+          try { goOffline(playerId).catch(() => {}); } catch (e) {}
+        }
+      } catch (e) {}
+    };
+  }, [playerId, gameVersion, gameVersionCode]);
 
   // ----- Scoreboard listener: compute all-time, monthly and weekly slices -----
   // Prefer per-player aggregates (allTimeBest/monthlyBest/weeklyBest) when

@@ -207,9 +207,13 @@ export function setPresence(playerId, online = true, meta = {}) {
  */
 export async function goOnline(playerId, meta = {}) {
   const path = `${PRESENCE_ROOT}/${playerId}`;
+  try {
+    console.debug('[Presence] goOnline called for', playerId, 'meta=', meta, 'ts=', Date.now());
+  } catch (e) {}
   // set online now (include optional meta such as gameVersion)
   try {
     await setPresence(playerId, true, meta);
+    try { console.debug('[Presence] setPresence succeeded for', playerId, 'ts=', Date.now()); } catch (e) {}
   } catch (e) {
     // if top-level write was rejected due to security rules, we'll attempt a guarded
     // fallback to write presence under the player's embedded node (players/{playerId}/presence)
@@ -236,6 +240,7 @@ export async function goOnline(playerId, meta = {}) {
             return async () => {
               try { if (od2 && typeof od2.cancel === 'function') await od2.cancel(); } catch (er) {}
               try { await dbSet(embeddedPath, { online: false, lastSeen: Date.now(), lastSeenHuman: formatLastSeen(Date.now()) }); } catch (er) {}
+              try { console.debug('[Presence] embedded cleanup executed for', playerId, 'ts=', Date.now()); } catch (e) {}
             };
           } catch (inner) {
             // even if onDisconnect fails, return cleanup that sets offline
@@ -275,6 +280,7 @@ export async function goOnline(playerId, meta = {}) {
       } catch (e) {
         // ignore
       }
+      try { console.debug('[Presence] top-level cleanup executing for', playerId, 'ts=', Date.now()); } catch (e) {}
       return setPresence(playerId, false);
     };
   } catch (e) {
@@ -287,6 +293,7 @@ export async function goOnline(playerId, meta = {}) {
  * Convenience to set offline immediately.
  */
 export function goOffline(playerId) {
+  try { console.debug('[Presence] goOffline called for', playerId, 'ts=', Date.now()); } catch (e) {}
   return setPresence(playerId, false);
 }
 

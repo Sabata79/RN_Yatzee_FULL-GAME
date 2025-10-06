@@ -102,7 +102,8 @@ function AppShell() {
   const [bgActive, setBgActive] = React.useState(false);
   const bgTimeoutRef = React.useRef(null);
   React.useEffect(() => {
-    const shouldBeActive = routeName === 'LandingPage' || routeName === 'Home';
+    // Keep background video active for LandingPage, Home and Scoreboard
+    const shouldBeActive = routeName === 'LandingPage' || routeName === 'Home' || routeName === 'Scoreboard';
     if (shouldBeActive) {
       // Cancel any pending disable
       if (bgTimeoutRef.current) {
