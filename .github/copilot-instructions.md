@@ -1,3 +1,5 @@
+# AINA VASTAA CHATTIIN SUOMEKSI!
+
 # AI Working Agreement — Yatzy (React Native / Expo)
 
 > Tämä dokumentti ohjaa tekoälyavustajaa (Copilot/Chat) työskentelemään tämän repositorion kanssa johdonmukaisesti ja turvallisesti.
