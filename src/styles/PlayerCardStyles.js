@@ -27,11 +27,8 @@ const playerCardStyles = StyleSheet.create({
     playerCardMonthDark: {
         borderColor: '#F5F5F5',
     },
-
     // PlayerCard Styles
     playerCardContainer: {
-        marginTop: 10,
-        marginBottom: 10,
         alignItems: 'center',
     },
     playerInfoContainer: {
@@ -77,7 +74,7 @@ const playerCardStyles = StyleSheet.create({
         height: '100%',
     },
     playerCardModalContainer: {
-        width: '80%',
+        width: '90%',
         minWidth: CARD_MIN_WIDTH,
         maxWidth: CARD_MAX_WIDTH,
         marginTop: '5%',
