@@ -268,7 +268,22 @@ export default function Home({ setPlayerId }) {
     extraBottom = bottomPad + (kbActive ? 220 : 24);
   }
 
-  const containerLayoutStyle = { flex: 1, justifyContent: userRecognized ? 'flex-end' : 'center', paddingBottom: extraBottom };
+  // Preserve last known extraBottom while a modal is visible to avoid
+  // layout reflows caused by insets/keyboard or transient changes when
+  // opening overlays (PlayerCard). This prevents the bottom content from
+  // 'jumping' down/up when the modal mounts.
+  const lastExtraBottomRef = useRef(extraBottom);
+  useEffect(() => {
+    // Update stored value only when modal is NOT visible. When modal is
+    // visible we keep the previous value fixed until it closes.
+    if (!isModalVisible) {
+      lastExtraBottomRef.current = extraBottom;
+    }
+  }, [extraBottom, isModalVisible]);
+
+  const appliedExtraBottom = isModalVisible ? lastExtraBottomRef.current : extraBottom;
+
+  const containerLayoutStyle = { flex: 1, justifyContent: userRecognized ? 'flex-end' : 'center', paddingBottom: appliedExtraBottom };
 
   return (
     <View style={{ flex: 1 }}>
@@ -361,15 +376,18 @@ export default function Home({ setPlayerId }) {
           </View>
         )}
 
-        {isModalVisible && selectedPlayer && (
-          <PlayerCard
-            playerId={selectedPlayer.playerId}
-            playerName={selectedPlayer.playerName}
-            isModalVisible={isModalVisible}
-            setModalVisible={setModalVisible}
-          />
-        )}
+        {/* PlayerCard intentionally not rendered here to avoid changing the layout
+            of the Home screen when the modal mounts. It's rendered as a sibling
+            (below) so the modal overlay does not cause reflow/jump of buttons. */}
       </Animated.View>
+      {isModalVisible && selectedPlayer && (
+        <PlayerCard
+          playerId={selectedPlayer.playerId}
+          playerName={selectedPlayer.playerName}
+          isModalVisible={isModalVisible}
+          setModalVisible={setModalVisible}
+        />
+      )}
       {Platform.OS === "android" && (
         <CustomKeyboard
           visible={kbVisible}

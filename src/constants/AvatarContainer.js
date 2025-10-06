@@ -9,6 +9,9 @@
 import { useState, useEffect } from 'react';
 import { Modal, View, Text, Pressable, Image, StyleSheet, Dimensions, ScrollView } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
+import COLORS from '../constants/colors';
+import SPACING from '../constants/spacing';
+import TYPOGRAPHY from '../constants/typography';
 
 const { width } = Dimensions.get('window');
 const isFoldScreen = width < 800;
@@ -118,21 +121,21 @@ const AvatarContainer = ({ isVisible, onClose, avatars, handleAvatarSelect, play
               {filteredAvatars.map((avatar, index) => {
                 const key = avatar.id || avatar.name || (avatar.display && avatar.display.uri) || index;
                 return (
-                <Pressable key={key} onPress={() => handleAvatarSelect(avatar)}>
-                  <Image
-                    style={
-                      (String(avatar.level || '').toLowerCase() === 'beginner')
-                        ? [styles.avatarModalImage, styles.beginnerAvatar]
-                        : (String(avatar.level || '').toLowerCase() === 'advanced')
-                          ? [styles.avatarModalImage, styles.advancedAvatar]
-                          : [styles.avatarModalImage, styles.defaultAvatar]
-                    }
-                    source={avatar.display}
-                    onError={(e) => {
-                      console.warn('[AvatarContainer] image load error', { avatar, error: e.nativeEvent });
-                    }}
-                  />
-                </Pressable>
+                  <Pressable key={key} onPress={() => handleAvatarSelect(avatar)}>
+                    <Image
+                      style={
+                        (String(avatar.level || '').toLowerCase() === 'beginner')
+                          ? [styles.avatarModalImage, styles.beginnerAvatar]
+                          : (String(avatar.level || '').toLowerCase() === 'advanced')
+                            ? [styles.avatarModalImage, styles.advancedAvatar]
+                            : [styles.avatarModalImage, styles.defaultAvatar]
+                      }
+                      source={avatar.display}
+                      onError={(e) => {
+                        console.warn('[AvatarContainer] image load error', { avatar, error: e.nativeEvent });
+                      }}
+                    />
+                  </Pressable>
                 );
               })}
             </View>
@@ -151,7 +154,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
   },
   avatarModalContainer: {
-    width: '80%',
+    width: '90%',
     height: '80%',
     backgroundColor: '#141414',
     borderRadius: 10,
@@ -163,8 +166,10 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
   },
   avatarSelectText: {
-    fontSize: 18,
-    color: '#fff',
+    fontFamily: TYPOGRAPHY.fontFamily.bangers,
+    marginBottom: 10,
+    fontSize: TYPOGRAPHY.fontSize.lg,
+    color: COLORS.textLight,
     textAlign: 'center',
   },
   closeButtonContainer: {
@@ -180,13 +185,18 @@ const styles = StyleSheet.create({
     top: 0,
   },
   closeAvatarModalText: {
-    color: '#fff',
-    fontSize: 22,
+    fontFamily: TYPOGRAPHY.fontFamily.bangers,
+    color: COLORS.textLight,
+    fontSize: TYPOGRAPHY.fontSize.xxl,
+    top: -30,
+    right: -15,
+    zIndex: 10,
+    padding: 15,
   },
   tabsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-evenly',
-    width: 250,
+    width: "100%",
     flexWrap: 'wrap',
   },
   tabButton: {

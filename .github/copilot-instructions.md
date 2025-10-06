@@ -148,6 +148,7 @@ Code should be prepared to read either location or to merge both (there's a smal
 * If any of these checks fail, AI must attempt up to 3 targeted fixes (only small, low-risk changes). If still failing, AI reports the exact failing output and a short remediation plan.
 * The AI should include the exact commands it ran and the trimmed outputs in its reply so the human can reproduce them locally.
 
+* Huom: Jos kehitystyö tapahtuu suoraan VSCode‑ympäristössä ja kehittäjä erikseen pyytää, AI ei välttämättä aja paikallisesti `eslint`- tai `jest`-komentoja, koska VSCode tarjoaa reaaliaikaisen syntaksin ja perusvirheiden tarkistuksen. Tämä on optio — CI, koodin omistaja tai review‑prosessi voi silti vaatia erillisen lintin/testien ajon ennen commitointia tai julkaisua.
 
 ## 📎 Pienet, konkreettiset palat
 

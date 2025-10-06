@@ -327,6 +327,33 @@ export const GameProvider = ({ children }) => {
     };
   }, [playerId]);
 
+  // Keep the player's canonical level in sync with the DB so other components
+  // (AvatarContainer, Header, etc.) can rely on it. Listen to players/{playerId}/level
+  // and update local state only when it changes.
+  useEffect(() => {
+    if (!playerId) {
+      // clear when no player
+      setPlayerLevel(null);
+      return;
+    }
+
+    const path = `players/${playerId}/level`;
+    const handle = (snapshot) => {
+      try {
+        const val = snapshot && typeof snapshot.val === 'function' && snapshot.exists() ? snapshot.val() : null;
+        // avoid stale/no-op sets
+        setPlayerLevel((prev) => (prev === val ? prev : val));
+      } catch (e) { /* ignore */ }
+    };
+
+    const unsub = dbOnValue(path, handle);
+    return () => {
+      try {
+        if (typeof unsub === 'function') unsub(); else dbOff(path, handle);
+      } catch (e) { /* ignore */ }
+    };
+  }, [playerId]);
+
   // Authoritative token computation that runs a transaction on players/{playerId}
   const computeAndApplyTokens = useCallback(async () => {
     if (!playerId) return;
