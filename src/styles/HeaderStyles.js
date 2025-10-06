@@ -34,6 +34,7 @@ const headerStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     flexShrink: 1,
+    minWidth: isNarrow ? 120 : 150,
   },
   headerImage: {
     width: isNarrow ? 56 : 74,
@@ -46,6 +47,7 @@ const headerStyles = StyleSheet.create({
     flexShrink: 1,
     maxWidth: isNarrow ? 160 : 220,
     transform: [{ scale: isNarrow ? 0.88 : 1 }],
+    width: isNarrow ? 120 : 160,
   },
 
   // Center slot
@@ -70,7 +72,6 @@ const headerStyles = StyleSheet.create({
     paddingHorizontal: 4,
   },
 
-  // Right slot (width set from JS)
   sectionRight: {
     alignItems: 'flex-end',
     justifyContent: 'center',

@@ -583,10 +583,7 @@ export default function Gameboard({ route, navigation }) {
 
   return (
     <ImageBackground source={require('../../assets/diceBackground.webp')} style={styles.background}>
-      {/* debug overlay removed for production/dev cleanliness */}
       <Header />
-
-
       {isLayerVisible && !gameStarted && (
         <>
           <Pressable

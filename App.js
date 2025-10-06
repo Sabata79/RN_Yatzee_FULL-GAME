@@ -213,7 +213,6 @@ function AppShell() {
             />
           )}
         </Tab.Screen>
-
         <Tab.Screen name="Gameboard" options={{ tabBarLabel: 'Game' }} component={Gameboard} />
         <Tab.Screen name="Scoreboard" options={{ tabBarLabel: 'Scores' }} component={Scoreboard} />
         <Tab.Screen name="Rules" options={{ tabBarLabel: 'Help' }} component={Rules} />
