@@ -192,9 +192,10 @@ const playerCardStyles = StyleSheet.create({
     },
     beginnerAvatar: {
         borderRadius: 3,
-        width: 68,
-        height: 44,
-        resizeMode: 'cover',
+        alignSelf: 'center',
+        maxWidth: avatarSize,
+        maxHeight: avatarSize,
+        resizeMode: 'contain',
         margin: 5,
         borderWidth: 1,
         borderColor: '#4f4c4c36',
