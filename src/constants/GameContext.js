@@ -30,7 +30,6 @@ import { MAX_TOKENS } from './Game';
 const REGEN_INTERVAL = 1.6 * 60 * 60 * 1000; // 1.6 hours
 // const REGEN_INTERVAL = 1 * 60 * 1000; // 1 minute --- IGNORE ---
 const EFFECTIVE_REGEN_INTERVAL = REGEN_INTERVAL;
-const MAX_NEXT_TOKEN_FUTURE = 24 * 60 * 60 * 1000; // guard for obviously-future timestamps
 
 const GameContext = createContext(null);
 
@@ -56,8 +55,7 @@ export const GameProvider = ({ children }) => {
   // Tokens
   const [tokens, setTokens] = useState(0);
   const tokensRef = useRef(0);
-  const [tokensStabilized, setTokensStabilized] = useState(false);
-  console.log(avatarUrl)
+  const [tokensStabilized, setTokensStabilized] = useState(false)
   // Game lifecycle & UI state expected by Gameboard and other screens
   const [gameStarted, setGameStarted] = useState(false);
   const [gameEnded, setGameEnded] = useState(false);
@@ -102,8 +100,6 @@ export const GameProvider = ({ children }) => {
   const markManualChange = useCallback(() => { manualChangeRef.current = Date.now(); }, []);
 
   // Setter wrapper for avatar that supports a short-lived local "pending" value
-  // when the client writes the avatar locally. Call with { local: false }
-  // when applying DB-origin snapshots so we don't re-create the pending state.
   const setAvatarUrl = useCallback((path, { local = true } = {}) => {
     try {
       // Always write canonical state immediately
@@ -189,10 +185,6 @@ export const GameProvider = ({ children }) => {
   }, [playerId, gameVersion, gameVersionCode]);
 
   // ----- Scoreboard listener: compute all-time, monthly and weekly slices -----
-  // Prefer per-player aggregates (allTimeBest/monthlyBest/weeklyBest) when
-  // available. Fall back to scanning raw `scores` only for players that do
-  // not provide aggregates (legacy data). This avoids missing recently
-  // recorded aggregates when individual `scores` entries are not present.
   useEffect(() => {
     let unsubPlayers = null;
     let presenceUnsub = null;
@@ -369,8 +361,6 @@ export const GameProvider = ({ children }) => {
   }, [playerId]);
 
   // ----- Persistent avatar listener -----
-  // Ensure we always reflect DB-origin avatar changes in the global state so
-  // Header and other components update even when PlayerCard modal is closed.
   useEffect(() => {
     if (!playerId) {
       // clear when no player
@@ -393,9 +383,7 @@ export const GameProvider = ({ children }) => {
     };
   }, [playerId, setAvatarUrl]);
 
-  // Keep the player's canonical level in sync with the DB so other components
-  // (AvatarContainer, Header, etc.) can rely on it. Listen to players/{playerId}/level
-  // and update local state only when it changes.
+  // Effective avatar to show: pending local override (short-lived) or canonical
   useEffect(() => {
     if (!playerId) {
       // clear when no player
@@ -563,8 +551,6 @@ export const GameProvider = ({ children }) => {
         const now = Date.now() + (serverOffsetRef.current || 0);
         const curTokens = typeof tokensRef.current === 'number' ? tokensRef.current : 0;
 
-        // Debug logs removed in production
-
         if (curTokens >= MAX_TOKENS) {
           if (mounted) setTimeToNextToken('');
           return;
@@ -593,8 +579,6 @@ export const GameProvider = ({ children }) => {
             }
           }
         }
-
-        // Debug logs removed in production
 
         // If database still contains nextTokenTime, warn if it materially disagrees with authoritative anchor
         try {
