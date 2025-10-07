@@ -83,6 +83,8 @@ const playerCardStyles = StyleSheet.create({
         alignItems: 'center',
         position: 'relative',
         overflow: 'visible',
+        borderWidth: 1,
+        borderColor: '#fff',
     },
     playerCardModalContainerDark: {
         borderWidth: 1,
@@ -100,6 +102,15 @@ const playerCardStyles = StyleSheet.create({
         borderRadius: 10,
         opacity: 0.95,
         resizeMode: 'cover',
+    },
+    avatarBgWrapper: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        borderRadius: 10,
+        overflow: 'hidden',
     },
     trophyContainer: {
         position: 'relative',

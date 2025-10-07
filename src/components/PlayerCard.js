@@ -895,9 +895,12 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
   const isLegendaryLocal = String(levelInfo.level || '').toLowerCase() === 'legendary';
   // Compute modal container style and hide border while waiting for reveal to avoid
   // showing the thin border together with the centered ActivityIndicator.
+  // Choose a border color that contrasts with the resolved background
+  const computedBorderColor = isDarkBg ? (COLORS.textLight || '#FFFFFF') : (COLORS.textDark || '#000000');
   const modalContainerStyle = [
     playerCardStyles.playerCardModalContainer,
     isDarkBg && playerCardStyles.playerCardModalContainerDark,
+    { borderColor: computedBorderColor },
   ];
   if (!revealReady) {
     modalContainerStyle.push({ borderWidth: 0 });
@@ -965,40 +968,42 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
               </Animated.View>
             )}
             {/* isBgLoading overlay removed to avoid duplicate spinners; reveal placeholder handles waiting state */}
-            <Animated.Image
-              source={playerCardBg}
-              style={[playerCardStyles.avatarModalBackgroundImage, { opacity: bgOpacity }]}
-              onLoadStart={() => {
-                imageLoadedRef.current = false;
-                // If this load was triggered by a preference change coming from
-                // the selector/DB, suppress the loader/opactiy reset so the
-                // visible preview doesn't flash to blank. Regular loads will
-                // still set the loading flag and reset opacity.
-                if (suppressBgLoadingRef.current) {
-                  return;
-                }
-                setIsBgLoading(true);
-                // reset opacity when a new image starts loading
-                try { bgOpacity.setValue(0); } catch (e) { /* ignore */ }
-              }}
-              onLoadEnd={() => {
-                setIsBgLoading(false);
-                imageLoadedRef.current = true;
-                // If content already settled, animate immediately; otherwise
-                // the effect will be triggered by the contentSettled watcher.
-                if (contentSettled) {
-                  // delay content/background slightly so ribbons (All-Time) can appear first
-                  Animated.sequence([
-                    Animated.delay(80),
-                    Animated.parallel([
-                      Animated.timing(bgOpacity, { toValue: 1, duration: 350, useNativeDriver: true }),
-                      Animated.timing(contentOpacity, { toValue: 1, duration: 300, useNativeDriver: true }),
-                      Animated.timing(contentTranslate, { toValue: 0, duration: 300, useNativeDriver: true }),
-                    ]),
-                  ]).start();
-                }
-              }}
-            />
+            <View style={playerCardStyles.avatarBgWrapper}>
+              <Animated.Image
+                source={playerCardBg}
+                style={[playerCardStyles.avatarModalBackgroundImage, { opacity: bgOpacity }]}
+                onLoadStart={() => {
+                  imageLoadedRef.current = false;
+                  // If this load was triggered by a preference change coming from
+                  // the selector/DB, suppress the loader/opactiy reset so the
+                  // visible preview doesn't flash to blank. Regular loads will
+                  // still set the loading flag and reset opacity.
+                  if (suppressBgLoadingRef.current) {
+                    return;
+                  }
+                  setIsBgLoading(true);
+                  // reset opacity when a new image starts loading
+                  try { bgOpacity.setValue(0); } catch (e) { /* ignore */ }
+                }}
+                onLoadEnd={() => {
+                  setIsBgLoading(false);
+                  imageLoadedRef.current = true;
+                  // If content already settled, animate immediately; otherwise
+                  // the effect will be triggered by the contentSettled watcher.
+                  if (contentSettled) {
+                    // delay content/background slightly so ribbons (All-Time) can appear first
+                    Animated.sequence([
+                      Animated.delay(80),
+                      Animated.parallel([
+                        Animated.timing(bgOpacity, { toValue: 1, duration: 350, useNativeDriver: true }),
+                        Animated.timing(contentOpacity, { toValue: 1, duration: 300, useNativeDriver: true }),
+                        Animated.timing(contentTranslate, { toValue: 0, duration: 300, useNativeDriver: true }),
+                      ]),
+                    ]).start();
+                  }
+                }}
+              />
+            </View>
             {revealReady ? (
               <>
                 <CoinLayer weeklyWins={weeklyWins} modalHeight={modalHeight - 2} modalWidth={modalWidth - 20} />
