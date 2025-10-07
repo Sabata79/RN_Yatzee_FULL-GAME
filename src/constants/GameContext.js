@@ -127,7 +127,7 @@ export const GameProvider = ({ children }) => {
         setPendingAvatar(null);
         pendingAvatarTimeoutRef.current = null;
       }, 3000);
-    } catch (e) { /* ignore */ }
+  } catch (e) { /* intentionally ignored */ }
   }, [pendingAvatar]);
 
   // small helpers for legacy anchor handling
@@ -349,9 +349,9 @@ export const GameProvider = ({ children }) => {
               }
               return prevMap; // unchanged
             });
-          } catch (e) { /* ignore */ }
+          } catch (e) { /* intentionally ignored */ }
         });
-      } catch (e) { /* ignore */ }
+  } catch (e) { /* intentionally ignored */ }
     })();
 
     return () => {
@@ -373,7 +373,7 @@ export const GameProvider = ({ children }) => {
       try {
         const val = snapshot && typeof snapshot.val === 'function' && snapshot.exists() ? snapshot.val() : (snapshot || null);
         // Use the central setter with local=false so we clear any pending local override
-        try { setAvatarUrl(val || null, { local: false }); } catch (e) { /* ignore */ }
+  try { setAvatarUrl(val || null, { local: false }); } catch (e) { /* intentionally ignored */ }
       } catch (e) { /* ignore per-listener errors */ }
     };
 
@@ -397,14 +397,14 @@ export const GameProvider = ({ children }) => {
         const val = snapshot && typeof snapshot.val === 'function' && snapshot.exists() ? snapshot.val() : null;
         // avoid stale/no-op sets
         setPlayerLevel((prev) => (prev === val ? prev : val));
-      } catch (e) { /* ignore */ }
+  } catch (e) { /* intentionally ignored */ }
     };
 
     const unsub = dbOnValue(path, handle);
     return () => {
       try {
         if (typeof unsub === 'function') unsub(); else dbOff(path, handle);
-      } catch (e) { /* ignore */ }
+  } catch (e) { /* intentionally ignored */ }
     };
   }, [playerId]);
 
@@ -470,7 +470,7 @@ export const GameProvider = ({ children }) => {
         } catch (e) { /* best-effort */ }
         try {
           await dbSet(`tokenAudit/${playerId}/${Date.now()}`, { actor: 'client', source: 'computeAndApplyTokens', tokens: serverTokens, ts: Date.now() });
-        } catch (e) { /* ignore */ }
+  } catch (e) { /* intentionally ignored */ }
       } catch (e) {
         // ignore mapping failures
       }
@@ -589,7 +589,7 @@ export const GameProvider = ({ children }) => {
               console.warn('[GameContext.timer] nextTokenTime in DB disagrees with tokensLastAnchor by ms:', diff, { dbNext, computedFrom: usedSource });
             }
           }
-        } catch (err) { /* ignore */ }
+  } catch (err) { /* intentionally ignored */ }
 
         if (nextMs <= 0) {
           if (mounted) setTimeToNextToken('00:00:00');
@@ -607,7 +607,7 @@ export const GameProvider = ({ children }) => {
         // Debug logs removed in production
 
         if (mounted) setTimeToNextToken(str);
-      } catch (e) { /* ignore */ }
+  } catch (e) { /* intentionally ignored */ }
     };
 
     tick();
