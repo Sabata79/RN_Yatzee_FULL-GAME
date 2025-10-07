@@ -1,9 +1,23 @@
-// EnergyModal.js
+/**
+ * EnergyModal — Modal showing current energy/token status.
+ * Falls back to `timeToNextToken` from `GameContext` when the prop is not provided.
+ * @module src/components/modals/EnergyModal
+ * @author Sabata79
+ * @since 2025-09-18
+ * @updated 2025-10-07
+ */
+
 import React from 'react';
 import { Modal, View, Text, Pressable, StyleSheet } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useGame } from '../../constants/GameContext';
 
 export default function EnergyModal({ visible, onClose, tokens, maxTokens, timeToNextToken }) {
+  // Prefer explicit prop, otherwise read authoritative value from GameContext
+  const game = useGame ? useGame() : null;
+  const ctxTime = game && game.timeToNextToken ? game.timeToNextToken : '';
+  const displayTime = (typeof timeToNextToken !== 'undefined' && timeToNextToken !== null && timeToNextToken !== '') ? timeToNextToken : ctxTime || '';
+
   if (!visible) return null;
   return (
     <Modal
@@ -26,7 +40,7 @@ export default function EnergyModal({ visible, onClose, tokens, maxTokens, timeT
             <>
               <Text style={styles.message}>You are out of energy tokens.</Text>
               <Text style={styles.message}>Time to next token regeneration:</Text>
-              <Text style={[styles.message, { fontWeight: 'bold', fontSize: 18, marginTop: 4 }]}>{timeToNextToken}</Text>
+              <Text style={[styles.message, { fontWeight: 'bold', fontSize: 18, marginTop: 4 }]}>{displayTime}</Text>
             </>
           )}
         </View>

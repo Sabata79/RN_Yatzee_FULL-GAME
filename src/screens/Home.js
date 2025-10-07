@@ -232,11 +232,7 @@ export default function Home({ setPlayerId }) {
     const kbActive = Platform.OS === 'android' ? kbVisible : keyboardVisible;
     extraBottom = bottomPad + (kbActive ? 220 : 24);
   }
-
-  // Preserve last known extraBottom while a modal is visible to avoid
-  // layout reflows caused by insets/keyboard or transient changes when
-  // opening overlays (PlayerCard). This prevents the bottom content from
-  // 'jumping' down/up when the modal mounts.
+  // Store last extraBottom when modal is not visible, to avoid layout jumps when modal appears/disappears
   const lastExtraBottomRef = useRef(extraBottom);
   useEffect(() => {
     // Update stored value only when modal is NOT visible. When modal is
