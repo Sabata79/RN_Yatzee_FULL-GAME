@@ -57,7 +57,7 @@ export const GameProvider = ({ children }) => {
   const [tokens, setTokens] = useState(0);
   const tokensRef = useRef(0);
   const [tokensStabilized, setTokensStabilized] = useState(false);
-
+  console.log(avatarUrl)
   // Game lifecycle & UI state expected by Gameboard and other screens
   const [gameStarted, setGameStarted] = useState(false);
   const [gameEnded, setGameEnded] = useState(false);
@@ -367,6 +367,31 @@ export const GameProvider = ({ children }) => {
       try { if (presenceUnsub && typeof presenceUnsub === 'function') presenceUnsub(); } catch (e) { }
     };
   }, [playerId]);
+
+  // ----- Persistent avatar listener -----
+  // Ensure we always reflect DB-origin avatar changes in the global state so
+  // Header and other components update even when PlayerCard modal is closed.
+  useEffect(() => {
+    if (!playerId) {
+      // clear when no player
+      try { setAvatarUrlState(null); } catch (e) { }
+      return undefined;
+    }
+
+    const path = `players/${playerId}/avatar`;
+    const handle = (snapshot) => {
+      try {
+        const val = snapshot && typeof snapshot.val === 'function' && snapshot.exists() ? snapshot.val() : (snapshot || null);
+        // Use the central setter with local=false so we clear any pending local override
+        try { setAvatarUrl(val || null, { local: false }); } catch (e) { /* ignore */ }
+      } catch (e) { /* ignore per-listener errors */ }
+    };
+
+    const unsub = dbOnValue(path, handle);
+    return () => {
+      try { if (typeof unsub === 'function') unsub(); else dbOff(path, handle); } catch (e) { }
+    };
+  }, [playerId, setAvatarUrl]);
 
   // Keep the player's canonical level in sync with the DB so other components
   // (AvatarContainer, Header, etc.) can rely on it. Listen to players/{playerId}/level

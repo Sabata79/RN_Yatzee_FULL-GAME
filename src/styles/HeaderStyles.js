@@ -71,7 +71,6 @@ const headerStyles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 4,
   },
-
   sectionRight: {
     alignItems: 'flex-end',
     justifyContent: 'center',

@@ -32,6 +32,8 @@ export default function Header() {
     isLinked,
   } = useGame();
 
+  console.log('Header render', { playerId, playerName, avatarUrl, isLinked });
+
   // Minimal: use avatar meta display directly (no normalization or helpers)
   const avatarToUse = avatarUrl;
   const meta = avatars.find(av => av.path === avatarToUse);
