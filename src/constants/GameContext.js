@@ -412,83 +412,98 @@ export const GameProvider = ({ children }) => {
   const computeAndApplyTokens = useCallback(async () => {
     if (!playerId) return;
     if (manualChangeRef.current && Date.now() - manualChangeRef.current < 2000) return;
-    try {
-      const now = Date.now() + (serverOffsetRef.current || 0);
-      const playerPath = `players/${playerId}`;
 
-      const tx = await dbRunTransaction(playerPath, (current) => {
-        const p = current || {};
-        const serverTokens = Number.isFinite(p.tokens) ? p.tokens : (Number.isFinite(tokensRef.current) ? tokensRef.current : 0);
-        const anchorRaw = Number.isFinite(p.tokensLastAnchor) ? p.tokensLastAnchor : (Number.isFinite(p.lastTokenDecrement) ? p.lastTokenDecrement : (Number.isFinite(lastDecrementRef.current) ? lastDecrementRef.current : null));
-        const anchor = Number.isFinite(anchorRaw) ? Number(anchorRaw) : null;
+    const maxAttempts = 3;
 
-        let intervals = 0;
-        if (anchor) {
-          const elapsed = now - anchor;
-          if (elapsed <= 0) return p;
-          intervals = Math.floor(elapsed / EFFECTIVE_REGEN_INTERVAL);
-        } else {
-          const nextIso = p.nextTokenTime || (nextTokenTimeRef.current instanceof Date ? nextTokenTimeRef.current.toISOString() : null);
-          if (nextIso) {
-            const nt = new Date(nextIso).getTime();
-            if (!isNaN(nt) && nt <= now) {
-              const diff = now - nt;
-              intervals = Math.floor(diff / EFFECTIVE_REGEN_INTERVAL) + 1;
+    const attemptRun = async (attempt = 0) => {
+      try {
+        const now = Date.now() + (serverOffsetRef.current || 0);
+        const playerPath = `players/${playerId}`;
+
+        const tx = await dbRunTransaction(playerPath, (current) => {
+          const p = current || {};
+          const serverTokens = Number.isFinite(p.tokens) ? p.tokens : (Number.isFinite(tokensRef.current) ? tokensRef.current : 0);
+          const anchorRaw = Number.isFinite(p.tokensLastAnchor) ? p.tokensLastAnchor : (Number.isFinite(p.lastTokenDecrement) ? p.lastTokenDecrement : (Number.isFinite(lastDecrementRef.current) ? lastDecrementRef.current : null));
+          const anchor = Number.isFinite(anchorRaw) ? Number(anchorRaw) : null;
+
+          let intervals = 0;
+          if (anchor) {
+            const elapsed = now - anchor;
+            if (elapsed <= 0) return p;
+            intervals = Math.floor(elapsed / EFFECTIVE_REGEN_INTERVAL);
+          } else {
+            const nextIso = p.nextTokenTime || (nextTokenTimeRef.current instanceof Date ? nextTokenTimeRef.current.toISOString() : null);
+            if (nextIso) {
+              const nt = new Date(nextIso).getTime();
+              if (!isNaN(nt) && nt <= now) {
+                const diff = now - nt;
+                intervals = Math.floor(diff / EFFECTIVE_REGEN_INTERVAL) + 1;
+              }
             }
           }
-        }
 
-        if (intervals <= 0) return p;
+          if (intervals <= 0) return p;
 
-        const newTokens = Math.min(serverTokens + intervals, MAX_TOKENS);
-        const out = { ...p, tokens: newTokens };
-        if (newTokens >= MAX_TOKENS) {
-          out.tokensLastAnchor = null;
-          // intentionally do not set out.nextTokenTime here; UI will compute display from tokensLastAnchor
-        } else {
-          const base = anchor || now;
-          out.tokensLastAnchor = base + intervals * EFFECTIVE_REGEN_INTERVAL;
-          // do not write nextTokenTime; keep DB schema minimal and authoritative anchor is tokensLastAnchor
-        }
-        return out;
-      });
+          const newTokens = Math.min(serverTokens + intervals, MAX_TOKENS);
+          const out = { ...p, tokens: newTokens };
+          if (newTokens >= MAX_TOKENS) {
+            out.tokensLastAnchor = null;
+            // intentionally do not set out.nextTokenTime here; UI will compute display from tokensLastAnchor
+          } else {
+            const base = anchor || now;
+            out.tokensLastAnchor = base + intervals * EFFECTIVE_REGEN_INTERVAL;
+            // do not write nextTokenTime; keep DB schema minimal and authoritative anchor is tokensLastAnchor
+          }
+          return out;
+        });
 
-      // update local view from transaction result
-      try {
-        const after = tx && tx.snapshot && typeof tx.snapshot.val === 'function' ? tx.snapshot.val() : (tx || null);
-        const serverTokens = after && Number.isFinite(after.tokens) ? after.tokens : tokensRef.current;
-        const serverAnchor = after && Number.isFinite(after.tokensLastAnchor) ? after.tokensLastAnchor : null;
-
-        manualChangeRef.current = Date.now();
-        setTokens(serverTokens);
-        tokensRef.current = serverTokens;
-        lastDecrementRef.current = serverAnchor;
-
-        // best-effort mirror and audit write (do NOT write nextTokenTime anymore)
+        // update local view from transaction result
         try {
-          await dbUpdate(`players/${playerId}`, { tokens: serverTokens, tokensLastAnchor: serverAnchor !== null ? serverAnchor : null });
-        } catch (e) { /* best-effort */ }
-        try {
-          await dbSet(`tokenAudit/${playerId}/${Date.now()}`, { actor: 'client', source: 'computeAndApplyTokens', tokens: serverTokens, ts: Date.now() });
-  } catch (e) { /* intentionally ignored */ }
+          const after = tx && tx.snapshot && typeof tx.snapshot.val === 'function' ? tx.snapshot.val() : (tx || null);
+          const serverTokens = after && Number.isFinite(after.tokens) ? after.tokens : tokensRef.current;
+          const serverAnchor = after && Number.isFinite(after.tokensLastAnchor) ? after.tokensLastAnchor : null;
+
+          manualChangeRef.current = Date.now();
+          setTokens(serverTokens);
+          tokensRef.current = serverTokens;
+          lastDecrementRef.current = serverAnchor;
+
+          // best-effort mirror and audit write (do NOT write nextTokenTime anymore)
+          try {
+            await dbUpdate(`players/${playerId}`, { tokens: serverTokens, tokensLastAnchor: serverAnchor !== null ? serverAnchor : null });
+          } catch (e) { /* best-effort */ }
+          try {
+            await dbSet(`tokenAudit/${playerId}/${Date.now()}`, { actor: 'client', source: 'computeAndApplyTokens', tokens: serverTokens, ts: Date.now() });
+          } catch (e) { /* intentionally ignored */ }
+        } catch (e) {
+          // ignore mapping failures
+        }
       } catch (e) {
-        // ignore mapping failures
-      }
-    } catch (e) {
-      // keep error localized; ignore transaction 'overridden-by-set' noise
-      try {
-        const code = e && (e.code || e.message || '');
-        if (String(code).includes('overridden-by-set')) {
-          // noisy: another client called set() during our transaction; safe to ignore
-        } else {
+        // If this looks like a transaction timeout (JS thread blocked), retry a few times with backoff
+        try {
+          const code = e && (e.code || e.message || '');
+          const isTimeout = String(code).toLowerCase().includes('timeout') || String(code).toLowerCase().includes('internal-timeout');
+          if (isTimeout && attempt < maxAttempts) {
+            const delay = 500 * Math.pow(2, attempt); // 500ms, 1s, 2s
+            try { console.warn('[GameContext] computeAndApplyTokens timeout, retrying in ms=', delay, 'attempt=', attempt + 1); } catch (err) {}
+            await new Promise((res) => setTimeout(res, delay));
+            return attemptRun(attempt + 1);
+          }
+
+          if (String(code).includes('overridden-by-set')) {
+            // noisy: another client called set() during our transaction; safe to ignore
+          } else {
+            // eslint-disable-next-line no-console
+            console.warn('[GameContext] computeAndApplyTokens error', e);
+          }
+        } catch (inner) {
           // eslint-disable-next-line no-console
           console.warn('[GameContext] computeAndApplyTokens error', e);
         }
-      } catch (inner) {
-        // eslint-disable-next-line no-console
-        console.warn('[GameContext] computeAndApplyTokens error', e);
       }
-    }
+    };
+
+    await attemptRun(0);
   }, [playerId]);
 
   // Listen to authoritative tokens and hydrate

@@ -22,9 +22,9 @@ export default function CoinLayer({ weeklyWins, modalHeight, modalWidth }) {
 
   // Generate coin objects for animation when weeklyWins changes
   useEffect(() => {
-    const slotSpacing = 6;
-    // Use modalWidth when available; fall back to ~90% of screen width
-    const availableWidth = (modalWidth && modalWidth > 0) ? modalWidth : Math.floor(screenWidth * 0.9);
+  const slotSpacing = 4;
+  // Use modalWidth when available; fall back to ~90% of screen width (matches overlay default)
+  const availableWidth = (modalWidth && modalWidth > 0) ? modalWidth : Math.floor(screenWidth * 0.9);
 
     // compute how many coins fit per row (coin + spacing)
     const slotsPerRow = Math.max(1, Math.floor((availableWidth + slotSpacing) / (COIN_SIZE + slotSpacing)));
@@ -83,8 +83,8 @@ export default function CoinLayer({ weeklyWins, modalHeight, modalWidth }) {
 
 
   // Render animated coins in an overlay view
-  return (
-    <View style={[styles.overlay, { width: modalWidth || '100%', height: modalHeight || '100%' }]} pointerEvents="none">
+    return (
+    <View style={[styles.overlay, { width: modalWidth || '100%', height: modalHeight || '100%', left: 0 }]} pointerEvents="none">
       {coins.map((coin, index) => (
         <Coin
           key={index}
@@ -104,7 +104,7 @@ export default function CoinLayer({ weeklyWins, modalHeight, modalWidth }) {
 const styles = StyleSheet.create({
   overlay: {
     position: 'absolute',
-    top: 10,
+    top: 0,
     left: '5%',
     width: '90%',
     height: '100%',
