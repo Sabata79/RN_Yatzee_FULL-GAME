@@ -29,14 +29,28 @@ export default function Header() {
     playerName,
     userRecognized,
     avatarUrl,
+    displayAvatarUrl,
     isLinked,
   } = useGame();
 
-  console.log('Header render', { playerId, playerName, avatarUrl, isLinked });
+  // Use displayAvatarUrl (prefers pending local writes) so UI updates instantly.
+  const avatarToUse = displayAvatarUrl || avatarUrl;
 
-  // Minimal: use avatar meta display directly (no normalization or helpers)
-  const avatarToUse = avatarUrl;
-  const meta = avatars.find(av => av.path === avatarToUse);
+  // Normalization helpers (mirror PlayerCard rules): compare full normalized path
+  // or last two path segments to allow old/new path formats to match.
+  const _norm = (s) => String(s || '').replace(/\\/g, '/').replace(/^\.\//, '');
+  const _last2 = (s) => _norm(s).split('/').slice(-2).join('/');
+  const findAvatarMeta = (avatarPath) => {
+    const target = _norm(avatarPath);
+    if (!target) return null;
+    const hit = avatars.find(av => {
+      const ap = _norm(av.path);
+      return ap === target || ap.endsWith(_last2(target)) || target.endsWith(_last2(ap));
+    });
+    return hit || null;
+  };
+
+  const meta = findAvatarMeta(avatarToUse);
   const avatarDisplay = meta ? meta.display : null;
   const isBeginner = !!meta && String(meta.level || '').toLowerCase() === 'beginner';
 
