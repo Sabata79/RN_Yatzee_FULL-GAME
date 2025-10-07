@@ -13,4 +13,5 @@ export const PlayercardBg = [
   { path: '../../assets/playerCardBg/BasicBg.webp', display: require('../../assets/playerCardBg/BasicBg.webp'), level: 'Basic' },
   { path: '../../assets/playerCardBg/AdvancedBg.webp', display: require('../../assets/playerCardBg/AdvancedBg.webp'), level: 'Advanced' },
   { path: '../../assets/playerCardBg/EliteBg.webp', display: require('../../assets/playerCardBg/EliteBg.webp'), level: 'Elite', isDark: true },
+  { path: '../../assets/playerCardBg/legendaryBg.webp', display: require('../../assets/playerCardBg/legendaryBg.webp'), level: 'Legendary', isDark: true },
 ];
