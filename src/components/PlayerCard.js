@@ -891,6 +891,8 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
   }
 
   const avatarSrc = getAvatarImage(getAvatarToDisplay());
+  // If player has reached legendary, render progress as complete
+  const isLegendaryLocal = String(levelInfo.level || '').toLowerCase() === 'legendary';
   // Compute modal container style and hide border while waiting for reveal to avoid
   // showing the thin border together with the centered ActivityIndicator.
   const modalContainerStyle = [
@@ -1044,8 +1046,19 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
                   <View style={[playerCardStyles.playerTextContainer]}>
                     <Text style={[playerCardStyles.playerStat, isDarkBg && playerCardStyles.playerCardTextDark, {textAlign: 'center'}]}>Progress:</Text>
                     <View style={playerCardStyles.progressBar}>
-                      <View style={[playerCardStyles.progressFill, { width: `${levelInfo.progress * 100}%` }]} />
-                      <Text style={playerCardStyles.progressPercentageText}>{Math.floor(levelInfo.progress * 100)}%</Text>
+                      <View
+                        style={[
+                          playerCardStyles.progressFill,
+                          {
+                            width: isLegendaryLocal ? '100%' : `${Math.floor(levelInfo.progress * 100)}%`,
+                            // ensure legendary stays green (COLORS.success is used by default)
+                            backgroundColor: isLegendaryLocal ? COLORS.success : undefined,
+                          },
+                        ]}
+                      />
+                      <Text style={[playerCardStyles.progressPercentageText, isLegendaryLocal ? { fontWeight: '700' } : null]}>
+                        {isLegendaryLocal ? 'COMPLETED!' : `${Math.floor(levelInfo.progress * 100)}%`}
+                      </Text>
                     </View>
                     <View style={playerCardStyles.playerStatsContainer}>
                       <Text style={[playerCardStyles.playerStat, isDarkBg && playerCardStyles.playerCardTextDark]}>All Time Rank: {viewingAllTimeRank}</Text>
