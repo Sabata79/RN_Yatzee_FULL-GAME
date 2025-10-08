@@ -47,7 +47,7 @@ const cacheImages = (images) => {
   });
 };
 
-export default function LandingPage({ navigation }) {
+export default function LandingPage({ navigation, onRequireUpdate }) {
   const insets = useSafeAreaInsets();
   const [fadeAnim] = useState(new Animated.Value(1));
   const [loadingProgress, setLoadingProgress] = useState(0); // 0..100
@@ -57,6 +57,8 @@ export default function LandingPage({ navigation }) {
   const rafRef = useRef(null);
   const alertShownRef = useRef(false);
   const bootStartedRef = useRef(false);
+
+  
 
   // Smart progress state tracking
   const bootDoneRef = useRef(false);
@@ -239,6 +241,10 @@ export default function LandingPage({ navigation }) {
   const checkRemoteUpdate = async () => {
     try {
       const config = await fetchRemoteConfig();
+      console.log('[RC] fetchRemoteConfig ->', JSON.stringify(config || {}, null, 2));
+
+      // Note: removed dev-only preview logic. Modal presentation is controlled
+      // by the caller via onRequireUpdate to avoid shipping __DEV__ behavior.
       if (!config) {
         console.warn('[RC] fetchRemoteConfig returned null/undefined');
         return false;
@@ -252,15 +258,30 @@ export default function LandingPage({ navigation }) {
       if (mustUpdate && !alertShownRef.current) {
         alertShownRef.current = true;
         setRemoteBlock(true);
-        Alert.alert("Update needed", config.update_message, [
-          {
-            text: "Update",
-            onPress: () =>
-              Linking.openURL(
-                "https://play.google.com/store/apps/details?id=com.SimpleYatzee"
-              ),
-          },
-        ]);
+        // Prefer provided callback to show a themed modal from AppShell.
+        if (typeof onRequireUpdate === 'function') {
+          try {
+            onRequireUpdate({
+              title: 'Update needed',
+              update_message: config.update_message,
+              release_notes: config.release_notes || config.releaseNotes || '',
+              // send the computed mustUpdate flag so the modal can be mandatory only when appropriate
+              forceUpdate: !!mustUpdate,
+            });
+            console.log('[RC] onRequireUpdate called, mustUpdate=', !!mustUpdate);
+          } catch (e) {
+            console.log('[LandingPage] onRequireUpdate callback failed', e);
+            // Fallback to legacy Alert if callback throws
+            Alert.alert('Update needed', config.update_message, [
+              { text: 'Update', onPress: () => Linking.openURL('https://play.google.com/store/apps/details?id=com.SimpleYatzee') },
+            ]);
+          }
+        } else {
+          // Fallback behavior: legacy Alert
+          Alert.alert('Update needed', config.update_message, [
+            { text: 'Update', onPress: () => Linking.openURL('https://play.google.com/store/apps/details?id=com.SimpleYatzee') },
+          ]);
+        }
       }
       return mustUpdate;
     } catch (e) {
@@ -387,6 +408,7 @@ export default function LandingPage({ navigation }) {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
   }, []);
+
 
   // Navigate only when progress = 100, bootDone = true, and no forced update
   useEffect(() => {

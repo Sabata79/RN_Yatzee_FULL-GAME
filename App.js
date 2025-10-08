@@ -39,7 +39,7 @@ import Scoreboard from './src/components/ScoreboardTabs';
 import SettingScreen from './src/screens/SettingScreen';
 import Rules from './src/screens/Rules';
 
-import updateModalStyles from './src/styles/UpdateModalStyles';
+import UpdateModal from './src/components/modals/UpdateModal';
 import EnergyTokenSystem from './src/components/EnergyTokenSystem';
 
 import * as NavigationBar from 'expo-navigation-bar';
@@ -63,7 +63,19 @@ function AppShell() {
   const [isUserRecognized, setIsUserRecognized] = useState(false);
   const [name, setName] = useState('');
   const [playerId, setPlayerId] = useState('');
-  const [updateModalVisible, setUpdateModalVisible] = useState(false);
+    // Modal is hidden by default; it is shown when LandingPage calls onRequireUpdate
+    const [updateModalVisible, setUpdateModalVisible] = useState(true);
+    // Keep both camelCase and snake_case keys to be tolerant to different remote-config shapes
+    const [updateModalData, setUpdateModalData] = useState({
+      title: '',
+      message: '',
+      update_message: '',
+      releaseNotes: '',
+      release_notes: '',
+      mandatory: false,
+      forceUpdate: false,
+      updateUrl: '',
+    });
   const insets = useSafeAreaInsets();
 
   // --- ANDROID NAV BAR ---
@@ -75,7 +87,7 @@ function AppShell() {
       // Immersive status: nav bar overlay + hidden
       await NavigationBar.setVisibilityAsync('hidden');
     } catch {
-      console.log('NavigationBar.applyHidden: ignored error / unsupported op', e);
+      console.log('NavigationBar.applyHidden: ignored error / unsupported op');
     }
   }, []);
 
@@ -124,6 +136,7 @@ function AppShell() {
 
   const handleUpdate = async () => {
     const url = 'https://play.google.com/store/apps/details?id=com.SimpleYatzee';
+    console.log('[App] handleUpdate -> opening fixed URL', url);
     const supported = await Linking.canOpenURL(url);
     if (supported) await Linking.openURL(url);
   };
@@ -226,25 +239,16 @@ function AppShell() {
     <SafeAreaView style={{ flex: 1, backgroundColor: 'black' }} edges={['top', 'left', 'right']}>
       <EnergyTokenSystem hidden />
 
-      {/* Update modal */}
-      <Modal
+      {/* Update modal (themed) */}
+      <UpdateModal
         visible={updateModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setUpdateModalVisible(false)}
-      >
-        <View style={updateModalStyles.updateModalOverlay}>
-          <View style={updateModalStyles.updateModalContent}>
-            <Text style={updateModalStyles.updateModalTitle}>New Update Available!</Text>
-            <Text style={updateModalStyles.updateModalMessage}>
-              A new version of the app is available. Please update to get the latest features and improvements.
-            </Text>
-            <Pressable style={updateModalStyles.updateModalUpdateButton} onPress={handleUpdate}>
-              <Text style={updateModalStyles.updateModalUpdateButtonText}>Update</Text>
-            </Pressable>
-          </View>
-        </View>
-      </Modal>
+        title={updateModalData.title || 'Update available'}
+        message={updateModalData.message || updateModalData.update_message || 'A new version is available.'}
+        releaseNotes={updateModalData.releaseNotes || updateModalData.release_notes || ''}
+        mandatory={!!updateModalData.mandatory}
+        onClose={() => setUpdateModalVisible(false)}
+        onUpdate={handleUpdate}
+      />
 
       <BackgroundWrapper isActive={bgActive}>
         <NavigationContainer
@@ -273,7 +277,27 @@ function AppShell() {
             cardStyleInterpolator: ({ current }) => ({ cardStyle: { opacity: current.progress } }),
           }}
         >
-          <Stack.Screen name="LandingPage" component={LandingPage} />
+            <Stack.Screen name="LandingPage">{({ navigation }) => <LandingPage navigation={navigation} onRequireUpdate={(data) => {
+              // normalize incoming data and show themed modal
+              const messageVal = data?.update_message || data?.message || '';
+              const releaseVal = data?.release_notes || data?.releaseNotes || '';
+              const forceVal = !!data?.forceUpdate;
+
+              const normalized = {
+                title: data?.title || 'Update needed',
+                message: messageVal,
+                update_message: messageVal,
+                releaseNotes: releaseVal,
+                release_notes: releaseVal,
+                mandatory: forceVal,
+                forceUpdate: forceVal,
+                // no dynamic update URL; app uses fixed Play Store link
+                updateUrl: '',
+              };
+              console.log('[App] Showing UpdateModal with data:', JSON.stringify(normalized));
+              setUpdateModalData(normalized);
+              setUpdateModalVisible(true);
+            }} />}</Stack.Screen>
           <Stack.Screen name="MainApp" options={{ headerShown: false, swipeEnabled: false }}>
             {() => <TabNavigator />}
           </Stack.Screen>

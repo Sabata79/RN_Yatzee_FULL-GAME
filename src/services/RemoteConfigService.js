@@ -56,6 +56,7 @@ export const fetchRemoteConfig = async () => {
     let forceCamel = false;
     let minimum_supported_version = '1.0.0';
     let update_message = 'Päivitys vaaditaan jatkaaksesi käyttöä.';
+  let release_notes = '';
 
     try {
       const v1 = rcGet('force_update');
@@ -85,12 +86,43 @@ export const fetchRemoteConfig = async () => {
       console.warn('[RC] rcGet update_message failed', e?.message || e);
     }
 
+    // release_notes (support snake or camel)
+    try {
+      const rn1 = rcGet('release_notes');
+      if (rn1 && typeof rn1.asString === 'function') release_notes = rn1.asString();
+    } catch (e) {
+      console.warn('[RC] rcGet release_notes failed', e?.message || e);
+    }
+    try {
+      const rn2 = rcGet('releaseNotes');
+      if ((!release_notes || release_notes === '') && rn2 && typeof rn2.asString === 'function') release_notes = rn2.asString();
+    } catch (e) {
+      console.warn('[RC] rcGet releaseNotes failed', e?.message || e);
+    }
+
+    // (no update_url support - store link is fixed in app)
+
     const forceUpdate = !!forceSnake || !!forceCamel;
 
     // Debug log for visibility in device logs
     // console.log('[RC] values', { force_update: forceSnake, forceUpdate: forceCamel, minimum_supported_version, update_message });
 
-    return { forceUpdate, minimum_supported_version, update_message };
+    // Try to parse release_notes if it's a JSON array string
+    let parsedReleaseNotes = release_notes;
+    if (typeof release_notes === 'string') {
+      const trimmed = release_notes.trim();
+      if (trimmed.startsWith('[')) {
+        try {
+          const parsed = JSON.parse(trimmed);
+          if (Array.isArray(parsed)) parsedReleaseNotes = parsed;
+        } catch (e) {
+          // ignore parse error, keep raw string
+          console.warn('[RC] release_notes JSON parse failed', e?.message || e);
+        }
+      }
+    }
+
+  return { forceUpdate, minimum_supported_version, update_message, release_notes: parsedReleaseNotes };
   } catch (e) {
     console.error('[RC] fetchRemoteConfig failed (fatal)', e);
     return null;
