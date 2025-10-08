@@ -33,8 +33,9 @@ const headerStyles = StyleSheet.create({
   sectionLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    flexShrink: 1,
-    minWidth: isNarrow ? 120 : 150,
+    // size to content; avoid forcing a large minimum width which breaks centering
+    flexShrink: 0,
+    paddingRight: 6,
   },
   headerImage: {
     width: isNarrow ? 56 : 74,
@@ -45,25 +46,27 @@ const headerStyles = StyleSheet.create({
   },
   energyWrap: {
     flexShrink: 1,
-    maxWidth: isNarrow ? 160 : 220,
+    maxWidth: isNarrow ? 140 : 200,
     transform: [{ scale: isNarrow ? 0.88 : 1 }],
-    width: isNarrow ? 120 : 160,
+    // prefer intrinsic width but cap with maxWidth
+    width: undefined,
   },
 
   // Center slot
   sectionCenter: {
     flex: 1,
-    alignItems: 'stretch',
+    alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 2,
-    marginLeft: 10,
+    paddingHorizontal: 4,
+    marginLeft: 0,
   },
   userName: {
     fontFamily: TYPOGRAPHY.fontFamily.montserratExtraBold,
     fontSize: isNarrow ? TYPOGRAPHY.fontSize.md : TYPOGRAPHY.xs,
     color: COLORS.textLight,
     textAlign: 'center',
-    width: '100%',
+    // let text size naturally; component sets numberOfLines and ellipsizeMode
+    maxWidth: '100%',
   },
   userNamePressable: {
     width: '100%',
@@ -74,6 +77,7 @@ const headerStyles = StyleSheet.create({
   sectionRight: {
     alignItems: 'flex-end',
     justifyContent: 'center',
+    paddingRight: SPACING.sm,
   },
 
   headerAvatarImage: {

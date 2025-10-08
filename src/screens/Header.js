@@ -22,7 +22,9 @@ export default function Header() {
 
   const { width: SCREEN_WIDTH } = Dimensions.get('window');
   const CENTER_MIN = Math.floor(SCREEN_WIDTH * 0.4);
-  const MIN_RIGHT = 56;
+  // Ensure right slot minimum fits the avatar image to avoid clipping when center is small
+  const avatarWidth = (headerStyles && headerStyles.headerAvatarImage && headerStyles.headerAvatarImage.width) || 44;
+  const MIN_RIGHT = Math.max(56, avatarWidth + 12);
 
   const {
     playerId,
