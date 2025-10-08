@@ -12,7 +12,8 @@
  * @since 2025-09-16 (cleaned 2025-09-18)
  */
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { FlatList, Text, View, Pressable, ImageBackground, Animated, Dimensions } from 'react-native';
+import { useRef } from 'react';
+import { FlatList, Text, View, Pressable, ImageBackground, Animated, Dimensions, unstable_batchedUpdates } from 'react-native';
 import styles from '../styles/styles';
 import gameboardstyles from '../styles/GameboardScreenStyles';
 import { NBR_OF_THROWS, NBR_OF_DICES, MAX_SPOTS, BONUS_POINTS, BONUS_POINTS_LIMIT, MAX_TOKENS } from '../constants/Game';
@@ -21,7 +22,7 @@ import { useAudio } from '../services/AudioManager';
 import { useGame } from '../constants/GameContext';
 import { useElapsedTime } from '../constants/ElapsedTimeContext';
 import RenderFirstRow from '../components/RenderFirstRow';
-import Header from './Header';
+// Header is intentionally not imported here; rendered once in AppShell to avoid remounts
 import GlowingText from '../components/AnimatedText';
 import { useGameSave } from '../constants/GameSave';
 import { dbRunTransaction, dbUpdate } from '../services/Firebase';
@@ -49,6 +50,9 @@ import { useWindowDimensions } from 'react-native';
 
 const { height } = Dimensions.get('window');
 const isSmallScreen = height < 720;
+// Track last unmount time to detect transient remounts (used to avoid
+// visual 'nykäisy' when navigator briefly remounts the screen).
+let lastGameboardUnmountAt = 0;
 
 // TIME BONUS
 const FAST_THRESHOLD = 150; // < 2:30 → +10
@@ -108,6 +112,25 @@ const RenderDices = React.memo(function RenderDices({
 });
 
 export default function Gameboard({ route, navigation }) {
+  const mountRef = useRef(null);
+  useEffect(() => {
+    if (typeof __DEV__ !== 'undefined' && __DEV__) {
+      mountRef.current = Date.now();
+      try { console.debug('[Gameboard] mount at', mountRef.current); } catch (e) {}
+      return () => {
+        try { console.debug('[Gameboard] unmount at', Date.now()); } catch (e) {}
+        try { lastGameboardUnmountAt = Date.now(); } catch (e) {}
+      };
+    }
+    return undefined;
+  }, []);
+  // Dev-only: navigation focus listener to help trace unexpected side-effects
+  useEffect(() => {
+    if (typeof __DEV__ === 'undefined' || !__DEV__) return undefined;
+    const onFocus = () => { try { console.debug('[Gameboard] navigation focus at', Date.now(), { gameStarted }); } catch (e) {} };
+    const unsub = navigation && navigation.addListener ? navigation.addListener('focus', onFocus) : null;
+    return () => { try { if (unsub && typeof unsub === 'function') unsub(); } catch (e) {} };
+  }, [navigation, gameStarted]);
   const insets = useSafeAreaInsets();
   const { savePlayerPoints } = useGameSave();
   const { elapsedTime } = useElapsedTime();
@@ -165,6 +188,9 @@ export default function Gameboard({ route, navigation }) {
 
   // Start the game (decreases a token; overlay does not start the game)
   const beginGame = useCallback(() => {
+    if (typeof __DEV__ !== 'undefined' && __DEV__) {
+      try { console.debug('[Gameboard] beginGame called', { gameStarted, tokens }); } catch (e) {}
+    }
     if (gameStarted) return true;
     if ((tokens ?? 0) > 0) {
   // Optimistic local decrement for immediate UI responsiveness
@@ -243,6 +269,13 @@ export default function Gameboard({ route, navigation }) {
     return false;
   }, [gameStarted, tokens, setTokens, playerId]);
 
+  // Log layer visibility changes (dev-only) to diagnose unexpected auto-starts
+  useEffect(() => {
+    if (typeof __DEV__ === 'undefined' || !__DEV__) return undefined;
+    try { console.debug('[Gameboard] isLayerVisible changed', { isLayerVisible, gameStarted, tokens }); } catch (e) {}
+    return undefined;
+  }, [isLayerVisible, gameStarted, tokens]);
+
   // When rounds reach 0, end the game and open the score modal
   useEffect(() => {
     if (rounds === 0 && !gameEnded) {
@@ -280,7 +313,18 @@ export default function Gameboard({ route, navigation }) {
   const [hasAppliedBonus, setHasAppliedBonus] = useState(false);
 
   useEffect(() => {
+    // If this component was unmounted very recently, the remount may be
+    // transient (navigator thrash). Delay setting the layer visibility to
+    // avoid an immediate animation/jump.
+    const THRESHOLD = 500; // ms
+    const since = Date.now() - (lastGameboardUnmountAt || 0);
+    if (since < THRESHOLD) {
+      const delay = THRESHOLD - since;
+      const id = setTimeout(() => setLayerVisible(rounds === MAX_SPOTS), delay);
+      return () => clearTimeout(id);
+    }
     setLayerVisible(rounds === MAX_SPOTS);
+    return undefined;
   }, [rounds]);
 
   useEffect(() => {
@@ -392,6 +436,10 @@ export default function Gameboard({ route, navigation }) {
   );
 
   const throwDices = useCallback(() => {
+    if (typeof __DEV__ !== 'undefined' && __DEV__) {
+      try { console.debug('[Gameboard] throwDices called', { nbrOfThrowsLeft, gameStarted, isLayerVisible }); } catch (e) {}
+      try { console.debug(new Error('throwDices stack').stack.split('\n').slice(0,6).join('\n')); } catch (e) {}
+    }
     if (nbrOfThrowsLeft > 0) {
       // If the game hasn't been started yet, begin it now (first actual roll)
       if (!gameStarted) {
@@ -402,30 +450,38 @@ export default function Gameboard({ route, navigation }) {
       setIsRolling(true);
       playSfx();
       setTimeout(() => {
-        setBoard((prevBoard) => {
-          const newBoard = [...prevBoard];
-          const newRolled = [...rolledDices];
-          for (let i = 0; i < NBR_OF_DICES; i++) {
-            if (!selectedDices[i]) {
-              const rnd = Math.floor(Math.random() * 6) + 1;
-              newBoard[i] = rnd;
-              newRolled[i] = rnd;
+        // Batch multiple state updates together to avoid multiple renders
+        // which can cause jank during dice roll sequences.
+        unstable_batchedUpdates(() => {
+          setBoard((prevBoard) => {
+            const newBoard = [...prevBoard];
+            const newRolled = [...rolledDices];
+            for (let i = 0; i < NBR_OF_DICES; i++) {
+              if (!selectedDices[i]) {
+                const rnd = Math.floor(Math.random() * 6) + 1;
+                newBoard[i] = rnd;
+                newRolled[i] = rnd;
+              }
             }
-          }
-          setRolledDices(newRolled);
-          checkAndUnlockYatzy(newRolled);
-          return newBoard;
+            setRolledDices(newRolled);
+            checkAndUnlockYatzy(newRolled);
+            return newBoard;
+          });
+          setNbrOfThrowsLeft((n) => n - 1);
+          setIsRolling(false);
         });
-        setNbrOfThrowsLeft((n) => n - 1);
-        setIsRolling(false);
       }, 500);
     } else {
       setNbrOfThrowsLeft(NBR_OF_THROWS);
     }
   }, [nbrOfThrowsLeft, selectedDices, rolledDices, checkAndUnlockYatzy, playSfx, gameStarted, beginGame, startGame]);
 
-  // First roll starts the game; overlay only hides
+  // Log when Roll is requested from UI binding
   const onRollPress = useCallback(() => {
+    if (typeof __DEV__ !== 'undefined' && __DEV__) {
+      try { console.debug('[Gameboard] onRollPress (UI) called', { rounds, nbrOfThrowsLeft }); } catch (e) {}
+      try { console.debug(new Error('onRollPress stack').stack.split('\n').slice(0,6).join('\n')); } catch (e) {}
+    }
     if (rounds <= 0) return;
     // `throwDices` handles starting the game (it calls beginGame() when needed).
     if (nbrOfThrowsLeft <= 0) return;
@@ -579,7 +635,6 @@ export default function Gameboard({ route, navigation }) {
 
   return (
     <ImageBackground source={require('../../assets/diceBackground.webp')} style={styles.background}>
-      <Header />
       {isLayerVisible && !gameStarted && (
         <>
           <Pressable

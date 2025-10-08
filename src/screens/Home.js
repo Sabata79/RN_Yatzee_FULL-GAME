@@ -28,8 +28,8 @@ import PlayerCard from "../components/PlayerCard";
 import HomeScreenButton from "../components/HomeScreenButton";
 import { useAudio } from '../services/AudioManager';
 import CustomKeyboard from '../components/CustomKeyboard'; // ⬅ custom keyboard
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { MAX_TOKENS } from "../constants/Game";
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function Home({ setPlayerId }) {
   // Local state
@@ -42,9 +42,6 @@ export default function Home({ setPlayerId }) {
   const inputRef = useRef(null);
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
-  const presenceCleanupRef = useRef(null);
-  const presencePendingRef = useRef(false);
-  const presencePendingTimerRef = useRef(null);
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const [isRecoverModalVisible, setIsRecoverModalVisible] = useState(false);

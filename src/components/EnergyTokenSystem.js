@@ -8,8 +8,8 @@
  */
 
 // EnergyTokenSystem.js
-import React, { useMemo, useCallback } from 'react';
-import { View, Text } from 'react-native';
+import React, { useMemo, useCallback, useRef, useEffect } from 'react';
+import { View, Text, ActivityIndicator, Animated } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import EnergyModal from './modals/EnergyModal';
 import { ProgressBar } from 'react-native-paper';
@@ -23,8 +23,28 @@ const EnergyTokenSystem = ({ hidden }) => {
     tokens,
     energyModalVisible,
     setEnergyModalVisible,
-    timeToNextToken,
+    tokensStabilized,
+    getTimeToNextToken,
   } = useGame();
+
+  // Animated fade to smooth appearance when tokens become stabilized
+  const opacity = useRef(new Animated.Value(tokensStabilized ? 1 : 0)).current;
+  useEffect(() => {
+    Animated.timing(opacity, { toValue: tokensStabilized ? 1 : 0, duration: 220, useNativeDriver: true }).start();
+  }, [tokensStabilized, opacity]);
+
+  // Dev-only render timing
+  React.useEffect(() => {
+    if (typeof __DEV__ !== 'undefined' && __DEV__) {
+      try { console.debug('[EnergyTokenSystem] render', { tokens, tokensStabilized, timeToNextToken: energyModalVisible ? getTimeToNextToken() : undefined }); } catch (e) {}
+    }
+  }, [tokens, tokensStabilized, energyModalVisible, getTimeToNextToken]);
+
+  React.useEffect(() => {
+    if (typeof __DEV__ !== 'undefined' && __DEV__) {
+      if (tokensStabilized) try { console.debug('[EnergyTokenSystem] tokens stabilized at', Date.now(), 'tokens=', tokens); } catch (e) {}
+    }
+  }, [tokensStabilized]);
 
   // console.log('EnergyTokenSystem render', { tokens, timeToNextToken });
 
@@ -32,14 +52,14 @@ const EnergyTokenSystem = ({ hidden }) => {
   // All token regen, persistence and DB syncing responsibility has been moved to GameContext.
 
   // Memoize progress so derived value doesn't flip-flop on unrelated renders
-  const progress = useMemo(() => (tokens ? tokens / MAX_TOKENS : 0), [tokens]);
+  const progress = useMemo(() => (typeof tokens === 'number' && tokensStabilized ? Math.max(0, Math.min(1, tokens / MAX_TOKENS)) : 0), [tokens, tokensStabilized]);
 
   const handleClose = useCallback(() => setEnergyModalVisible(false), [setEnergyModalVisible]);
 
   // Render the energy container
   if (hidden) return null;
   return (
-    <View style={styles.energyContainer}>
+    <Animated.View style={[styles.energyContainer, { opacity }] }>
       <View style={styles.progressWrap}>
         <MaterialCommunityIcons
           name="flash"
@@ -47,21 +67,27 @@ const EnergyTokenSystem = ({ hidden }) => {
           color="gold"
           style={styles.energyIconOverlay}
         />
-        <ProgressBar progress={progress} color="green" style={styles.progressBar} />
+        {tokensStabilized ? (
+          <ProgressBar progress={progress} color="green" style={styles.progressBar} />
+        ) : (
+          <View style={[styles.progressBar, styles.progressPlaceholder]}>
+            <ActivityIndicator size="small" color="white" />
+          </View>
+        )}
         <View style={styles.progressOverlay}>
-          <Text style={styles.tokenText}>{tokens} / {MAX_TOKENS}</Text>
+          <Text style={styles.tokenText}>{tokensStabilized ? `${tokens} / ${MAX_TOKENS}` : `-- / ${MAX_TOKENS}`}</Text>
         </View>
       </View>
-      <EnergyModal
-        visible={energyModalVisible}
-        onClose={handleClose}
-        tokens={tokens}
-        maxTokens={MAX_TOKENS}
-        // Only pass the time string when the modal is actually visible to avoid
-        // forcing modal and its children to re-render every second when hidden.
-        timeToNextToken={energyModalVisible ? timeToNextToken : undefined}
-      />
-    </View>
+        <EnergyModal
+          visible={energyModalVisible}
+          onClose={handleClose}
+          tokens={tokens}
+          maxTokens={MAX_TOKENS}
+          // Only compute and pass the time string when modal is open to avoid
+          // forcing header and other consumers to re-render every second.
+          timeToNextToken={energyModalVisible ? getTimeToNextToken() : undefined}
+        />
+    </Animated.View>
   );
 };
 

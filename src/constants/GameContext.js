@@ -56,6 +56,7 @@ export const GameProvider = ({ children }) => {
   const [tokens, setTokens] = useState(0);
   const tokensRef = useRef(0);
   const [tokensStabilized, setTokensStabilized] = useState(false)
+  const tokensStabilizedAtRef = useRef(null);
   // Game lifecycle & UI state expected by Gameboard and other screens
   const [gameStarted, setGameStarted] = useState(false);
   const [gameEnded, setGameEnded] = useState(false);
@@ -88,10 +89,15 @@ export const GameProvider = ({ children }) => {
 
   // UI bits
   const [energyModalVisible, setEnergyModalVisible] = useState(false);
-  const [timeToNextToken, setTimeToNextToken] = useState('');
-
+  // Human readable countdown is computed on-demand to avoid per-second
+  // context updates which would re-render all consumers.
   const [nextTokenTime, setNextTokenTime] = useState(null);
   const nextTokenTimeRef = useRef(null);
+
+  // Prevent overlapping computeAndApplyTokens runs
+  const computeInFlightRef = useRef(false);
+  // Throttle repeated timeout warnings
+  const lastTimeoutWarnRef = useRef(0);
 
   // bookkeeping refs
   const manualChangeRef = useRef(null);
@@ -422,6 +428,11 @@ export const GameProvider = ({ children }) => {
     const maxAttempts = 3;
 
     const attemptRun = async (attempt = 0) => {
+        if (computeInFlightRef.current) {
+          // Another compute is already running; avoid overlapping transactions
+          return;
+        }
+        computeInFlightRef.current = true;
       try {
   // computeAndApplyTokens start
         const now = Date.now() + (serverOffsetRef.current || 0);
@@ -491,9 +502,15 @@ export const GameProvider = ({ children }) => {
           const code = e && (e.code || e.message || '');
           const isTimeout = String(code).toLowerCase().includes('timeout') || String(code).toLowerCase().includes('internal-timeout');
           if (isTimeout && attempt < maxAttempts) {
+            const now = Date.now();
+            // Throttle timeout warnings to once per 5s to avoid spam
+            if (!lastTimeoutWarnRef.current || now - lastTimeoutWarnRef.current > 5000) {
+              try { console.warn('[GameContext] computeAndApplyTokens timeout, retrying in ms=', 500 * Math.pow(2, attempt), 'attempt=', attempt + 1); } catch (err) {}
+              lastTimeoutWarnRef.current = now;
+            }
             const delay = 500 * Math.pow(2, attempt); // 500ms, 1s, 2s
-            try { console.warn('[GameContext] computeAndApplyTokens timeout, retrying in ms=', delay, 'attempt=', attempt + 1); } catch (err) {}
             await new Promise((res) => setTimeout(res, delay));
+            computeInFlightRef.current = false;
             return attemptRun(attempt + 1);
           }
 
@@ -507,6 +524,9 @@ export const GameProvider = ({ children }) => {
           // eslint-disable-next-line no-console
           console.warn('[GameContext] computeAndApplyTokens error', e);
         }
+      }
+      finally {
+        computeInFlightRef.current = false;
       }
     };
 
@@ -534,7 +554,10 @@ export const GameProvider = ({ children }) => {
       try {
         manualChangeRef.current = Date.now();
         await computeAndApplyTokens();
-        setTokensStabilized(true);
+        if (!tokensStabilized) {
+          tokensStabilizedAtRef.current = Date.now();
+          setTokensStabilized(true);
+        }
       } catch (e) { /* best-effort */ }
     })();
 
@@ -560,89 +583,36 @@ export const GameProvider = ({ children }) => {
     })();
   }, [playerId, tokens]);
 
-  // Update human-readable countdown (HH:MM:SS) for timeToNextToken
-  useEffect(() => {
-    if (!playerId) {
-      setTimeToNextToken('');
-      return undefined;
-    }
+  // Provide a helper that computes the human-readable countdown on-demand.
+  const getTimeToNextToken = useCallback(() => {
+    try {
+      const now = Date.now() + (serverOffsetRef.current || 0);
+      const curTokens = typeof tokensRef.current === 'number' ? tokensRef.current : 0;
+      if (curTokens >= MAX_TOKENS) return '';
 
-    let mounted = true;
-    const tick = () => {
-      try {
-        const now = Date.now() + (serverOffsetRef.current || 0);
-        const curTokens = typeof tokensRef.current === 'number' ? tokensRef.current : 0;
-
-        if (curTokens >= MAX_TOKENS) {
-          if (mounted) setTimeToNextToken('');
-          return;
-        }
-
-        // Prefer authoritative anchor: lastDecrementRef (tokensLastAnchor). Treat nextTokenTime as diagnostic only.
-        let nextMs = null;
-        let usedSource = null;
-        if (typeof lastDecrementRef.current === 'number') {
-          nextMs = (lastDecrementRef.current + EFFECTIVE_REGEN_INTERVAL) - now;
-          usedSource = 'lastDecrement';
+      let nextMs = null;
+      if (typeof lastDecrementRef.current === 'number') {
+        nextMs = (lastDecrementRef.current + EFFECTIVE_REGEN_INTERVAL) - now;
+      } else {
+        const anchorCandidate = (typeof manualChangeRef.current === 'number') ? manualChangeRef.current : null;
+        if (anchorCandidate) {
+          nextMs = (anchorCandidate + EFFECTIVE_REGEN_INTERVAL) - now;
         } else {
-          // fallback: use manualChange or nextTokenTime if present
-          const anchorCandidate = (typeof manualChangeRef.current === 'number') ? manualChangeRef.current : null;
-          if (anchorCandidate) {
-            nextMs = (anchorCandidate + EFFECTIVE_REGEN_INTERVAL) - now;
-            usedSource = 'manualChange';
-          } else {
-            const next = nextTokenTimeRef.current instanceof Date ? nextTokenTimeRef.current.getTime() : (nextTokenTimeRef.current ? new Date(nextTokenTimeRef.current).getTime() : null);
-            if (next && !isNaN(next)) {
-              nextMs = next - now;
-              usedSource = 'nextTokenTime';
-            } else {
-              nextMs = EFFECTIVE_REGEN_INTERVAL;
-              usedSource = 'default';
-            }
-          }
+          const next = nextTokenTimeRef.current instanceof Date ? nextTokenTimeRef.current.getTime() : (nextTokenTimeRef.current ? new Date(nextTokenTimeRef.current).getTime() : null);
+          if (next && !isNaN(next)) nextMs = next - now;
+          else nextMs = EFFECTIVE_REGEN_INTERVAL;
         }
+      }
 
-        // If database still contains nextTokenTime, warn if it materially disagrees with authoritative anchor
-        try {
-          const dbNext = nextTokenTimeRef.current instanceof Date ? nextTokenTimeRef.current.getTime() : (nextTokenTimeRef.current ? new Date(nextTokenTimeRef.current).getTime() : null);
-          if (dbNext && usedSource !== 'nextTokenTime') {
-            const diff = Math.abs(dbNext - (now + nextMs));
-            if (diff > EFFECTIVE_REGEN_INTERVAL * 0.5) {
-              console.warn('[GameContext.timer] nextTokenTime in DB disagrees with tokensLastAnchor by ms:', diff, { dbNext, computedFrom: usedSource });
-            }
-          }
-  } catch (err) { /* intentionally ignored */ }
-
-        if (nextMs <= 0) {
-          if (mounted) setTimeToNextToken('00:00:00');
-          return;
-        }
-
-        const totalSec = Math.floor(nextMs / 1000);
-        const hh = Math.floor(totalSec / 3600);
-        const mm = Math.floor((totalSec % 3600) / 60);
-        const ss = totalSec % 60;
-        let str;
-        if (hh > 0) str = `${hh}:${String(mm).padStart(2, '0')}:${String(ss).padStart(2, '0')}`;
-        else str = `${String(mm)}:${String(ss).padStart(2, '0')}`;
-
-        // Debug logs removed in production
-
-        if (mounted) setTimeToNextToken(str);
-  } catch (e) { /* intentionally ignored */ }
-    };
-
-    tick();
-    let timer = null;
-    const schedule = () => {
-      const nowMs = Date.now();
-      const delay = 1000 - (nowMs % 1000) || 1000;
-      // Debug logs removed in production
-      timer = setTimeout(() => { tick(); schedule(); }, delay);
-    };
-    schedule();
-    return () => { mounted = false; if (timer) clearTimeout(timer); };
-  }, [playerId]);
+      if (nextMs <= 0) return '00:00:00';
+      const totalSec = Math.floor(nextMs / 1000);
+      const hh = Math.floor(totalSec / 3600);
+      const mm = Math.floor((totalSec % 3600) / 60);
+      const ss = totalSec % 60;
+      if (hh > 0) return `${hh}:${String(mm).padStart(2, '0')}:${String(ss).padStart(2, '0')}`;
+      return `${String(mm)}:${String(ss).padStart(2, '0')}`;
+    } catch (e) { return ''; }
+  }, []);
 
   const triggerTokenRecalc = useCallback(() => { computeAndApplyTokens().catch(() => { }); }, [computeAndApplyTokens]);
 
@@ -656,7 +626,7 @@ export const GameProvider = ({ children }) => {
     }
   }, [computeAndApplyTokens]);
 
-  const contextValue = ({
+  const contextValue = useMemo(() => ({
     // identity
     playerId,
     setPlayerId,
@@ -679,17 +649,20 @@ export const GameProvider = ({ children }) => {
     gameVersionCode,
     setGameVersionCode,
 
-  // identity
-  avatarUrl: avatarUrl,
-  displayAvatarUrl: pendingAvatar !== null ? pendingAvatar : avatarUrl,
-  setAvatarUrl,
+    // identity
+    avatarUrl: avatarUrl,
+    displayAvatarUrl: pendingAvatar !== null ? pendingAvatar : avatarUrl,
+    setAvatarUrl,
 
   // tokens
-    tokens,
-    setTokens,
-    tokensStabilized,
-    nextTokenTime,
-    setNextTokenTime,
+  tokens,
+  setTokens,
+  tokensStabilized,
+  tokensStabilizedAt: tokensStabilizedAtRef.current,
+  nextTokenTime,
+  setNextTokenTime,
+  // helper: compute time string on demand to avoid per-second context updates
+  getTimeToNextToken,
     triggerTokenRecalc,
     stabilizeTokensOnBoot,
     // game lifecycle
@@ -710,9 +683,7 @@ export const GameProvider = ({ children }) => {
     // UI bits
     energyModalVisible,
     setEnergyModalVisible,
-    timeToNextToken,
-    setTimeToNextToken,
-
+  // timeToNextToken is provided via getTimeToNextToken()
     // scoreboard & viewing helpers
     scoreboardData,
     setScoreboardData,
@@ -727,7 +698,67 @@ export const GameProvider = ({ children }) => {
     setViewingPlayerId,
     viewingPlayerName,
     setViewingPlayerName,
-  } );
+  }), [
+    playerId,
+    playerName,
+    playerIdContext,
+    playerNameContext,
+    userRecognized,
+    isLinked,
+    playerLevel,
+    gameVersion,
+    gameVersionCode,
+    avatarUrl,
+    pendingAvatar,
+    tokens,
+    tokensStabilized,
+    nextTokenTime,
+    gameStarted,
+    gameEnded,
+    totalPoints,
+    isGameSaved,
+    startGameCb,
+    endGameCb,
+    energyModalVisible,
+  // intentionally omitted: timeToNextToken
+    scoreboardData,
+    scoreboardMonthly,
+    presenceMap,
+    scoreboardWeekly,
+    scoreboardIndices,
+    viewingPlayerId,
+    viewingPlayerName,
+    // functions (stable via useCallback but include to be safe)
+    startGame,
+    endGame,
+    setPlayerId,
+    setPlayerName,
+    setPlayerIdContext,
+    setPlayerNameContext,
+    setUserRecognized,
+    setIsLinked,
+    setPlayerLevel,
+    setGameVersion,
+    setGameVersionCode,
+    setAvatarUrl,
+    setTokens,
+    setNextTokenTime,
+    triggerTokenRecalc,
+    stabilizeTokensOnBoot,
+    setTotalPoints,
+    setIsGameSaved,
+    saveGame,
+    setStartGameCb,
+    setEndGameCb,
+    markManualChange,
+    setEnergyModalVisible,
+    setScoreboardData,
+    setScoreboardMonthly,
+    setScoreboardWeekly,
+    setScoreboardIndices,
+    setViewingPlayerId,
+    setViewingPlayerName,
+  ]);
 
   return <GameContext.Provider value={contextValue}>{children}</GameContext.Provider>;
 };

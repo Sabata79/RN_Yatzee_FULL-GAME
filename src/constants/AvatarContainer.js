@@ -7,7 +7,8 @@
  * @since 2025-08-29
  */
 import { useState, useEffect } from 'react';
-import { Modal, View, Text, Pressable, Image, StyleSheet, Dimensions, ScrollView } from 'react-native';
+import { Modal, View, Text, Pressable, Image, StyleSheet, Dimensions, ScrollView, ActivityIndicator } from 'react-native';
+import { Asset } from 'expo-asset';
 import { FontAwesome5 } from '@expo/vector-icons';
 import COLORS from '../constants/colors';
 import SPACING from '../constants/spacing';
@@ -43,6 +44,50 @@ const AvatarContainer = ({ isVisible, onClose, avatars, handleAvatarSelect, play
   const filteredAvatars = (avatars || []).filter(
     avatar => avatar && avatar.level && avatar.level.toLowerCase() === selectedTab.toLowerCase()
   );
+
+  // Progressive per-image loading: track which images are ready and render
+  // placeholders until each image finishes prefetch or Image.onLoad.
+  const [loadedMap, setLoadedMap] = useState(() => ({}));
+  useEffect(() => {
+    let mounted = true;
+    const list = filteredAvatars || [];
+    // Reset loaded map for this tab
+    const nextMap = {};
+    list.forEach((avatar, idx) => {
+      const key = avatar.id || avatar.name || (avatar.display && avatar.display.uri) || idx;
+      nextMap[key] = false;
+    });
+    if (mounted) setLoadedMap(nextMap);
+
+    // Start prefetches but update loadedMap individually as each resolves.
+    list.forEach((avatar, idx) => {
+      const key = avatar.id || avatar.name || (avatar.display && avatar.display.uri) || idx;
+      try {
+        const src = avatar && avatar.display;
+        if (!src) return;
+        if (typeof src === 'object' && src.uri) {
+          Image.prefetch(src.uri).then(() => {
+            if (!mounted) return;
+            setLoadedMap((m) => ({ ...m, [key]: true }));
+          }).catch(() => {});
+        } else if (typeof src === 'string') {
+          Image.prefetch(src).then(() => {
+            if (!mounted) return;
+            setLoadedMap((m) => ({ ...m, [key]: true }));
+          }).catch(() => {});
+        } else if (typeof src === 'number') {
+          Asset.fromModule(src).downloadAsync().then(() => {
+            if (!mounted) return;
+            setLoadedMap((m) => ({ ...m, [key]: true }));
+          }).catch(() => {});
+        }
+      } catch (e) {
+        // ignore individual prefetch errors
+      }
+    });
+
+    return () => { mounted = false; };
+  }, [selectedTab, avatars]);
 
   return (
     // Modal for avatar selection, with tabs and avatar grid
@@ -120,21 +165,31 @@ const AvatarContainer = ({ isVisible, onClose, avatars, handleAvatarSelect, play
             <View style={styles.avatarSelectionWrapper}>
               {filteredAvatars.map((avatar, index) => {
                 const key = avatar.id || avatar.name || (avatar.display && avatar.display.uri) || index;
+                const isLoaded = Boolean(loadedMap[key]);
                 return (
                   <Pressable key={key} onPress={() => handleAvatarSelect(avatar)}>
-                    <Image
-                      style={
-                        (String(avatar.level || '').toLowerCase() === 'beginner')
-                          ? [styles.avatarModalImage, styles.beginnerAvatar]
-                          : (String(avatar.level || '').toLowerCase() === 'advanced')
-                            ? [styles.avatarModalImage, styles.advancedAvatar]
-                            : [styles.avatarModalImage, styles.defaultAvatar]
-                      }
-                      source={avatar.display}
-                      onError={(e) => {
-                        console.warn('[AvatarContainer] image load error', { avatar, error: e.nativeEvent });
-                      }}
-                    />
+                    <View style={styles.avatarWrapper}>
+                      <Image
+                        style={
+                          (String(avatar.level || '').toLowerCase() === 'beginner')
+                            ? [styles.avatarModalImage, styles.beginnerAvatar]
+                            : (String(avatar.level || '').toLowerCase() === 'advanced')
+                              ? [styles.avatarModalImage, styles.advancedAvatar]
+                              : [styles.avatarModalImage, styles.defaultAvatar]
+                        }
+                        source={avatar.display}
+                        onLoad={() => setLoadedMap((m) => ({ ...m, [key]: true }))}
+                        onError={(e) => {
+                          console.warn('[AvatarContainer] image load error', { avatar, error: e.nativeEvent });
+                          setLoadedMap((m) => ({ ...m, [key]: false }));
+                        }}
+                      />
+                      {!isLoaded && (
+                        <View style={styles.spinnerOverlay} pointerEvents="none">
+                          <ActivityIndicator size="small" color="#ffffff" />
+                        </View>
+                      )}
+                    </View>
                   </Pressable>
                 );
               })}
@@ -269,6 +324,34 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'space-around',
     paddingBottom: 20,
+  },
+  spinnerContainer: {
+    width: '100%',
+    height: '60%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  spinnerText: {
+    marginTop: 12,
+    color: '#fff',
+  },
+  avatarWrapper: {
+    width: avatarSize,
+    height: avatarSize,
+    margin: 5,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  spinnerOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.2)',
+    borderRadius: avatarSize / 2,
   },
 });
 

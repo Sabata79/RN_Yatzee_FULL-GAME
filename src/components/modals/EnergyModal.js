@@ -13,9 +13,9 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useGame } from '../../constants/GameContext';
 
 export default function EnergyModal({ visible, onClose, tokens, maxTokens, timeToNextToken }) {
-  // Prefer explicit prop, otherwise read authoritative value from GameContext
+  // Prefer explicit prop, otherwise compute authoritative value on-demand
   const game = useGame ? useGame() : null;
-  const ctxTime = game && game.timeToNextToken ? game.timeToNextToken : '';
+  const ctxTime = game && typeof game.getTimeToNextToken === 'function' ? game.getTimeToNextToken() : '';
   const displayTime = (typeof timeToNextToken !== 'undefined' && timeToNextToken !== null && timeToNextToken !== '') ? timeToNextToken : ctxTime || '';
 
   if (!visible) return null;
