@@ -32,7 +32,7 @@ firebase-empty.js
 .DS_Store
 
 # Assets (IF you really want them private; otherwise remove this!)
-# assets/
+assets/
 
 # Dependencies
 node_modules/
