@@ -13,6 +13,7 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import ScoreRow from '../../components/ScoreRow';
 import scoreboardStyles from '../../styles/ScoreboardScreenStyles';
 import { NBR_OF_SCOREBOARD_ROWS } from '../../constants/Game';
+import TYPOGRAPHY from '../../constants/typography';
 
 const getDurationDotColor = (secs) => (secs > 150 ? '#e53935' : secs > 100 ? '#ffa000' : '#2e7d32');
 
@@ -70,7 +71,29 @@ export default function WeeklyScores({ rows = [], avatarMap, getAvatarStyle, ope
             const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
             return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
           };
-          return <Text style={scoreboardStyles.headerSubtitle}>{`Week ${getWeekNumber(new Date())}`}</Text>;
+
+          // Compute monday..sunday range for the given date (local)
+          const getWeekRange = (date) => {
+            const d = new Date(date);
+            // getDay: 0 (Sun) .. 6 (Sat). Convert to ISO week day where Mon=0 .. Sun=6
+            const isoDay = (d.getDay() + 6) % 7;
+            const monday = new Date(d);
+            monday.setDate(d.getDate() - isoDay);
+            const sunday = new Date(monday);
+            sunday.setDate(monday.getDate() + 6);
+            const fmt = (dt) => `${dt.getDate()}.${dt.getMonth() + 1}`;
+            return `${fmt(monday)} - ${fmt(sunday)}`;
+          };
+
+          const now = new Date();
+          const weekNum = getWeekNumber(now);
+          const range = getWeekRange(now);
+          return (
+            <>
+              <Text style={scoreboardStyles.headerSubtitle}>{`Week ${weekNum}`}</Text>
+              <Text style={[scoreboardStyles.headerSubtitle, { fontSize: TYPOGRAPHY.fontSize.xs, marginTop: 2 }]}>{range}</Text>
+            </>
+          );
         })()}
       </View>
       <DataTable style={scoreboardStyles.scoreboardContainer}>{listTableHeader()}</DataTable>
