@@ -14,6 +14,8 @@
  */
 import { useState } from 'react';
 import { Dimensions, useWindowDimensions, ImageBackground, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { getFirstRowTopPadding } from '../styles/FirstRowStyles';
 import { TabView, SceneMap, TabBar } from 'react-native-tab-view';
 import GameRules from './helpTabs/GameRules';
 import AccountLinking from './helpTabs/AccountLinking';
@@ -28,6 +30,8 @@ const initialLayout = { width: Dimensions.get('window').width };
 
 export default function RulesScreen() {
   const layout = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const topPad = getFirstRowTopPadding(insets);
   const [index, setIndex] = useState(0);
   const [routes] = useState([
     { key: 'rules', title: '🎲 Rules' },
@@ -46,7 +50,7 @@ export default function RulesScreen() {
   return (
     <ImageBackground
       source={require('../../assets/diceBackground.webp')}
-      style={{ flex: 1 }}
+      style={{ flex: 1, paddingTop: topPad }}
       resizeMode="cover"
     >
       <View style={gameRulesStyles.TabViewContainer}>

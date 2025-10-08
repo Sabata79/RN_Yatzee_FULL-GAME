@@ -9,6 +9,7 @@
 
 import React, { useState, useMemo, useRef, useCallback, useEffect } from 'react';
 import { View, useWindowDimensions, ImageBackground } from 'react-native';
+import { getFirstRowTopPadding } from '../styles/FirstRowStyles';
 import { TabView, SceneMap, TabBar } from 'react-native-tab-view';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -42,6 +43,7 @@ export default function ScoreboardTabs({
   const layout = useWindowDimensions();
   const initialLayout = { width: layout.width };
   const insets = useSafeAreaInsets();
+  const topPad = getFirstRowTopPadding(insets);
 
 
   // Game context provides precomputed slices
@@ -205,7 +207,7 @@ export default function ScoreboardTabs({
   return (
     <ImageBackground
       source={require('../../assets/diceBackground.webp')}
-      style={{ flex: 1 }}
+      style={{ flex: 1, paddingTop: topPad }}
       resizeMode="cover"
     >
       {/* Dark overlay so the background image is much darker on Scoreboard screens */}

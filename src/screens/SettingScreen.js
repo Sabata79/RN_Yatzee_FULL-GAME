@@ -23,6 +23,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useAudio } from '../services/AudioManager';
 import { sanitizeInput, checkIfNameExists } from '../services/nameUtils';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { getFirstRowTopPadding } from '../styles/FirstRowStyles';
 import WipeModal from '../components/modals/WipeModal';
 import CustomKeyboard from '../components/CustomKeyboard';
 import PlayerCardBGSelector from '../components/PlayerCardBGSelector';
@@ -39,6 +40,7 @@ const SettingScreen = () => {
   const { playerId, playerName, isLinked, setIsLinked, setPlayerId, setPlayerName } = useGame();
 
   const insets = useSafeAreaInsets();
+  const topPad = getFirstRowTopPadding(insets);
 
   // Custom keyboard visibility (Android only)
   const [kbVisible, setKbVisible] = useState(false);
@@ -191,7 +193,7 @@ const SettingScreen = () => {
     <View style={settingScreenStyles.root}>
       <ImageBackground
         source={require('../../assets/diceBackground.webp')}
-        style={settingScreenStyles.background}
+        style={[settingScreenStyles.background, { paddingTop: topPad }]}
         resizeMode="cover"
       >
         <View style={settingScreenStyles.overlay} pointerEvents="none" />
