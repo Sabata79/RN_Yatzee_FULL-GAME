@@ -44,10 +44,7 @@ function GameboardButtons({
   const defaultRollPress = useCallback(() => {
     if (rounds <= 0) return;
 
-    if (typeof __DEV__ !== 'undefined' && __DEV__) {
-      try { console.debug('[GameboardButtons] defaultRollPress called', { rounds, gameStarted, nbrOfThrowsLeft }); } catch (e) {}
-      try { console.debug(new Error('defaultRollPress stack').stack.split('\n').slice(0,6).join('\n')); } catch (e) {}
-    }
+    // dev logs removed
 
     if (!gameStarted) {
       // Do not call beginGame() here; throwDices() will call beginGame()

@@ -114,23 +114,11 @@ const RenderDices = React.memo(function RenderDices({
 export default function Gameboard({ route, navigation }) {
   const mountRef = useRef(null);
   useEffect(() => {
-    if (typeof __DEV__ !== 'undefined' && __DEV__) {
-      mountRef.current = Date.now();
-      try { console.debug('[Gameboard] mount at', mountRef.current); } catch (e) {}
-      return () => {
-        try { console.debug('[Gameboard] unmount at', Date.now()); } catch (e) {}
-        try { lastGameboardUnmountAt = Date.now(); } catch (e) {}
-      };
-    }
-    return undefined;
+    mountRef.current = Date.now();
+    return () => { lastGameboardUnmountAt = Date.now(); };
   }, []);
   // Dev-only: navigation focus listener to help trace unexpected side-effects
-  useEffect(() => {
-    if (typeof __DEV__ === 'undefined' || !__DEV__) return undefined;
-    const onFocus = () => { try { console.debug('[Gameboard] navigation focus at', Date.now(), { gameStarted }); } catch (e) {} };
-    const unsub = navigation && navigation.addListener ? navigation.addListener('focus', onFocus) : null;
-    return () => { try { if (unsub && typeof unsub === 'function') unsub(); } catch (e) {} };
-  }, [navigation, gameStarted]);
+  // dev focus listener removed
   const insets = useSafeAreaInsets();
   const { savePlayerPoints } = useGameSave();
   const { elapsedTime } = useElapsedTime();
@@ -188,9 +176,7 @@ export default function Gameboard({ route, navigation }) {
 
   // Start the game (decreases a token; overlay does not start the game)
   const beginGame = useCallback(() => {
-    if (typeof __DEV__ !== 'undefined' && __DEV__) {
-      try { console.debug('[Gameboard] beginGame called', { gameStarted, tokens }); } catch (e) {}
-    }
+    // dev log removed
     if (gameStarted) return true;
     if ((tokens ?? 0) > 0) {
   // Optimistic local decrement for immediate UI responsiveness
@@ -271,9 +257,8 @@ export default function Gameboard({ route, navigation }) {
 
   // Log layer visibility changes (dev-only) to diagnose unexpected auto-starts
   useEffect(() => {
-    if (typeof __DEV__ === 'undefined' || !__DEV__) return undefined;
-    try { console.debug('[Gameboard] isLayerVisible changed', { isLayerVisible, gameStarted, tokens }); } catch (e) {}
-    return undefined;
+  // dev log removed
+  return undefined;
   }, [isLayerVisible, gameStarted, tokens]);
 
   // When rounds reach 0, end the game and open the score modal
@@ -436,10 +421,7 @@ export default function Gameboard({ route, navigation }) {
   );
 
   const throwDices = useCallback(() => {
-    if (typeof __DEV__ !== 'undefined' && __DEV__) {
-      try { console.debug('[Gameboard] throwDices called', { nbrOfThrowsLeft, gameStarted, isLayerVisible }); } catch (e) {}
-      try { console.debug(new Error('throwDices stack').stack.split('\n').slice(0,6).join('\n')); } catch (e) {}
-    }
+    // dev logs removed
     if (nbrOfThrowsLeft > 0) {
       // If the game hasn't been started yet, begin it now (first actual roll)
       if (!gameStarted) {
@@ -478,10 +460,7 @@ export default function Gameboard({ route, navigation }) {
 
   // Log when Roll is requested from UI binding
   const onRollPress = useCallback(() => {
-    if (typeof __DEV__ !== 'undefined' && __DEV__) {
-      try { console.debug('[Gameboard] onRollPress (UI) called', { rounds, nbrOfThrowsLeft }); } catch (e) {}
-      try { console.debug(new Error('onRollPress stack').stack.split('\n').slice(0,6).join('\n')); } catch (e) {}
-    }
+    // dev logs removed
     if (rounds <= 0) return;
     // `throwDices` handles starting the game (it calls beginGame() when needed).
     if (nbrOfThrowsLeft <= 0) return;

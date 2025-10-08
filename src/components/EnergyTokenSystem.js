@@ -35,15 +35,11 @@ const EnergyTokenSystem = ({ hidden }) => {
 
   // Dev-only render timing
   React.useEffect(() => {
-    if (typeof __DEV__ !== 'undefined' && __DEV__) {
-      try { console.debug('[EnergyTokenSystem] render', { tokens, tokensStabilized, timeToNextToken: energyModalVisible ? getTimeToNextToken() : undefined }); } catch (e) {}
-    }
+    // dev render timing log removed
   }, [tokens, tokensStabilized, energyModalVisible, getTimeToNextToken]);
 
   React.useEffect(() => {
-    if (typeof __DEV__ !== 'undefined' && __DEV__) {
-      if (tokensStabilized) try { console.debug('[EnergyTokenSystem] tokens stabilized at', Date.now(), 'tokens=', tokens); } catch (e) {}
-    }
+    // tokens stabilized debug log removed
   }, [tokensStabilized]);
 
   // console.log('EnergyTokenSystem render', { tokens, timeToNextToken });

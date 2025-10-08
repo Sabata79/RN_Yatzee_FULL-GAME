@@ -48,10 +48,7 @@ export default function Header() {
 
   const mountRef = useRef(null);
   useEffect(() => {
-    if (typeof __DEV__ !== 'undefined' && __DEV__) {
-      mountRef.current = Date.now();
-      try { console.debug('[Header] mount at', mountRef.current); } catch (e) {}
-    }
+    mountRef.current = Date.now();
   }, []);
 
   // Smooth reveal on mount to avoid pushing the underlying content
@@ -93,19 +90,8 @@ export default function Header() {
   const avatarDisplay = meta ? meta.display : null;
   const isBeginner = !!meta && String(meta.level || '').toLowerCase() === 'beginner';
 
-  useEffect(() => {
-    if (typeof __DEV__ !== 'undefined' && __DEV__) {
-      try {
-        console.debug('[Header] avatar resolved', {
-          avatarToUse, metaFound: !!meta, avatarDisplay: !!avatarDisplay, isBeginner,
-          elapsedMs: mountRef.current ? Date.now() - mountRef.current : null,
-          tokensStabilized,
-          tokensStabilizedAt,
-          stabilizedDelta: tokensStabilizedAt && mountRef.current ? mountRef.current - tokensStabilizedAt : null,
-        });
-      } catch (e) {}
-    }
-  }, [avatarToUse, avatarDisplay, meta, isBeginner]);
+  // header avatar resolved debug log removed
+  useEffect(() => {}, [avatarToUse, avatarDisplay, meta, isBeginner, tokensStabilized, tokensStabilizedAt]);
 
   const openModal = useCallback(() => setModalVisible(true), []);
 

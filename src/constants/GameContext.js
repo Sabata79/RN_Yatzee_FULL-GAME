@@ -160,7 +160,7 @@ export const GameProvider = ({ children }) => {
       try {
         const current = auth && auth().currentUser;
         if (!current || String(current.uid) !== String(playerId)) {
-          try { console.debug('[GameContext] skipping goOnline: auth mismatch for', playerId); } catch (e) {}
+          // dev log removed
           return;
         }
         try {
@@ -170,7 +170,7 @@ export const GameProvider = ({ children }) => {
             return;
           }
           presenceCleanupRef.current = cleanup;
-          try { console.debug('[GameContext] presence goOnline succeeded for', playerId, 'cleanupSet=', !!cleanup); } catch (e) {}
+          // dev log removed
         } catch (e) {
           try { console.warn('[GameContext] goOnline failed for', playerId, e); } catch (er) {}
         }
