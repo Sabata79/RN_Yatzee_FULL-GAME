@@ -41,10 +41,11 @@ import Rules from './src/screens/Rules';
 
 import UpdateModal from './src/components/modals/UpdateModal';
 import EnergyTokenSystem from './src/components/EnergyTokenSystem';
+import Header from './src/screens/Header';
 
 import * as NavigationBar from 'expo-navigation-bar';
 
-const { height } = Dimensions.get('window');
+const { height, width } = Dimensions.get('window');
 const isSmallScreen = height < 720;
 const isBigScreen = height >= 900;
 
@@ -76,7 +77,12 @@ function AppShell() {
       forceUpdate: false,
       updateUrl: '',
     });
-  const insets = useSafeAreaInsets();
+  const insets = useSafeAreaInsets(); // Safe area insets for padding
+
+  // Header height matches HeaderStyles: narrow screens get 60, otherwise 70
+  const isNarrowHeader = width < 360 || height < 650; // Determine if header is narrow
+  const headerHeight = isNarrowHeader ? 60 : 70; // Set header height based on screen size
+  const topPaddingForHeader = headerHeight + Math.max(0, insets.top || 0); // header height plus safe area
 
   // --- ANDROID NAV BAR ---
   const applyHidden = React.useCallback(async () => {
@@ -236,8 +242,9 @@ function AppShell() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: 'black' }} edges={['top', 'left', 'right']}>
-      <EnergyTokenSystem hidden />
+    <SafeAreaView style={{ flex: 1, backgroundColor: 'black' }} edges={['left', 'right']}>
+  <EnergyTokenSystem hidden />
+  {(routeName !== 'LandingPage' && routeName !== 'Home') && <Header />}
 
       {/* Update modal (themed) */}
       <UpdateModal
@@ -250,7 +257,7 @@ function AppShell() {
         onUpdate={handleUpdate}
       />
 
-      <BackgroundWrapper isActive={bgActive}>
+  <BackgroundWrapper isActive={bgActive} topPadding={(routeName !== 'LandingPage' && routeName !== 'Home') ? topPaddingForHeader : 0}>
         <NavigationContainer
         ref={navigationRef}
         theme={navTheme}
@@ -258,11 +265,13 @@ function AppShell() {
           setTimeout(applyHidden, 50);
           const route = navigationRef.current?.getCurrentRoute?.();
           setRouteName(route?.name || '');
+          if (typeof __DEV__ !== 'undefined' && __DEV__) try { console.debug('[AppShell] onReady route=', route?.name); } catch (e) {}
         }}
         onStateChange={() => {
           setTimeout(applyHidden, 50);
           const route = navigationRef.current?.getCurrentRoute?.();
           setRouteName(route?.name || '');
+          if (typeof __DEV__ !== 'undefined' && __DEV__) try { console.debug('[AppShell] onStateChange route=', route?.name); } catch (e) {}
         }}
       >
         <Stack.Navigator
@@ -271,8 +280,8 @@ function AppShell() {
             cardStyle: { backgroundColor: 'transparent' },
             gestureEnabled: false,
             transitionSpec: {
-              open: { animation: 'timing', config: { duration: 3000, easing: Easing.out(Easing.cubic) } },
-              close: { animation: 'timing', config: { duration: 3000, easing: Easing.out(Easing.cubic) } },
+              open: { animation: 'timing', config: { duration: 300, easing: Easing.out(Easing.cubic) } },
+              close: { animation: 'timing', config: { duration: 300, easing: Easing.out(Easing.cubic) } },
             },
             cardStyleInterpolator: ({ current }) => ({ cardStyle: { opacity: current.progress } }),
           }}
