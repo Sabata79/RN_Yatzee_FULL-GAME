@@ -64,7 +64,7 @@ function AppShell() {
   const [name, setName] = useState('');
   const [playerId, setPlayerId] = useState('');
     // Modal is hidden by default; it is shown when LandingPage calls onRequireUpdate
-    const [updateModalVisible, setUpdateModalVisible] = useState(true);
+    const [updateModalVisible, setUpdateModalVisible] = useState(false);
     // Keep both camelCase and snake_case keys to be tolerant to different remote-config shapes
     const [updateModalData, setUpdateModalData] = useState({
       title: '',
