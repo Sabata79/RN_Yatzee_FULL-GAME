@@ -12,7 +12,7 @@ import UpdateModal from './modals/UpdateModal';
   visible={isVisible}
   title="New version available"
   message="We've shipped performance fixes and bugfixes."
-  releaseNotes={`- Faster loading\n- Fixed avatar flicker`}
+  releaseNotes={["First line","Second line","Third line"]}
   mandatory={false}
   onUpdate={() => { /* trigger OTA update or navigation */ }}
   onClose={() => setIsVisible(false)}
