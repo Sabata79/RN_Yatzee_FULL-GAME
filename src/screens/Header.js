@@ -26,6 +26,10 @@ export default function Header() {
   const headerHeight = isNarrowHeader ? 60 : 70;
   const headerTotal = headerHeight + (insets.top || 0);
   const translateY = useRef(new Animated.Value(-headerTotal)).current;
+  const logoTranslateX = useRef(new Animated.Value(-120)).current;
+  const avatarTranslateX = useRef(new Animated.Value(120)).current;
+  const nameTranslateY = useRef(new Animated.Value(-40)).current;
+  const energyTranslateY = useRef(new Animated.Value(-40)).current;
   const CENTER_MIN = Math.floor(SCREEN_WIDTH * 0.4);
   // Ensure right slot minimum fits the avatar image to avoid clipping when center is small
   const avatarWidth = (headerStyles && headerStyles.headerAvatarImage && headerStyles.headerAvatarImage.width) || 44;
@@ -52,8 +56,21 @@ export default function Header() {
 
   // Smooth reveal on mount to avoid pushing the underlying content
   useEffect(() => {
-    Animated.timing(translateY, { toValue: 0, duration: 260, useNativeDriver: true }).start();
-  }, [translateY]);
+    // header container reveal
+  const headerIn = Animated.timing(translateY, { toValue: 0, duration: 320, useNativeDriver: true });
+
+    // child animations: logo from left, name & energy from top, avatar from right
+  const logoIn = Animated.timing(logoTranslateX, { toValue: 0, duration: 420, useNativeDriver: true });
+  const nameIn = Animated.timing(nameTranslateY, { toValue: 0, duration: 420, useNativeDriver: true });
+  const energyIn = Animated.timing(energyTranslateY, { toValue: 0, duration: 420, useNativeDriver: true });
+  const avatarIn = Animated.timing(avatarTranslateX, { toValue: 0, duration: 420, useNativeDriver: true });
+
+    // orchestrate: header container first, then stagger children
+    Animated.sequence([
+      headerIn,
+      Animated.stagger(120, [logoIn, nameIn, energyIn, avatarIn]),
+    ]).start();
+  }, [translateY, logoTranslateX, nameTranslateY, energyTranslateY, avatarTranslateX]);
 
   // Use displayAvatarUrl (prefers pending local writes) so UI updates instantly.
   const avatarToUse = displayAvatarUrl || avatarUrl;
@@ -119,20 +136,20 @@ export default function Header() {
         ]}
       >
         {/* Left: logo + energy (measured) */}
-        <View
-          style={headerStyles.sectionLeft}
+        <Animated.View
+          style={[headerStyles.sectionLeft, { transform: [{ translateX: logoTranslateX }] }]}
           onLayout={(e) => setLeftWidth(e.nativeEvent.layout.width)}
         >
-          <Image
+          <Animated.Image
             source={require('../../assets/whiteDicesHeaderLogo.webp')}
             style={headerStyles.headerImage}
           />
           {userRecognized && (
-            <View style={headerStyles.energyWrap}>
+            <Animated.View style={[headerStyles.energyWrap, { transform: [{ translateY: energyTranslateY }] }]}>
               <EnergyTokenSystem />
-            </View>
+            </Animated.View>
           )}
-        </View>
+        </Animated.View>
 
         {typeof __DEV__ !== 'undefined' && __DEV__ && (
           <View style={{ position: 'absolute', left: 0, top: 0, opacity: 0 }}>
@@ -141,7 +158,7 @@ export default function Header() {
         )}
 
         {/* Center: always centered name */}
-        <View style={headerStyles.sectionCenter}>
+        <Animated.View style={[headerStyles.sectionCenter, { transform: [{ translateY: nameTranslateY }] }]}>
           {userRecognized && !!playerName && (
             <Pressable onPress={openModal} style={headerStyles.userNamePressable}>
               <Text style={headerStyles.userName} numberOfLines={1} ellipsizeMode="tail">
@@ -149,15 +166,15 @@ export default function Header() {
               </Text>
             </Pressable>
           )}
-        </View>
+        </Animated.View>
 
         {/* Right: avatar – width mirrored from left */}
         {userRecognized ? (
           <Pressable onPress={openModal}>
-            <View style={[headerStyles.sectionRight, { width: mirroredWidth }]}>
+            <Animated.View style={[headerStyles.sectionRight, { width: mirroredWidth, transform: [{ translateX: avatarTranslateX }] }]}>
               <View style={{ position: 'relative' }}>
                 {avatarDisplay ? (
-                  <Image
+                  <Animated.Image
                     source={avatarDisplay}
                     style={isBeginner ? headerStyles.beginnerAvatar : headerStyles.headerAvatarImage}
                   />
@@ -175,7 +192,7 @@ export default function Header() {
                   </View>
                 )}
               </View>
-            </View>
+            </Animated.View>
           </Pressable>
         ) : (
           <View style={[headerStyles.sectionRight, { width: mirroredWidth }]} />
