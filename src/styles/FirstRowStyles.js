@@ -30,7 +30,7 @@ const firstRowStyles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        padding: 0,
+        paddingTop: 0, // runtime padding applied from RenderFirstRow (safe-area + header height)
         margin: 0,
         zIndex: 10,
     },
@@ -54,4 +54,20 @@ const firstRowStyles = StyleSheet.create({
         marginVertical: 5,
     },
 });
+/**
+ * Compute a responsive top padding that reserves space for the absolute header
+ * and the device safe-area inset. Call this from components that need to
+ * shift content below the header (for example RenderFirstRow).
+ *
+ * @param {object} insets - result from useSafeAreaInsets(), may be undefined
+ * @returns {number} top padding in pixels
+ */
+export const getFirstRowTopPadding = (insets) => {
+    const { width, height } = Dimensions.get('window');
+    const isNarrowHeader = width < 360 || height < 650;
+    const headerHeight = isNarrowHeader ? 60 : 70;
+    const topInset = (insets && typeof insets.top === 'number') ? Math.max(0, insets.top) : 0;
+    return headerHeight + topInset;
+};
+
 export default firstRowStyles;

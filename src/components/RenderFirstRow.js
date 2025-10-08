@@ -17,7 +17,8 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useStopwatch } from 'react-timer-hook';
 import { useGame } from '../constants/GameContext';
 import { useElapsedTime } from '../constants/ElapsedTimeContext';
-import firstRowStyles from '../styles/FirstRowStyles';
+import firstRowStyles, { getFirstRowTopPadding } from '../styles/FirstRowStyles';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import COLORS from '../constants/colors';
 
 function RenderFirstRow() {
@@ -93,8 +94,11 @@ function RenderFirstRow() {
     }
   }, [isGameSaved, setElapsedTime, setIsGameSaved, glowAnim]);
 
+  const insets = useSafeAreaInsets();
+  const topPad = getFirstRowTopPadding(insets);
+
   return (
-    <View style={firstRowStyles.firstRow}>
+    <View style={[firstRowStyles.firstRow, { paddingTop: topPad }]}>
       <View style={firstRowStyles.firstRowItem}>
         <Text style={firstRowStyles.firstRowCategoryText}>Minor</Text>
       </View>

@@ -43,11 +43,11 @@ const styles = StyleSheet.create({
         width: '100%',
     },
     list: {
-    marginTop: MARGINTOP,
+        marginTop: MARGINTOP,
     },
     gameboardContainer: {
         width: '100%',
-        alignSelf: 'center',      
+        alignSelf: 'center',
     },
     gameboard: {
         flex: 1,
@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
         width: SECTIONCONTAINER,
         height: SECTIONCONTAINER,
         marginTop: 90,
-        marginLeft: 30, 
+        marginLeft: 30,
         justifyContent: 'center',
         alignItems: 'center',
         padding: SPACING.sm,
