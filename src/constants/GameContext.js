@@ -303,7 +303,13 @@ export const GameProvider = ({ children }) => {
           for (let i = 0; i < a.length; i++) {
             const ai = a[i]; const bi = b[i];
             if (!ai || !bi) return false;
-            if (ai.playerId !== bi.playerId || (ai.points || 0) !== (bi.points || 0) || (ai.duration || 0) !== (bi.duration || 0)) return false;
+            // Also consider avatar changes as a meaningful difference so UI updates instantly
+            if (
+              ai.playerId !== bi.playerId ||
+              (ai.points || 0) !== (bi.points || 0) ||
+              (ai.duration || 0) !== (bi.duration || 0) ||
+              ((ai.avatar || '') !== (bi.avatar || ''))
+            ) return false;
           }
           return true;
         };
@@ -417,6 +423,7 @@ export const GameProvider = ({ children }) => {
 
     const attemptRun = async (attempt = 0) => {
       try {
+  // computeAndApplyTokens start
         const now = Date.now() + (serverOffsetRef.current || 0);
         const playerPath = `players/${playerId}`;
 
@@ -463,6 +470,8 @@ export const GameProvider = ({ children }) => {
           const serverTokens = after && Number.isFinite(after.tokens) ? after.tokens : tokensRef.current;
           const serverAnchor = after && Number.isFinite(after.tokensLastAnchor) ? after.tokensLastAnchor : null;
 
+          // tx result -> apply to local state
+
           manualChangeRef.current = Date.now();
           setTokens(serverTokens);
           tokensRef.current = serverTokens;
@@ -472,9 +481,7 @@ export const GameProvider = ({ children }) => {
           try {
             await dbUpdate(`players/${playerId}`, { tokens: serverTokens, tokensLastAnchor: serverAnchor !== null ? serverAnchor : null });
           } catch (e) { /* best-effort */ }
-          try {
-            await dbSet(`tokenAudit/${playerId}/${Date.now()}`, { actor: 'client', source: 'computeAndApplyTokens', tokens: serverTokens, ts: Date.now() });
-          } catch (e) { /* intentionally ignored */ }
+          // audit write intentionally removed for production
         } catch (e) {
           // ignore mapping failures
         }

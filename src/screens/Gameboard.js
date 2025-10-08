@@ -167,8 +167,8 @@ export default function Gameboard({ route, navigation }) {
   const beginGame = useCallback(() => {
     if (gameStarted) return true;
     if ((tokens ?? 0) > 0) {
-      // Optimistic local decrement for immediate UI responsiveness
-      setTokens(prev => Math.max(0, (prev ?? 0) - 1));
+  // Optimistic local decrement for immediate UI responsiveness
+  setTokens(prev => Math.max(0, (prev ?? 0) - 1));
 
       // Persist decrement atomically and set lastTokenDecrement only when
       // tokens transition from MAX_TOKENS -> MAX_TOKENS-1 to establish the
@@ -427,14 +427,10 @@ export default function Gameboard({ route, navigation }) {
   // First roll starts the game; overlay only hides
   const onRollPress = useCallback(() => {
     if (rounds <= 0) return;
-
-    if (!gameStarted) {
-      const ok = beginGame();
-      if (!ok) return; // not enough tokens -> open energy modal
-    }
+    // `throwDices` handles starting the game (it calls beginGame() when needed).
     if (nbrOfThrowsLeft <= 0) return;
     throwDices();
-  }, [rounds, gameStarted, beginGame, nbrOfThrowsLeft, throwDices]);
+  }, [rounds, nbrOfThrowsLeft, throwDices]);
 
   // Set Points button logic (rounds, throws, selections)
   const onSetPointsPress = useCallback(() => {
