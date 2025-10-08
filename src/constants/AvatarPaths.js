@@ -13,7 +13,6 @@ export const avatars = [
     // beginner avatars (EU flags)
     { path: '../../assets/euflags/at.webp', display: require('../../assets/euflags/at.webp'), level: 'beginner' },
     { path: '../../assets/euflags/be.webp', display: require('../../assets/euflags/be.webp'), level: 'beginner' },
-    { path: '../../assets/euflags/ch.webp', display: require('../../assets/euflags/ch.webp'), level: 'beginner' },
     { path: '../../assets/euflags/cz.webp', display: require('../../assets/euflags/cz.webp'), level: 'beginner' },
     { path: '../../assets/euflags/de.webp', display: require('../../assets/euflags/de.webp'), level: 'beginner' },
     { path: '../../assets/euflags/dk.webp', display: require('../../assets/euflags/dk.webp'), level: 'beginner' },
@@ -32,7 +31,6 @@ export const avatars = [
     { path: '../../assets/euflags/no.webp', display: require('../../assets/euflags/no.webp'), level: 'beginner' },
     { path: '../../assets/euflags/pl.webp', display: require('../../assets/euflags/pl.webp'), level: 'beginner' },
     { path: '../../assets/euflags/pt.webp', display: require('../../assets/euflags/pt.webp'), level: 'beginner' },
-    { path: '../../assets/euflags/ro.webp', display: require('../../assets/euflags/ro.webp'), level: 'beginner' },
     { path: '../../assets/euflags/se.webp', display: require('../../assets/euflags/se.webp'), level: 'beginner' },
     { path: '../../assets/euflags/nl.webp', display: require('../../assets/euflags/nl.webp'), level: 'beginner' },
     { path: '../../assets/euflags/eu.webp', display: require('../../assets/euflags/eu.webp'), level: 'beginner' },
