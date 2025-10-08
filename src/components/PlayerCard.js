@@ -270,6 +270,16 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
   const previousMonthRank = currentMonth > 0 ? monthlyRanks[currentMonth - 1] : '--';
   const levelInfo = getPlayerLevelInfo();
 
+  // Ensure the progress fill width is a safe percentage string.
+  // Use rounding and a 1% minimum for any non-zero progress so the
+  // green fill is visible even for very small progress values.
+  const progressWidth = (() => {
+    const p = typeof levelInfo.progress === 'number' && !Number.isNaN(levelInfo.progress) ? levelInfo.progress : 0;
+    const pct = Math.round(p * 100);
+    if (p > 0 && pct === 0) return '1%';
+    return `${pct}%`;
+  })();
+
   // badge lookup for current level
   const badgeHit = (() => {
     const key = (levelInfo.level || '').toString().toLowerCase();
@@ -629,8 +639,8 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
         setViewingAllTimeRank(' - ');
         return;
       }
-  const playersData = snapshot.val() || {};
-  const bestScores = Object.entries(playersData).map(([pId, data]) => {
+      const playersData = snapshot.val() || {};
+      const bestScores = Object.entries(playersData).map(([pId, data]) => {
         const at = data.allTimeBest || null;
         if (at && typeof at.points === 'number') {
           return { playerId: pId, maxScore: Number(at.points) };
@@ -704,7 +714,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     };
   }, [isModalVisible, idToUse, playerId, setAvatarUrl]);
 
-  
+
 
   // When reveal guard flips true, run all reveal animations together (bg, content, ribbons)
   useEffect(() => {
@@ -737,7 +747,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
       }
     }, 60);
   }, [revealReady, isModalVisible, viewingAllTimeRank, playerIsLinked, bgOpacity, contentOpacity, contentTranslate, ribbonAnim, ribbonLinkedAnim]);
-  
+
 
   // Ribbon animations are handled by the `revealReady` effect above.
 
@@ -846,11 +856,11 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     // Additionally, if this is the user's own card and they are high-tier (elite/legendary),
     // don't render the level-based background before we've loaded the profile — this avoids a
     // short flash of the level image before a preferredCardBg from the profile is applied.
-  const highTier = typeof levelInfo.level === 'string' && ['elite', 'legendary'].includes(levelInfo.level.toLowerCase());
-  // Only allow level-based fallback once we've loaded the stored preferred value
-  // (preferredLoaded). This ensures we don't show a transient level image
-  // before the user's explicit choice is known.
-  const allowLevelBg = preferredLoaded && levelResolved && (!(isOwnCard && highTier) || profileLoaded);
+    const highTier = typeof levelInfo.level === 'string' && ['elite', 'legendary'].includes(levelInfo.level.toLowerCase());
+    // Only allow level-based fallback once we've loaded the stored preferred value
+    // (preferredLoaded). This ensures we don't show a transient level image
+    // before the user's explicit choice is known.
+    const allowLevelBg = preferredLoaded && levelResolved && (!(isOwnCard && highTier) || profileLoaded);
     playerCardBg = allowLevelBg ? getPlayerCardBackground(levelInfo.level) : null;
   }
 
@@ -961,7 +971,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
                 pointerEvents="none"
               >
                 <Image source={require('../../assets/ribbonlinked.webp')} style={playerCardStyles.ribbonImage} />
-                <View style={[playerCardStyles.nameAndLinkContainer, { position: 'absolute', left: 8, top: 8, zIndex: 40, transform: [{ rotate: '-45deg' }] }]}> 
+                <View style={[playerCardStyles.nameAndLinkContainer, { position: 'absolute', left: 8, top: 8, zIndex: 40, transform: [{ rotate: '-45deg' }] }]}>
                   <FontAwesome5 name="link" size={12} color='white' style={playerCardStyles.ribbonIcon} />
                   <Text style={playerCardStyles.ribbonLinkedLabel}>Linked</Text>
                 </View>
@@ -1049,20 +1059,18 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
                   </View>
 
                   <View style={[playerCardStyles.playerTextContainer]}>
-                    <Text style={[playerCardStyles.playerStat, isDarkBg && playerCardStyles.playerCardTextDark, {textAlign: 'center'}]}>Progress:</Text>
+                    <Text style={[playerCardStyles.playerStat, isDarkBg && playerCardStyles.playerCardTextDark, { textAlign: 'center' }]}>Progress:</Text>
                     <View style={playerCardStyles.progressBar}>
                       <View
                         style={[
                           playerCardStyles.progressFill,
-                          {
-                            width: isLegendaryLocal ? '100%' : `${Math.floor(levelInfo.progress * 100)}%`,
-                            // ensure legendary stays green (COLORS.success is used by default)
-                            backgroundColor: isLegendaryLocal ? COLORS.success : undefined,
-                          },
+                          isLegendaryLocal
+                            ? { width: '100%', backgroundColor: COLORS.success }
+                            : { width: progressWidth },
                         ]}
                       />
                       <Text style={[playerCardStyles.progressPercentageText, isLegendaryLocal ? { fontWeight: '700' } : null]}>
-                        {isLegendaryLocal ? 'COMPLETED!' : `${Math.floor(levelInfo.progress * 100)}%`}
+                        {isLegendaryLocal ? 'COMPLETED!' : `${parseInt(progressWidth, 10)}%`}
                       </Text>
                     </View>
                     <View style={playerCardStyles.playerStatsContainer}>
@@ -1085,13 +1093,13 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
                               source={badgeHit.display}
                               resizeMode="cover"
                               onLayout={(e) => {
-                                  const h = Math.round(e.nativeEvent.layout.height || 0);
-                                  const prev = Math.round(badgeHeight || 0);
-                                  // Only update if change is significant (>1px) to avoid jitter
-                                  if (h > 0 && Math.abs(h - prev) > 1) {
-                                    setBadgeHeight(h);
-                                  }
-                                }}
+                                const h = Math.round(e.nativeEvent.layout.height || 0);
+                                const prev = Math.round(badgeHeight || 0);
+                                // Only update if change is significant (>1px) to avoid jitter
+                                if (h > 0 && Math.abs(h - prev) > 1) {
+                                  setBadgeHeight(h);
+                                }
+                              }}
                               style={[playerCardStyles.playerStatsBadgeAbsolute, { top }]}
                             />
                           );

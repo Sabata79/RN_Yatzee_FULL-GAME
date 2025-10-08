@@ -449,6 +449,7 @@ const playerCardStyles = StyleSheet.create({
         marginBottom: 4,
         alignSelf: 'center',
         justifyContent: 'center',
+        overflow: 'hidden',
     },
     progressFill: {
         height: '100%',
