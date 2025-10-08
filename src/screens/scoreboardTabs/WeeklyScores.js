@@ -89,10 +89,7 @@ export default function WeeklyScores({ rows = [], avatarMap, getAvatarStyle, ope
           const weekNum = getWeekNumber(now);
           const range = getWeekRange(now);
           return (
-            <>
-              <Text style={scoreboardStyles.headerSubtitle}>{`Week ${weekNum}`}</Text>
-              <Text style={[scoreboardStyles.headerSubtitle, { fontSize: TYPOGRAPHY.fontSize.xs, marginTop: 2 }]}>{range}</Text>
-            </>
+            <Text style={scoreboardStyles.headerSubtitle}>{`Week ${weekNum} ( ${range} )`}</Text>
           );
         })()}
       </View>
