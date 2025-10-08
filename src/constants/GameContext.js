@@ -21,6 +21,7 @@
  */
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { AppState } from 'react-native';
 import { dbOnValue, dbOff, dbUpdate, dbRunTransaction, dbSet, dbGet, auth } from '../services/Firebase';
 import { goOnline, goOffline } from '../services/Presence';
 import { isBetterScore } from '../utils/scoreUtils';
@@ -133,12 +134,13 @@ export const GameProvider = ({ children }) => {
         setPendingAvatar(null);
         pendingAvatarTimeoutRef.current = null;
       }, 3000);
-  } catch (e) { /* intentionally ignored */ }
+    } catch (e) { /* intentionally ignored */ }
   }, [pendingAvatar]);
 
   // small helpers for legacy anchor handling
   const lastDecrementRef = useRef(null);
   const hydratedRef = useRef(false);
+  const singleTimeoutRef = useRef(null);
 
   // Scoreboard & viewing helpers
   const [scoreboardData, setScoreboardData] = useState([]);
@@ -166,27 +168,27 @@ export const GameProvider = ({ children }) => {
         try {
           const cleanup = await goOnline(playerId, { versionName: gameVersion, versionCode: gameVersionCode });
           if (!mounted) {
-            try { if (typeof cleanup === 'function') cleanup(); } catch (e) {}
+            try { if (typeof cleanup === 'function') cleanup(); } catch (e) { }
             return;
           }
           presenceCleanupRef.current = cleanup;
           // dev log removed
         } catch (e) {
-          try { console.warn('[GameContext] goOnline failed for', playerId, e); } catch (er) {}
+          try { console.warn('[GameContext] goOnline failed for', playerId, e); } catch (er) { }
         }
-      } catch (e) {}
+      } catch (e) { }
     })();
 
     return () => {
       mounted = false;
       try {
         if (presenceCleanupRef.current && typeof presenceCleanupRef.current === 'function') {
-          try { presenceCleanupRef.current().catch(() => {}); } catch (e) {}
+          try { presenceCleanupRef.current().catch(() => { }); } catch (e) { }
           presenceCleanupRef.current = null;
         } else if (playerId) {
-          try { goOffline(playerId).catch(() => {}); } catch (e) {}
+          try { goOffline(playerId).catch(() => { }); } catch (e) { }
         }
-      } catch (e) {}
+      } catch (e) { }
     };
   }, [playerId, gameVersion, gameVersionCode]);
 
@@ -363,7 +365,7 @@ export const GameProvider = ({ children }) => {
             });
           } catch (e) { /* intentionally ignored */ }
         });
-  } catch (e) { /* intentionally ignored */ }
+      } catch (e) { /* intentionally ignored */ }
     })();
 
     return () => {
@@ -385,11 +387,12 @@ export const GameProvider = ({ children }) => {
       try {
         const val = snapshot && typeof snapshot.val === 'function' && snapshot.exists() ? snapshot.val() : (snapshot || null);
         // Use the central setter with local=false so we clear any pending local override
-  try { setAvatarUrl(val || null, { local: false }); } catch (e) { /* intentionally ignored */ }
+        try { setAvatarUrl(val || null, { local: false }); } catch (e) { /* intentionally ignored */ }
       } catch (e) { /* ignore per-listener errors */ }
     };
 
     const unsub = dbOnValue(path, handle);
+    let unsubAnchor = null;
     return () => {
       try { if (typeof unsub === 'function') unsub(); else dbOff(path, handle); } catch (e) { }
     };
@@ -409,14 +412,14 @@ export const GameProvider = ({ children }) => {
         const val = snapshot && typeof snapshot.val === 'function' && snapshot.exists() ? snapshot.val() : null;
         // avoid stale/no-op sets
         setPlayerLevel((prev) => (prev === val ? prev : val));
-  } catch (e) { /* intentionally ignored */ }
+      } catch (e) { /* intentionally ignored */ }
     };
 
     const unsub = dbOnValue(path, handle);
     return () => {
       try {
         if (typeof unsub === 'function') unsub(); else dbOff(path, handle);
-  } catch (e) { /* intentionally ignored */ }
+      } catch (e) { /* intentionally ignored */ }
     };
   }, [playerId]);
 
@@ -424,17 +427,18 @@ export const GameProvider = ({ children }) => {
   const computeAndApplyTokens = useCallback(async () => {
     if (!playerId) return;
     if (manualChangeRef.current && Date.now() - manualChangeRef.current < 2000) return;
+    // dev diagnostics removed
 
     const maxAttempts = 3;
 
     const attemptRun = async (attempt = 0) => {
-        if (computeInFlightRef.current) {
-          // Another compute is already running; avoid overlapping transactions
-          return;
-        }
-        computeInFlightRef.current = true;
+      if (computeInFlightRef.current) {
+        // Another compute is already running; avoid overlapping transactions
+        return;
+      }
+      computeInFlightRef.current = true;
       try {
-  // computeAndApplyTokens start
+        // computeAndApplyTokens start
         const now = Date.now() + (serverOffsetRef.current || 0);
         const playerPath = `players/${playerId}`;
 
@@ -505,7 +509,7 @@ export const GameProvider = ({ children }) => {
             const now = Date.now();
             // Throttle timeout warnings to once per 5s to avoid spam
             if (!lastTimeoutWarnRef.current || now - lastTimeoutWarnRef.current > 5000) {
-              try { console.warn('[GameContext] computeAndApplyTokens timeout, retrying in ms=', 500 * Math.pow(2, attempt), 'attempt=', attempt + 1); } catch (err) {}
+              try { console.warn('[GameContext] computeAndApplyTokens timeout, retrying in ms=', 500 * Math.pow(2, attempt), 'attempt=', attempt + 1); } catch (err) { }
               lastTimeoutWarnRef.current = now;
             }
             const delay = 500 * Math.pow(2, attempt); // 500ms, 1s, 2s
@@ -561,12 +565,92 @@ export const GameProvider = ({ children }) => {
       } catch (e) { /* best-effort */ }
     })();
 
-    const id = setInterval(() => { computeAndApplyTokens().catch(() => { }); }, 1000);
+    // Schedule-driven timer: compute only when a regeneration is expected.
+    const scheduleNext = () => {
+      try {
+        if (singleTimeoutRef.current) {
+          clearTimeout(singleTimeoutRef.current);
+          singleTimeoutRef.current = null;
+        }
+
+        const now = Date.now() + (serverOffsetRef.current || 0);
+        const curTokens = typeof tokensRef.current === 'number' ? tokensRef.current : 0;
+        // No need to schedule if player has full tokens
+        if (curTokens >= MAX_TOKENS) {
+          return;
+        }
+
+        let nextMs = null;
+        if (typeof lastDecrementRef.current === 'number') {
+          nextMs = (lastDecrementRef.current + EFFECTIVE_REGEN_INTERVAL) - now;
+        } else {
+          // fallback: schedule at one regen interval from now
+          nextMs = EFFECTIVE_REGEN_INTERVAL;
+        }
+        // scheduling next regeneration
+
+        // If nextMs is already due, run immediately (but asynchronously)
+        if (nextMs <= 0) {
+          singleTimeoutRef.current = setTimeout(() => {
+            computeAndApplyTokens().catch(() => { });
+            // after compute, re-schedule
+            try { scheduleNext(); } catch (e) { }
+          }, 0);
+        } else {
+          const safeDelay = Math.max(0, Math.min(nextMs, 2147483647)); // cap to setTimeout limit
+          // schedule with computed safeDelay
+          singleTimeoutRef.current = setTimeout(() => {
+            computeAndApplyTokens().catch(() => { });
+            try { scheduleNext(); } catch (e) { }
+          }, safeDelay);
+        }
+      } catch (e) { /* best-effort scheduling */ }
+    };
+
+    // Also subscribe to tokensLastAnchor so we hydrate anchor quickly after restart
+    try {
+      const anchorPath = `players/${playerId}/tokensLastAnchor`;
+      const handleAnchor = (snap) => {
+        try {
+          const val = snap && typeof snap.val === 'function' ? snap.val() : snap;
+          const n = Number.isFinite(val) ? Number(val) : null;
+          lastDecrementRef.current = n;
+          // tokensLastAnchor updated; re-schedule next regeneration
+          try { scheduleNext(); } catch (e) { }
+        } catch (e) { }
+      };
+      unsubAnchor = dbOnValue(anchorPath, handleAnchor);
+    } catch (e) { /* best-effort */ }
+
+    // Run initial stabilization and then schedule the next regeneration event
+    (async () => {
+      try {
+        // computeAndApplyTokens() was already invoked above as an initial stabilization pass;
+        // ensure we schedule next after that pass completes.
+        scheduleNext();
+      } catch (e) { /* ignore */ }
+    })();
+
+    // Foreground resume safety: if app becomes active again, re-check schedule
+    const handleAppState = (next) => {
+      try {
+        if (next === 'active') {
+          // run a quick compute on resume to correct any missed intervals
+          // On app resume: run compute and re-schedule
+          computeAndApplyTokens().catch(() => { });
+          scheduleNext();
+        }
+      } catch (e) { }
+    };
+
+    try { AppState.addEventListener && AppState.addEventListener('change', handleAppState); } catch (e) { }
 
     return () => {
       try { if (typeof unsub === 'function') unsub(); else dbOff(path, handle); } catch (e) { }
+      try { if (typeof unsubAnchor === 'function') unsubAnchor(); } catch (e) { }
       hydratedRef.current = false;
-      clearInterval(id);
+      try { if (singleTimeoutRef.current) { clearTimeout(singleTimeoutRef.current); singleTimeoutRef.current = null; } } catch (e) { }
+      try { AppState.removeEventListener && AppState.removeEventListener('change', handleAppState); } catch (e) { }
     };
   }, [playerId, computeAndApplyTokens]);
 
@@ -654,15 +738,15 @@ export const GameProvider = ({ children }) => {
     displayAvatarUrl: pendingAvatar !== null ? pendingAvatar : avatarUrl,
     setAvatarUrl,
 
-  // tokens
-  tokens,
-  setTokens,
-  tokensStabilized,
-  tokensStabilizedAt: tokensStabilizedAtRef.current,
-  nextTokenTime,
-  setNextTokenTime,
-  // helper: compute time string on demand to avoid per-second context updates
-  getTimeToNextToken,
+    // tokens
+    tokens,
+    setTokens,
+    tokensStabilized,
+    tokensStabilizedAt: tokensStabilizedAtRef.current,
+    nextTokenTime,
+    setNextTokenTime,
+    // helper: compute time string on demand to avoid per-second context updates
+    getTimeToNextToken,
     triggerTokenRecalc,
     stabilizeTokensOnBoot,
     // game lifecycle
@@ -683,7 +767,7 @@ export const GameProvider = ({ children }) => {
     // UI bits
     energyModalVisible,
     setEnergyModalVisible,
-  // timeToNextToken is provided via getTimeToNextToken()
+    // timeToNextToken is provided via getTimeToNextToken()
     // scoreboard & viewing helpers
     scoreboardData,
     setScoreboardData,
@@ -720,7 +804,7 @@ export const GameProvider = ({ children }) => {
     startGameCb,
     endGameCb,
     energyModalVisible,
-  // intentionally omitted: timeToNextToken
+    // intentionally omitted: timeToNextToken
     scoreboardData,
     scoreboardMonthly,
     presenceMap,

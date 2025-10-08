@@ -265,13 +265,13 @@ function AppShell() {
           setTimeout(applyHidden, 50);
           const route = navigationRef.current?.getCurrentRoute?.();
           setRouteName(route?.name || '');
-          if (typeof __DEV__ !== 'undefined' && __DEV__) try { console.debug('[AppShell] onReady route=', route?.name); } catch (e) {}
+          // AppShell: onReady route logged in boot traces only
         }}
         onStateChange={() => {
           setTimeout(applyHidden, 50);
           const route = navigationRef.current?.getCurrentRoute?.();
           setRouteName(route?.name || '');
-          if (typeof __DEV__ !== 'undefined' && __DEV__) try { console.debug('[AppShell] onStateChange route=', route?.name); } catch (e) {}
+          // AppShell: onStateChange route logged in boot traces only
         }}
       >
         <Stack.Navigator
