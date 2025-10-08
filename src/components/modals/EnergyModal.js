@@ -14,9 +14,38 @@ import { useGame } from '../../constants/GameContext';
 
 export default function EnergyModal({ visible, onClose, tokens, maxTokens, timeToNextToken }) {
   // Prefer explicit prop, otherwise compute authoritative value on-demand
-  const game = useGame ? useGame() : null;
-  const ctxTime = game && typeof game.getTimeToNextToken === 'function' ? game.getTimeToNextToken() : '';
-  const displayTime = (typeof timeToNextToken !== 'undefined' && timeToNextToken !== null && timeToNextToken !== '') ? timeToNextToken : ctxTime || '';
+  const game = useGame();
+  const getCtxTime = () => (game && typeof game.getTimeToNextToken === 'function' ? game.getTimeToNextToken() : '');
+
+  // displayTime is passive unless the modal is visible. If a prop is provided
+  // we always honor it and do not start an interval. When visible we refresh
+  // the value every second so the user sees a live countdown.
+  const [displayTime, setDisplayTime] = React.useState(() => {
+    if (typeof timeToNextToken !== 'undefined' && timeToNextToken !== null && timeToNextToken !== '') return timeToNextToken;
+    return getCtxTime() || '';
+  });
+
+  React.useEffect(() => {
+    // If parent provided an explicit prop, mirror it and remain passive.
+    if (typeof timeToNextToken !== 'undefined' && timeToNextToken !== null && timeToNextToken !== '') {
+      setDisplayTime(timeToNextToken);
+      return undefined;
+    }
+
+    let id = null;
+    if (visible) {
+      // immediate refresh and then every second while visible
+      setDisplayTime(getCtxTime() || '');
+      id = setInterval(() => {
+        setDisplayTime(getCtxTime() || '');
+      }, 1000);
+    } else {
+      // passive snapshot when not visible
+      setDisplayTime(getCtxTime() || '');
+    }
+
+    return () => { if (id) clearInterval(id); };
+  }, [visible, timeToNextToken, game]);
 
   if (!visible) return null;
   return (

@@ -66,12 +66,14 @@ export default function Home({ setPlayerId }) {
     setPlayerName,
     tokens,
     timeToNextToken,
+    getTimeToNextToken,
     tokensStabilized,
     gameVersion,
     gameVersionCode,
   } = useGame();
 
   const isFocused = useIsFocused();
+  const [displayTime, setDisplayTime] = useState('');
 
   // Animate in only when Home is focused (visible)
   useEffect(() => {
@@ -97,6 +99,28 @@ export default function Home({ setPlayerId }) {
       } catch (e) { }
     };
   }, [isFocused, fadeAnim]);
+
+  // Update the human-readable time-to-next-token only when Home is focused.
+  // This avoids a global per-second countdown when the screen is not visible.
+  useEffect(() => {
+    let id = null;
+
+    const updateOnce = () => {
+      try {
+        if (typeof getTimeToNextToken === 'function') setDisplayTime(getTimeToNextToken() || '');
+        else setDisplayTime('');
+      } catch (e) { setDisplayTime(''); }
+    };
+
+    if (isFocused) {
+      updateOnce();
+      id = setInterval(updateOnce, 1000);
+    } else {
+      updateOnce();
+    }
+
+    return () => { if (id) clearInterval(id); };
+  }, [isFocused, getTimeToNextToken]);
 
   // iOS / system keyboard visibility (used to adjust layout when user not recognized)
   useEffect(() => {
@@ -300,7 +324,7 @@ export default function Home({ setPlayerId }) {
                 <View style={[homeStyles.energyIcon, { left: -5 }]}>
                   <MaterialCommunityIcons name="flash" size={18} color='#f1c40f' />
                 </View>
-                <Text style={[homeStyles.homeText, { left: -5 }]}>in {timeToNextToken}</Text>
+                <Text style={[homeStyles.homeText, { left: -5 }]}>in {displayTime || timeToNextToken}</Text>
               </View>
             )}
 
