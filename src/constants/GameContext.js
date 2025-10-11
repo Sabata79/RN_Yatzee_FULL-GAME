@@ -22,7 +22,7 @@
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { AppState } from 'react-native';
-import { dbOnValue, dbOff, dbUpdate, dbRunTransaction, dbSet, dbGet, auth } from '../services/Firebase';
+import { dbOnValue, dbOff, dbUpdate, dbRunTransaction, dbSet, dbGet, auth, onAuthStateChanged } from '../services/Firebase';
 import { goOnline, goOffline } from '../services/Presence';
 import { isBetterScore } from '../utils/scoreUtils';
 import { MAX_TOKENS } from './Game';
@@ -179,6 +179,51 @@ export const GameProvider = ({ children }) => {
       } catch (e) { }
     })();
 
+  // Re-establish presence when auth state changes (token refresh/reauth can remove onDisconnect hooks)
+    let authUnsub = null;
+    try {
+      authUnsub = onAuthStateChanged && onAuthStateChanged(auth(), async (u) => {
+        try {
+          if (!u || String(u.uid) !== String(playerId)) return;
+          // If we already have a cleanup, call it to ensure any stale onDisconnect is cancelled
+          try {
+            if (presenceCleanupRef.current && typeof presenceCleanupRef.current === 'function') {
+              await presenceCleanupRef.current();
+            }
+          } catch (e) { /* ignore */ }
+          try {
+            const cleanup = await goOnline(playerId, { versionName: gameVersion, versionCode: gameVersionCode });
+            presenceCleanupRef.current = cleanup;
+          } catch (e) { /* ignore */ }
+        } catch (e) { /* ignore */ }
+      });
+    } catch (e) { /* ignore */ }
+
+    // If app resumes from background, re-establish presence (onDisconnect may have fired while backgrounded)
+    const handleAppActive = (next) => {
+      try {
+        if (next !== 'active') return;
+        (async () => {
+          try {
+            const current = auth && auth().currentUser;
+            if (!current || String(current.uid) !== String(playerId)) return;
+            // Cancel any existing cleanup and re-run goOnline to set presence + onDisconnect
+            try {
+              if (presenceCleanupRef.current && typeof presenceCleanupRef.current === 'function') {
+                await presenceCleanupRef.current();
+                presenceCleanupRef.current = null;
+              }
+            } catch (e) { /* ignore */ }
+            try {
+              const cleanup = await goOnline(playerId, { versionName: gameVersion, versionCode: gameVersionCode });
+              presenceCleanupRef.current = cleanup;
+            } catch (e) { /* ignore */ }
+          } catch (e) { /* ignore */ }
+        })();
+      } catch (e) { /* ignore */ }
+    };
+    try { AppState.addEventListener && AppState.addEventListener('change', handleAppActive); } catch (e) { }
+
     return () => {
       mounted = false;
       try {
@@ -189,6 +234,8 @@ export const GameProvider = ({ children }) => {
           try { goOffline(playerId).catch(() => { }); } catch (e) { }
         }
       } catch (e) { }
+  try { if (authUnsub && typeof authUnsub === 'function') authUnsub(); else if (authUnsub && typeof authUnsub.remove === 'function') authUnsub.remove(); } catch (e) { }
+  try { AppState.removeEventListener && AppState.removeEventListener('change', handleAppActive); } catch (e) { }
     };
   }, [playerId, gameVersion, gameVersionCode]);
 
