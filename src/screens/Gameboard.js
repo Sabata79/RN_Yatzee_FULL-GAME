@@ -362,18 +362,16 @@ export default function Gameboard({ route, navigation }) {
       const isMinor = minorNames.includes(selectedCategory.name);
       setScoringCategories((prev) => prev.map((c) => (c.index === selectedField ? { ...c, points, locked: true } : c)));
       if (isMinor) {
-        const newMinorPoints = minorPoints + points;
-        let bonusApplied = hasAppliedBonus;
-        let total = totalPoints + points;
-        if (newMinorPoints >= BONUS_POINTS_LIMIT && !hasAppliedBonus) {
-          total += BONUS_POINTS;
-          bonusApplied = true;
-        }
+        // Compute new minor total using current values from closure (safe during event handler)
+        const newMinorPoints = (minorPoints || 0) + points;
+        const willApplyBonus = !hasAppliedBonus && newMinorPoints >= BONUS_POINTS_LIMIT;
+        // Update state sequentially (avoid nested setState calls during render)
         setMinorPoints(newMinorPoints);
-        setTotalPoints(total);
-        if (bonusApplied !== hasAppliedBonus) setHasAppliedBonus(bonusApplied);
+        if (willApplyBonus) setHasAppliedBonus(true);
+        // Use functional update for totalPoints to avoid races
+        setTotalPoints((prevTotal) => prevTotal + points + (willApplyBonus ? BONUS_POINTS : 0));
       } else {
-        setTotalPoints(totalPoints + points);
+        setTotalPoints((tp) => tp + points);
       }
     }
     setSelectedField(null);
