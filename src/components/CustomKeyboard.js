@@ -204,7 +204,7 @@ export default function CustomKeyboard({
                     >
                         <Text allowFontScaling={false} style={styles.keyTextDark}>
                             {capsLock ? (
-                                <Text allowFontScaling={false} style={styles.keyTextDark}>CAPS</Text>
+                                <Text allowFontScaling={false} style={[styles.keyTextDark, styles.keyTextCaps]}>CAPS</Text>
                             ) : oneShotShift ? (
                                 <MaterialCommunityIcons name="arrow-up-bold" size={20} color={dark ? "#f2f4f5" : "#1c2024"} />
                             ) : (
@@ -255,6 +255,7 @@ export default function CustomKeyboard({
 // Responsive font sizing for keys: reduce CAPS label slightly on narrow screens
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const KEY_FONT_SIZE = SCREEN_WIDTH < 360 ? 16 : SCREEN_WIDTH < 400 ? 17 : 18;
+const KEY_CAPS_FONT_SIZE = SCREEN_WIDTH < 360 ? 15 : SCREEN_WIDTH < 400 ? 16 : 17;
 
 const styles = StyleSheet.create({
     sheet: {
@@ -308,5 +309,9 @@ const styles = StyleSheet.create({
         color: "#1c2024",
         fontSize: KEY_FONT_SIZE,
         fontWeight: "600",
+    },
+    keyTextCaps: {
+        fontSize: KEY_CAPS_FONT_SIZE,
+        fontWeight: '700',
     },
 });
