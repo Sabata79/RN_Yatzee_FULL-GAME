@@ -113,6 +113,7 @@ const RenderDices = React.memo(function RenderDices({
 
 export default function Gameboard({ route, navigation }) {
   const mountRef = useRef(null);
+  const layerTimeoutRef = useRef(null);
   useEffect(() => {
     mountRef.current = Date.now();
     return () => { lastGameboardUnmountAt = Date.now(); };
@@ -305,8 +306,13 @@ export default function Gameboard({ route, navigation }) {
     const since = Date.now() - (lastGameboardUnmountAt || 0);
     if (since < THRESHOLD) {
       const delay = THRESHOLD - since;
-      const id = setTimeout(() => setLayerVisible(rounds === MAX_SPOTS), delay);
-      return () => clearTimeout(id);
+      layerTimeoutRef.current = setTimeout(() => { layerTimeoutRef.current = null; setLayerVisible(rounds === MAX_SPOTS); }, delay);
+      return () => {
+        if (layerTimeoutRef.current) {
+          clearTimeout(layerTimeoutRef.current);
+          layerTimeoutRef.current = null;
+        }
+      };
     }
     setLayerVisible(rounds === MAX_SPOTS);
     return undefined;
@@ -620,6 +626,10 @@ export default function Gameboard({ route, navigation }) {
                 setEnergyModalVisible(true);
               } else {
                 setLayerVisible(false);
+                if (layerTimeoutRef.current) {
+                  clearTimeout(layerTimeoutRef.current);
+                  layerTimeoutRef.current = null;
+                }
               }
             }}
             pointerEvents="auto"
