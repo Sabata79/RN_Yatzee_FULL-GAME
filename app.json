@@ -2,7 +2,7 @@
   "expo": {
     "name": "Yatzy",
     "slug": "SimpleYatzee",
-    "version": "3.0.3",
+    "version": "3.0.4",
     "orientation": "portrait",
     "splash": {
       "image": "./assets/splash.png",
@@ -12,7 +12,7 @@
     "icon": "./assets/icon-foreground.png",
     "android": {
       "package": "com.SimpleYatzee",
-      "versionCode": 64,
+      "versionCode": 65,
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon-foreground.png",
