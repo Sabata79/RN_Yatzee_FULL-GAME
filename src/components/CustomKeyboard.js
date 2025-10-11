@@ -25,6 +25,7 @@ import {
     Pressable,
     StyleSheet,
     StyleSheet as RNStyleSheet,
+    Dimensions,
 } from "react-native";
 
 const isLetter = (ch) => /^[A-Za-zÅÄÖåäöØøŒœ]$/.test(ch);
@@ -251,6 +252,10 @@ export default function CustomKeyboard({
     );
 }
 
+// Responsive font sizing for keys: reduce CAPS label slightly on narrow screens
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const KEY_FONT_SIZE = SCREEN_WIDTH < 360 ? 16 : SCREEN_WIDTH < 400 ? 17 : 18;
+
 const styles = StyleSheet.create({
     sheet: {
         position: "absolute",
@@ -296,12 +301,12 @@ const styles = StyleSheet.create({
     },
     keyTextDark: {
         color: "#f2f4f5",
-        fontSize: 18,
+        fontSize: KEY_FONT_SIZE,
         fontWeight: "600",
     },
     keyTextLight: {
         color: "#1c2024",
-        fontSize: 18,
+        fontSize: KEY_FONT_SIZE,
         fontWeight: "600",
     },
 });
