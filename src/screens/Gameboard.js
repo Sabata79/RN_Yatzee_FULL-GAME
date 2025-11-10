@@ -47,6 +47,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBreakpoints, makeSizes, computeTileSize } from '../utils/breakpoints';
 import { PixelRatio } from 'react-native';
 import { useWindowDimensions } from 'react-native';
+import { trackPointOperation, clearPointOperationHistory } from '../utils/errorTracking';
 
 const { height } = Dimensions.get('window');
 const isSmallScreen = height < 720;
@@ -69,6 +70,7 @@ const RenderDices = React.memo(function RenderDices({
   onRollPress,
   canSetPoints,
   onSetPointsPress,
+  isSettingPoints,
   diceRowMinH,
   tileSize = 56,
   columns = 5,
@@ -105,6 +107,7 @@ const RenderDices = React.memo(function RenderDices({
         nbrOfThrowsLeft={nbrOfThrowsLeft}
         onRollPress={onRollPress}
         canSetPoints={canSetPoints}
+        isSettingPoints={isSettingPoints}
         onSetPointsPress={onSetPointsPress}
       />
     </View>
@@ -167,6 +170,14 @@ export default function Gameboard({ route, navigation }) {
 
   const [scoreOpen, setScoreOpen] = useState(false);
   const [isLayerVisible, setLayerVisible] = useState(true);
+  const [layerDismissed, setLayerDismissed] = useState(false);
+
+  // DEBUG: Track totalPoints changes to detect duplications
+  useEffect(() => {
+    if (gameStarted && totalPoints > 0) {
+      console.log(`[Gameboard DEBUG] totalPoints changed: ${totalPoints} | minorPoints: ${minorPoints} | hasBonus: ${hasAppliedBonus}`);
+    }
+  }, [totalPoints, gameStarted, minorPoints, hasAppliedBonus]);
 
   // Game state
   const [nbrOfThrowsLeft, setNbrOfThrowsLeft] = useState(NBR_OF_THROWS);
@@ -265,10 +276,11 @@ export default function Gameboard({ route, navigation }) {
   // When rounds reach 0, end the game and open the score modal
   useEffect(() => {
     if (rounds === 0 && !gameEnded) {
+      console.log(`[Gameboard DEBUG] Game ending - Opening ScoreModal with totalPoints: ${totalPoints}, minorPoints: ${minorPoints}, hasBonus: ${hasAppliedBonus}`);
       endGame();
       setScoreOpen(true);
     }
-  }, [rounds, gameEnded, endGame]);
+  }, [rounds, gameEnded, endGame, totalPoints, minorPoints, hasAppliedBonus]);
 
   // Scoring categories
   const [scoringCategories, setScoringCategories] = useState(
@@ -297,6 +309,7 @@ export default function Gameboard({ route, navigation }) {
 
   const [minorPoints, setMinorPoints] = useState(0);
   const [hasAppliedBonus, setHasAppliedBonus] = useState(false);
+  const [isSettingPoints, setIsSettingPoints] = useState(false);
 
   useEffect(() => {
     // If this component was unmounted very recently, the remount may be
@@ -323,6 +336,7 @@ export default function Gameboard({ route, navigation }) {
   }, [route?.params?.playerId, setPlayerId]);
 
   const resetGame = useCallback(() => {
+    console.log('[Gameboard DEBUG] resetGame called - resetting all points to 0');
     setIsGameSaved(true); // Notify RenderFirstRow to reset stopwatch
     setScoringCategories((prev) =>
       prev.map((category) => ({
@@ -338,8 +352,11 @@ export default function Gameboard({ route, navigation }) {
     setTotalPoints(0);
     setMinorPoints(0);
     setHasAppliedBonus(false);
+    setIsSettingPoints(false); // Reset the lock flag
+    setLayerDismissed(false); // Reset layer dismissal flag
     setBoard(Array(NBR_OF_DICES).fill(1));
     setRolledDices(new Array(NBR_OF_DICES).fill(0));
+    clearPointOperationHistory(); // Clear tracking history
   }, [resetDiceSelection, setTotalPoints, setIsGameSaved]);
 
   // Grid data (stable)
@@ -347,41 +364,105 @@ export default function Gameboard({ route, navigation }) {
 
   const handleSetPoints = useCallback(() => {
     if (selectedField === null) return;
+    if (isSettingPoints) {
+      console.warn('[Gameboard DEBUG] handleSetPoints BLOCKED - already setting points (prevented duplication!)');
+      return; // Guard: prevent duplicate calls
+    }
 
     const minorNames = ['ones', 'twos', 'threes', 'fours', 'fives', 'sixes'];
     const selectedCategory = scoringCategories.find((category) => category.index === selectedField);
     if (!selectedCategory || selectedCategory.locked) return;
 
-    if (selectedCategory.name === 'yatzy') {
-      const yatzyScore = calculateYatzy(rolledDices);
-      if (yatzyScore === 50) {
-        const newPoints = selectedCategory.points === 0 ? 50 : selectedCategory.points + 50;
-        setScoringCategories((prev) =>
-          prev.map((c) => (c.index === selectedField ? { ...c, points: newPoints, locked: true, yatzyAchieved: true } : c))
-        );
-        setTotalPoints((tp) => tp + 50);
+    setIsSettingPoints(true); // Lock to prevent re-entry
+    console.log(`[Gameboard DEBUG] Setting points for ${selectedCategory.name}, current totalPoints: ${totalPoints}`);
+    
+    // Capture totalPoints BEFORE update for tracking
+    const totalBefore = totalPoints;
+
+    // Batch all state updates to ensure they happen in a single render
+    unstable_batchedUpdates(() => {
+      if (selectedCategory.name === 'yatzy') {
+        const yatzyScore = calculateYatzy(rolledDices);
+        if (yatzyScore === 50) {
+          const newPoints = selectedCategory.points === 0 ? 50 : selectedCategory.points + 50;
+          console.log(`[Gameboard DEBUG] Yatzy! Adding 50 points`);
+          setScoringCategories((prev) =>
+            prev.map((c) => (c.index === selectedField ? { ...c, points: newPoints, locked: true, yatzyAchieved: true } : c))
+          );
+          setTotalPoints((tp) => {
+            const newTotal = tp + 50;
+            // Track this operation for duplication detection
+            trackPointOperation({
+              categoryName: 'yatzy',
+              points: 50,
+              totalBefore: tp,
+              totalAfter: newTotal,
+              playerId,
+            });
+            return newTotal;
+          });
+        } else {
+          setScoringCategories((prev) => prev.map((c) => (c.index === selectedField ? { ...c, locked: true } : c)));
+        }
       } else {
-        setScoringCategories((prev) => prev.map((c) => (c.index === selectedField ? { ...c, locked: true } : c)));
+        const points = selectedCategory.calculateScore(rolledDices);
+        const isMinor = minorNames.includes(selectedCategory.name);
+        console.log(`[Gameboard DEBUG] ${selectedCategory.name}: ${points} pts (isMinor: ${isMinor})`);
+        setScoringCategories((prev) => prev.map((c) => (c.index === selectedField ? { ...c, points, locked: true } : c)));
+        if (isMinor) {
+          // Compute new minor total using current values from closure (safe during event handler)
+          const newMinorPoints = (minorPoints || 0) + points;
+          const willApplyBonus = !hasAppliedBonus && newMinorPoints >= BONUS_POINTS_LIMIT;
+          console.log(`[Gameboard DEBUG] Minor section: newTotal=${newMinorPoints}, willApplyBonus=${willApplyBonus}`);
+          // Update state sequentially (avoid nested setState calls during render)
+          setMinorPoints(newMinorPoints);
+          if (willApplyBonus) setHasAppliedBonus(true);
+          // Use functional update for totalPoints to avoid races
+          setTotalPoints((prevTotal) => {
+            const newTotal = prevTotal + points + (willApplyBonus ? BONUS_POINTS : 0);
+            console.log(`[Gameboard DEBUG] totalPoints: ${prevTotal} + ${points} + ${willApplyBonus ? BONUS_POINTS : 0} = ${newTotal}`);
+            // Track this operation for duplication detection
+            trackPointOperation({
+              categoryName: selectedCategory.name,
+              points: points + (willApplyBonus ? BONUS_POINTS : 0),
+              totalBefore: prevTotal,
+              totalAfter: newTotal,
+              playerId,
+            });
+            return newTotal;
+          });
+        } else {
+          setTotalPoints((tp) => {
+            const newTotal = tp + points;
+            console.log(`[Gameboard DEBUG] totalPoints: ${tp} + ${points} = ${newTotal}`);
+            // Track this operation for duplication detection
+            trackPointOperation({
+              categoryName: selectedCategory.name,
+              points,
+              totalBefore: tp,
+              totalAfter: newTotal,
+              playerId,
+            });
+            return newTotal;
+          });
+        }
       }
-    } else {
-      const points = selectedCategory.calculateScore(rolledDices);
-      const isMinor = minorNames.includes(selectedCategory.name);
-      setScoringCategories((prev) => prev.map((c) => (c.index === selectedField ? { ...c, points, locked: true } : c)));
-      if (isMinor) {
-        // Compute new minor total using current values from closure (safe during event handler)
-        const newMinorPoints = (minorPoints || 0) + points;
-        const willApplyBonus = !hasAppliedBonus && newMinorPoints >= BONUS_POINTS_LIMIT;
-        // Update state sequentially (avoid nested setState calls during render)
-        setMinorPoints(newMinorPoints);
-        if (willApplyBonus) setHasAppliedBonus(true);
-        // Use functional update for totalPoints to avoid races
-        setTotalPoints((prevTotal) => prevTotal + points + (willApplyBonus ? BONUS_POINTS : 0));
-      } else {
-        setTotalPoints((tp) => tp + points);
-      }
+      setSelectedField(null);
+    });
+    
+    // Lock will be released by the useEffect below when selectedField becomes null
+  }, [selectedField, scoringCategories, rolledDices, hasAppliedBonus, minorPoints, isSettingPoints]);
+  // Note: totalPoints removed from deps - we use functional updates only
+
+  // Release the setting-points lock only when selectedField has been cleared
+  // This ensures all state updates have completed before allowing another set-points operation
+  useEffect(() => {
+    if (isSettingPoints && selectedField === null) {
+      // Field selection cleared -> safe to release lock
+      const timer = setTimeout(() => setIsSettingPoints(false), 50);
+      return () => clearTimeout(timer);
     }
-    setSelectedField(null);
-  }, [selectedField, scoringCategories, rolledDices, hasAppliedBonus, minorPoints, totalPoints, setTotalPoints]);
+  }, [isSettingPoints, selectedField]);
 
   // Yatzy "reopen" check
   const checkAndUnlockYatzy = useCallback(
@@ -561,6 +642,7 @@ export default function Gameboard({ route, navigation }) {
         totalPoints={totalPoints}
         onRollPress={onRollPress}
         canSetPoints={Boolean(selectedField)}
+        isSettingPoints={isSettingPoints}
         onSetPointsPress={onSetPointsPress}
         diceRowMinH={diceRowMinH}
         tileSize={tileSize}
@@ -574,6 +656,7 @@ export default function Gameboard({ route, navigation }) {
       totalPoints,
       onRollPress,
       selectedField,
+      isSettingPoints,
       onSetPointsPress,
     ]
   );
@@ -618,14 +701,16 @@ export default function Gameboard({ route, navigation }) {
 
   return (
     <ImageBackground source={require('../../assets/diceBackground.webp')} style={styles.background}>
-      {isLayerVisible && !gameStarted && (
+      {isLayerVisible && !gameStarted && !layerDismissed && (
         <>
           <Pressable
             onPress={() => {
               if ((tokens ?? 0) === 0) {
                 setEnergyModalVisible(true);
               } else {
-                setLayerVisible(false);
+                // Dismiss the overlay (allows "breathing pause")
+                // Game/timer will start on first dice throw
+                setLayerDismissed(true);
                 if (layerTimeoutRef.current) {
                   clearTimeout(layerTimeoutRef.current);
                   layerTimeoutRef.current = null;
@@ -677,6 +762,10 @@ export default function Gameboard({ route, navigation }) {
         slowThreshold={SLOW_THRESHOLD}
         fastBonus={FAST_BONUS}
         slowBonus={SLOW_BONUS}
+        scoringCategories={scoringCategories}
+        playerId={playerId}
+        totalPoints={totalPoints}
+        hasAppliedBonus={hasAppliedBonus}
         bottomInset={insets.bottom}
         bottomOffset={75}
         dark
