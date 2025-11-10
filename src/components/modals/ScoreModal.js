@@ -33,6 +33,7 @@ import COLORS from "../../constants/colors";
 import TYPOGRAPHY from "../../constants/typography";
 import SPACING from "../../constants/spacing";
 import { useGame } from "../../constants/GameContext";
+import { validateScoreConsistency } from "../../utils/errorTracking";
 
 function formatTime(secs = 0) {
   return `${Math.floor(secs)} s`;
@@ -47,6 +48,10 @@ export default function ScoreModal({
   elapsedSecs = 0,
   minorPoints = 0,
   sectionBonus = 0,
+  scoringCategories = [],
+  playerId = null,
+  totalPoints = 0,
+  hasAppliedBonus = false,
   bottomInset = 0,
   bottomOffset = 0,
   dark = true,
@@ -74,6 +79,30 @@ export default function ScoreModal({
   }, [elapsedSecs, errColor, warnColor, goodColor]);
 
   const total = useMemo(() => points + bonus + sectionBonus, [points, bonus, sectionBonus]);
+
+  // DEBUG: Log received values when modal opens
+  useEffect(() => {
+    if (visible) {
+      console.log(`[ScoreModal DEBUG] Modal opened with:
+  - points (basic): ${points}
+  - sectionBonus: ${sectionBonus}
+  - timeBonus: ${bonus}
+  - TOTAL: ${total}
+  - elapsedSecs: ${elapsedSecs}
+  - minorPoints: ${minorPoints}`);
+      
+      // Validate score consistency and log to Firebase if anomalies detected
+      if (scoringCategories.length > 0) {
+        validateScoreConsistency({
+          totalPoints,
+          minorPoints,
+          hasAppliedBonus,
+          scoringCategories,
+          playerId,
+        });
+      }
+    }
+  }, [visible, points, sectionBonus, bonus, total, elapsedSecs, minorPoints, totalPoints, hasAppliedBonus, scoringCategories, playerId]);
 
   // ANIMAATIO: summary rivit paljastuvat yksitellen SLIDE-efektillä
   const [revealIndex, setRevealIndex] = useState(0);
@@ -155,7 +184,8 @@ export default function ScoreModal({
   return (
     <Modal visible transparent animationType="fade" onRequestClose={handleCancel}>
       <View style={styles.backdrop}>
-        <Pressable style={RNStyleSheet.absoluteFill} onPress={handleCancel} />
+        {/* Backdrop is non-interactive - user must explicitly Save or Cancel */}
+        <View style={RNStyleSheet.absoluteFill} pointerEvents="none" />
 
         <View style={[styles.sheet, dark ? styles.sheetDark : styles.sheetLight]}>
           <Text style={styles.title}>Game Over</Text>
