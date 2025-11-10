@@ -9,6 +9,7 @@
  *  - beginGame: () => void
  *  - throwDices: () => void
  *  - canSetPoints: boolean
+ *  - isSettingPoints: boolean (optional) - disables Set Points button while setting
  *  - onRollPress?: () => void
  *  - onSetPointsPress: () => void
  *
@@ -28,6 +29,7 @@ function GameboardButtons({
   beginGame,
   throwDices,
   canSetPoints,
+  isSettingPoints = false,
   onRollPress,       // optional override
   onSetPointsPress,
 }) {
@@ -83,7 +85,7 @@ function GameboardButtons({
       <View style={styles.buttonWrapper}>
         <View style={styles.shadowLayer} />
         <Pressable
-          disabled={!canSetPoints}
+          disabled={!canSetPoints || isSettingPoints}
           style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
           onPress={onSetPointsPress}
         >
