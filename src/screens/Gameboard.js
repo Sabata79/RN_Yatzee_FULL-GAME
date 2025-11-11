@@ -127,6 +127,9 @@ export default function Gameboard({ route, navigation }) {
   const { savePlayerPoints } = useGameSave();
   const { elapsedTime } = useElapsedTime();
   const { playSfx, playSelect, playDeselect, playDiceTouch } = useAudio();
+  
+  // CRITICAL: Guard against duplicate save operations
+  const saveInProgressRef = useRef(false);
 
   const bp = useBreakpoints();
   const SZ = makeSizes(bp);
@@ -171,6 +174,9 @@ export default function Gameboard({ route, navigation }) {
   const [scoreOpen, setScoreOpen] = useState(false);
   const [isLayerVisible, setLayerVisible] = useState(true);
   const [layerDismissed, setLayerDismissed] = useState(false);
+  
+  // CRITICAL: Additional guard to prevent onSetPointsPress rapid double-clicks
+  const setPointsInProgressRef = useRef(false);
 
   // DEBUG: Track totalPoints changes to detect duplications
   useEffect(() => {
@@ -357,6 +363,10 @@ export default function Gameboard({ route, navigation }) {
     setBoard(Array(NBR_OF_DICES).fill(1));
     setRolledDices(new Array(NBR_OF_DICES).fill(0));
     clearPointOperationHistory(); // Clear tracking history
+    
+    // CRITICAL: Reset all operation guards to allow fresh game
+    setPointsInProgressRef.current = false;
+    saveInProgressRef.current = false;
   }, [resetDiceSelection, setTotalPoints, setIsGameSaved]);
 
   // Grid data (stable)
@@ -371,7 +381,7 @@ export default function Gameboard({ route, navigation }) {
 
     const minorNames = ['ones', 'twos', 'threes', 'fours', 'fives', 'sixes'];
     const selectedCategory = scoringCategories.find((category) => category.index === selectedField);
-    if (!selectedCategory || selectedCategory.locked) return;
+    if (!selectedCategory) return;
 
     setIsSettingPoints(true); // Lock to prevent re-entry
     console.log(`[Gameboard DEBUG] Setting points for ${selectedCategory.name}, current totalPoints: ${totalPoints}`);
@@ -384,67 +394,98 @@ export default function Gameboard({ route, navigation }) {
       if (selectedCategory.name === 'yatzy') {
         const yatzyScore = calculateYatzy(rolledDices);
         if (yatzyScore === 50) {
-          const newPoints = selectedCategory.points === 0 ? 50 : selectedCategory.points + 50;
-          console.log(`[Gameboard DEBUG] Yatzy! Adding 50 points`);
-          setScoringCategories((prev) =>
-            prev.map((c) => (c.index === selectedField ? { ...c, points: newPoints, locked: true, yatzyAchieved: true } : c))
-          );
-          setTotalPoints((tp) => {
-            const newTotal = tp + 50;
-            // Track this operation for duplication detection
-            trackPointOperation({
-              categoryName: 'yatzy',
-              points: 50,
-              totalBefore: tp,
-              totalAfter: newTotal,
-              playerId,
-            });
-            return newTotal;
+          let wasAlreadyLocked = false;
+          setScoringCategories((prev) => {
+            const current = prev.find((c) => c.index === selectedField);
+            if (current?.locked) {
+              wasAlreadyLocked = true;
+              console.warn(`[Gameboard DEBUG] YATZY already locked - aborting points update`);
+              return prev; // Abort if locked
+            }
+            const newPoints = current.points === 0 ? 50 : current.points + 50;
+            console.log(`[Gameboard DEBUG] Yatzy! Adding 50 points`);
+            return prev.map((c) => (c.index === selectedField ? { ...c, points: newPoints, locked: true, yatzyAchieved: true } : c));
           });
+          if (!wasAlreadyLocked) {
+            setTotalPoints((tp) => {
+              const newTotal = tp + 50;
+              // Track this operation for duplication detection
+              trackPointOperation({
+                categoryName: 'yatzy',
+                points: 50,
+                totalBefore: tp,
+                totalAfter: newTotal,
+                playerId,
+              });
+              return newTotal;
+            });
+          }
         } else {
-          setScoringCategories((prev) => prev.map((c) => (c.index === selectedField ? { ...c, locked: true } : c)));
+          setScoringCategories((prev) => {
+            const current = prev.find((c) => c.index === selectedField);
+            if (current?.locked) {
+              console.warn(`[Gameboard DEBUG] YATZY (zero) already locked - aborting`);
+              return prev;
+            }
+            return prev.map((c) => (c.index === selectedField ? { ...c, locked: true } : c));
+          });
         }
       } else {
         const points = selectedCategory.calculateScore(rolledDices);
         const isMinor = minorNames.includes(selectedCategory.name);
         console.log(`[Gameboard DEBUG] ${selectedCategory.name}: ${points} pts (isMinor: ${isMinor})`);
-        setScoringCategories((prev) => prev.map((c) => (c.index === selectedField ? { ...c, points, locked: true } : c)));
-        if (isMinor) {
-          // Compute new minor total using current values from closure (safe during event handler)
-          const newMinorPoints = (minorPoints || 0) + points;
-          const willApplyBonus = !hasAppliedBonus && newMinorPoints >= BONUS_POINTS_LIMIT;
-          console.log(`[Gameboard DEBUG] Minor section: newTotal=${newMinorPoints}, willApplyBonus=${willApplyBonus}`);
-          // Update state sequentially (avoid nested setState calls during render)
-          setMinorPoints(newMinorPoints);
-          if (willApplyBonus) setHasAppliedBonus(true);
-          // Use functional update for totalPoints to avoid races
-          setTotalPoints((prevTotal) => {
-            const newTotal = prevTotal + points + (willApplyBonus ? BONUS_POINTS : 0);
-            console.log(`[Gameboard DEBUG] totalPoints: ${prevTotal} + ${points} + ${willApplyBonus ? BONUS_POINTS : 0} = ${newTotal}`);
-            // Track this operation for duplication detection
-            trackPointOperation({
-              categoryName: selectedCategory.name,
-              points: points + (willApplyBonus ? BONUS_POINTS : 0),
-              totalBefore: prevTotal,
-              totalAfter: newTotal,
-              playerId,
+        
+        // CRITICAL: Check locked status before updating
+        let wasAlreadyLocked = false;
+        setScoringCategories((prev) => {
+          const current = prev.find((c) => c.index === selectedField);
+          if (current?.locked) {
+            wasAlreadyLocked = true;
+            console.warn(`[Gameboard DEBUG] ${selectedCategory.name} already locked - aborting points update`);
+            return prev;
+          }
+          return prev.map((c) => (c.index === selectedField ? { ...c, points, locked: true } : c));
+        });
+        
+        // Only update points if category was not already locked
+        if (!wasAlreadyLocked) {
+          if (isMinor) {
+            // Compute new minor total using current values from closure (safe during event handler)
+            const newMinorPoints = (minorPoints || 0) + points;
+            const willApplyBonus = !hasAppliedBonus && newMinorPoints >= BONUS_POINTS_LIMIT;
+            console.log(`[Gameboard DEBUG] Minor section: newTotal=${newMinorPoints}, willApplyBonus=${willApplyBonus}`);
+            // Update state sequentially (avoid nested setState calls during render)
+            setMinorPoints(newMinorPoints);
+            if (willApplyBonus) setHasAppliedBonus(true);
+            // Use functional update for totalPoints to avoid races
+            setTotalPoints((prevTotal) => {
+              const newTotal = prevTotal + points + (willApplyBonus ? BONUS_POINTS : 0);
+              console.log(`[Gameboard DEBUG] totalPoints: ${prevTotal} + ${points} + ${willApplyBonus ? BONUS_POINTS : 0} = ${newTotal}`);
+              // Track this operation for duplication detection
+              trackPointOperation({
+                categoryName: selectedCategory.name,
+                points: points + (willApplyBonus ? BONUS_POINTS : 0),
+                totalBefore: prevTotal,
+                totalAfter: newTotal,
+                playerId,
+              });
+              return newTotal;
             });
-            return newTotal;
-          });
-        } else {
-          setTotalPoints((tp) => {
-            const newTotal = tp + points;
-            console.log(`[Gameboard DEBUG] totalPoints: ${tp} + ${points} = ${newTotal}`);
-            // Track this operation for duplication detection
-            trackPointOperation({
-              categoryName: selectedCategory.name,
-              points,
-              totalBefore: tp,
-              totalAfter: newTotal,
-              playerId,
+          } else {
+            setTotalPoints((tp) => {
+              const newTotal = tp + points;
+              console.log(`[Gameboard DEBUG] totalPoints: ${tp} + ${points} = ${newTotal}`);
+              // Track this operation for duplication detection
+              trackPointOperation({
+                categoryName: selectedCategory.name,
+                points,
+                totalBefore: tp,
+                totalAfter: newTotal,
+                playerId,
+              });
+              return newTotal;
             });
-            return newTotal;
-          });
+          }
         }
       }
       setSelectedField(null);
@@ -554,18 +595,33 @@ export default function Gameboard({ route, navigation }) {
 
   // Set Points button logic (rounds, throws, selections)
   const onSetPointsPress = useCallback(() => {
+    // CRITICAL GUARD: Prevent rapid double-clicks causing duplicate point application
+    if (setPointsInProgressRef.current) {
+      console.warn('[Gameboard DEBUG] onSetPointsPress BLOCKED - already in progress (prevented duplicate!)');
+      return;
+    }
+    
     const sel = selectedField;
     if (sel == null) return;
 
-    handleSetPoints();
-    setNbrOfThrowsLeft(NBR_OF_THROWS);
-    resetDiceSelection();
+    setPointsInProgressRef.current = true; // Lock before async operations
+    
+    try {
+      handleSetPoints();
+      setNbrOfThrowsLeft(NBR_OF_THROWS);
+      resetDiceSelection();
 
-    const selectedCategory = scoringCategories.find((c) => c.index === sel);
-    const shouldDecrease =
-      !selectedCategory || selectedCategory.name !== 'yatzy' || selectedCategory.points === 0;
+      const selectedCategory = scoringCategories.find((c) => c.index === sel);
+      const shouldDecrease =
+        !selectedCategory || selectedCategory.name !== 'yatzy' || selectedCategory.points === 0;
 
-    if (shouldDecrease) setRounds((prev) => Math.max(prev - 1, 0));
+      if (shouldDecrease) setRounds((prev) => Math.max(prev - 1, 0));
+    } finally {
+      // Release lock after a short delay to ensure state updates complete
+      setTimeout(() => {
+        setPointsInProgressRef.current = false;
+      }, 100);
+    }
   }, [selectedField, handleSetPoints, scoringCategories, resetDiceSelection]);
 
   const canSelectNow = nbrOfThrowsLeft < NBR_OF_THROWS;
@@ -598,12 +654,25 @@ export default function Gameboard({ route, navigation }) {
   // ScoreModal -> save score and reset game if successful
   const handleSaveScoreFromModal = useCallback(
     async ({ total, elapsedSecs }) => {
-      const ok = await savePlayerPoints({ totalPoints: total, duration: elapsedSecs });
-      if (ok) {
-        resetGame();
-        navigation.navigate('Scoreboard', { tab: 'week', playerId });
+      // CRITICAL GUARD: Prevent duplicate saves if user double-clicks the save button
+      if (saveInProgressRef.current) {
+        console.warn('[Gameboard DEBUG] Save already in progress - preventing duplicate!');
+        return false;
       }
-      return ok;
+      
+      saveInProgressRef.current = true;
+      console.log(`[Gameboard DEBUG] Saving score: total=${total}, elapsed=${elapsedSecs}`);
+      
+      try {
+        const ok = await savePlayerPoints({ totalPoints: total, duration: elapsedSecs });
+        if (ok) {
+          resetGame();
+          navigation.navigate('Scoreboard', { tab: 'week', playerId });
+        }
+        return ok;
+      } finally {
+        saveInProgressRef.current = false;
+      }
     },
     [savePlayerPoints, resetGame, navigation, playerId]
   );

@@ -142,7 +142,11 @@ export default function ScoreModal({
   }, [visible, points, bonus, sectionBonus, elapsedSecs, slideAnims]);
 
   const handleSave = useCallback(async () => {
-    if (busy) return;
+    // CRITICAL: Prevent multiple simultaneous save operations
+    if (busy) {
+      console.warn('[ScoreModal DEBUG] Save already in progress - preventing duplicate!');
+      return;
+    }
 
     if (typeof onSave !== "function") {
       onClose?.();
@@ -150,6 +154,8 @@ export default function ScoreModal({
     }
 
     setBusy(true);
+    console.log(`[ScoreModal DEBUG] Saving: baseScore=${points}, bonus=${bonus}, total=${total}, elapsed=${elapsedSecs}`);
+    
     try {
       const result = await onSave({ baseScore: points, bonus, total, elapsedSecs });
 
