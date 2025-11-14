@@ -4,6 +4,7 @@
  * JSDoc comments and inline code comments must always be in English.
  * @author Sabata79
  * @since 2025-10-03
+ * @updated 2025-11-14
  */
 // Badge image paths and levels
 export const levelBadgePaths = [
@@ -13,3 +14,10 @@ export const levelBadgePaths = [
 {path: '../../assets/badges/elite.webp', display: require('../../assets/badges/elite.webp'), level: 'elite' },
 {path: '../../assets/badges/legendary.webp', display: require('../../assets/badges/legendary.webp'), level: 'legendary' },
 ];
+
+// Yearly achievement badges (champion, runner-up, third place)
+export const yearlyBadgePaths = {
+  champion2025: require('../../assets/badges/yearlyBadges/ChampionBadge2025.webp'),
+  runnerUp2025: require('../../assets/badges/yearlyBadges/RunnerUpBadge2025.webp'),
+  third2025: require('../../assets/badges/yearlyBadges/ThirdBadge2025.webp'),
+};

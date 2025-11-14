@@ -21,7 +21,7 @@ import { NBR_OF_SCOREBOARD_ROWS } from '../constants/Game';
 import { PlayercardBg } from '../constants/PlayercardBg';
 import CoinLayer from './CoinLayer';
 import { isBetterScore } from '../utils/scoreUtils';
-import { levelBadgePaths } from '../constants/BadgePaths';
+import { levelBadgePaths, yearlyBadgePaths } from '../constants/BadgePaths';
 
 
 export default function PlayerCard({ isModalVisible, setModalVisible }) {
@@ -1162,7 +1162,17 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
                   }}
                 >
                   <View style={playerCardStyles.playerCardTrophyCase}>
+                    {/* YEARLY BADGE - absolute left from modal edge */}
+                    <View style={{ position: 'absolute', left: 5, top: 0, zIndex: 10 }}>
+                      <Image 
+                        source={yearlyBadgePaths.champion2025} 
+                        style={{ width: 50, height: 50 }} 
+                        resizeMode="contain"
+                      />
+                    </View>
+                    
                     <View style={playerCardStyles.trophyYearSelector}>
+                      {/* CENTER: arrows + text */}
                       {selectedYear > 2025 ? (
                         <Pressable
                           onPress={() => {

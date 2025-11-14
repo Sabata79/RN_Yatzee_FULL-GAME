@@ -20,8 +20,8 @@ const CARD_MAX_WIDTH = Math.min(720, Math.floor(width * 0.9));
 // Minimum width to prevent the card from shrinking too small on narrow split views
 const CARD_MIN_WIDTH = 320;
 const avatarSize = isFoldScreen ? 75 : 80;
-// Trophy month card height — responsive to screen size (~12.5% of screen height)
-const TROPHY_CARD_HEIGHT = Math.max(85, Math.min(120, height * 0.125));
+// Trophy month card height — responsive to screen size (~11% of screen height, ~90px)
+const TROPHY_CARD_HEIGHT = Math.max(80, Math.min(105, height * 0.11));
 
 
 
@@ -317,18 +317,21 @@ const playerCardStyles = StyleSheet.create({
         width: '98%',
         alignItems: 'center',
         opacity: 0.85,
+        marginTop: 0,
+        marginBottom: 0,
     },
     playerCardTrophyCaseTitle: {
         fontFamily: TYPOGRAPHY.fontFamily.montserratBold,
         fontSize: TYPOGRAPHY.fontSize.sm,
-        marginBottom: 2,
+        marginBottom: 0,
     },
     trophyYearSelector: {
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: 8,
+        marginBottom: 2,
         gap: 15,
+        position: 'relative',
     },
     yearArrow: {
         padding: 8,
@@ -349,6 +352,7 @@ const playerCardStyles = StyleSheet.create({
         flexWrap: 'wrap',
         justifyContent: 'space-between',
         width: '100%',
+        marginTop: 2,
     },
     playerCardMonth: {
         width: '23%',
