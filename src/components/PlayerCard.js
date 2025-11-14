@@ -9,6 +9,7 @@
  */
 import { useState, useEffect, useRef } from 'react';
 import { View, Text, Modal, Pressable, Image, ActivityIndicator, Animated } from 'react-native';
+import { GestureHandlerRootView, PanGestureHandler, State } from 'react-native-gesture-handler';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useGame } from '../constants/GameContext';
 import playerCardStyles from '../styles/PlayerCardStyles';
@@ -43,6 +44,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
   const [viewingPlayerAvatar, setViewingPlayerAvatar] = useState('');
   const [avatarSelected, setAvatarSelected] = useState(null);
   const [monthlyRanks, setMonthlyRanks] = useState(Array(12).fill(null));
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [weeklyRank, setWeeklyRank] = useState('-');
   const [isAvatarModalVisible, setIsAvatarModalVisible] = useState(false);
   const [topScores, setTopScores] = useState([]);
@@ -122,6 +124,9 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
 
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
+  
+  // Trophy year navigation animation
+  const trophyYearSlide = useRef(new Animated.Value(0)).current;
 
   const monthNames = [
     'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
@@ -139,6 +144,8 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
         clearTimeout(acceptBeginnerTimerRef.current);
         acceptBeginnerTimerRef.current = null;
       }
+      // Reset trophy year to current year when modal closes
+      setSelectedYear(new Date().getFullYear());
       return;
     }
     if (!viewingPlayerId || viewingPlayerId === playerId) {
@@ -354,7 +361,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
       }
       const playersData = snapshot.val();
       const monthlyScores = Array.from({ length: 12 }, () => []);
-      const year = new Date().getFullYear();
+      const year = selectedYear; // Use selected year instead of current year
 
       Object.keys(playersData).forEach((pId) => {
         const p = playersData[pId] || {};
@@ -712,7 +719,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     return () => {
       subs.forEach(({ path, cb }) => dbOff(path, cb));
     };
-  }, [isModalVisible, idToUse, playerId, setAvatarUrl]);
+  }, [isModalVisible, idToUse, playerId, setAvatarUrl, selectedYear]);
 
 
 
@@ -1131,9 +1138,71 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
                 </View>
 
                 {/* TROPHIES */}
-                <View style={playerCardStyles.playerCardTrophyCase}>
-                  <Text style={[playerCardStyles.playerCardTrophyCaseTitle, isDarkBg && playerCardStyles.playerCardTextDark]}>TROPHIES {currentYear}</Text>
-                  <View style={playerCardStyles.playerCardMonthsContainer}>
+                <PanGestureHandler
+                  onHandlerStateChange={({ nativeEvent }) => {
+                    if (nativeEvent.state === State.END) {
+                      const { translationX } = nativeEvent;
+                      if (translationX > 50) {
+                        // Swipe right -> previous year
+                        setSelectedYear(prev => Math.max(2025, prev - 1));
+                        Animated.sequence([
+                          Animated.timing(trophyYearSlide, { toValue: 10, duration: 150, useNativeDriver: true }),
+                          Animated.timing(trophyYearSlide, { toValue: 0, duration: 200, useNativeDriver: true })
+                        ]).start();
+                      } else if (translationX < -50) {
+                        // Swipe left -> next year
+                        setSelectedYear(prev => Math.min(currentYear + 1, prev + 1));
+                        Animated.sequence([
+                          Animated.timing(trophyYearSlide, { toValue: -10, duration: 150, useNativeDriver: true }),
+                          Animated.timing(trophyYearSlide, { toValue: 0, duration: 200, useNativeDriver: true })
+                        ]).start();
+                      }
+                    }
+                  }}
+                >
+                  <View style={playerCardStyles.playerCardTrophyCase}>
+                    <View style={playerCardStyles.trophyYearSelector}>
+                      {selectedYear > 2025 ? (
+                        <Pressable
+                          onPress={() => {
+                            setSelectedYear(prev => prev - 1);
+                            Animated.sequence([
+                              Animated.timing(trophyYearSlide, { toValue: 10, duration: 150, useNativeDriver: true }),
+                              Animated.timing(trophyYearSlide, { toValue: 0, duration: 200, useNativeDriver: true })
+                            ]).start();
+                          }}
+                          style={playerCardStyles.yearArrow}
+                        >
+                          <Text style={playerCardStyles.yearArrowText}>◄</Text>
+                        </Pressable>
+                      ) : (
+                        <View style={playerCardStyles.yearArrow} />
+                      )}
+                      
+                      <Animated.View style={{ transform: [{ translateX: trophyYearSlide }] }}>
+                        <Text style={[playerCardStyles.playerCardTrophyCaseTitle, isDarkBg && playerCardStyles.playerCardTextDark]}>
+                          TROPHIES {selectedYear}
+                        </Text>
+                      </Animated.View>
+                      
+                      {selectedYear < currentYear + 1 ? (
+                        <Pressable
+                          onPress={() => {
+                            setSelectedYear(prev => prev + 1);
+                            Animated.sequence([
+                              Animated.timing(trophyYearSlide, { toValue: -10, duration: 150, useNativeDriver: true }),
+                              Animated.timing(trophyYearSlide, { toValue: 0, duration: 200, useNativeDriver: true })
+                            ]).start();
+                          }}
+                          style={playerCardStyles.yearArrow}
+                        >
+                          <Text style={playerCardStyles.yearArrowText}>►</Text>
+                        </Pressable>
+                      ) : (
+                        <View style={playerCardStyles.yearArrow} />
+                      )}
+                    </View>
+                    <View style={playerCardStyles.playerCardMonthsContainer}>
                     {Array(12).fill(null).map((_, index) => (
                       <View
                         key={index}
@@ -1149,6 +1218,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
                     ))}
                   </View>
                 </View>
+                </PanGestureHandler>
               </>
             ) : (
               // While waiting for reveal: keep modal container, ribbons visible, but

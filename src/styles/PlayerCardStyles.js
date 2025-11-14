@@ -321,6 +321,27 @@ const playerCardStyles = StyleSheet.create({
         fontSize: TYPOGRAPHY.fontSize.sm,
         marginBottom: 2,
     },
+    trophyYearSelector: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 8,
+        gap: 15,
+    },
+    yearArrow: {
+        padding: 8,
+        minWidth: 30,
+        alignItems: 'center',
+    },
+    yearArrowText: {
+        fontFamily: TYPOGRAPHY.fontFamily.montserratBold,
+        fontSize: TYPOGRAPHY.fontSize.lg,
+        color: COLORS.primary,
+    },
+    yearArrowDisabled: {
+        color: COLORS.textSecondary,
+        opacity: 0.3,
+    },
     playerCardMonthsContainer: {
         flexDirection: 'row',
         flexWrap: 'wrap',
