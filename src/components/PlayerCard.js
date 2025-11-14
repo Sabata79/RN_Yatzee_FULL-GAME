@@ -1138,6 +1138,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
                 </View>
 
                 {/* TROPHIES */}
+                <GestureHandlerRootView style={{ width: '100%' }}>
                 <PanGestureHandler
                   onHandlerStateChange={({ nativeEvent }) => {
                     if (nativeEvent.state === State.END) {
@@ -1219,6 +1220,7 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
                   </View>
                 </View>
                 </PanGestureHandler>
+                </GestureHandlerRootView>
               </>
             ) : (
               // While waiting for reveal: keep modal container, ribbons visible, but
