@@ -20,6 +20,8 @@ const CARD_MAX_WIDTH = Math.min(720, Math.floor(width * 0.9));
 // Minimum width to prevent the card from shrinking too small on narrow split views
 const CARD_MIN_WIDTH = 320;
 const avatarSize = isFoldScreen ? 75 : 80;
+// Trophy month card height — responsive to screen size (~12.5% of screen height)
+const TROPHY_CARD_HEIGHT = Math.max(85, Math.min(120, height * 0.125));
 
 
 
@@ -350,8 +352,7 @@ const playerCardStyles = StyleSheet.create({
     },
     playerCardMonth: {
         width: '23%',
-        aspectRatio: 0.8,
-        minHeight: 70,
+        height: TROPHY_CARD_HEIGHT,
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: 5,
