@@ -22,6 +22,7 @@ import { PlayercardBg } from '../constants/PlayercardBg';
 import CoinLayer from './CoinLayer';
 import { isBetterScore } from '../utils/scoreUtils';
 import { levelBadgePaths, yearlyBadgePaths } from '../constants/BadgePaths';
+import { getPlayerBadge } from '../services/YearlyBadgeCalculator';
 
 
 export default function PlayerCard({ isModalVisible, setModalVisible }) {
@@ -70,6 +71,8 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
   const [modalHeight, setModalHeight] = useState(0);
   const [modalWidth, setModalWidth] = useState(0);
   const [isBgLoading, setIsBgLoading] = useState(true);
+  // Yearly achievement badges
+  const [yearlyBadges, setYearlyBadges] = useState({});
   // Animated opacity for background fade-in
   const bgOpacity = useRef(new Animated.Value(0)).current;
 
@@ -721,6 +724,26 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
     };
   }, [isModalVisible, idToUse, playerId, setAvatarUrl, selectedYear]);
 
+  // Fetch yearly badges for the viewing player
+  useEffect(() => {
+    if (!isModalVisible || !idToUse) return;
+
+    const fetchBadges = async () => {
+      const badges = {};
+      // Fetch badges for known years (2025, potentially 2026+)
+      const currentYear = new Date().getFullYear();
+      for (let year = 2025; year <= currentYear; year++) {
+        const badge = await getPlayerBadge(idToUse, year);
+        if (badge) {
+          badges[year] = badge;
+        }
+      }
+      setYearlyBadges(badges);
+    };
+
+    fetchBadges();
+  }, [isModalVisible, idToUse]);
+
 
 
   // When reveal guard flips true, run all reveal animations together (bg, content, ribbons)
@@ -849,6 +872,17 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
       }
     };
   }, [isModalVisible, isOwnCard]);
+
+  // Helper: Get badge image based on year and rank
+  const getBadgeImage = (year, rank) => {
+    if (year === 2025) {
+      if (rank === 1) return yearlyBadgePaths.champion2025;
+      if (rank === 2) return yearlyBadgePaths.runnerUp2025;
+      if (rank === 3) return yearlyBadgePaths.third2025;
+    }
+    // Future years can be added here
+    return null;
+  };
 
   // Determine final background: prefer player's explicit choice (preferredCardBg)
   // if set and valid, otherwise fall back to level-based background.
@@ -1162,14 +1196,25 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
                   }}
                 >
                   <View style={playerCardStyles.playerCardTrophyCase}>
-                    {/* YEARLY BADGE - absolute left from modal edge */}
-                    <View style={{ position: 'absolute', left: 5, top: 0, zIndex: 10 }}>
-                      <Image 
-                        source={yearlyBadgePaths.champion2025} 
-                        style={{ width: 50, height: 50 }} 
-                        resizeMode="contain"
-                      />
-                    </View>
+                    {/* YEARLY BADGES - show all earned badges in chronological order */}
+                    {Object.keys(yearlyBadges).length > 0 && (
+                      <View style={{ position: 'absolute', left: 5, top: 0, zIndex: 10, flexDirection: 'row', gap: 5 }}>
+                        {Object.keys(yearlyBadges)
+                          .sort((a, b) => parseInt(a) - parseInt(b)) // Sort chronologically
+                          .map(year => {
+                            const rank = yearlyBadges[year];
+                            const badgeImage = getBadgeImage(parseInt(year), rank);
+                            return badgeImage ? (
+                              <Image 
+                                key={year}
+                                source={badgeImage} 
+                                style={{ width: 50, height: 50 }} 
+                                resizeMode="contain"
+                              />
+                            ) : null;
+                          })}
+                      </View>
+                    )}
                     
                     <View style={playerCardStyles.trophyYearSelector}>
                       {/* CENTER: arrows + text */}
