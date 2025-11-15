@@ -117,6 +117,13 @@ const RenderDices = React.memo(function RenderDices({
 export default function Gameboard({ route, navigation }) {
   const mountRef = useRef(null);
   const layerTimeoutRef = useRef(null);
+  
+  // DEBUG: Track mount/unmount
+  useEffect(() => {
+    console.log('[Gameboard DEBUG] Component MOUNTED');
+    return () => console.log('[Gameboard DEBUG] Component UNMOUNTED');
+  }, []);
+  
   useEffect(() => {
     mountRef.current = Date.now();
     return () => { lastGameboardUnmountAt = Date.now(); };
@@ -169,9 +176,14 @@ export default function Gameboard({ route, navigation }) {
     timeToNextToken,
     setIsGameSaved,
     markManualChange,
+    scoreModalOpen,
+    setScoreModalOpen,
+    scoreModalData,
+    setScoreModalData,
   } = useGame();
 
-  const [scoreOpen, setScoreOpen] = useState(false);
+  // Use scoreModalOpen from GameContext instead of local state
+  // This persists across Gameboard unmount/remount cycles
   const [isLayerVisible, setLayerVisible] = useState(true);
   const [layerDismissed, setLayerDismissed] = useState(false);
   
@@ -284,9 +296,14 @@ export default function Gameboard({ route, navigation }) {
     if (rounds === 0 && !gameEnded) {
       console.log(`[Gameboard DEBUG] Game ending - Opening ScoreModal with totalPoints: ${totalPoints}, minorPoints: ${minorPoints}, hasBonus: ${hasAppliedBonus}`);
       endGame();
-      setScoreOpen(true);
+      setScoreModalOpen(true);
     }
-  }, [rounds, gameEnded, endGame, totalPoints, minorPoints, hasAppliedBonus]);
+  }, [rounds, gameEnded, endGame, totalPoints, minorPoints, hasAppliedBonus, setScoreModalOpen]);
+
+  // DEBUG: Track scoreOpen state changes
+  useEffect(() => {
+    console.log('[Gameboard DEBUG] scoreModalOpen changed:', scoreModalOpen);
+  }, [scoreModalOpen]);
 
   // Scoring categories
   const [scoringCategories, setScoringCategories] = useState(
@@ -343,6 +360,7 @@ export default function Gameboard({ route, navigation }) {
 
   const resetGame = useCallback(() => {
     console.log('[Gameboard DEBUG] resetGame called - resetting all points to 0');
+    console.log('[Gameboard DEBUG] resetGame stack:', new Error().stack);
     setIsGameSaved(true); // Notify RenderFirstRow to reset stopwatch
     setScoringCategories((prev) =>
       prev.map((category) => ({
@@ -681,7 +699,7 @@ export default function Gameboard({ route, navigation }) {
   // (the modal's Cancel refers to saving the score, not to whether the game happened).
   const handleCancelAndRegisterPlayed = useCallback(async () => {
     // close modal immediately
-    setScoreOpen(false);
+    setScoreModalOpen(false);
     try {
       const uid = playerId;
       if (uid) {
@@ -700,7 +718,7 @@ export default function Gameboard({ route, navigation }) {
     // Reset local UI/game state regardless of transaction result
     resetGame();
     navigation.navigate('Scoreboard', { tab: 'week', playerId });
-  }, [playerId, totalPoints, elapsedTime, resetGame, navigation]);
+  }, [playerId, totalPoints, elapsedTime, resetGame, navigation, setScoreModalOpen]);
 
   const renderFooter = useCallback(
     () => (
@@ -819,8 +837,7 @@ export default function Gameboard({ route, navigation }) {
       </View>
 
       <ScoreModal
-        visible={scoreOpen}
-        onClose={() => setScoreOpen(false)}
+        visible={scoreModalOpen}
         onCancel={handleCancelAndRegisterPlayed}
         onSave={handleSaveScoreFromModal}
         points={totalPoints - (hasAppliedBonus ? BONUS_POINTS : 0)}

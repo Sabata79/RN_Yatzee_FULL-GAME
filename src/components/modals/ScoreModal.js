@@ -28,11 +28,19 @@ import {
   StyleSheet as RNStyleSheet,
   Animated,
   Easing,
+  Alert,
+  AppState,
+  Share,
+  Platform,
 } from "react-native";
+import ViewShot from "react-native-view-shot";
+import * as Sharing from "expo-sharing";
+import { FontAwesome5 } from "@expo/vector-icons";
 import COLORS from "../../constants/colors";
 import TYPOGRAPHY from "../../constants/typography";
 import SPACING from "../../constants/spacing";
 import { useGame } from "../../constants/GameContext";
+import ShareableScoreImage from "../ShareableScoreImage";
 import { validateScoreConsistency } from "../../utils/errorTracking";
 
 function formatTime(secs = 0) {
@@ -80,6 +88,9 @@ export default function ScoreModal({
 
   const total = useMemo(() => points + bonus + sectionBonus, [points, bonus, sectionBonus]);
 
+  // Track if validation has been done to avoid re-running on re-renders
+  const validatedRef = useRef(false);
+
   // DEBUG: Log received values when modal opens
   useEffect(() => {
     if (visible) {
@@ -91,8 +102,9 @@ export default function ScoreModal({
   - elapsedSecs: ${elapsedSecs}
   - minorPoints: ${minorPoints}`);
       
-      // Validate score consistency and log to Firebase if anomalies detected
-      if (scoringCategories.length > 0) {
+      // Validate score consistency ONCE when modal first opens
+      if (scoringCategories.length > 0 && !validatedRef.current) {
+        validatedRef.current = true;
         validateScoreConsistency({
           totalPoints,
           minorPoints,
@@ -101,6 +113,9 @@ export default function ScoreModal({
           playerId,
         });
       }
+    } else {
+      // Reset validation flag when modal closes
+      validatedRef.current = false;
     }
   }, [visible, points, sectionBonus, bonus, total, elapsedSecs, minorPoints, totalPoints, hasAppliedBonus, scoringCategories, playerId]);
 
@@ -174,6 +189,12 @@ export default function ScoreModal({
 
   const handleCancel = useCallback(() => {
     if (busy) return;
+    // CRITICAL: Don't allow cancel during share operation
+    if (isSharingRef.current) {
+      console.log('[ScoreModal DEBUG] handleCancel blocked - share in progress');
+      return;
+    }
+    console.log('[ScoreModal DEBUG] handleCancel called');
     if (typeof onCancel === "function") {
       onCancel();
       return;
@@ -185,10 +206,89 @@ export default function ScoreModal({
     onClose?.();
   }, [busy, onCancel, onClose, setIsGameSaved]);
 
+  // Share functionality
+  const shareRef = useRef();
+  const { playerName: contextPlayerName } = useGame();
+  const isSharingRef = useRef(false);
+  const appStateRef = useRef(AppState.currentState);
+  
+  // Use playerName from GameContext, fallback to "Player"
+  const playerName = contextPlayerName || "Player";
+  
+  // Track AppState to prevent modal close when sharing (app goes to background)
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', nextAppState => {
+      // If app goes to background while sharing, keep blocking
+      if (appStateRef.current === 'active' && nextAppState.match(/inactive|background/)) {
+        if (isSharingRef.current) {
+          console.log('[ScoreModal DEBUG] App backgrounded during share - maintaining block');
+        }
+      } else if (appStateRef.current.match(/inactive|background/) && nextAppState === 'active') {
+        // App returned to foreground - clear block after delay
+        if (isSharingRef.current) {
+          console.log('[ScoreModal DEBUG] App foregrounded after share - clearing block in 1s');
+          setTimeout(() => {
+            isSharingRef.current = false;
+            console.log('[ScoreModal DEBUG] Share block cleared');
+          }, 1000);
+        }
+      }
+      appStateRef.current = nextAppState;
+    });
+    
+    return () => subscription.remove();
+  }, []);
+  
+  // DEBUG: Log player name when modal opens
+  useEffect(() => {
+    if (visible) {
+      console.log('[ScoreModal DEBUG] Share image player name:', playerName, '| contextPlayerName:', contextPlayerName);
+    }
+  }, [visible, playerName, contextPlayerName]);
+
+
+  const handleShare = useCallback(async () => {
+    if (busy) return;
+    try {
+      isSharingRef.current = true;
+      console.log('[ScoreModal DEBUG] Share started - blocking modal close');
+      const uri = await shareRef.current.capture();
+      
+      const shareMessage = `${playerName} scored ${total} points in SMR YATZY! Can you beat it?\n\nDownload: https://play.google.com/store/apps/details?id=com.SimpleYatzee`;
+      
+      // Use expo-sharing with custom dialog title containing the link
+      const canShare = await Sharing.isAvailableAsync();
+      if (canShare) {
+        await Sharing.shareAsync(uri, {
+          mimeType: "image/png",
+          dialogTitle: shareMessage,
+        });
+        // Don't clear isSharingRef here - AppState listener handles it
+      } else {
+        Alert.alert("Share unavailable", "Sharing is not available on this device.");
+        isSharingRef.current = false;
+      }
+    } catch (error) {
+      console.warn("[ScoreModal] Share error:", error?.message || String(error));
+      Alert.alert("Share failed", "Could not share score. Please try again.");
+      isSharingRef.current = false;
+    }
+  }, [busy, playerName, total]);
+
+  // Prevent modal close during sharing
+  const handleModalClose = useCallback(() => {
+    if (isSharingRef.current) {
+      console.log('[ScoreModal DEBUG] Blocking modal close - share in progress (ref=true)');
+      return;
+    }
+    console.log('[ScoreModal DEBUG] handleCancel called from onRequestClose');
+    handleCancel();
+  }, [handleCancel]);
+
   if (!visible) return null;
 
   return (
-    <Modal visible transparent animationType="fade" onRequestClose={handleCancel}>
+    <Modal visible transparent animationType="fade" onRequestClose={handleModalClose}>
       <View style={styles.backdrop}>
         {/* Backdrop is non-interactive - user must explicitly Save or Cancel */}
         <View style={RNStyleSheet.absoluteFill} pointerEvents="none" />
@@ -276,22 +376,47 @@ export default function ScoreModal({
 
           <View style={styles.actions}>
             <Pressable
-              onPress={handleCancel}
+              onPress={handleShare}
               disabled={busy}
-              style={[styles.btn, styles.btnGhost, busy && styles.btnDisabled]}
+              style={[styles.btnShare, busy && styles.btnDisabled]}
             >
-              <Text style={styles.btnGhostText}>Cancel</Text>
+              <FontAwesome5 name="share-alt" size={18} color={COLORS.success} />
+              <Text style={styles.btnShareText}>SHARE</Text>
             </Pressable>
 
-            <Pressable
-              onPress={handleSave}
-              disabled={busy}
-              style={[styles.btn, { backgroundColor: okColor }, busy && styles.btnDisabled]}
-            >
-              {busy ? <ActivityIndicator color={COLORS.info} style={{ transform: [{ scale: 1.15 }], marginHorizontal: 6 }} /> : <Text style={styles.btnPrimaryText}>Save score</Text>}
-            </Pressable>
+            <View style={styles.rightButtons}>
+              <Pressable
+                onPress={handleCancel}
+                disabled={busy}
+                style={[styles.btn, styles.btnGhost, busy && styles.btnDisabled]}
+              >
+                <Text style={styles.btnGhostText}>Cancel</Text>
+              </Pressable>
+
+              <Pressable
+                onPress={handleSave}
+                disabled={busy}
+                style={[styles.btn, { backgroundColor: okColor }, busy && styles.btnDisabled]}
+              >
+                {busy ? <ActivityIndicator color={COLORS.info} style={{ transform: [{ scale: 1.15 }], marginHorizontal: 6 }} /> : <Text style={styles.btnPrimaryText}>Save score</Text>}
+              </Pressable>
+            </View>
           </View>
         </View>
+      </View>
+
+      {/* Off-screen shareable image for ViewShot capture */}
+      <View style={{ position: "absolute", top: -9999, left: -9999, opacity: 0 }} pointerEvents="none">
+        <ViewShot ref={shareRef} options={{ format: "png", quality: 1.0 }}>
+          <ShareableScoreImage
+            playerName={playerName}
+            totalPoints={total}
+            duration={formatTime(elapsedSecs)}
+            basicPoints={points}
+            sectionBonus={sectionBonus}
+            timeBonus={bonus}
+          />
+        </ViewShot>
       </View>
 
       <View style={{ height: bottomOffset + Math.max(bottomInset, 8) }} />
@@ -370,16 +495,38 @@ const styles = StyleSheet.create({
 
   actions: {
     flexDirection: "row",
-    gap: SPACING.sm,
-    justifyContent: "flex-end",
+    gap: 6,
+    justifyContent: "space-between",
+    alignItems: "center",
     marginTop: 12,
+  },
+  rightButtons: {
+    flexDirection: "row",
+    gap: 6,
   },
   btn: {
     height: 40,
-    paddingHorizontal: SPACING.md,
+    paddingHorizontal: 10,
     borderRadius: 10,
     alignItems: "center",
     justifyContent: "center",
+  },
+  btnShare: {
+    height: 40,
+    paddingHorizontal: 10,
+    borderRadius: 10,
+    backgroundColor: "transparent",
+    borderWidth: 1.5,
+    borderColor: COLORS.success,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 4,
+  },
+  btnShareText: {
+    fontFamily: TYPOGRAPHY.fontFamily.montserratSemiBold,
+    fontSize: TYPOGRAPHY.fontSize.sm,
+    color: COLORS.success,
   },
   btnGhost: {
     backgroundColor: "transparent",

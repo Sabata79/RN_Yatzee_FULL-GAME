@@ -65,6 +65,9 @@ export const GameProvider = ({ children }) => {
   const [isGameSaved, setIsGameSaved] = useState(true);
   const [startGameCb, setStartGameCb] = useState(null);
   const [endGameCb, setEndGameCb] = useState(null);
+  // ScoreModal persistence (survives Gameboard unmount)
+  const [scoreModalOpen, setScoreModalOpen] = useState(false);
+  const [scoreModalData, setScoreModalData] = useState(null);
 
   const startGame = useCallback(() => {
     try {
@@ -814,6 +817,11 @@ export const GameProvider = ({ children }) => {
     // UI bits
     energyModalVisible,
     setEnergyModalVisible,
+    // ScoreModal persistence
+    scoreModalOpen,
+    setScoreModalOpen,
+    scoreModalData,
+    setScoreModalData,
     // timeToNextToken is provided via getTimeToNextToken()
     // scoreboard & viewing helpers
     scoreboardData,
@@ -851,6 +859,8 @@ export const GameProvider = ({ children }) => {
     startGameCb,
     endGameCb,
     energyModalVisible,
+    scoreModalOpen,
+    scoreModalData,
     // intentionally omitted: timeToNextToken
     scoreboardData,
     scoreboardMonthly,
@@ -889,6 +899,10 @@ export const GameProvider = ({ children }) => {
     setScoreboardIndices,
     setViewingPlayerId,
     setViewingPlayerName,
+    scoreModalOpen,
+    setScoreModalOpen,
+    scoreModalData,
+    setScoreModalData,
   ]);
 
   return <GameContext.Provider value={contextValue}>{children}</GameContext.Provider>;
