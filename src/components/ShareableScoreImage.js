@@ -8,6 +8,7 @@
 
 import React from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';
+import { FontAwesome5 } from '@expo/vector-icons';
 import COLORS from '../constants/colors';
 import TYPOGRAPHY from '../constants/typography';
 
@@ -77,8 +78,16 @@ export default function ShareableScoreImage({
 
       {/* Download section */}
       <View style={styles.downloadContainer}>
-        <Text style={styles.downloadText}>DOWNLOAD NOW</Text>
-        <Text style={styles.downloadLink}>play.google.com/store/apps/details?id=com.SimpleYatzee</Text>
+        <View style={styles.downloadHeader}>
+          <Text style={styles.downloadText}>DOWNLOAD NOW FROM PLAY</Text>
+          <FontAwesome5 name="google-play" size={18} color={COLORS.success} style={styles.playIcon} />
+        </View>
+        <Image 
+          source={require('../../assets/qr/qr.png')} 
+          style={styles.qrCode}
+          resizeMode="contain"
+        />
+        <Text style={styles.scanText}>Scan to Download</Text>
       </View>
     </View>
   );
@@ -191,16 +200,30 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 5,
   },
+  downloadHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 15,
+  },
   downloadText: {
     fontFamily: TYPOGRAPHY.fontFamily.montserratBold,
-    fontSize: 18,
+    fontSize: 16,
     color: COLORS.success,
-    marginBottom: 5,
   },
-  downloadLink: {
+  playIcon: {
+    marginTop: -2,
+  },
+  qrCode: {
+    width: 120,
+    height: 120,
+    marginBottom: 10,
+    borderRadius: 5,
+  },
+  scanText: {
     fontFamily: TYPOGRAPHY.fontFamily.montserratRegular,
-    fontSize: 12,
+    fontSize: 14,
     color: COLORS.textLight,
-    opacity: 0.8,
+    opacity: 0.9,
   },
 });
