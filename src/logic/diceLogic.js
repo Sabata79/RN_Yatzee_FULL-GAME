@@ -70,7 +70,10 @@ export function calculateFullHouse(rolledDices) {
         counts[dice] = (counts[dice] || 0) + 1;
     }
     const values = Object.values(counts);
-    return values.includes(3) && values.includes(2);
+    if (values.includes(3) && values.includes(2)) {
+        return 25;
+    }
+    return 0;
 }
 
 export function calculateSmallStraight(rolledDices) {

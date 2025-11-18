@@ -409,6 +409,8 @@ export default function Gameboard({ route, navigation }) {
     }
 
     const minorNames = ['ones', 'twos', 'threes', 'fours', 'fives', 'sixes'];
+    // Ref-pohjainen bonusflag race conditionin estoon
+    const bonusAppliedRef = useRef(false);
     const selectedCategory = scoringCategories.find((category) => category.index === selectedField);
     if (!selectedCategory) return;
 
@@ -485,16 +487,17 @@ export default function Gameboard({ route, navigation }) {
           if (isMinor) {
             // Compute new minor total using current values from closure (safe during event handler)
             const newMinorPoints = (minorPoints || 0) + points;
-            const willApplyBonus = !hasAppliedBonus && newMinorPoints >= BONUS_POINTS_LIMIT;
+            let willApplyBonus = false;
+            if (!bonusAppliedRef.current && newMinorPoints >= BONUS_POINTS_LIMIT) {
+              willApplyBonus = true;
+              bonusAppliedRef.current = true;
+              setHasAppliedBonus(true);
+            }
             console.log(`[Gameboard DEBUG] Minor section: newTotal=${newMinorPoints}, willApplyBonus=${willApplyBonus}`);
-            // Update state sequentially (avoid nested setState calls during render)
             setMinorPoints(newMinorPoints);
-            if (willApplyBonus) setHasAppliedBonus(true);
-            // Use functional update for totalPoints to avoid races
             setTotalPoints((prevTotal) => {
               const newTotal = prevTotal + points + (willApplyBonus ? BONUS_POINTS : 0);
               console.log(`[Gameboard DEBUG] totalPoints: ${prevTotal} + ${points} + ${willApplyBonus ? BONUS_POINTS : 0} = ${newTotal}`);
-              // Track this operation for duplication detection
               trackPointOperation({
                 categoryName: selectedCategory.name,
                 points: points + (willApplyBonus ? BONUS_POINTS : 0),
@@ -508,7 +511,6 @@ export default function Gameboard({ route, navigation }) {
             setTotalPoints((tp) => {
               const newTotal = tp + points;
               console.log(`[Gameboard DEBUG] totalPoints: ${tp} + ${points} = ${newTotal}`);
-              // Track this operation for duplication detection
               trackPointOperation({
                 categoryName: selectedCategory.name,
                 points,
