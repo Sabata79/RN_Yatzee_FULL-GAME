@@ -118,6 +118,10 @@ export default function Gameboard({ route, navigation }) {
   const mountRef = useRef(null);
   const layerTimeoutRef = useRef(null);
   
+  // CRITICAL: Ref-based lock to prevent duplicate point additions for same category
+  // Guards against useEffect re-execution race conditions
+  const lockingCategoriesRef = useRef(new Set());
+  
   // DEBUG: Track mount/unmount
   useEffect(() => {
     console.log('[Gameboard DEBUG] Component MOUNTED');
@@ -385,6 +389,7 @@ export default function Gameboard({ route, navigation }) {
     // CRITICAL: Reset all operation guards to allow fresh game
     setPointsInProgressRef.current = false;
     saveInProgressRef.current = false;
+    lockingCategoriesRef.current.clear(); // Clear category locks
   }, [resetDiceSelection, setTotalPoints, setIsGameSaved]);
 
   // Grid data (stable)
@@ -397,9 +402,19 @@ export default function Gameboard({ route, navigation }) {
       return; // Guard: prevent duplicate calls
     }
 
+    // CRITICAL: Check ref-based lock to prevent duplicate additions for same category
+    if (lockingCategoriesRef.current.has(selectedField)) {
+      console.warn(`[Gameboard DUPLICATE PREVENTED] Category ${selectedField} is already being locked - aborting`);
+      return;
+    }
+
     const minorNames = ['ones', 'twos', 'threes', 'fours', 'fives', 'sixes'];
     const selectedCategory = scoringCategories.find((category) => category.index === selectedField);
     if (!selectedCategory) return;
+
+    // Add to locking set BEFORE any state updates
+    lockingCategoriesRef.current.add(selectedField);
+    console.log(`[Gameboard DEBUG] Locking category ${selectedField} (${selectedCategory.name})`);
 
     setIsSettingPoints(true); // Lock to prevent re-entry
     console.log(`[Gameboard DEBUG] Setting points for ${selectedCategory.name}, current totalPoints: ${totalPoints}`);
@@ -509,7 +524,13 @@ export default function Gameboard({ route, navigation }) {
       setSelectedField(null);
     });
     
-    // Lock will be released by the useEffect below when selectedField becomes null
+    // Cleanup: Remove category from lock after state updates complete
+    // Use setTimeout to ensure cleanup happens after all setState batches
+    setTimeout(() => {
+      lockingCategoriesRef.current.delete(selectedField);
+      console.log(`[Gameboard DEBUG] Released lock for category ${selectedField}`);
+    }, 100);
+    
   }, [selectedField, scoringCategories, rolledDices, hasAppliedBonus, minorPoints, isSettingPoints]);
   // Note: totalPoints removed from deps - we use functional updates only
 
