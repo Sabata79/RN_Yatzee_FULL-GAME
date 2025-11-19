@@ -123,10 +123,10 @@ export default function Gameboard({ route, navigation }) {
   const lockingCategoriesRef = useRef(new Set());
   
   // DEBUG: Track mount/unmount
-  useEffect(() => {
-    console.log('[Gameboard DEBUG] Component MOUNTED');
-    return () => console.log('[Gameboard DEBUG] Component UNMOUNTED');
-  }, []);
+  // useEffect(() => {
+  //   console.log('[Gameboard DEBUG] Component MOUNTED');
+  //   return () => console.log('[Gameboard DEBUG] Component UNMOUNTED');
+  // }, []);
   
   useEffect(() => {
     mountRef.current = Date.now();
@@ -197,11 +197,11 @@ export default function Gameboard({ route, navigation }) {
   const bonusAppliedRef = useRef(false);
 
   // DEBUG: Track totalPoints changes to detect duplications
-  useEffect(() => {
-    if (gameStarted && totalPoints > 0) {
-      console.log(`[Gameboard DEBUG] totalPoints changed: ${totalPoints} | minorPoints: ${minorPoints} | hasBonus: ${hasAppliedBonus}`);
-    }
-  }, [totalPoints, gameStarted, minorPoints, hasAppliedBonus]);
+  // useEffect(() => {
+  //   if (gameStarted && totalPoints > 0) {
+  //     console.log(`[Gameboard DEBUG] totalPoints changed: ${totalPoints} | minorPoints: ${minorPoints} | hasBonus: ${hasAppliedBonus}`);
+  //   }
+  // }, [totalPoints, gameStarted, minorPoints, hasAppliedBonus]);
 
   // Game state
   const [nbrOfThrowsLeft, setNbrOfThrowsLeft] = useState(NBR_OF_THROWS);
@@ -300,7 +300,7 @@ export default function Gameboard({ route, navigation }) {
   // When rounds reach 0, end the game and open the score modal
   useEffect(() => {
     if (rounds === 0 && !gameEnded) {
-      console.log(`[Gameboard DEBUG] Game ending - Opening ScoreModal with totalPoints: ${totalPoints}, minorPoints: ${minorPoints}, hasBonus: ${hasAppliedBonus}`);
+      // console.log(`[Gameboard DEBUG] Game ending - Opening ScoreModal with totalPoints: ${totalPoints}, minorPoints: ${minorPoints}, hasBonus: ${hasAppliedBonus}`);
       endGame();
       setScoreModalOpen(true);
     }
@@ -308,7 +308,7 @@ export default function Gameboard({ route, navigation }) {
 
   // DEBUG: Track scoreOpen state changes
   useEffect(() => {
-    console.log('[Gameboard DEBUG] scoreModalOpen changed:', scoreModalOpen);
+    // console.log('[Gameboard DEBUG] scoreModalOpen changed:', scoreModalOpen);
   }, [scoreModalOpen]);
 
   // Scoring categories
@@ -365,8 +365,8 @@ export default function Gameboard({ route, navigation }) {
   }, [route?.params?.playerId, setPlayerId]);
 
   const resetGame = useCallback(() => {
-    console.log('[Gameboard DEBUG] resetGame called - resetting all points to 0');
-    console.log('[Gameboard DEBUG] resetGame stack:', new Error().stack);
+    // console.log('[Gameboard DEBUG] resetGame called - resetting all points to 0');
+    // console.log('[Gameboard DEBUG] resetGame stack:', new Error().stack);
     setIsGameSaved(true); // Notify RenderFirstRow to reset stopwatch
     setScoringCategories((prev) =>
       prev.map((category) => ({
@@ -400,7 +400,7 @@ export default function Gameboard({ route, navigation }) {
   const handleSetPoints = useCallback(() => {
     if (selectedField === null) return;
     if (isSettingPoints) {
-      console.warn('[Gameboard DEBUG] handleSetPoints BLOCKED - already setting points (prevented duplication!)');
+      // console.warn('[Gameboard DEBUG] handleSetPoints BLOCKED - already setting points (prevented duplication!)');
       return; // Guard: prevent duplicate calls
     }
 
@@ -417,10 +417,10 @@ export default function Gameboard({ route, navigation }) {
 
     // Add to locking set BEFORE any state updates
     lockingCategoriesRef.current.add(selectedField);
-    console.log(`[Gameboard DEBUG] Locking category ${selectedField} (${selectedCategory.name})`);
+    // console.log(`[Gameboard DEBUG] Locking category ${selectedField} (${selectedCategory.name})`);
 
     setIsSettingPoints(true); // Lock to prevent re-entry
-    console.log(`[Gameboard DEBUG] Setting points for ${selectedCategory.name}, current totalPoints: ${totalPoints}`);
+    // console.log(`[Gameboard DEBUG] Setting points for ${selectedCategory.name}, current totalPoints: ${totalPoints}`);
     
     // Capture totalPoints BEFORE update for tracking
     const totalBefore = totalPoints;
@@ -439,7 +439,7 @@ export default function Gameboard({ route, navigation }) {
               return prev; // Abort if locked
             }
             const newPoints = current.points === 0 ? 50 : current.points + 50;
-            console.log(`[Gameboard DEBUG] Yatzy! Adding 50 points`);
+            // console.log(`[Gameboard DEBUG] Yatzy! Adding 50 points`);
             return prev.map((c) => (c.index === selectedField ? { ...c, points: newPoints, locked: true, yatzyAchieved: true } : c));
           });
           if (!wasAlreadyLocked) {
@@ -469,7 +469,7 @@ export default function Gameboard({ route, navigation }) {
       } else {
         const points = selectedCategory.calculateScore(rolledDices);
         const isMinor = minorNames.includes(selectedCategory.name);
-        console.log(`[Gameboard DEBUG] ${selectedCategory.name}: ${points} pts (isMinor: ${isMinor})`);
+      //console.log(`[Gameboard DEBUG] ${selectedCategory.name}: ${points} pts (isMinor: ${isMinor})`);
         
         // CRITICAL: Check locked status before updating
         let wasAlreadyLocked = false;
@@ -498,7 +498,7 @@ export default function Gameboard({ route, navigation }) {
             setMinorPoints(newMinorPoints);
             setTotalPoints((prevTotal) => {
               const newTotal = prevTotal + points + (willApplyBonus ? BONUS_POINTS : 0);
-              console.log(`[Gameboard DEBUG] totalPoints: ${prevTotal} + ${points} + ${willApplyBonus ? BONUS_POINTS : 0} = ${newTotal}`);
+              // console.log(`[Gameboard DEBUG] totalPoints: ${prevTotal} + ${points} + ${willApplyBonus ? BONUS_POINTS : 0} = ${newTotal}`);
               trackPointOperation({
                 categoryName: selectedCategory.name,
                 points: points + (willApplyBonus ? BONUS_POINTS : 0),
@@ -511,7 +511,7 @@ export default function Gameboard({ route, navigation }) {
           } else {
             setTotalPoints((tp) => {
               const newTotal = tp + points;
-              console.log(`[Gameboard DEBUG] totalPoints: ${tp} + ${points} = ${newTotal}`);
+              // console.log(`[Gameboard DEBUG] totalPoints: ${tp} + ${points} = ${newTotal}`);
               trackPointOperation({
                 categoryName: selectedCategory.name,
                 points,
@@ -531,7 +531,7 @@ export default function Gameboard({ route, navigation }) {
     // Use setTimeout to ensure cleanup happens after all setState batches
     setTimeout(() => {
       lockingCategoriesRef.current.delete(selectedField);
-      console.log(`[Gameboard DEBUG] Released lock for category ${selectedField}`);
+      // console.log(`[Gameboard DEBUG] Released lock for category ${selectedField}`);
     }, 100);
     
   }, [selectedField, scoringCategories, rolledDices, hasAppliedBonus, minorPoints, isSettingPoints]);
