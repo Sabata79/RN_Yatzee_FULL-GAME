@@ -1222,10 +1222,6 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
                         <Pressable
                           onPress={() => {
                             setSelectedYear(prev => prev - 1);
-                            Animated.sequence([
-                              Animated.timing(trophyYearSlide, { toValue: 10, duration: 150, useNativeDriver: true }),
-                              Animated.timing(trophyYearSlide, { toValue: 0, duration: 200, useNativeDriver: true })
-                            ]).start();
                           }}
                           style={playerCardStyles.yearArrow}
                         >
@@ -1234,21 +1230,17 @@ export default function PlayerCard({ isModalVisible, setModalVisible }) {
                       ) : (
                         <View style={playerCardStyles.yearArrow} />
                       )}
-                      
-                      <Animated.View style={{ transform: [{ translateX: trophyYearSlide }] }}>
+
+                      <View>
                         <Text style={[playerCardStyles.playerCardTrophyCaseTitle, isDarkBg && playerCardStyles.playerCardTextDark]}>
                           TROPHIES {selectedYear}
                         </Text>
-                      </Animated.View>
-                      
+                      </View>
+
                       {selectedYear < currentYear + 1 ? (
                         <Pressable
                           onPress={() => {
                             setSelectedYear(prev => prev + 1);
-                            Animated.sequence([
-                              Animated.timing(trophyYearSlide, { toValue: -10, duration: 150, useNativeDriver: true }),
-                              Animated.timing(trophyYearSlide, { toValue: 0, duration: 200, useNativeDriver: true })
-                            ]).start();
                           }}
                           style={playerCardStyles.yearArrow}
                         >
