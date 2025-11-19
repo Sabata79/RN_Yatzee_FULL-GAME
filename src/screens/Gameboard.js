@@ -193,6 +193,8 @@ export default function Gameboard({ route, navigation }) {
   
   // CRITICAL: Additional guard to prevent onSetPointsPress rapid double-clicks
   const setPointsInProgressRef = useRef(false);
+  // CRITICAL: Bonus flag for race condition prevention (must be outside handler)
+  const bonusAppliedRef = useRef(false);
 
   // DEBUG: Track totalPoints changes to detect duplications
   useEffect(() => {
@@ -409,8 +411,7 @@ export default function Gameboard({ route, navigation }) {
     }
 
     const minorNames = ['ones', 'twos', 'threes', 'fours', 'fives', 'sixes'];
-    // Ref-pohjainen bonusflag race conditionin estoon
-    const bonusAppliedRef = useRef(false);
+    // bonusAppliedRef is now defined at component scope (see above)
     const selectedCategory = scoringCategories.find((category) => category.index === selectedField);
     if (!selectedCategory) return;
 
