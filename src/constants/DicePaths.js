@@ -13,5 +13,5 @@ export const dicefaces = [
     { path: '../../assets/dicesides/4-dice.webp', display: require('../../assets/dicesides/4-dice.webp') },
     { path: '../../assets/dicesides/5-dice.webp', display: require('../../assets/dicesides/5-dice.webp') },
     { path: '../../assets/dicesides/6-dice.webp', display: require('../../assets/dicesides/6-dice.webp') },
-
+    { path: '../../assets/dicesides/logoDice.webp', display: require('../../assets/dicesides/logoDice.webp') }, // For unrolled dice
 ];
