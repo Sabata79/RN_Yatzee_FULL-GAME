@@ -58,8 +58,6 @@ export default function LandingPage({ navigation, onRequireUpdate }) {
   const alertShownRef = useRef(false);
   const bootStartedRef = useRef(false);
 
-  
-
   // Smart progress state tracking
   const bootDoneRef = useRef(false);
   const remoteBlockRef = useRef(false);

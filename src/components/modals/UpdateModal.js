@@ -21,7 +21,12 @@ export default function UpdateModal({
   onLater = null,
   title = 'Update available',
   message = 'A new version of the app is available.',
-  releaseNotes = '',
+  releaseNotes = [
+    'Game continues after navigation',
+    'New startup dice',
+    'Score sharing added',
+    'Score bug fixed',
+  ],
   mandatory = false,
   updateLabel = 'Update now',
   laterLabel = 'Later',

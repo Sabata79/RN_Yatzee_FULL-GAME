@@ -73,7 +73,6 @@
     "react-native-uuid": "^2.0.3",
     "react-native-vector-icons": "^10.3.0",
     "react-native-view-shot": "^4.0.3",
-    "react-timer-hook": "^4.0.5",
     "uuid": "^13.0.0"
   },
   "devDependencies": {

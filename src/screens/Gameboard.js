@@ -9,7 +9,7 @@
  *
  * @module Gameboard
  * @author Sabata79
- * @since 2025-09-16 (cleaned 2025-09-18)
+ * @since 2025-09-16 (updated 2025-11-20)
  */
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRef } from 'react';
@@ -20,7 +20,6 @@ import { NBR_OF_THROWS, NBR_OF_DICES, MAX_SPOTS, BONUS_POINTS, BONUS_POINTS_LIMI
 import DiceAnimation from '../components/DiceAnimation';
 import { useAudio } from '../services/AudioManager';
 import { useGame } from '../constants/GameContext';
-import { useElapsedTime } from '../constants/ElapsedTimeContext';
 import RenderFirstRow from '../components/RenderFirstRow';
 // Header is intentionally not imported here; rendered once in AppShell to avoid remounts
 import GlowingText from '../components/AnimatedText';
@@ -28,18 +27,6 @@ import { useGameSave } from '../constants/GameSave';
 import { dbRunTransaction, dbUpdate } from '../services/Firebase';
 import { dicefaces } from '../constants/DicePaths';
 import GameboardButtons from '../components/GameboardButtons';
-import { scoringCategoriesConfig } from '../constants/scoringCategoriesConfig';
-import {
-  calculateDiceSum,
-  calculateTwoOfKind,
-  calculateThreeOfAKind,
-  calculateFourOfAKind,
-  calculateYatzy,
-  calculateFullHouse,
-  calculateSmallStraight,
-  calculateLargeStraight,
-  calculateChange,
-} from '../logic/diceLogic';
 import GridField from '../components/GridField';
 import ScoreModal from '../components/modals/ScoreModal';
 import EnergyModal from '../components/modals/EnergyModal';
@@ -48,11 +35,15 @@ import { useBreakpoints, makeSizes, computeTileSize } from '../utils/breakpoints
 import { PixelRatio } from 'react-native';
 import { useWindowDimensions } from 'react-native';
 import { trackPointOperation, clearPointOperationHistory } from '../utils/errorTracking';
+import { calculateYatzy } from '../logic/diceLogic';
+import { AppState } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
+import { useElapsedTime } from '../constants/ElapsedTimeContext';
+
 
 const { height } = Dimensions.get('window');
 const isSmallScreen = height < 720;
-// Track last unmount time to detect transient remounts (used to avoid
-// visual 'nykäisy' when navigator briefly remounts the screen).
+
 let lastGameboardUnmountAt = 0;
 
 // TIME BONUS
@@ -117,28 +108,20 @@ const RenderDices = React.memo(function RenderDices({
 export default function Gameboard({ route, navigation }) {
   const mountRef = useRef(null);
   const layerTimeoutRef = useRef(null);
-  
+
   // CRITICAL: Ref-based lock to prevent duplicate point additions for same category
   // Guards against useEffect re-execution race conditions
   const lockingCategoriesRef = useRef(new Set());
-  
-  // DEBUG: Track mount/unmount
-  // useEffect(() => {
-  //   console.log('[Gameboard DEBUG] Component MOUNTED');
-  //   return () => console.log('[Gameboard DEBUG] Component UNMOUNTED');
-  // }, []);
-  
+
   useEffect(() => {
     mountRef.current = Date.now();
     return () => { lastGameboardUnmountAt = Date.now(); };
   }, []);
-  // Dev-only: navigation focus listener to help trace unexpected side-effects
-  // dev focus listener removed
+
   const insets = useSafeAreaInsets();
   const { savePlayerPoints } = useGameSave();
-  const { elapsedTime } = useElapsedTime();
   const { playSfx, playSelect, playDeselect, playDiceTouch } = useAudio();
-  
+
   // CRITICAL: Guard against duplicate save operations
   const saveInProgressRef = useRef(false);
 
@@ -161,8 +144,8 @@ export default function Gameboard({ route, navigation }) {
   // debug overlay (visible in non-production) to help tuning on real devices
   const showDebug = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production';
 
-  const [selectedField, setSelectedField] = useState(null);
-  const [board, setBoard] = useState(Array(NBR_OF_DICES).fill(1));
+  // const [selectedField, setSelectedField] = useState(null);
+
 
   const {
     playerId,
@@ -184,39 +167,50 @@ export default function Gameboard({ route, navigation }) {
     setScoreModalOpen,
     scoreModalData,
     setScoreModalData,
+    board,
+    setBoard,
+    selectedDices,
+    setSelectedDices,
+    rolledDices,
+    setRolledDices,
+    scoringCategories,
+    setScoringCategories,
+    rounds,
+    setRounds,
+    nbrOfThrowsLeft,
+    setNbrOfThrowsLeft,
+    minorPoints,
+    setMinorPoints,
+    hasAppliedBonus,
+    setHasAppliedBonus,
+    isSettingPoints,
+    setIsSettingPoints,
+    selectedField,
+    setSelectedField,
+    layerDismissed,
+    setLayerDismissed,
+    isLayerVisible,
+    setLayerVisible,
+    setGameScreenActive,
   } = useGame();
 
-  // Use scoreModalOpen from GameContext instead of local state
-  // This persists across Gameboard unmount/remount cycles
-  const [isLayerVisible, setLayerVisible] = useState(true);
-  const [layerDismissed, setLayerDismissed] = useState(false);
-  
+  const { elapsedTime } = useElapsedTime();
+
   // CRITICAL: Additional guard to prevent onSetPointsPress rapid double-clicks
   const setPointsInProgressRef = useRef(false);
   // CRITICAL: Bonus flag for race condition prevention (must be outside handler)
   const bonusAppliedRef = useRef(false);
 
-  // DEBUG: Track totalPoints changes to detect duplications
-  // useEffect(() => {
-  //   if (gameStarted && totalPoints > 0) {
-  //     console.log(`[Gameboard DEBUG] totalPoints changed: ${totalPoints} | minorPoints: ${minorPoints} | hasBonus: ${hasAppliedBonus}`);
-  //   }
-  // }, [totalPoints, gameStarted, minorPoints, hasAppliedBonus]);
-
   // Game state
-  const [nbrOfThrowsLeft, setNbrOfThrowsLeft] = useState(NBR_OF_THROWS);
-  const [selectedDices, setSelectedDices] = useState(new Array(NBR_OF_DICES).fill(false));
   const resetDiceSelection = useCallback(() => setSelectedDices(new Array(NBR_OF_DICES).fill(false)), []);
-  const [rounds, setRounds] = useState(MAX_SPOTS);
-  const [rolledDices, setRolledDices] = useState(new Array(NBR_OF_DICES).fill(0));
 
   // Start the game (decreases a token; overlay does not start the game)
   const beginGame = useCallback(() => {
     // dev log removed
     if (gameStarted) return true;
     if ((tokens ?? 0) > 0) {
-  // Optimistic local decrement for immediate UI responsiveness
-  setTokens(prev => Math.max(0, (prev ?? 0) - 1));
+      // Optimistic local decrement for immediate UI responsiveness
+      setTokens(prev => Math.max(0, (prev ?? 0) - 1));
 
       // Persist decrement atomically and set lastTokenDecrement only when
       // tokens transition from MAX_TOKENS -> MAX_TOKENS-1 to establish the
@@ -293,57 +287,44 @@ export default function Gameboard({ route, navigation }) {
 
   // Log layer visibility changes (dev-only) to diagnose unexpected auto-starts
   useEffect(() => {
-  // dev log removed
-  return undefined;
+    // dev log removed
+    return undefined;
   }, [isLayerVisible, gameStarted, tokens]);
 
   // When rounds reach 0, end the game and open the score modal
   useEffect(() => {
     if (rounds === 0 && !gameEnded) {
-      // console.log(`[Gameboard DEBUG] Game ending - Opening ScoreModal with totalPoints: ${totalPoints}, minorPoints: ${minorPoints}, hasBonus: ${hasAppliedBonus}`);
       endGame();
       setScoreModalOpen(true);
     }
   }, [rounds, gameEnded, endGame, totalPoints, minorPoints, hasAppliedBonus, setScoreModalOpen]);
 
-  // DEBUG: Track scoreOpen state changes
-  useEffect(() => {
-    // console.log('[Gameboard DEBUG] scoreModalOpen changed:', scoreModalOpen);
-  }, [scoreModalOpen]);
-
-  // Scoring categories
-  const [scoringCategories, setScoringCategories] = useState(
-    scoringCategoriesConfig.map((cat) => {
-      let calculateScore = null;
-      switch (cat.name) {
-        case 'ones': calculateScore = (r) => calculateDiceSum(r, 1); break;
-        case 'twos': calculateScore = (r) => calculateDiceSum(r, 2); break;
-        case 'threes': calculateScore = (r) => calculateDiceSum(r, 3); break;
-        case 'fours': calculateScore = (r) => calculateDiceSum(r, 4); break;
-        case 'fives': calculateScore = (r) => calculateDiceSum(r, 5); break;
-        case 'sixes': calculateScore = (r) => calculateDiceSum(r, 6); break;
-        case 'twoOfKind': calculateScore = (r) => calculateTwoOfKind(r); break;
-        case 'threeOfAKind': calculateScore = (r) => calculateThreeOfAKind(r); break;
-        case 'fourOfAKind': calculateScore = (r) => calculateFourOfAKind(r); break;
-        case 'yatzy': calculateScore = (r) => calculateYatzy(r); break;
-        case 'fullHouse': calculateScore = (r) => (calculateFullHouse(r) ? 25 : 0); break;
-        case 'smallStraight': calculateScore = (r) => calculateSmallStraight(r); break;
-        case 'largeStraight': calculateScore = (r) => calculateLargeStraight(r); break;
-        case 'chance': calculateScore = (r) => calculateChange(r); break;
-        default: calculateScore = null;
-      }
-      return { ...cat, calculateScore, locked: false, points: 0 };
-    })
+  // 1) React Navigation fokuksen mukaan (Gameboard näkyvissä / ei)
+  useFocusEffect(
+    React.useCallback(() => {
+      setGameScreenActive(true);
+      return () => {
+        setGameScreenActive(false);
+      };
+    }, [setGameScreenActive])
   );
 
-  const [minorPoints, setMinorPoints] = useState(0);
-  const [hasAppliedBonus, setHasAppliedBonus] = useState(false);
-  const [isSettingPoints, setIsSettingPoints] = useState(false);
+  // 2) AppState: kun app menee taustalle, pause; kun takaisin, active
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') {
+        setGameScreenActive(true);
+      } else {
+        setGameScreenActive(false);
+      }
+    });
+
+    return () => {
+      sub.remove();
+    };
+  }, [setGameScreenActive]);
 
   useEffect(() => {
-    // If this component was unmounted very recently, the remount may be
-    // transient (navigator thrash). Delay setting the layer visibility to
-    // avoid an immediate animation/jump.
     const THRESHOLD = 500; // ms
     const since = Date.now() - (lastGameboardUnmountAt || 0);
     if (since < THRESHOLD) {
@@ -365,9 +346,7 @@ export default function Gameboard({ route, navigation }) {
   }, [route?.params?.playerId, setPlayerId]);
 
   const resetGame = useCallback(() => {
-    // console.log('[Gameboard DEBUG] resetGame called - resetting all points to 0');
-    // console.log('[Gameboard DEBUG] resetGame stack:', new Error().stack);
-    setIsGameSaved(true); // Notify RenderFirstRow to reset stopwatch
+    setIsGameSaved(true);
     setScoringCategories((prev) =>
       prev.map((category) => ({
         ...category,
@@ -384,10 +363,10 @@ export default function Gameboard({ route, navigation }) {
     setHasAppliedBonus(false);
     setIsSettingPoints(false); // Reset the lock flag
     setLayerDismissed(false); // Reset layer dismissal flag
-    setBoard(Array(NBR_OF_DICES).fill(1));
+    setBoard(Array(NBR_OF_DICES).fill(7));
     setRolledDices(new Array(NBR_OF_DICES).fill(0));
     clearPointOperationHistory(); // Clear tracking history
-    
+
     // CRITICAL: Reset all operation guards to allow fresh game
     setPointsInProgressRef.current = false;
     saveInProgressRef.current = false;
@@ -417,11 +396,9 @@ export default function Gameboard({ route, navigation }) {
 
     // Add to locking set BEFORE any state updates
     lockingCategoriesRef.current.add(selectedField);
-    // console.log(`[Gameboard DEBUG] Locking category ${selectedField} (${selectedCategory.name})`);
 
     setIsSettingPoints(true); // Lock to prevent re-entry
-    // console.log(`[Gameboard DEBUG] Setting points for ${selectedCategory.name}, current totalPoints: ${totalPoints}`);
-    
+
     // Capture totalPoints BEFORE update for tracking
     const totalBefore = totalPoints;
 
@@ -469,8 +446,7 @@ export default function Gameboard({ route, navigation }) {
       } else {
         const points = selectedCategory.calculateScore(rolledDices);
         const isMinor = minorNames.includes(selectedCategory.name);
-      //console.log(`[Gameboard DEBUG] ${selectedCategory.name}: ${points} pts (isMinor: ${isMinor})`);
-        
+
         // CRITICAL: Check locked status before updating
         let wasAlreadyLocked = false;
         setScoringCategories((prev) => {
@@ -482,7 +458,7 @@ export default function Gameboard({ route, navigation }) {
           }
           return prev.map((c) => (c.index === selectedField ? { ...c, points, locked: true } : c));
         });
-        
+
         // Only update points if category was not already locked
         if (!wasAlreadyLocked) {
           if (isMinor) {
@@ -494,11 +470,9 @@ export default function Gameboard({ route, navigation }) {
               bonusAppliedRef.current = true;
               setHasAppliedBonus(true);
             }
-            console.log(`[Gameboard DEBUG] Minor section: newTotal=${newMinorPoints}, willApplyBonus=${willApplyBonus}`);
             setMinorPoints(newMinorPoints);
             setTotalPoints((prevTotal) => {
               const newTotal = prevTotal + points + (willApplyBonus ? BONUS_POINTS : 0);
-              // console.log(`[Gameboard DEBUG] totalPoints: ${prevTotal} + ${points} + ${willApplyBonus ? BONUS_POINTS : 0} = ${newTotal}`);
               trackPointOperation({
                 categoryName: selectedCategory.name,
                 points: points + (willApplyBonus ? BONUS_POINTS : 0),
@@ -511,7 +485,6 @@ export default function Gameboard({ route, navigation }) {
           } else {
             setTotalPoints((tp) => {
               const newTotal = tp + points;
-              // console.log(`[Gameboard DEBUG] totalPoints: ${tp} + ${points} = ${newTotal}`);
               trackPointOperation({
                 categoryName: selectedCategory.name,
                 points,
@@ -526,14 +499,13 @@ export default function Gameboard({ route, navigation }) {
       }
       setSelectedField(null);
     });
-    
+
     // Cleanup: Remove category from lock after state updates complete
     // Use setTimeout to ensure cleanup happens after all setState batches
     setTimeout(() => {
       lockingCategoriesRef.current.delete(selectedField);
-      // console.log(`[Gameboard DEBUG] Released lock for category ${selectedField}`);
     }, 100);
-    
+
   }, [selectedField, scoringCategories, rolledDices, hasAppliedBonus, minorPoints, isSettingPoints]);
   // Note: totalPoints removed from deps - we use functional updates only
 
@@ -642,12 +614,12 @@ export default function Gameboard({ route, navigation }) {
       console.warn('[Gameboard DEBUG] onSetPointsPress BLOCKED - already in progress (prevented duplicate!)');
       return;
     }
-    
+
     const sel = selectedField;
     if (sel == null) return;
 
     setPointsInProgressRef.current = true; // Lock before async operations
-    
+
     try {
       handleSetPoints();
       setNbrOfThrowsLeft(NBR_OF_THROWS);
@@ -675,22 +647,43 @@ export default function Gameboard({ route, navigation }) {
   );
   const diceRow = useMemo(
     () =>
-      Array.from({ length: NBR_OF_DICES }, (_, i) => (
-        <DiceAnimation
-          key={i}
-          diceName={dicefaces[board[i] - 1]?.display}
-          isSelected={selectedDices[i]}
-          onSelect={onSelectHandlers[i]}
-          animationValue={diceAnimations[i]}
-          color={getDiceColor(i)}
-          isRolling={isRolling && !selectedDices[i]}
-          canInteract={canSelectNow && !rollingGlobal}
-          tileSize={tileSize}       // ← uusi
-          columns={5}
-          hPadding={bp.isTablet ? 80 : 65}
-        />
-      )),
-    [board, selectedDices, onSelectHandlers, diceAnimations, getDiceColor, isRolling, canSelectNow, rollingGlobal, tileSize, bp.isTablet]
+      Array.from({ length: NBR_OF_DICES }, (_, i) => {
+        const value = board[i];
+
+        // value 7 = "unrolled" / logo dice
+        const faceIndex =
+          value === 7
+            ? 6 // index of logoDice in dicefaces
+            : Math.max(0, Math.min(5, (value || 1) - 1)); // clamp 1–6 → 0–5 just to be safe
+
+        return (
+          <DiceAnimation
+            key={i}
+            diceName={dicefaces[faceIndex]?.display}
+            isSelected={selectedDices[i]}
+            onSelect={onSelectHandlers[i]}
+            animationValue={diceAnimations[i]}
+            color={getDiceColor(i)}
+            isRolling={isRolling && !selectedDices[i]}
+            canInteract={canSelectNow && !rollingGlobal}
+            tileSize={tileSize}
+            columns={5}
+            hPadding={bp.isTablet ? 80 : 65}
+          />
+        );
+      }),
+    [
+      board,
+      selectedDices,
+      onSelectHandlers,
+      diceAnimations,
+      getDiceColor,
+      isRolling,
+      canSelectNow,
+      rollingGlobal,
+      tileSize,
+      bp.isTablet,
+    ]
   );
 
   // ScoreModal -> save score and reset game if successful
@@ -701,10 +694,10 @@ export default function Gameboard({ route, navigation }) {
         console.warn('[Gameboard DEBUG] Save already in progress - preventing duplicate!');
         return false;
       }
-      
+
       saveInProgressRef.current = true;
       console.log(`[Gameboard DEBUG] Saving score: total=${total}, elapsed=${elapsedSecs}`);
-      
+
       try {
         const ok = await savePlayerPoints({ totalPoints: total, duration: elapsedSecs });
         if (ok) {
@@ -773,8 +766,8 @@ export default function Gameboard({ route, navigation }) {
   );
 
   const headerEl = useMemo(() => (
-  <RenderFirstRow rounds={rounds} />
-), [rounds]);
+    <RenderFirstRow rounds={rounds} />
+  ), [rounds]);
 
   const extraData = useMemo(() => ({
     scoringCategories, totalPoints, minorPoints,
@@ -809,7 +802,6 @@ export default function Gameboard({ route, navigation }) {
   ), [scoringCategories, totalPoints, minorPoints, selectedField, setSelectedFieldSafe, audioApi, gameboardstyles, rolledDices, nbrOfThrowsLeft]);
 
   const keyExtractor = useCallback((item) => item.key, []);
-
   return (
     <ImageBackground source={require('../../assets/diceBackground.webp')} style={styles.background}>
       {isLayerVisible && !gameStarted && !layerDismissed && (

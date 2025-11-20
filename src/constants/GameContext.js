@@ -25,7 +25,20 @@ import { AppState } from 'react-native';
 import { dbOnValue, dbOff, dbUpdate, dbRunTransaction, dbSet, dbGet, auth, onAuthStateChanged } from '../services/Firebase';
 import { goOnline, goOffline } from '../services/Presence';
 import { isBetterScore } from '../utils/scoreUtils';
-import { MAX_TOKENS } from './Game';
+import { NBR_OF_THROWS, NBR_OF_DICES, MAX_SPOTS, BONUS_POINTS, BONUS_POINTS_LIMIT, MAX_TOKENS } from '../constants/Game';
+import { scoringCategoriesConfig } from '../constants/scoringCategoriesConfig';
+// import { useElapsedTime } from '../constants/ElapsedTimeContext';
+import {
+  calculateDiceSum,
+  calculateTwoOfKind,
+  calculateThreeOfAKind,
+  calculateFourOfAKind,
+  calculateYatzy,
+  calculateFullHouse,
+  calculateSmallStraight,
+  calculateLargeStraight,
+  calculateChange,
+} from '../logic/diceLogic';
 
 // Regeneration constants (follow repo convention)
 const REGEN_INTERVAL = 1.6 * 60 * 60 * 1000; // 1.6 hours
@@ -65,9 +78,48 @@ export const GameProvider = ({ children }) => {
   const [isGameSaved, setIsGameSaved] = useState(true);
   const [startGameCb, setStartGameCb] = useState(null);
   const [endGameCb, setEndGameCb] = useState(null);
+  const [isGameScreenActive, setGameScreenActive] = useState(true);
   // ScoreModal persistence (survives Gameboard unmount)
   const [scoreModalOpen, setScoreModalOpen] = useState(false);
   const [scoreModalData, setScoreModalData] = useState(null);
+
+  //Moved board state here to prevent Gameboard re-mounting issues
+  const [board, setBoard] = useState(Array(NBR_OF_DICES).fill(7));
+  const [selectedDices, setSelectedDices] = useState(new Array(NBR_OF_DICES).fill(false));
+  const [rolledDices, setRolledDices] = useState(new Array(NBR_OF_DICES).fill(0));
+  const [rounds, setRounds] = useState(MAX_SPOTS);
+  const [nbrOfThrowsLeft, setNbrOfThrowsLeft] = useState(NBR_OF_THROWS);
+  const [minorPoints, setMinorPoints] = useState(0);
+  const [hasAppliedBonus, setHasAppliedBonus] = useState(false);
+  const [isSettingPoints, setIsSettingPoints] = useState(false);
+  const [selectedField, setSelectedField] = useState(null);
+  const [layerDismissed, setLayerDismissed] = useState(false);
+  const [isLayerVisible, setLayerVisible] = useState(true);
+
+  // Scoring categories with calculation helpers
+  const [scoringCategories, setScoringCategories] = useState(
+    scoringCategoriesConfig.map((cat) => {
+      let calculateScore = null;
+      switch (cat.name) {
+        case 'ones': calculateScore = (r) => calculateDiceSum(r, 1); break;
+        case 'twos': calculateScore = (r) => calculateDiceSum(r, 2); break;
+        case 'threes': calculateScore = (r) => calculateDiceSum(r, 3); break;
+        case 'fours': calculateScore = (r) => calculateDiceSum(r, 4); break;
+        case 'fives': calculateScore = (r) => calculateDiceSum(r, 5); break;
+        case 'sixes': calculateScore = (r) => calculateDiceSum(r, 6); break;
+        case 'twoOfKind': calculateScore = (r) => calculateTwoOfKind(r); break;
+        case 'threeOfAKind': calculateScore = (r) => calculateThreeOfAKind(r); break;
+        case 'fourOfAKind': calculateScore = (r) => calculateFourOfAKind(r); break;
+        case 'yatzy': calculateScore = (r) => calculateYatzy(r); break;
+        case 'fullHouse': calculateScore = (r) => (calculateFullHouse(r) ? 25 : 0); break;
+        case 'smallStraight': calculateScore = (r) => calculateSmallStraight(r); break;
+        case 'largeStraight': calculateScore = (r) => calculateLargeStraight(r); break;
+        case 'chance': calculateScore = (r) => calculateChange(r); break;
+        default: calculateScore = null;
+      }
+      return { ...cat, calculateScore, locked: false, points: 0 };
+    })
+  );
 
   const startGame = useCallback(() => {
     try {
@@ -182,7 +234,7 @@ export const GameProvider = ({ children }) => {
       } catch (e) { }
     })();
 
-  // Re-establish presence when auth state changes (token refresh/reauth can remove onDisconnect hooks)
+    // Re-establish presence when auth state changes (token refresh/reauth can remove onDisconnect hooks)
     let authUnsub = null;
     try {
       authUnsub = onAuthStateChanged && onAuthStateChanged(auth(), async (u) => {
@@ -237,8 +289,8 @@ export const GameProvider = ({ children }) => {
           try { goOffline(playerId).catch(() => { }); } catch (e) { }
         }
       } catch (e) { }
-  try { if (authUnsub && typeof authUnsub === 'function') authUnsub(); else if (authUnsub && typeof authUnsub.remove === 'function') authUnsub.remove(); } catch (e) { }
-  try { AppState.removeEventListener && AppState.removeEventListener('change', handleAppActive); } catch (e) { }
+      try { if (authUnsub && typeof authUnsub === 'function') authUnsub(); else if (authUnsub && typeof authUnsub.remove === 'function') authUnsub.remove(); } catch (e) { }
+      try { AppState.removeEventListener && AppState.removeEventListener('change', handleAppActive); } catch (e) { }
     };
   }, [playerId, gameVersion, gameVersionCode]);
 
@@ -685,8 +737,6 @@ export const GameProvider = ({ children }) => {
     const handleAppState = (next) => {
       try {
         if (next === 'active') {
-          // run a quick compute on resume to correct any missed intervals
-          // On app resume: run compute and re-schedule
           computeAndApplyTokens().catch(() => { });
           scheduleNext();
         }
@@ -766,7 +816,6 @@ export const GameProvider = ({ children }) => {
     setPlayerId,
     playerName,
     setPlayerName,
-    // alternate identity/context helpers
     playerIdContext,
     setPlayerIdContext,
     playerNameContext,
@@ -777,14 +826,13 @@ export const GameProvider = ({ children }) => {
     setIsLinked,
     playerLevel,
     setPlayerLevel,
-    // version info
     gameVersion,
     setGameVersion,
     gameVersionCode,
     setGameVersionCode,
 
-    // identity
-    avatarUrl: avatarUrl,
+    // avatar
+    avatarUrl,
     displayAvatarUrl: pendingAvatar !== null ? pendingAvatar : avatarUrl,
     setAvatarUrl,
 
@@ -795,10 +843,10 @@ export const GameProvider = ({ children }) => {
     tokensStabilizedAt: tokensStabilizedAtRef.current,
     nextTokenTime,
     setNextTokenTime,
-    // helper: compute time string on demand to avoid per-second context updates
     getTimeToNextToken,
     triggerTokenRecalc,
     stabilizeTokensOnBoot,
+
     // game lifecycle
     gameStarted,
     gameEnded,
@@ -814,30 +862,61 @@ export const GameProvider = ({ children }) => {
     endGameCb,
     setEndGameCb,
     markManualChange,
+    isGameScreenActive,
+    setGameScreenActive,
+
+    // GameState bits
+    board,
+    setBoard,
+    selectedDices,
+    setSelectedDices,
+    rolledDices,
+    setRolledDices,
+    scoringCategories,
+    setScoringCategories,
+    rounds,
+    setRounds,
+    nbrOfThrowsLeft,
+    setNbrOfThrowsLeft,
+    minorPoints,
+    setMinorPoints,
+    hasAppliedBonus,
+    setHasAppliedBonus,
+    isSettingPoints,
+    setIsSettingPoints,
+    selectedField,
+    setSelectedField,
+    layerDismissed,
+    setLayerDismissed,
+    isLayerVisible,
+    setLayerVisible,
+
     // UI bits
     energyModalVisible,
     setEnergyModalVisible,
-    // ScoreModal persistence
+
+    // ScoreModal
     scoreModalOpen,
     setScoreModalOpen,
     scoreModalData,
     setScoreModalData,
-    // timeToNextToken is provided via getTimeToNextToken()
-    // scoreboard & viewing helpers
+
+    // scoreboard & presence
     scoreboardData,
     setScoreboardData,
     scoreboardMonthly,
     setScoreboardMonthly,
-    presenceMap,
     scoreboardWeekly,
     setScoreboardWeekly,
     scoreboardIndices,
     setScoreboardIndices,
+    presenceMap,
     viewingPlayerId,
     setViewingPlayerId,
     viewingPlayerName,
     setViewingPlayerName,
   }), [
+    // identity
     playerId,
     playerName,
     playerIdContext,
@@ -847,29 +926,55 @@ export const GameProvider = ({ children }) => {
     playerLevel,
     gameVersion,
     gameVersionCode,
+
+    // avatar
     avatarUrl,
     pendingAvatar,
+
+    // tokens
     tokens,
     tokensStabilized,
     nextTokenTime,
+
+    // game lifecycle
     gameStarted,
     gameEnded,
     totalPoints,
     isGameSaved,
     startGameCb,
     endGameCb,
+
+    // GameState
+    board,
+    selectedDices,
+    rolledDices,
+    scoringCategories,
+    rounds,
+    nbrOfThrowsLeft,
+    minorPoints,
+    hasAppliedBonus,
+    isSettingPoints,
+    selectedField,
+    layerDismissed,
+    isLayerVisible,
+
+    // UI
     energyModalVisible,
+
+    // ScoreModal
     scoreModalOpen,
     scoreModalData,
-    // intentionally omitted: timeToNextToken
+
+    // scoreboard & presence
     scoreboardData,
     scoreboardMonthly,
-    presenceMap,
     scoreboardWeekly,
     scoreboardIndices,
+    presenceMap,
     viewingPlayerId,
     viewingPlayerName,
-    // functions (stable via useCallback but include to be safe)
+
+    // callbackit (useCallback)
     startGame,
     endGame,
     setPlayerId,
@@ -899,11 +1004,10 @@ export const GameProvider = ({ children }) => {
     setScoreboardIndices,
     setViewingPlayerId,
     setViewingPlayerName,
-    scoreModalOpen,
     setScoreModalOpen,
-    scoreModalData,
     setScoreModalData,
   ]);
+
 
   return <GameContext.Provider value={contextValue}>{children}</GameContext.Provider>;
 };
