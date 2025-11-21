@@ -94,9 +94,13 @@ const SettingScreen = () => {
       setKbVisible(false);
       return;
     } else {
-      const nameExists = await checkIfNameExists(cleanedName);
-      if (nameExists && cleanedName !== playerName) {
-        Alert.alert('Name already in use', 'That nickname is already in use. Please choose another.');
+      // Skip *own* profile, prevent names used by others
+      const nameExists = await checkIfNameExists(cleanedName, playerId);
+      if (nameExists) {
+        Alert.alert(
+          'Name already in use',
+          'That nickname is already in use. Please choose another.'
+        );
         return;
       }
     }
