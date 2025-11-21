@@ -141,12 +141,6 @@ export default function Gameboard({ route, navigation }) {
     [playSfx, playSelect, playDeselect, playDiceTouch]
   );
 
-  // debug overlay (visible in non-production) to help tuning on real devices
-  const showDebug = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production';
-
-  // const [selectedField, setSelectedField] = useState(null);
-
-
   const {
     playerId,
     setPlayerId,
@@ -192,6 +186,7 @@ export default function Gameboard({ route, navigation }) {
     isLayerVisible,
     setLayerVisible,
     setGameScreenActive,
+    // setElapsedTime,
   } = useGame();
 
   const { elapsedTime } = useElapsedTime();
@@ -299,7 +294,7 @@ export default function Gameboard({ route, navigation }) {
     }
   }, [rounds, gameEnded, endGame, totalPoints, minorPoints, hasAppliedBonus, setScoreModalOpen]);
 
-  // 1) React Navigation fokuksen mukaan (Gameboard näkyvissä / ei)
+  // 1) React Navigation focus (Gameboard visible / not)
   useFocusEffect(
     React.useCallback(() => {
       setGameScreenActive(true);
@@ -309,7 +304,7 @@ export default function Gameboard({ route, navigation }) {
     }, [setGameScreenActive])
   );
 
-  // 2) AppState: kun app menee taustalle, pause; kun takaisin, active
+  // 2) AppState: When app goes to background/foreground
   useEffect(() => {
     const sub = AppState.addEventListener('change', (state) => {
       if (state === 'active') {
@@ -323,6 +318,7 @@ export default function Gameboard({ route, navigation }) {
       sub.remove();
     };
   }, [setGameScreenActive]);
+
 
   useEffect(() => {
     const THRESHOLD = 500; // ms
@@ -347,6 +343,8 @@ export default function Gameboard({ route, navigation }) {
 
   const resetGame = useCallback(() => {
     setIsGameSaved(true);
+    setScoreModalOpen(false);
+
     setScoringCategories((prev) =>
       prev.map((category) => ({
         ...category,
@@ -361,17 +359,16 @@ export default function Gameboard({ route, navigation }) {
     setTotalPoints(0);
     setMinorPoints(0);
     setHasAppliedBonus(false);
-    setIsSettingPoints(false); // Reset the lock flag
-    setLayerDismissed(false); // Reset layer dismissal flag
+    setIsSettingPoints(false);
+    setLayerDismissed(false);
     setBoard(Array(NBR_OF_DICES).fill(7));
     setRolledDices(new Array(NBR_OF_DICES).fill(0));
-    clearPointOperationHistory(); // Clear tracking history
+    clearPointOperationHistory();
 
-    // CRITICAL: Reset all operation guards to allow fresh game
     setPointsInProgressRef.current = false;
     saveInProgressRef.current = false;
-    lockingCategoriesRef.current.clear(); // Clear category locks
-  }, [resetDiceSelection, setTotalPoints, setIsGameSaved]);
+    lockingCategoriesRef.current.clear();
+  }, [resetDiceSelection, setTotalPoints, setIsGameSaved, setScoreModalOpen]);
 
   // Grid data (stable)
   const data = useMemo(() => Array.from({ length: 32 }, (_, index) => ({ key: String(index + 2) })), []);
@@ -830,7 +827,6 @@ export default function Gameboard({ route, navigation }) {
             onClose={() => setEnergyModalVisible(false)}
             tokens={tokens}
             maxTokens={10}
-          // timeToNextToken={timeToNextToken}
           />
         </>
       )}
