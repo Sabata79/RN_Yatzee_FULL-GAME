@@ -9,6 +9,7 @@
  * @author Sabata79
  * @since 2025-09-16 (updated 2025-11-20)
  */
+
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, Animated } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -19,38 +20,30 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import COLORS from '../constants/colors';
 
 function RenderFirstRow() {
-  // Game flags live in GameContext
   const {
     gameStarted,
     gameEnded,
     isGameSaved,
-    setIsGameSaved,
     isGameScreenActive,
   } = useGame();
 
-  // Elapsed seconds live in ElapsedTimeContext (for other consumers, e.g. ScoreModal)
   const { setElapsedTime, elapsedTime } = useElapsedTime();
-
-  // Local stopwatch state for visual display.
-  // Initialize from context so we continue where we left off when remounting.
   const [totalSeconds, setTotalSeconds] = useState(() => elapsedTime || 0);
-
-  // Single interval ref to avoid multiple timers
   const intervalRef = useRef(null);
 
-  // Glow animation
+  // Glow-animation
   const glowAnimRef = useRef(new Animated.Value(1));
   const glowAnim = glowAnimRef.current;
 
   const MAX_SECS = 9999;
 
-  // Derive timer color based on totalSeconds (traffic light style)
+  // Color in traffic light style
   const timerColor =
     totalSeconds > 150 ? COLORS.error :
     totalSeconds > 100 ? COLORS.warning :
     COLORS.success;
 
-  // Start glow animation when game starts (one-time per game)
+  // Start glow animation when the game starts
   useEffect(() => {
     if (!gameStarted) return;
 
@@ -69,16 +62,18 @@ function RenderFirstRow() {
     };
   }, [gameStarted, glowAnim]);
 
-  // Core stopwatch effect:
-  // Runs a single interval when game is active & screen is active.
+  // Stopwatch:
+  // - runs only when the game is started
+  // - the game is not ended
+  // - the game screen is active
   useEffect(() => {
     const shouldRun =
       gameStarted &&
       !gameEnded &&
+      !isGameSaved &&
       isGameScreenActive;
 
     if (!shouldRun) {
-      // Stop interval if it exists
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
@@ -86,7 +81,6 @@ function RenderFirstRow() {
       return;
     }
 
-    // Avoid creating multiple intervals
     if (intervalRef.current) return;
 
     intervalRef.current = setInterval(() => {
@@ -97,32 +91,32 @@ function RenderFirstRow() {
       });
     }, 1000);
 
-    // Cleanup on unmount or when flags change
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
       }
     };
-  }, [gameStarted, gameEnded, isGameScreenActive]);
+  }, [gameStarted, gameEnded, isGameSaved, isGameScreenActive]);
 
-  // Mirror local totalSeconds -> ElapsedTimeContext,
-  // but never move the context value backwards.
+  // Sync local → ElapsedTimeContext
   useEffect(() => {
-    if (totalSeconds <= 0) return;
+    if (totalSeconds < 0) return;
+
+    // Reset-case is handled in another effect, here only growth
+    if (totalSeconds === 0) return;
 
     setElapsedTime((prev) => {
       if (totalSeconds <= prev) return prev;
-      const clamped = totalSeconds >= MAX_SECS ? MAX_SECS : totalSeconds;
-      return clamped;
+      return totalSeconds >= MAX_SECS ? MAX_SECS : totalSeconds;
     });
   }, [totalSeconds, setElapsedTime]);
 
-  // When game is saved/reset, clear timer and state
+  // When the game is saved / reset (isGameSaved = true),
+  // reset the clock completely.
   useEffect(() => {
     if (!isGameSaved) return;
 
-    // Stop interval
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
@@ -130,21 +124,10 @@ function RenderFirstRow() {
 
     setTotalSeconds(0);
     setElapsedTime(0);
-    setIsGameSaved(false);
 
     glowAnim.stopAnimation();
     glowAnim.setValue(1);
-  }, [isGameSaved, setElapsedTime, setIsGameSaved, glowAnim]);
-
-  // When game ends, just stop the interval. ElapsedTime is already
-  // kept in sync while ticking, so no extra write needed here.
-  useEffect(() => {
-    if (!gameEnded) return;
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-  }, [gameEnded]);
+  }, [isGameSaved, setElapsedTime, glowAnim]);
 
   const insets = useSafeAreaInsets();
   const topPad = getFirstRowTopPadding(insets);
