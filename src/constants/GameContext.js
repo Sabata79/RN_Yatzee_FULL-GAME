@@ -74,6 +74,7 @@ export const GameProvider = ({ children }) => {
   // Game lifecycle & UI state expected by Gameboard and other screens
   const [gameStarted, setGameStarted] = useState(false);
   const [gameEnded, setGameEnded] = useState(false);
+  const [gameStartedAt, setGameStartedAt] = useState(null);
   const [totalPoints, setTotalPoints] = useState(0);
   const [isGameSaved, setIsGameSaved] = useState(true);
   const [startGameCb, setStartGameCb] = useState(null);
@@ -125,6 +126,9 @@ export const GameProvider = ({ children }) => {
     try {
       setGameStarted(true);
       setGameEnded(false);
+      setIsGameSaved(false);
+      setGameStartedAt(Date.now());
+
       if (typeof startGameCb === 'function') {
         try { startGameCb(); } catch (e) { }
       }
@@ -135,6 +139,7 @@ export const GameProvider = ({ children }) => {
     try {
       setGameEnded(true);
       setGameStarted(false);
+      setGameStartedAt(null);
       if (typeof endGameCb === 'function') {
         try { endGameCb(); } catch (e) { }
       }
@@ -850,6 +855,7 @@ export const GameProvider = ({ children }) => {
     // game lifecycle
     gameStarted,
     gameEnded,
+    gameStartedAt,
     startGame,
     endGame,
     totalPoints,
@@ -943,6 +949,8 @@ export const GameProvider = ({ children }) => {
     isGameSaved,
     startGameCb,
     endGameCb,
+    isGameScreenActive,
+    gameStartedAt,
 
     // GameState
     board,
