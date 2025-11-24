@@ -12,6 +12,7 @@ This mobile application is a digital version of the classic dice game Yatzy, bui
 
 - **Classic Yatzy Gameplay:** Experience the traditional Yatzy game with all standard rules and scoring.
 - **Fully Responsive Gameboard:** Complete support for both tablets and phones. Footer dice size is now adjustable for optimal experience on all devices.
+- **Score Sharing:** Share your achievements with friends! Generate a branded score image and share it directly from the game via WhatsApp, Messages, or other apps.
 - **New Score Modal:** Redesigned score modal for improved clarity and usability.
 - **New Avatars & Elite Background:** Unlock new avatars and a special elite background for top players.
 - **Sound Effects:** Immersive sound effects added throughout the game.
@@ -56,6 +57,12 @@ This repository is intended for code review and demonstration purposes. The code
 After launching the game, you'll be greeted with a simple menu where you can start a new game, view high scores, or read the game rules. Tap 'Start Game' to begin your Yatzy adventure!
 
 ## Changelog
+
+### Version 3.0.7
+- **Score Sharing:** Added share functionality in the score modal. Players can now share their achievements with friends via a branded image that includes player name, total score, and download link to Google Play.
+- **Score Validation Improvements:** Fixed duplicate validation warnings that could occur when returning from share dialog.
+- **Modal State Persistence:** Improved score modal state management to prevent premature closure during share operations.
+- **UI Polish:** Optimized share button layout and visual consistency across the score modal interface.
 
 ### Version 3.0.0 (September 2025)
 - **Fully Responsive Gameboard:** Complete support for tablets and phones, with adjustable footer dice size.
