@@ -4,7 +4,9 @@
   "runtimeVersion": "3.0.0",
   "main": "node_modules/expo/AppEntry.js",
   "resolutions": {
-    "glob": "^10.5.0"
+    "glob": "^10.5.0",
+    "js-yaml": "^4.1.1",
+    "tmp": "^0.2.4"
   },
   "engines": {
     "node": ">=20.19.4",
