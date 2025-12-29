@@ -382,8 +382,14 @@ export const GameProvider = ({ children }) => {
             const aggAll = pdata?.allTimeBest || null;
             const monMap = pdata?.monthlyBest && pdata.monthlyBest[currentYear] ? pdata.monthlyBest[currentYear] : null;
             const aggMon = monMap ? monMap[String(currentMonth + 1)] : null;
-            const weekKey = `${currentYear}-${String(currentWeek).padStart(2, '0')}`;
-            const aggWeek = pdata?.weeklyBest && pdata.weeklyBest[weekKey] ? pdata.weeklyBest[weekKey] : null;
+            
+            // Try both weekKey formats: with zero-padding (new) and without (legacy)
+            const weekKeyPadded = `${currentYear}-${String(currentWeek).padStart(2, '0')}`;
+            const weekKeyUnpadded = `${currentYear}-${currentWeek}`;
+            let aggWeek = pdata?.weeklyBest && pdata.weeklyBest[weekKeyPadded] ? pdata.weeklyBest[weekKeyPadded] : null;
+            if (!aggWeek && pdata?.weeklyBest) {
+              aggWeek = pdata.weeklyBest[weekKeyUnpadded] || null;
+            }
 
             const finalAll = pickBetter(aggAll, bestAllFromScores);
             const finalMon = pickBetter(aggMon, bestMonFromScores);

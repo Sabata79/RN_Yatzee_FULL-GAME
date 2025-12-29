@@ -128,7 +128,7 @@ export function useGameSave() {
             const year = nowDate.getFullYear();
             const month = nowDate.getMonth() + 1; // 1..12
             const week = getWeekNumber(nowDate);
-            const weekKey = `${year}-${week}`;
+            const weekKey = `${year}-${String(week).padStart(2, '0')}`;
 
             // If player node missing, initialize minimal structure including the per-period maps
             if (current == null || typeof current !== 'object') {
@@ -199,7 +199,7 @@ export function useGameSave() {
           console.error('[GameSave] Aggregates transaction failed', txErr);
         }
 
-  // Recompute ranks (all-time/monthly/weekly) and update lastRank
+        // Recompute ranks (all-time/monthly/weekly) and update lastRank
         try {
           const allPlayersSnap = await dbGet('players');
           const allPlayers = allPlayersSnap && typeof allPlayersSnap.val === 'function' ? (allPlayersSnap.val() || {}) : (allPlayersSnap || {});
@@ -216,37 +216,31 @@ export function useGameSave() {
           };
           const currentWeek = getWeekNumber(nowDate);
 
-          const getBestScore = (scores, filterFn) => {
-            const filtered = scores.filter(filterFn);
-            if (filtered.length === 0) return null;
-            return filtered.reduce((best, s) => {
-              if (!best) return s;
-              if (s.points > best.points) return s;
-              if (s.points === best.points && s.duration < best.duration) return s;
-              if (s.points === best.points && s.duration === best.duration && new Date(s.date) < new Date(best.date)) return s;
-              return best;
-            }, null);
-          };
-
           const playerRanks = { allTime: [], monthly: [], weekly: [] };
+          
           Object.entries(allPlayers).forEach(([pid, pdata]) => {
-            const scores = pdata.scores ? Object.values(pdata.scores) : [];
-            const bestAll = getBestScore(scores, () => true);
-            if (bestAll) playerRanks.allTime.push({ playerId: pid, ...bestAll });
-            const bestMonth = getBestScore(scores, (s) => {
-              const parts = String(s.date).split('.');
-              if (parts.length !== 3) return false;
-              const d = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
-              return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
-            });
-            if (bestMonth) playerRanks.monthly.push({ playerId: pid, ...bestMonth });
-            const bestWeek = getBestScore(scores, (s) => {
-              const parts = String(s.date).split('.');
-              if (parts.length !== 3) return false;
-              const d = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
-              return getWeekNumber(d) === currentWeek && d.getFullYear() === currentYear;
-            });
-            if (bestWeek) playerRanks.weekly.push({ playerId: pid, ...bestWeek });
+            // Use aggregates (preferred) with fallback to legacy scores
+            const aggAll = pdata?.allTimeBest || null;
+            if (aggAll) {
+              playerRanks.allTime.push({ playerId: pid, ...aggAll });
+            }
+
+            const monMap = pdata?.monthlyBest && pdata.monthlyBest[currentYear] ? pdata.monthlyBest[currentYear] : null;
+            const aggMon = monMap ? monMap[String(currentMonth + 1)] : null;
+            if (aggMon) {
+              playerRanks.monthly.push({ playerId: pid, ...aggMon });
+            }
+
+            // Try both weekKey formats: with zero-padding (new) and without (legacy)
+            const weekKeyPadded = `${currentYear}-${String(currentWeek).padStart(2, '0')}`;
+            const weekKeyUnpadded = `${currentYear}-${currentWeek}`;
+            let aggWeek = pdata?.weeklyBest && pdata.weeklyBest[weekKeyPadded] ? pdata.weeklyBest[weekKeyPadded] : null;
+            if (!aggWeek && pdata?.weeklyBest) {
+              aggWeek = pdata.weeklyBest[weekKeyUnpadded] || null;
+            }
+            if (aggWeek) {
+              playerRanks.weekly.push({ playerId: pid, ...aggWeek });
+            }
           });
 
           const sortScores = (arr) => arr.sort((a, b) => {
@@ -283,7 +277,7 @@ export function useGameSave() {
         return false;
       }
     },
-    [resolvePlayerId, elapsedTime, saveGame]
+    [playerId, elapsedTime, resolvePlayerId, saveGame]
   );
 
   return { savePlayerPoints };

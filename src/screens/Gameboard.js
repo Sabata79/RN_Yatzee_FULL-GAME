@@ -688,12 +688,11 @@ export default function Gameboard({ route, navigation }) {
     async ({ total, elapsedSecs }) => {
       // CRITICAL GUARD: Prevent duplicate saves if user double-clicks the save button
       if (saveInProgressRef.current) {
-        console.warn('[Gameboard DEBUG] Save already in progress - preventing duplicate!');
+        console.warn('[Gameboard] Save already in progress - preventing duplicate!');
         return false;
       }
 
       saveInProgressRef.current = true;
-      console.log(`[Gameboard DEBUG] Saving score: total=${total}, elapsed=${elapsedSecs}`);
 
       try {
         const ok = await savePlayerPoints({ totalPoints: total, duration: elapsedSecs });
